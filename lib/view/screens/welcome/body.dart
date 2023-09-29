@@ -5,9 +5,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:workdone/view/widgets/bottomsheetlogin.dart';
 
-import '../../bottomsheet.dart';
-import '../../bottomsheetlogin.dart';
+import '../../widgets/bottomsheet.dart';
 import '../../loginscreen.dart';
 import '../../widgets/rounded_button.dart';
 import '../login_screen_worker.dart';

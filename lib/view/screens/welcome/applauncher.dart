@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'Screens_layout/layoutWorker.dart';
-import 'Screens_layout/layoutclient.dart';
-import 'login_screen_worker.dart';
-import 'login_screen_client.dart'; // Import the login screen for clients
-import 'welcome/welcome_screen.dart';
+import '../Screens_layout/layoutWorker.dart';
+import '../Screens_layout/layoutclient.dart';
+import '../login_screen_worker.dart';
+import '../login_screen_client.dart'; // Import the login screen for clients
+import 'welcome_screen.dart';
 
 class AppLauncher extends StatefulWidget {
   @override

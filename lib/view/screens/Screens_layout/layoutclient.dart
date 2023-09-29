@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
 
-import '../../payment.dart';
+import '../check out client/payment.dart';
 import '../homescreen/home screenClient.dart';
 import '../homescreen/homeWorker.dart';
 import '../post a project/project post.dart';

@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:hexcolor/hexcolor.dart';
 
-import 'screens/welcome/welcome_screen.dart';
+import '../screens/welcome/welcome_screen.dart';
 
 
 class firstscreen2 extends StatefulWidget {

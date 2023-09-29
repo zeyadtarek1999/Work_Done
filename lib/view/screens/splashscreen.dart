@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:math';
 
-import 'applauncher.dart';
+import 'welcome/applauncher.dart';
 
 class CustomSplashScreen extends StatefulWidget {
   @override

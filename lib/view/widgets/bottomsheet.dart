@@ -5,8 +5,8 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:hexcolor/hexcolor.dart';
 
 
-import '../model/mediaquery.dart';
-import 'screens/signup_screenworker.dart';
+import '../../model/mediaquery.dart';
+import '../screens/signup_screenworker.dart';
 
 class ChooseRoleBottomSheet extends StatelessWidget {
   @override

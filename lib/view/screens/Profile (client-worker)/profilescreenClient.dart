@@ -49,6 +49,7 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
     }
   }
 
+
   Future<int?> getSavedClientId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int? clientId = prefs.getInt('client_id');

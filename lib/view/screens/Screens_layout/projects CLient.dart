@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:workdone/view/screens/Bit%20Details/Bit%20details%20ClientPost.dart';
 
 import '../../../model/mediaquery.dart';
 
@@ -352,6 +354,24 @@ class _projectsClientState extends State<projectsClient> {
                          ),
                        ),
                      ),
+                     Spacer(),
+                     Container(
+                       width: 80,
+                       height: 36,
+                       decoration: BoxDecoration(
+                         color: HexColor('4D8D6E'),
+                         borderRadius: BorderRadius.circular(11),
+                       ),
+                       child: ElevatedButton(
+                         onPressed: () {Get.to( bitDetailsClientPost());},
+                         child: Text('Details'),
+                         style: ElevatedButton.styleFrom(
+                           primary: Colors.transparent, // Make the button background transparent
+                           elevation: 0, // Remove button elevation
+                           textStyle: TextStyle(color: Colors.white), // Set text color to white
+                         ),
+                       ),
+                     )
                    ],
                  ),
                ],

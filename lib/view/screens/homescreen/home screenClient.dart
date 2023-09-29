@@ -55,6 +55,7 @@ class _HomeclientState extends State<Homeclient> {
   int _currentIndex = 0;
   final CarouselController _carouselController = CarouselController();
 
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -64,6 +65,7 @@ class _HomeclientState extends State<Homeclient> {
           Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
     return AdvancedDrawer(
+
       openRatio: 0.5,
       backdropColor: HexColor('ECEDED'),
       controller: advancedDrawerController,

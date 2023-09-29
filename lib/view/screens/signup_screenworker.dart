@@ -17,7 +17,6 @@ import 'package:shared_preferences/shared_preferences.dart'; // Import shared_pr
 
 import '../../model/PhoneNumberFormatter.dart';
 import '../../model/mediaquery.dart';
-import '../../model/sign_upmodels/modelofPost.dart';
 import '../../model/textinputformatter.dart';
 import '../components/page_title_bar.dart';
 import '../components/under_part.dart';
