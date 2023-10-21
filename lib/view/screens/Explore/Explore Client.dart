@@ -4,8 +4,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
-
-import '../Bit Details/Bit details Client.dart';
+import '../Bid Details/Bid details Client.dart';
+import '../view profile screens/Client profile view.dart';
 
 class exploreClient extends StatefulWidget {
    exploreClient({super.key});
@@ -41,8 +41,41 @@ class _exploreClientState extends State<exploreClient> {
   void initState() {
     super.initState();
     filteredItems = List.from(items);
-
   }
+
+  List<InlineSpan> _buildTextSpans(String text, String query) {
+    final spans = <InlineSpan>[];
+    final matches = RegExp(query, caseSensitive: false).allMatches(text.toLowerCase());
+
+    if (matches.isEmpty) {
+      spans.add(TextSpan(text: text));
+      return spans;
+    }
+
+    int currentIndex = 0;
+    for (var match in matches) {
+      if (match.start > currentIndex) {
+        spans.add(TextSpan(text: text.substring(currentIndex, match.start)));
+      }
+      spans.add(
+        TextSpan(
+          text: text.substring(match.start, match.end),
+          style: TextStyle(
+            backgroundColor: Colors.yellow,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+      currentIndex = match.end;
+    }
+
+    if (currentIndex < text.length) {
+      spans.add(TextSpan(text: text.substring(currentIndex)));
+    }
+
+    return spans;
+  }
+
 
   void filterItems(String query) {
     setState(() {
@@ -167,6 +200,7 @@ class _exploreClientState extends State<exploreClient> {
                               SizedBox(width: 8.0),
                               Expanded(
                                 child: TextField(
+                                  controller: searchController,
                                   onChanged: (query) {
                                     filterItems(query);
                                   },
@@ -210,12 +244,13 @@ class _exploreClientState extends State<exploreClient> {
     );
   }
 
-   Widget buildListItem(Item item) {
+  Widget buildListItem(Item item) {
     return GestureDetector(
-      onTap: (){Get.to(bitDetailsClient());},
+      onTap: (){Get.to(bidDetailsClient());},
+
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 11.0,horizontal: 4),
-        padding: EdgeInsets.symmetric(vertical: 15.0,horizontal: 14),
+        margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 4),
+        padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
           color: Colors.white,
@@ -248,8 +283,10 @@ class _exploreClientState extends State<exploreClient> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        item.title,
+                      Text.rich(
+                        TextSpan(
+                          children: _buildTextSpans(item.title, searchController.text),
+                        ),
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('131330'),
@@ -270,23 +307,40 @@ class _exploreClientState extends State<exploreClient> {
                         ),
                       ),
                       SizedBox(width: 4,),
-                      Text(
-                        'Ahmed',
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                            color: HexColor('393B3E'),
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
+                      Container(
+                        height: 30,
+                        width: 50,
+                        padding: EdgeInsets.zero,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: TextButton(
+                          onPressed: () {
+                            Get.to(ProfilePageClient());
+                          },
+                          style: TextButton.styleFrom(
+                            fixedSize: Size(50, 30), // Adjust the size as needed
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'John',
+                            style: TextStyle(
+                              color: HexColor('4D8D6E'),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                   SizedBox(height: 6),
-                  Text(
-                    item.description,
-                    maxLines: 3, // Limit the text to three lines
-                    overflow: TextOverflow.ellipsis, // Add ellipsis for overflow
+                  Text.rich(
+                    TextSpan(
+                      children: _buildTextSpans(item.description, searchController.text),
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.openSans(
                       textStyle: TextStyle(
                         color: HexColor('393B3E'),
@@ -334,15 +388,18 @@ class _exploreClientState extends State<exploreClient> {
                           borderRadius: BorderRadius.circular(11),
                         ),
                         child: ElevatedButton(
-                          onPressed: () {Get.to( bitDetailsClient());},
+                          onPressed: () {
+                            Get.to(bidDetailsClient());
+                            // Handle button press
+                          },
                           child: Text('Details'),
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent, // Make the button background transparent
-                            elevation: 0, // Remove button elevation
-                            textStyle: TextStyle(color: Colors.white), // Set text color to white
+                            primary: Colors.transparent,
+                            elevation: 0,
+                            textStyle: TextStyle(color: Colors.white),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ],

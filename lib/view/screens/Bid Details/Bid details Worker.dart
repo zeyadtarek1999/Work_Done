@@ -6,16 +6,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:workdone/view/widgets/rounded_button.dart';
 
+import '../view profile screens/Client profile view.dart';
+import '../view profile screens/Worker profile view.dart';
 import 'Place a Bid.dart';
 
-class bitDetailsWorker extends StatefulWidget {
-  const bitDetailsWorker({super.key});
+class bidDetailsWorker extends StatefulWidget {
+  const bidDetailsWorker({super.key});
 
   @override
-  State<bitDetailsWorker> createState() => _bitDetailsWorkerState();
+  State<bidDetailsWorker> createState() => _bidDetailsWorkerState();
 }
 
-class _bitDetailsWorkerState extends State<bitDetailsWorker> {
+class _bidDetailsWorkerState extends State<bidDetailsWorker> {
   final List<Item> items = [
     Item(WorkerName: 'Mahmoud', Money: '22', rate: '4.5'),
     Item(WorkerName: 'Hossam', Money: '30', rate: '3.8'),
@@ -24,9 +26,10 @@ class _bitDetailsWorkerState extends State<bitDetailsWorker> {
     Item(WorkerName: 'Mohamed', Money: '10', rate: '4.1'),
     // Add more items as needed
   ];
-  String currentbit = '24';
+  String currentbid = '24';
+  bool sortLowest = true;
 
-  void updateCurrentBit() {
+  void updateCurrentBid() {
     // Find the lowest Money value among items
     double lowestMoney = double.infinity;
     for (Item item in items) {
@@ -37,7 +40,39 @@ class _bitDetailsWorkerState extends State<bitDetailsWorker> {
     }
 
     setState(() {
-      currentbit = lowestMoney.toString();
+      currentbid = lowestMoney.toString();
+    });
+  }
+// Sorting methods
+  void sortLowestMoney() {
+    items.sort((a, b) {
+      double moneyA = double.parse(a.Money);
+      double moneyB = double.parse(b.Money);
+      return sortLowest ? moneyA.compareTo(moneyB) : moneyB.compareTo(moneyA);
+    });
+  }
+
+  void sortHighestMoney() {
+    items.sort((a, b) {
+      double moneyA = double.parse(a.Money);
+      double moneyB = double.parse(b.Money);
+      return sortLowest ? moneyB.compareTo(moneyA) : moneyA.compareTo(moneyB);
+    });
+  }
+
+  void sortLowestRate() {
+    items.sort((a, b) {
+      double rateA = double.parse(a.rate);
+      double rateB = double.parse(b.rate);
+      return sortLowest ? rateA.compareTo(rateB) : rateB.compareTo(rateA);
+    });
+  }
+
+  void sortHighestRate() {
+    items.sort((a, b) {
+      double rateA = double.parse(a.rate);
+      double rateB = double.parse(b.rate);
+      return sortLowest ? rateB.compareTo(rateA) : rateA.compareTo(rateB);
     });
   }
 
@@ -45,8 +80,8 @@ class _bitDetailsWorkerState extends State<bitDetailsWorker> {
   void initState() {
     super.initState();
 
-    // Set currentbit to the lowest Money value when the page opens
-    updateCurrentBit();
+    // Set currentbid to the lowest Money value when the page opens
+    updateCurrentBid();
   }
 
   @override
@@ -73,7 +108,7 @@ class _bitDetailsWorkerState extends State<bitDetailsWorker> {
           color: Colors.black,
         ),
         title: Text(
-          'Bit Details',
+          'Bid Details',
           style: GoogleFonts.roboto(
             textStyle: TextStyle(
               color: HexColor('454545'),
@@ -191,17 +226,20 @@ class _bitDetailsWorkerState extends State<bitDetailsWorker> {
                               AssetImage('assets/images/profileimage.png'),
                         ),
                         SizedBox(
-                          width: 13,
+                          width: 8,
                         ),
-                        Text(
-                          'Ahmed',
-                          style: GoogleFonts.roboto(
-                            textStyle: TextStyle(
-                              color: HexColor('454545'),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                        TextButton(onPressed: () { Get.to(ProfilePageClient()); },
+                            child: Text(
+                              'John ',
+                              style: GoogleFonts.openSans(
+                                textStyle: TextStyle(
+                                  color: HexColor('43745C'),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+
+                            )
                         ),
                         Spacer(),
                         Container(
@@ -228,7 +266,7 @@ class _bitDetailsWorkerState extends State<bitDetailsWorker> {
                             children: [
                               Center(
                                 child: Text(
-                                  'Current Bit',
+                                  'Current Bid',
                                   style: GoogleFonts.openSans(
                                     textStyle: TextStyle(
                                       color: HexColor('898B8D'),
@@ -245,7 +283,7 @@ class _bitDetailsWorkerState extends State<bitDetailsWorker> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    currentbit,
+                                    currentbid,
                                     style: GoogleFonts.openSans(
                                       textStyle: TextStyle(
                                         color: HexColor('4D8D6E'),
@@ -304,18 +342,59 @@ class _bitDetailsWorkerState extends State<bitDetailsWorker> {
                     SizedBox(
                       height: 16,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                      child: Text(
-                        'Workers Bids',
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                            color: HexColor('454545'),
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                          child: Text(
+                            'Workers Bids',
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: HexColor('454545'),
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        Spacer(),
+                        PopupMenuButton<String>(
+                          icon: Icon(Icons.sort), // Change this icon
+                          onSelected: (String value) {
+                            setState(() {
+                              if (value == 'lowestMoney') {
+                                sortLowestMoney();
+                              } else if (value == 'highestMoney') {
+                                sortHighestMoney();
+                              } else if (value == 'lowestRate') {
+                                sortLowestRate();
+                              } else if (value == 'highestRate') {
+                                sortHighestRate();
+                              }
+                            });
+                          },
+                          itemBuilder: (BuildContext context) {
+                            return <PopupMenuEntry<String>>[
+                              PopupMenuItem<String>(
+                                value: 'lowestMoney',
+                                child: Text('Sort by Lowest Money'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'highestMoney',
+                                child: Text('Sort by Highest Money'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'lowestRate',
+                                child: Text('Sort by Lowest Rate'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'highestRate',
+                                child: Text('Sort by Highest Rate'),
+                              ),
+                            ];
+                          },
+                        ),
+                      ],
                     ),
                     SizedBox(
                       height: 17,
@@ -398,9 +477,7 @@ class _bitDetailsWorkerState extends State<bitDetailsWorker> {
 
   Widget buildListItem(Item item) {
     bool isMoneyLessOrEqual =
-        double.parse(item.Money) <= double.parse(currentbit);
-
-    // Check if Money is less than currentbit, and update currentbit if needed
+        double.parse(item.Money) <= double.parse(currentbid);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 12),
@@ -411,41 +488,36 @@ class _bitDetailsWorkerState extends State<bitDetailsWorker> {
             backgroundColor: Colors.transparent,
             backgroundImage: AssetImage('assets/images/profileimage.png'),
           ),
-          SizedBox(
-            width: 12,
-          ),
+          SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Text(
-                    item.WorkerName,
-                    style: GoogleFonts.openSans(
-                      textStyle: TextStyle(
-                        color: HexColor('9DA2A3'),
-                        fontSize: 17,
-                        fontWeight: FontWeight.normal,
+                  GestureDetector(
+                    onTap: () { Get.to(ProfilePageWorker()); },
+                    child:  Text(
+                      item.WorkerName,
+                      style: GoogleFonts.openSans(
+                        textStyle: TextStyle(
+                          color: HexColor('9DA2A3'),
+                          fontSize: 17,
+                          fontWeight: FontWeight.normal,
+                        ),
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: 10,
-                  ),
+                  SizedBox(width: 10),
                   Icon(
                     Icons.star,
                     color: HexColor('F3ED51'),
                     size: 20,
                   ),
-                  SizedBox(
-                    width: 2,
-                  ),
+                  SizedBox(width: 2),
                   Text(item.rate),
                 ],
               ),
-              SizedBox(
-                height: 4,
-              ),
+              SizedBox(height: 4),
               Row(
                 children: [
                   Text(
@@ -458,9 +530,7 @@ class _bitDetailsWorkerState extends State<bitDetailsWorker> {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: 3,
-                  ),
+                  SizedBox(width: 3),
                   Text(
                     item.Money,
                     style: GoogleFonts.openSans(
@@ -478,16 +548,15 @@ class _bitDetailsWorkerState extends State<bitDetailsWorker> {
           Spacer(),
           isMoneyLessOrEqual
               ? SvgPicture.asset(
-                  'assets/icons/arrowdown.svg',
-                  width: 39.0,
-                  height: 39.0,
-                )
+            'assets/icons/arrowdown.svg',
+            width: 39.0,
+            height: 39.0,
+          )
               : SvgPicture.asset(
-                  'assets/icons/arrowup.svg',
-                  width: 39.0,
-                  height: 39.0,
-                ),
-        ],
+            'assets/icons/arrowup.svg',
+            width: 39.0,
+            height: 39.0,
+          ),        ],
       ),
     );
   }

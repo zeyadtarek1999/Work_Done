@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
-
 import '../check out client/payment.dart';
 import '../homescreen/home screenClient.dart';
 import '../homescreen/homeWorker.dart';
@@ -19,9 +18,7 @@ class layoutclient extends StatefulWidget {
 
 class _layoutclientState extends State<layoutclient> {
   void navigateToScreen(BuildContext context, String screenName) {
-    // You can implement your navigation logic here
-    // For example, using Navigator.push() to navigate to different screens
-    // based on the screenName parameter.
+
   }
   int _currentIndex = 0;
   List<Widget> _screens = [

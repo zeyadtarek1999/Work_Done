@@ -56,7 +56,7 @@ String cardNumber = '';
           CreditCardWidget(
             cardBgColor: HexColor('F2547A'),
             cardType: CardType.visa,
-            bankName: 'Work Done',
+            bankName: 'WorkDone',
             customCardTypeIcons: [],
             backgroundImage: 'assets/images/cardbackground.jpg',
             obscureInitialCardNumber: true,

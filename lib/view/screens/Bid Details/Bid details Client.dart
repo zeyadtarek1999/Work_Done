@@ -4,16 +4,18 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:workdone/view/screens/check%20out%20client/checkoutClient.dart';
 
-class bitDetailsClientPost extends StatefulWidget {
-  const bitDetailsClientPost({super.key});
+import '../view profile screens/Client profile view.dart';
+import '../view profile screens/Worker profile view.dart';
+
+class bidDetailsClient extends StatefulWidget {
+  const bidDetailsClient({super.key});
 
   @override
-  State<bitDetailsClientPost> createState() => _bitDetailsClientPostState();
+  State<bidDetailsClient> createState() => _bidDetailsClientState();
 }
 
-class _bitDetailsClientPostState extends State<bitDetailsClientPost> {
+class _bidDetailsClientState extends State<bidDetailsClient> {
   final List<Item> items = [
     Item(WorkerName: 'Mahmoud', Money: '22', rate: '4.5'),
     Item(WorkerName: 'Hossam', Money: '30', rate: '3.8'),
@@ -22,9 +24,9 @@ class _bitDetailsClientPostState extends State<bitDetailsClientPost> {
     Item(WorkerName: 'Mohamed', Money: '10', rate: '4.1'),
     // Add more items as needed
   ];
-  String currentbit ='24';
+  String currentbid ='24';
 
-  void updateCurrentBit() {
+  void updateCurrentbid() {
     // Find the lowest Money value among items
     double lowestMoney = double.infinity;
     for (Item item in items) {
@@ -35,16 +37,50 @@ class _bitDetailsClientPostState extends State<bitDetailsClientPost> {
     }
 
     setState(() {
-      currentbit = lowestMoney.toString();
+      currentbid = lowestMoney.toString();
     });
   }
   @override
   void initState() {
     super.initState();
 
-    // Set currentbit to the lowest Money value when the page opens
-    updateCurrentBit();
+    // Set currentbid to the lowest Money value when the page opens
+    updateCurrentbid();
   }
+  bool sortLowest = true;
+// Sorting methods
+  void sortLowestMoney() {
+    items.sort((a, b) {
+      double moneyA = double.parse(a.Money);
+      double moneyB = double.parse(b.Money);
+      return sortLowest ? moneyA.compareTo(moneyB) : moneyB.compareTo(moneyA);
+    });
+  }
+
+  void sortHighestMoney() {
+    items.sort((a, b) {
+      double moneyA = double.parse(a.Money);
+      double moneyB = double.parse(b.Money);
+      return sortLowest ? moneyB.compareTo(moneyA) : moneyA.compareTo(moneyB);
+    });
+  }
+
+  void sortLowestRate() {
+    items.sort((a, b) {
+      double rateA = double.parse(a.rate);
+      double rateB = double.parse(b.rate);
+      return sortLowest ? rateA.compareTo(rateB) : rateB.compareTo(rateA);
+    });
+  }
+
+  void sortHighestRate() {
+    items.sort((a, b) {
+      double rateA = double.parse(a.rate);
+      double rateB = double.parse(b.rate);
+      return sortLowest ? rateB.compareTo(rateA) : rateA.compareTo(rateB);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -62,7 +98,7 @@ appBar: AppBar(
   elevation: 0,toolbarHeight: 67,
 
   leading: IconButton(onPressed: (){Get.back();},icon:Icon( Icons.arrow_back_sharp),color: Colors.black,),
-  title: Text ( 'Bit Details',
+  title: Text ( 'Bid Details',
     style: GoogleFonts.roboto(
       textStyle: TextStyle(
         color: HexColor('454545'),
@@ -176,12 +212,28 @@ SizedBox(height: 12,),
                     AssetImage('assets/images/profileimage.png'),
                   ),
                   SizedBox(width: 13,),
-                  Text('Ahmed',
-                    style: GoogleFonts.roboto(
-                      textStyle: TextStyle(
-                        color: HexColor('454545'),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                  Container(
+                    height: 30,
+                    width: 50,
+                    padding: EdgeInsets.zero,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: TextButton(
+                      onPressed: () {
+                        Get.to(ProfilePageClient());
+                      },
+                      style: TextButton.styleFrom(
+                        fixedSize: Size(50, 30), // Adjust the size as needed
+                        padding: EdgeInsets.zero,
+                      ),
+                      child: Text(
+                        'John',
+                        style: TextStyle(
+                          color: HexColor('4D8D6E'),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -206,7 +258,7 @@ SizedBox(height: 12,),
                       children: [
                         Center(
                           child: Text(
-                            'Current Bit',
+                            'Current Bid',
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
                                 color: HexColor('898B8D'),
@@ -222,7 +274,7 @@ SizedBox(height: 12,),
 
                             Text(
 
-                              currentbit,
+                              currentbid,
                               style: GoogleFonts.openSans(
                                 textStyle: TextStyle(
                                   color: HexColor('4D8D6E'),
@@ -281,14 +333,57 @@ SizedBox(height: 12,),
               SizedBox(height: 16,),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                child: Text ('Workers Bids',
-                  style: GoogleFonts.openSans(
-                    textStyle: TextStyle(
-                      color: HexColor('454545'),
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+                child: Row(
+                  children: [
+                    Text ('Workers Bids',
+                      style: GoogleFonts.openSans(
+                        textStyle: TextStyle(
+                          color: HexColor('454545'),
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
+
+                    Spacer(),
+                    PopupMenuButton<String>(
+                      icon: Icon(Icons.sort), // Change this icon
+                      onSelected: (String value) {
+                        setState(() {
+                          if (value == 'lowestMoney') {
+                            sortLowestMoney();
+                          } else if (value == 'highestMoney') {
+                            sortHighestMoney();
+                          } else if (value == 'lowestRate') {
+                            sortLowestRate();
+                          } else if (value == 'highestRate') {
+                            sortHighestRate();
+                          }
+                        });
+                      },
+                      itemBuilder: (BuildContext context) {
+                        return <PopupMenuEntry<String>>[
+                          PopupMenuItem<String>(
+                            value: 'lowestMoney',
+                            child: Text('Sort by Lowest Money'),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'highestMoney',
+                            child: Text('Sort by Highest Money'),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'lowestRate',
+                            child: Text('Sort by Lowest Rate'),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'highestRate',
+                            child: Text('Sort by Highest Rate'),
+                          ),
+                        ];
+                      },
+                    ),
+
+                  ],
                 ),
               ),
               SizedBox(height: 17,),
@@ -314,9 +409,9 @@ SizedBox(height: 12,),
     );
   }
   Widget buildListItem(Item item) {
-    bool isMoneyLessOrEqual = double.parse(item.Money) <= double.parse(currentbit);
+    bool isMoneyLessOrEqual = double.parse(item.Money) <= double.parse(currentbid);
 
-    // Check if Money is less than currentbit, and update currentbit if needed
+    // Check if Money is less than currentbid, and update currentbid if needed
 
     return          Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6.0 ,vertical: 12),
@@ -329,15 +424,16 @@ SizedBox(height: 12,),
                 AssetImage('assets/images/profileimage.png'),
               ),
               SizedBox(width: 12,),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-                    Row(
-                      children: [
-                        Text(item.WorkerName,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () { Get.to(ProfilePageWorker()); },
+                        child:  Text(item.WorkerName,
                           style: GoogleFonts.openSans(
                             textStyle: TextStyle(
                               color: HexColor('9DA2A3'),
@@ -346,64 +442,46 @@ SizedBox(height: 12,),
                             ),
                           ),
                         ),
-                        SizedBox(width: 4,),
-                        Icon(Icons.star,color: HexColor('F3ED51'),size: 20,),
-                        SizedBox(width: 2,),
-                        Text(item.rate),
+                      ),
+                      SizedBox(width: 10,),
+                      Icon(Icons.star,color: HexColor('F3ED51'),size: 20,),
+                      SizedBox(width: 2,),
+                      Text(item.rate),
 
-                      ],
-                    ),
-                    SizedBox(height: 4,),
-                    Row(
-                      children: [
-                        Text('\$',
-                          style: GoogleFonts.openSans(
-                            textStyle: TextStyle(
-                              color: HexColor('353B3B'),
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
+                    ],
+                  ),
+                  SizedBox(height: 4,),
+                  Row(
+                    children: [
+                      Text('\$',
+                        style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                            color: HexColor('353B3B'),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        SizedBox(width: 3,),
-                        Text(item.Money,
-                          style: GoogleFonts.openSans(
-                            textStyle: TextStyle(
-                              color: HexColor('353B3B'),
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
+                      ),
+                      SizedBox(width: 3,),
+                      Text(item.Money,
+                        style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                            color: HexColor('353B3B'),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ),
 
 
 
 
-                  ],
-                ),
+                ],
               ),
 
               Spacer(),
-              Container(
-                width: 73,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: HexColor('4D8D6E'),
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: ElevatedButton(
-                  onPressed: ()  {Get.to(checkOutClient()); },
-                  child: Text('Accept',style: TextStyle(fontSize: 13),),
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.transparent, // Make the button background transparent
-                    elevation: 0, // Remove button elevation
-                    textStyle: TextStyle(color: Colors.white), // Set text color to white
-                  ),
-                ),
-              ),
-              SizedBox(width: 8,),
               isMoneyLessOrEqual
                   ? SvgPicture.asset(
                 'assets/icons/arrowdown.svg',

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 
 import '../../../model/mediaquery.dart';
+import 'layoutWorker.dart';
 
 class projectsWorker extends StatefulWidget {
   projectsWorker({super.key});
@@ -113,7 +115,7 @@ class _projectsWorkerState extends State<projectsWorker> {
                       Tab(
                         text: 'Past',
                       ),Tab(
-                        text: 'Bits',
+                        text: 'Bids',
                       ),
                     ],
                     indicator: BoxDecoration(
@@ -201,6 +203,7 @@ class _projectsWorkerState extends State<projectsWorker> {
                       margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
                       child: ElevatedButton(
                         onPressed: () {
+                          Get.to(layoutworker());
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: HexColor('#4D8D6E'),
@@ -250,6 +253,8 @@ class _projectsWorkerState extends State<projectsWorker> {
                       margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
                       child: ElevatedButton(
                         onPressed: () {
+                          Get.to(layoutworker());
+
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: HexColor('#4D8D6E'),

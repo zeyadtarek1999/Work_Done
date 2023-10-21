@@ -7,13 +7,14 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:workdone/view/screens/Bit%20Details/Bit%20details%20Worker.dart';
 import 'package:workdone/view/screens/Explore/Explore%20Worker.dart';
-import '../Bit Details/Bit details ClientPost.dart';
+import '../Bid Details/Bid details Worker.dart';
 import '../Explore/Explore Client.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
 import '../Profile (client-worker)/profilescreenworker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+
+import '../view profile screens/Client profile view.dart';
 
 
 class Homescreenworker extends StatefulWidget {
@@ -408,9 +409,9 @@ class _HomescreenworkerState extends State<Homescreenworker> {
 
   Widget buildListItem(ProjectData project) {
     return GestureDetector(
-      onTap: (){Get.to(bitDetailsWorker());},
+      onTap: (){Get.to(bidDetailsWorker());},
       child: Container(
-        height: 100, // Adjust the height as needed
+        height: 120, // Adjust the height as needed
         width: 270,  // Adjust the width as needed
         margin: EdgeInsets.symmetric(horizontal: 12.0,vertical: 12),
         padding: EdgeInsets.symmetric(horizontal: 19.0,vertical: 16),
@@ -430,7 +431,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
           children: [
             Container(
               width: 250,  // Adjust the width of the image container as needed
-              height: 140.0, // Adjust the height of the image container as needed
+              height: 135.0, // Adjust the height of the image container as needed
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20.0),
                 image: DecorationImage(
@@ -469,11 +470,10 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 6),
                   Row(
                     children: [
                       Text(
-                        'By   ${project.by ?? 'Unknown'}',
+                        'By',
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('393B3E'),
@@ -482,6 +482,19 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                           ),
                         ),
                       ),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxHeight: 35.5), // Adjust the maximum width as needed
+                        child: TextButton(onPressed: () { Get.to(ProfilePageClient()); },
+                        child: Text(
+                        '  ${project.by ?? 'Unknown'}',
+                        style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                            color: HexColor('43745C'),
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ))),
                       SizedBox(width: 5),
                       Spacer(),
                       Text(
@@ -496,7 +509,6 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 6),
                   Row(
                     children: [
                       Icon(
@@ -524,7 +536,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                           borderRadius: BorderRadius.circular(11),
                         ),
                         child: ElevatedButton(
-                          onPressed: () {Get.to(bitDetailsWorker());},
+                          onPressed: () {Get.to(bidDetailsWorker());},
                           child: Text('Bid'),
                           style: ElevatedButton.styleFrom(
                             primary: Colors.transparent,
@@ -547,9 +559,9 @@ class _HomescreenworkerState extends State<Homescreenworker> {
 
   Widget buildListItemNewProjects(items item) {
     return GestureDetector(
-      onTap: (){Get.to(bitDetailsWorker());},
+      onTap: (){Get.to(bidDetailsWorker());},
       child: Container(
-        height: 370, // Adjust the height as needed
+        height: 380, // Adjust the height as needed
         width: 270,  // Adjust the width as needed
         margin: EdgeInsets.symmetric(horizontal: 25.0,vertical: 12),
         padding: EdgeInsets.symmetric(horizontal: 13.0,vertical: 16),
@@ -622,6 +634,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                     ],
                   ),
                   SizedBox(height: 4,),
+
                   Container(
                     child: Text(
                       item.description ?? 'no description',
@@ -639,11 +652,10 @@ class _HomescreenworkerState extends State<Homescreenworker> {
 ,
 
 
-                  SizedBox(height: 6),
                   Row(
                     children: [
                       Text(
-                        'By   ${item.by ?? 'Unknown'}',
+                        'By',
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('393B3E'),
@@ -653,10 +665,22 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                         ),
 
                       ),
+                      TextButton(onPressed: () { Get.to(ProfilePageClient()); },
+                      child: Text(
+                        ' ${item.by ?? 'Unknown'}',
+                        style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                            color: HexColor('43745C'),
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                      )
+                      ),
                       SizedBox(width: 5),
                       ],
                   ),
-                  SizedBox(height: 6),
                   Row(
                     children: [
                       Icon(
@@ -684,7 +708,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                           borderRadius: BorderRadius.circular(11),
                         ),
                         child: ElevatedButton(
-                          onPressed: () {Get.to(bitDetailsWorker());},
+                          onPressed: () {Get.to(bidDetailsWorker());},
                           child: Text('Bid'),
                           style: ElevatedButton.styleFrom(
                             primary: Colors.transparent,

@@ -7,10 +7,13 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import '../Bid Details/Bid details Client.dart';
 import '../Explore/Explore Client.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
 import '../Profile (client-worker)/profilescreenworker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+
+import '../view profile screens/Client profile view.dart';
 
 class Homeclient extends StatefulWidget {
   const Homeclient({super.key});
@@ -20,6 +23,24 @@ class Homeclient extends StatefulWidget {
 }
 
 final advancedDrawerController = AdvancedDrawerController();
+List<builder> item2 = [
+  builder(
+    title: 'Wall Paint',
+    description:
+    'Lorem ipsum is placeholder text commonly used in the graphic, print',
+  ),
+  builder(
+    title: 'Furniture',
+    description:
+    'Furniture is the mass noun for the movable objects intended to support various human activities.',
+  ),
+  builder(
+    title: 'Decoration',
+    description:
+    'Decoration is the furnishing or adorning of a space with decorative elements.',
+  ),
+];
+
 List<CarouselItem> items = [
   CarouselItem(
     imageUrl: 'assets/images/testimage.jpg',
@@ -304,11 +325,11 @@ class _HomeclientState extends State<Homeclient> {
                     child: Row(
                       children: [
                         Text(
-                          'Browse',
+                          'Browse Popular Projects',
                           style: GoogleFonts.openSans(
                             textStyle: TextStyle(
                                 color: Colors.grey[700],
-                                fontSize: 27,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -423,73 +444,9 @@ class _HomeclientState extends State<Homeclient> {
                     itemCount: items.length,
                     // Replace with the actual length of your data list
                     itemBuilder: (context, index) {
-                      final item =
-                          items[index]; // Replace 'items' with your data source
-
                       return Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 20),
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
-                                spreadRadius: 2,
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 9.0, horizontal: 20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: double.infinity,
-                                  height: 140,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(15),
-                                    // Set the desired border radius
-                                    child: Image.asset(
-                                      item.imageUrl,
-                                      // Replace with your image asset path
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item.title,
-                                      // Replace with your title text
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    SizedBox(height: 8),
-                                    Text(
-                                      item.description,
-                                      // Replace with your description text
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 8),
-                              ],
-                            ),
-                          ),
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: buildListItem(item2[index]),
                       );
                     },
                   )
@@ -499,6 +456,166 @@ class _HomeclientState extends State<Homeclient> {
           )),
     );
   }
+
+  Widget buildListItem(builder item) {
+    return GestureDetector(
+      onTap: (){Get.to(bidDetailsClient());},
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 11.0,horizontal: 4),
+        padding: EdgeInsets.symmetric(vertical: 15.0,horizontal: 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20.0),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 1,
+              blurRadius: 1,
+              offset: Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              height: 170.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20.0),
+                image: DecorationImage(
+                  image: AssetImage('assets/images/testimage.jpg'), // Replace with your image URL
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            SizedBox(height: 10.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 7.0),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        item.title,
+                        style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                            color: HexColor('131330'),
+                            fontSize: 19,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      Text(
+                        'By',
+                        style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                            color: HexColor('393B3E'),
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 4,),
+                      Container(
+                        height: 30,
+                        width: 50,
+                        padding: EdgeInsets.zero,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: TextButton(
+                          onPressed: () {
+                            Get.to(ProfilePageClient());
+                          },
+                          style: TextButton.styleFrom(
+                            fixedSize: Size(50, 30), // Adjust the size as needed
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'John',
+                            style: TextStyle(
+                              color: HexColor('4D8D6E'),
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    item.description,
+                    maxLines: 3, // Limit the text to three lines
+                    overflow: TextOverflow.ellipsis, // Add ellipsis for overflow
+                    style: GoogleFonts.openSans(
+                      textStyle: TextStyle(
+                        color: HexColor('393B3E'),
+                        fontSize: 15,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 9),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time_rounded,
+                        color: HexColor('777778'),
+                        size: 18,
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        '22 min',
+                        style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                            color: HexColor('777778'),
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 2),
+                      Text(
+                        'ago',
+                        style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                            color: HexColor('777778'),
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      Container(
+                        width: 80,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: HexColor('4D8D6E'),
+                          borderRadius: BorderRadius.circular(11),
+                        ),
+                        child: ElevatedButton(
+                          onPressed: () {Get.to( bidDetailsClient());},
+                          child: Text('Details'),
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.transparent, // Make the button background transparent
+                            elevation: 0, // Remove button elevation
+                            textStyle: TextStyle(color: Colors.white), // Set text color to white
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   void drawerControl() {
     advancedDrawerController.showDrawer();
@@ -660,5 +777,14 @@ class Slide {
     required this.title,
     required this.description,
     required this.imageUrl,
+  });
+}
+class builder {
+  final String title;
+  final String description;
+
+  builder({
+    required this.title,
+    required this.description,
   });
 }

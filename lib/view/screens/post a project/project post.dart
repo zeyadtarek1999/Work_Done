@@ -18,6 +18,8 @@ class projectPost extends StatefulWidget {
 }
 
 class _projectPostState extends State<projectPost> {
+  double _startValue = 0;
+  double _endValue = 10;
   List<String> buttonLabels = [
     '1-2',
     '1-4',
@@ -73,18 +75,42 @@ class _projectPostState extends State<projectPost> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Upload Photo', style: GoogleFonts.poppins(
-                textStyle: TextStyle(
-                    color: HexColor('1A1D1E'),
-                    fontSize: 17,
-                    fontWeight: FontWeight.w500),
-              ),
+              Row(
+                children: [
+                  Text('Upload Photo', style: GoogleFonts.poppins(
+                    textStyle: TextStyle(
+                        color: HexColor('1A1D1E'),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  ),
+                  SizedBox(width: 6,),
+                  IconButton(
+                    icon: Icon(
+                      Icons.info_outline, // "i" icon
+                      color: Colors.red,
+                      size: 22,// Red color
+                    ),
+                    onPressed: () {
+                      // Show a Snackbar with the required text
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text(
+                            'Upload photo is Required',
+                            style: TextStyle(color: Colors.white), // Red text color
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
               SizedBox(
                 height: 7,
               ),
               Container(
-                height: 100,
+                height: 150,
                 width: double.infinity,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(15), color: Colors.white),
@@ -96,6 +122,17 @@ class _projectPostState extends State<projectPost> {
                           fontSize: 13,
                           fontWeight: FontWeight.w500),
                     ),
+                    ),Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 5),
+                      child: Center(
+                        child: Text('Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!', style: GoogleFonts.poppins(
+                          textStyle: TextStyle(
+                              color: HexColor('888C8A'),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500),
+                        ),
+                        ),
+                      ),
                     ),
                     SizedBox(
                       height: 5,
@@ -109,12 +146,37 @@ class _projectPostState extends State<projectPost> {
                 ),
               ),
               SizedBox(height: 14,),
-              Text('Title of Project', style: GoogleFonts.poppins(
-                textStyle: TextStyle(
-                    color: HexColor('1A1D1E'),
-                    fontSize: 17,
-                    fontWeight: FontWeight.w500),
-              ),
+              Row(
+                children: [
+                  Text('Title of Project', style: GoogleFonts.poppins(
+                    textStyle: TextStyle(
+                        color: HexColor('1A1D1E'),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  ),
+                  SizedBox(width: 6,),
+                  IconButton(
+                    icon: Icon(
+                      Icons.info_outline, // "i" icon
+                      color: Colors.red,
+                      size: 22,// Red color
+                    ),
+                    onPressed: () {
+                      // Show a Snackbar with the required text
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text(
+                            'Title is Required',
+                            style: TextStyle(color: Colors.white), // Red text color
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                ],
               ),
               SizedBox(height: 8,),
               Container(
@@ -189,12 +251,37 @@ class _projectPostState extends State<projectPost> {
               ),
               SizedBox(height: 14,),
 
-              Text('Preferred Time Frame', style: GoogleFonts.poppins(
-                textStyle: TextStyle(
-                    color: HexColor('1A1D1E'),
-                    fontSize: 17,
-                    fontWeight: FontWeight.w500),
-              ),
+              Row(
+                children: [
+                  Text('Preferred Time Frame', style: GoogleFonts.poppins(
+                    textStyle: TextStyle(
+                        color: HexColor('1A1D1E'),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  ),
+                  SizedBox(width: 6,),
+                  IconButton(
+                    icon: Icon(
+                      Icons.info_outline, // "i" icon
+                      color: Colors.red,
+                      size: 22,// Red color
+                    ),
+                    onPressed: () {
+                      // Show a Snackbar with the required text
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text(
+                            'Time frame is Required',
+                            style: TextStyle(color: Colors.white), // Red text color
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                ],
               ),
           // RowScrollFastor(  children:
           // List.generate(
@@ -252,53 +339,81 @@ class _projectPostState extends State<projectPost> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    child: Slider(
-                      value: _sliderValue,
-                      onChanged: (value) {
-                        setState(() {
-                          _sliderValue = value;
-                        });
-                      },
-                      min: 1,
-                      max: 100,
-                      divisions: 99,
-                      label: '${_sliderValue.toInt()}',
-                      activeColor: Color(0xFF4D8D6E), // Set your preferred color
-                      inactiveColor: Colors.grey,
+                  RangeSlider(
+                    values: RangeValues(_startValue, _endValue),
+                    onChanged: (RangeValues values) {
+                      setState(() {
+                        _startValue = values.start;
+                        _endValue = values.end;
+                      });
+                    },
+                    min: 0,
+                    max: 100,
+                    divisions: 100, // Divisions set to 1 for two thumbs
+                    labels: RangeLabels(
+                      _startValue.toInt().toString(),
+                      _endValue.toInt().toString()
                     ),
+                    activeColor: Color(0xFF4D8D6E),
+                    inactiveColor: Colors.grey,
                   ),
                   Row(
-                          children: [
-                            Text(  'Project period (Range): ', style: GoogleFonts.poppins(
-                              textStyle: TextStyle(
-                                  color: HexColor('605E5E'),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                            ),
-                            Text(   '0 - ${_sliderValue.toInt()} days', style: GoogleFonts.poppins(
-                              textStyle: TextStyle(
-                                  color: HexColor('4D8D6E'),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                            ),])
-
-
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Project period (Range): ',
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        '${_startValue.toInt()} - ${_endValue.toInt()} days',
+                        style: TextStyle(
+                          color: Color(0xFF4D8D6E),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
-
           SizedBox(height: 20),
-              Text('Job Description', style: GoogleFonts.poppins(
-                textStyle: TextStyle(
-                    color: HexColor('1A1D1E'),
-                    fontSize: 17,
-                    fontWeight: FontWeight.w500),
-              ),
+              Row(
+                children: [
+                  Text('Job Description', style: GoogleFonts.poppins(
+                    textStyle: TextStyle(
+                        color: HexColor('1A1D1E'),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500),
+                  ),
 
+                  ),
+                  SizedBox(width: 6,),
+                  IconButton(
+                    icon: Icon(
+                      Icons.info_outline, // "i" icon
+                      color: Colors.red,
+                      size: 22,// Red color
+                    ),
+                    onPressed: () {
+                      // Show a Snackbar with the required text
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text(
+
+                            'Job Description is Required',
+                            style: TextStyle(color: Colors.white), // Red text color
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                ],
               ),
               SizedBox(height: 8,),
 

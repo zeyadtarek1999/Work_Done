@@ -4,9 +4,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:workdone/view/screens/Bit%20Details/Bit%20details%20ClientPost.dart';
-
 import '../../../model/mediaquery.dart';
+import '../Bid Details/Bid details ClientPost.dart';
+import '../view profile screens/Client profile view.dart';
 
 class projectsClient extends StatefulWidget {
   projectsClient({super.key});
@@ -302,13 +302,28 @@ class _projectsClientState extends State<projectsClient> {
                        ),
                      ),
                      SizedBox(width: 5),
-                     Text(
-                       'Ahmed M',
-                       style: GoogleFonts.openSans(
-                         textStyle: TextStyle(
-                           color: HexColor('393B3E'),
-                           fontSize: 15,
-                           fontWeight: FontWeight.normal,
+                     Container(
+                       height: 20,
+                       width: 50,
+                       padding: EdgeInsets.zero,
+                       decoration: BoxDecoration(
+                         borderRadius: BorderRadius.circular(6),
+                       ),
+                       child: TextButton(
+                         onPressed: () {
+                           Get.to(ProfilePageClient());
+                         },
+                         style: TextButton.styleFrom(
+                           fixedSize: Size(50, 30), // Adjust the size as needed
+                           padding: EdgeInsets.zero,
+                         ),
+                         child: Text(
+                           'John',
+                           style: TextStyle(
+                             color: HexColor('4D8D6E'),
+                             fontSize: 15,
+                             fontWeight: FontWeight.bold,
+                           ),
                          ),
                        ),
                      ),
@@ -363,7 +378,7 @@ class _projectsClientState extends State<projectsClient> {
                          borderRadius: BorderRadius.circular(11),
                        ),
                        child: ElevatedButton(
-                         onPressed: () {Get.to( bitDetailsClientPost());},
+                         onPressed: () {Get.to( bidDetailsClientPost());},
                          child: Text('Details'),
                          style: ElevatedButton.styleFrom(
                            primary: Colors.transparent, // Make the button background transparent

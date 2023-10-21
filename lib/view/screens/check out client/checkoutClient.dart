@@ -249,7 +249,7 @@ class _checkOutClientState extends State<checkOutClient> {
               child: Column(
                 children: [
                   Row(children: [
-                    Text('Order',style: GoogleFonts.roboto(
+                    Text('Project',style: GoogleFonts.roboto(
                       textStyle: TextStyle(
                         color: HexColor('3E3E3E'),
                         fontSize: 15,
@@ -290,6 +290,43 @@ class _checkOutClientState extends State<checkOutClient> {
                       ),
                     ),
                     ),
+                    Container(
+                      width: 20, // Set the desired width
+                      height: 30, // Set the desired height
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle, // Make the container circular
+                      ),
+                      child: IconButton(
+                        iconSize: 17, // Set the desired icon size
+                        icon: Icon(Icons.info_outline, color: HexColor('4D8D6E')), // Use the 'info' icon
+                        onPressed: () {
+                          // Show the dialog when the icon is pressed
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: Text('Information'),
+                                content: Text('information.'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop(); // Close the dialog
+                                    },
+                                    child: Text(
+                                      'Close',
+                                      style: TextStyle(
+                                        color: HexColor('4D8D6E'), // Set the 'Close' button color
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+
                     Spacer(),
                     Text('3',style: GoogleFonts.roboto(
                       textStyle: TextStyle(
@@ -341,11 +378,19 @@ class _checkOutClientState extends State<checkOutClient> {
                     ),
 
                   ],),
-
+                  Center(
+                    child: Text('(What you will pay) ',style: GoogleFonts.openSans(
+                      textStyle: TextStyle(
+                        color: HexColor('9A9D9C'),
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),),
+                  ),
                 ],
               ),
             ),
-            SizedBox(height: 20,),
+            SizedBox(height: 12,),
 Center(child: RoundedButton(text: 'Pay Now', press: (){
 
   showDialog(
@@ -359,8 +404,8 @@ Center(child: RoundedButton(text: 'Pay Now', press: (){
   Future.delayed(Duration(seconds: 4), () {
     Navigator.of(context).pop(); // Close the dialog
 Get.to(layoutclient());  });
-}))
-
+})),
+SizedBox(height: 14,)
 
           ],
         ),
@@ -511,6 +556,7 @@ class SuccessPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
+
       elevation: 3,
 
       shape: RoundedRectangleBorder(
@@ -521,13 +567,13 @@ class SuccessPopup extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Lottie.asset('assets/icons/done.json',width: 100,height: 100),
+            Lottie.asset('assets/icons/done.json',width: 120,height: 100),
 
             SizedBox(height: 16),
             Text(
-              'Order Successfully',
+              'Order Successfully Completed',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
