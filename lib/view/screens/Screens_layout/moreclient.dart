@@ -11,10 +11,11 @@ import '../welcome/welcome_screen.dart';
 class Moreclient extends StatelessWidget {
   const Moreclient({Key? key}) : super(key: key);
 
-  Future<void> clearClientID() async {
+  Future<void> clearSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('client_id'); // Remove client_id from SharedPreferences
+    await prefs.clear();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -223,7 +224,7 @@ class Moreclient extends StatelessWidget {
               children: [
                 TextButton(
                     onPressed: () async {
-                      await clearClientID(); // Call the function to clear client_id
+                      await clearSharedPreferences(); // Call the function to clear client_id
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(

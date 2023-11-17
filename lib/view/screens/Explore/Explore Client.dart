@@ -1,11 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../view profile screens/Client profile view.dart';
+import 'package:http/http.dart' as http;
 
 class exploreClient extends StatefulWidget {
    exploreClient({super.key});
@@ -16,31 +20,56 @@ class exploreClient extends StatefulWidget {
 
 class _exploreClientState extends State<exploreClient> {
   TextEditingController searchController = TextEditingController();
+  late Future<List<Item>> futureProjects;
 
-  List<Item> items = [
-    Item(
-      title: 'Wall Paint',
-      description:
-      'Lorem ipsum is placeholder text commonly used in the graphic, print',
-    ),
-    Item(
-      title: 'Furniture',
-      description:
-      'Furniture is the mass noun for the movable objects intended to support various human activities.',
-    ),
-    Item(
-      title: 'Decoration',
-      description:
-      'Decoration is the furnishing or adorning of a space with decorative elements.',
-    ),
-  ];
+  Future<List<Item>> fetchProjects() async {
+    try {
+      // Get the token from SharedPreferences
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String userToken = prefs.getString('user_token') ?? '';
+
+      final response = await http.post(
+        Uri.parse('https://workdonecorp.com/api/get_all_projects'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $userToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> projectsJson = json.decode(response.body)['projects'];
+
+        List<Item> projects = projectsJson.map((json) {
+          return Item(
+            projectId: json['project_id'],
+            title: json['title'],
+            description: json['desc'],
+            imageUrl: json['images'],
+            postedFrom: json['posted_from'],
+            client_firstname: json['client_firstname'],
+          );
+        }).toList();
+print(projectsJson);
+print(Item);
+print(projects);
+        return projects;
+      } else {
+        throw Exception('Failed to load data from API');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+
 
   List<Item> filteredItems = [];
 
   @override
   void initState() {
     super.initState();
-    filteredItems = List.from(items);
+    // Call the function that fetches projects and assign the result to futureProjects
+    futureProjects = fetchProjects();
+
   }
 
   List<InlineSpan> _buildTextSpans(String text, String query) {
@@ -77,14 +106,15 @@ class _exploreClientState extends State<exploreClient> {
   }
 
 
-  void filterItems(String query) {
+  void filterProjects(String query, List<Item> projects) {
     setState(() {
       if (query.isEmpty) {
-        filteredItems = List.from(items);
+        filteredItems = List.from(projects);
       } else {
-        filteredItems = items.where((item) {
-          final title = item.title.toLowerCase();
-          final description = item.description.toLowerCase();
+        filteredItems = projects.where((project) {
+          final title = project.title.toLowerCase();
+          final description = project.description.toLowerCase();
+          final client_firstname = project.client_firstname.toLowerCase();
           final searchQuery = query.toLowerCase();
 
           return title.contains(searchQuery) || description.contains(searchQuery);
@@ -92,6 +122,7 @@ class _exploreClientState extends State<exploreClient> {
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
 
@@ -202,7 +233,6 @@ class _exploreClientState extends State<exploreClient> {
                                 child: TextField(
                                   controller: searchController,
                                   onChanged: (query) {
-                                    filterItems(query);
                                   },
                                   decoration: InputDecoration(
                                     hintText: 'Search',
@@ -221,16 +251,28 @@ class _exploreClientState extends State<exploreClient> {
                   ),
                 ),
               ),
-              ListView.builder(
-                physics: NeverScrollableScrollPhysics(),
-
-                shrinkWrap: true,
-                itemCount: filteredItems.length,
-                // Replace with the actual length of your data list
-                itemBuilder: (context, index) {
-                  return buildListItem(filteredItems[index]);
+              FutureBuilder<List<Item>>(
+                future: futureProjects,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Text('No projects found.');
+                  } else {
+                    return ListView.builder(
+                      physics: NeverScrollableScrollPhysics(),
+                      shrinkWrap: true, // Set shrinkWrap to true
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        return buildListItem(snapshot.data![index]);
+                      },
+                    );
+                  }
                 },
               ),
+
 
 
 
@@ -246,8 +288,9 @@ class _exploreClientState extends State<exploreClient> {
 
   Widget buildListItem(Item item) {
     return GestureDetector(
-      onTap: (){Get.to(bidDetailsClient());},
-
+      onTap: () {
+        // Get.to(bidDetailsClient());
+      },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 4),
         padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
@@ -271,7 +314,7 @@ class _exploreClientState extends State<exploreClient> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20.0),
                 image: DecorationImage(
-                  image: AssetImage('assets/images/testimage.jpg'), // Replace with your image URL
+                  image: NetworkImage(item.imageUrl), // Use the image URL from the fetched data
                   fit: BoxFit.cover,
                 ),
               ),
@@ -280,8 +323,10 @@ class _exploreClientState extends State<exploreClient> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 7.0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text.rich(
                         TextSpan(
@@ -309,7 +354,7 @@ class _exploreClientState extends State<exploreClient> {
                       SizedBox(width: 4,),
                       Container(
                         height: 30,
-                        width: 50,
+                        width: 60,
                         padding: EdgeInsets.zero,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
@@ -322,8 +367,12 @@ class _exploreClientState extends State<exploreClient> {
                             fixedSize: Size(50, 30), // Adjust the size as needed
                             padding: EdgeInsets.zero,
                           ),
-                          child: Text(
-                            'John',
+                          child: Text.rich(
+                            TextSpan(
+                              children: _buildTextSpans(item.client_firstname, searchController.text),
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis, // Use the client name from the fetched data
                             style: TextStyle(
                               color: HexColor('4D8D6E'),
                               fontSize: 18,
@@ -359,7 +408,7 @@ class _exploreClientState extends State<exploreClient> {
                       ),
                       SizedBox(width: 5),
                       Text(
-                        '22 min',
+                        item.postedFrom, // Use the posted time from the fetched data
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('777778'),
@@ -369,16 +418,6 @@ class _exploreClientState extends State<exploreClient> {
                         ),
                       ),
                       SizedBox(width: 2),
-                      Text(
-                        'ago',
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                            color: HexColor('777778'),
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                      ),
                       Spacer(),
                       Container(
                         width: 80,
@@ -389,7 +428,7 @@ class _exploreClientState extends State<exploreClient> {
                         ),
                         child: ElevatedButton(
                           onPressed: () {
-                            Get.to(bidDetailsClient());
+                            // Get.to(bidDetailsClient());
                             // Handle button press
                           },
                           child: Text('Details'),
@@ -412,11 +451,19 @@ class _exploreClientState extends State<exploreClient> {
   }
 }
 class Item {
+  final int projectId;
   final String title;
+  final String client_firstname;
   final String description;
+  final String imageUrl;
+  final String postedFrom;
 
   Item({
+    required this.projectId,
     required this.title,
+    required this.client_firstname,
     required this.description,
+    required this.imageUrl,
+    required this.postedFrom,
   });
 }

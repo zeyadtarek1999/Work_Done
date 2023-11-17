@@ -16,6 +16,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
 import '../../model/PhoneNumberFormatter.dart';
+import '../../model/Register_workerModel.dart';
 import '../../model/mediaquery.dart';
 import '../../model/textinputformatter.dart';
 import '../components/page_title_bar.dart';
@@ -29,23 +30,65 @@ import '../widgets/rounded_password_field.dart';
 import 'login_screen_worker.dart';
 
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({Key? key}) : super(key: key);
+  final String addressLine;
+  final String addressSt2;
+  final String city;
+  final String state;
 
+  SignUpScreen({
+    required this.addressLine,
+    required this.addressSt2,
+    required this.city,
+    required this.state,
+  });
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
-  File? pickedImage1;
-  File? licenseImage;
+  List<Map<String, dynamic>> languages = [
+    {'lang_id': '1', 'lang': 'English'},
+    {'lang_id': '2', 'lang': 'Arabic'},
+    {'lang_id': '3', 'lang': 'French'},
+  ];
+  String selectedLanguage = '';
+  bool isSearchBarVisible =false;
+
+  List<Map<String, dynamic>> jobTypes = [
+    {'type_id': '1', 'type': 'Job Type 1'},
+    {'type_id': '2', 'type': 'Job Type 2'},
+    {'type_id': '3', 'type': 'Job Type 3'},
+    // Add more job types as needed
+  ];
+
+  String selectedJobType = '';
+  List<Map<String, dynamic>> filteredJobTypes = [];
+  File? _image;
+  final picker = ImagePicker();
+  String profile_pic = '';
+
+  Future<void> _getImageFromGallery() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      }
+    });
+  }
+  bool isJobTypeListVisible = false;
+  bool isSearchBarVisibleofjobs =false;
+
   bool isLanguageListVisible = false; // Add this variable
   String selectedCountryCode = '+1'; // Default country code for the United States
-
+  String addressLine = '';
+  String addressSt2 = '';
+  String city = '';
+  String state = '';
   List<String> countryCodes = [
     '+1', '+91', '+44', '+61', // Add more country codes as needed
   ];
-  final _picker = ImagePicker();
   String capturedAddressLine = '';
   String capturedAddressLine2 = '';
   String capturedCity = '';
@@ -162,99 +205,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
-  void _toggleCheckbox(bool? value) {
-    if (value != null) {
-      _isChecked.value = value;
-      if (_isChecked.value) {
-        Get.defaultDialog(
-          title: 'Licence \n Number & Image',
-          content: Column(
-            children: [
-              Container(
-                padding: EdgeInsets.all(8.0),
-                child: TextFormField(
-                  controller: textController,
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(
-                      Icons.newspaper_outlined,
-                      color: Colors.grey,
-                    ),
-                    hintText: 'License Number (optional)',
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              Container(
-                padding: EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: HexColor('#4D8D6E'),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30.0),
-                    ),
-                  ),
-                  onPressed: () async {
-                    final pickedImage = await ImagePicker().pickImage(
-                      source: ImageSource.gallery,
-                    );
-                    if (pickedImage != null) {
-                      setState(() {
-                        pickedImage1 = File(pickedImage.path);
-                      });
-                    }
-                  },
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.image,
-                        color: Colors.white, // Set icon color
-                      ),
-                      SizedBox(width: 8), // Adjust spacing
-                      Text(
-                        'Licence image',
-                        style: TextStyle(
-                          color: Colors.white, // Set text color
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                // Save the license number and image if license number is not empty
-                if (textController.text.isNotEmpty) {
-                  licenseController.text = textController.text;
-                  licenseImage = pickedImage1;
-                }
-                Get.back(result: true); // Close the dialog with result: true
-              },
-              child: Text(
-                'Done',
-                style: TextStyle(color: HexColor('#4D8D6E')),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Get.back(result: false); // Close the dialog with result: false
-              },
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: HexColor('#808080')),
-              ),
-            ),
-          ],
-        ).then((value) {
-          if (value == false) {
-            _isChecked.value = false;
-          }
-        });
-      }
-    }
-  }
 
   bool isValidEmail(String email) {
     // Regular expression to validate email addresses
@@ -303,7 +253,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isEmailValid = true;
 
   String _selectedCountryCode = '+1';
-
+late String user_token='';
   // Default country code
   @override
   void dispose() {
@@ -320,20 +270,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  final RxBool _isChecked = false.obs;
 
-  @override
-  void initState() {
-    super.initState();
-    // Initialize checkedItems with the same length as items, and all values as false
-    fetchLanguages(); // Call the function to fetch languages
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   // Initialize checkedItems with the same length as items, and all values as false
+  // }
 
   void _togglePasswordVisibility() {
     setState(() {
       _isObscured = !_isObscured;
     });
   }
+  bool isLoading = false; // Add a loading state
 
   void _onChanged(String value) {
     setState(() {
@@ -341,115 +290,191 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
-  Future<String> getWorkerId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('worker_id') ?? '';
-  }
 
-  Future<void> saveWorkerId(int workerId) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt('worker_id', workerId);
-  }
 
-  Future<int?> getSavedWorkerId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int? workerId = prefs.getInt('worker_id');
-    return workerId;
-  }
 
-  List<Map<String, dynamic>> languages = [];
-  String? selectedLanguageId;
 
-  Future<void> fetchLanguages() async {
-    try {
-      final response = await http.get(Uri.parse('http://172.233.199.17/lang.php'));
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = json.decode(response.body);
-        setState(() {
-          languages = List<Map<String, dynamic>>.from(jsonResponse['languages']);
+
+  // Add other controllers for your form fields
+
+  List<File> licensePicList = [];
+
+  RxBool _isChecked = false.obs;
+
+  void _toggleCheckbox(bool? value) async {
+    if (value != null) {
+      _isChecked.value = value;
+      if (_isChecked.value) {
+        Get.defaultDialog(
+          title: 'Licence \n Number & Image',
+          content: Column(
+            children: [
+              Container(
+                padding: EdgeInsets.all(8.0),
+                child: TextFormField(
+                  controller: textController,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(
+                      Icons.newspaper_outlined,
+                      color: Colors.grey,
+                    ),
+                    hintText: 'License Number (optional)',
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: HexColor('#4D8D6E'),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final pickedImage = await ImagePicker().pickImage(
+                      source: ImageSource.gallery,
+                    );
+                    if (pickedImage != null) {
+                      setState(() {
+                        _image = File(pickedImage.path);
+                      });
+                    }
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.image,
+                        color: Colors.white, // Set icon color
+                      ),
+                      SizedBox(width: 8), // Adjust spacing
+                      Text(
+                        'Licence image',
+                        style: TextStyle(
+                          color: Colors.white, // Set text color
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                // Save the license number and image if the license number is not empty
+                if (textController.text.isNotEmpty) {
+                  licenseController.text = textController.text;
+                  licensePicList.add(_image!);
+                }
+                Get.back(result: true); // Close the dialog with result: true
+              },
+              child: Text(
+                'Done',
+                style: TextStyle(color: HexColor('#4D8D6E')),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Get.back(result: false); // Close the dialog with result: false
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: HexColor('#808080')),
+              ),
+            ),
+          ],
+        ).then((value) {
+          if (value == false) {
+            _isChecked.value = false;
+          }
         });
-      } else {
-        print('Failed to fetch languages. Status code: ${response.statusCode}');
-        throw Exception('Failed to fetch languages');
       }
-    } catch (e) {
-      print('An error occurred while fetching languages: $e');
-      throw Exception('Failed to fetch languages');
     }
   }
-  String selectedLanguage = ''; // Declare and initialize the variable
-  List<String> selectedLanguageIds = [];
-  void handleLanguageCheckboxClick(String languageId, bool isChecked) {
-    if (isChecked) {
-      selectedLanguageIds.add(languageId); // Add the language ID to the list
-    } else {
-      selectedLanguageIds.remove(languageId); // Remove the language ID from the list
-    }
-  }
-  bool isLoading = false; // Add a loading state
-  Future<void> postDataToApi(File pickedImage1, String phoneNumber) async {
-    if (selectedLanguageIds.isEmpty) {
-      // Check if at least one language is selected
-      print('Please select at least one language');
+  RegisterWorkerApiClient registerworkerapi = RegisterWorkerApiClient(baseUrl: 'https://workdonecorp.com');
+
+  void _registerWorker() async {
+    // Make sure to fill in the values from your text controllers or other sources
+    String firstName = firstnameController.text;
+    String lastName = lastnameController.text;
+    String email = emailController2.text;
+    String password = passwordController.text;
+    String phone = phoneNumberController.text;
+    String language = selectedLanguage;
+    String experience = expyearcontroller.text;
+    String jobType = selectedJobType;
+    String licenseNumber = licenseController.text;
+    String street1 = capturedAddressLine;
+    String street2 = capturedAddressLine2;
+    String city = capturedCity;
+    String state = capturedState;
+    String address_zip = zipcodeController.text;
+    String imagePath = _image!.path;
+
+    if (_image == null) {
+      // Show a toast message and return early
+      Fluttertoast.showToast(
+        msg: "Please select an image",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
       return;
     }
-    final url = Uri.parse('http://172.233.199.17/worker.php');
-    final request = http.MultipartRequest('POST', url)
-      ..fields['worker_firstname'] = firstnameController.text
-      ..fields['worker_lastname'] = lastnameController.text
-      ..fields['worker_license_no'] = licenseController.text
-      ..fields['worker_email'] = emailController2.text
-      ..fields['worker_phone'] = phoneNumber
-      ..fields['worker_job_type'] = '1'
-      ..fields['worker_other_job_type'] = ''
-      ..fields['worker_exp_years'] = expyearcontroller.text
-      ..fields['worker_zip'] = zipcodeController.text
-      ..fields['worker_raduis'] = '23'
-      ..fields['worker_prefered_pay'] = 'PayPal'
-      ..fields['address_st1'] = capturedAddressLine
-      ..fields['address_st2'] = capturedAddressLine2
-      ..fields['address_city'] = capturedCity
-      ..fields['address_state'] = capturedState
-      ..fields['address_zip'] = zipcodeController.text
-      ..fields['worker_profile_pic'] = ''
-      ..fields['worker_username'] = 'username'
-      ..fields['worker_password'] = passwordController.text
-      ..files.add(http.MultipartFile(
-        'worker_license_photo',
-        pickedImage1.readAsBytes().asStream(),
-        pickedImage1.lengthSync(),
-        filename: pickedImage1.path.split('/').last,
-      ))
-      ..fields['action'] = 'add_worker';
-    for (int i = 0; i < selectedLanguageIds.length; i++) {
-      final languageId = selectedLanguageIds[i];
-      request.fields['langs[$i]'] = languageId;
-    }
-    final response = await request.send();
-    if (response.statusCode == 200) {
-      print('Data posted successfully');
-      // Handle response as needed
-      final responseData =
-          await response.stream.bytesToString(); // Convert stream to string
-      final jsonResponse = json.decode(responseData);
-      // Fetch languages again to update the list after adding a language
-      // Extract worker_id as a string
-      String workerIdString = jsonResponse['worker_id'];
 
-      // Convert worker_id string to an integer
-      int workerId = int.parse(workerIdString);
+    try {
+      // Call the registerworker method from your registerworkerapi
+      final registrationResponse = await registerworkerapi.registerworker(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        password: password,
+        jobType: jobType,
+        licenseNumber: licenseNumber,
+        experience: experience,
+        state: state,
+        city: city,
+        street2: street2,
+        street1: street1,
+        language: language, addressZip: address_zip, licensePic: imagePath,
+      );
 
-      // Save the worker_id to SharedPreferences
-      await saveWorkerId(workerId);
+      print('Registration Response: $registrationResponse');
 
-      print('Worker ID: $workerId');
-    } else {
-      print (selectedLanguageId);
-      print (capturedState);
-      print('Failed to post data. Status code: ${response.statusCode}');
-      throw Exception('Failed to fetch languages');
+      // Check if the registration response contains the token
+      if (registrationResponse.containsKey('status') &&
+          registrationResponse.containsKey('msg') &&
+          registrationResponse.containsKey('token')) {
+        final String user_token = registrationResponse['token'];
 
+        // Store the token in shared preferences
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('user_token', user_token);
+Get.off(layoutworker());
+        // Navigate to the next screen (you may want to do this based on certain conditions)
+        // Example: Get.to(layoutworker());
+      } else {
+        // Handle the case where the expected keys are not present in the response
+        print('Invalid registration response format');
+      }
+    } catch (error) {
+      // Print the full error, including the server response
+      print('Error during registration: $error');
+      // Display a snackbar or toast with the error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Registration failed: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -616,41 +641,64 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   ),
                                   SizedBox(width: 10),
                                   Expanded(
-                                    child: TextFormField(
-                                      controller: licenseController,
-                                      keyboardType: TextInputType.text,
-                                      decoration: InputDecoration(
-                                        hintText: 'License',
-                                        contentPadding: EdgeInsets.all(0), // Remove content padding
-
-                                        border: InputBorder.none,
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    width: 50,
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                          color: HexColor('#509372'), width: 1),
-                                    ),
-                                    child: pickedImage1 != null
-                                        ? Image.file(
-                                            pickedImage1!,
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: TextFormField(
+                                            controller: licenseController,
+                                            keyboardType: TextInputType.text,
+                                            decoration: InputDecoration(
+                                              hintText: 'License',
+                                              contentPadding: EdgeInsets.all(0), // Remove content padding
+                                              border: InputBorder.none,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: 10),
+                                        GestureDetector(
+                                          onTap: () async {
+                                            final pickedImage = await ImagePicker().pickImage(
+                                              source: ImageSource.gallery,
+                                            );
+                                            if (pickedImage != null) {
+                                              setState(() {
+                                                _image = File(pickedImage.path);
+                                              });
+                                            }
+                                          },
+                                          child: Container(
                                             width: 50,
                                             height: 50,
-                                            fit: BoxFit.cover,
-                                          )
-                                        : null, // Set to null if no image
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(color: HexColor('#509372'), width: 1),
+                                            ),
+                                            child: _image != null
+                                                ? Image.file(
+                                              _image!,
+                                              width: 50,
+                                              height: 50,
+                                              fit: BoxFit.cover,
+                                            )
+                                                : Center(
+                                              child: Icon(
+                                                Icons.image,
+                                                color: HexColor('#509372'),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: 10),
+                                        Obx(() => Checkbox(
+                                          value: _isChecked.value,
+                                          onChanged: _toggleCheckbox,
+                                          activeColor: HexColor('#509372'),
+                                          checkColor: Colors.white,
+                                        )),
+                                      ],
+                                    ),
                                   ),
-                                  SizedBox(width: 10),
-                                  Obx(() => Checkbox(
-                                        value: _isChecked.value,
-                                        onChanged: _toggleCheckbox,
-                                        activeColor: HexColor('#509372'),
-                                        checkColor: Colors.white,
-                                      )),
+
                                 ],
                               ),
                             ),
@@ -817,115 +865,212 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               height: ScreenUtil.sizeboxheight,
                             ),
                             Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          isLanguageListVisible = !isLanguageListVisible;
-                                          filteredLanguages = languages; // Set filteredLanguages to contain all languages initially
-                                        });
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                          vertical: 5,
-                                        ),
-                                        height: size.height * 0.09,
-                                        width: size.width * 0.93,
-                                        decoration: BoxDecoration(
-                                          color: HexColor('#F5F5F5'),
-                                          borderRadius: BorderRadius.circular(29),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            SvgPicture.asset(
-                                              'assets/icons/language.svg',
-                                              width: 33.0,
-                                              height: 33.0,
-                                            ),
-                                            SizedBox(width: 10),
-                                            Text(
-                                              'Select Languages',
-                                              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                                            ),
-                                            Spacer(),
-                                            Icon(
-                                              isLanguageListVisible
-                                                  ? Icons.arrow_drop_up
-                                                  : Icons.arrow_drop_down,
-                                              size: 18,
-                                            ),
-                                          ],
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            isLanguageListVisible = !isLanguageListVisible;
+                                            isSearchBarVisible = isLanguageListVisible;
+                                            // Remove the condition to update filteredLanguages regardless of the search bar visibility
+                                            filteredLanguages = languages;
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 5,
+                                          ),
+                                          height: size.height * 0.09,
+                                          width: size.width * 0.93,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[200],
+                                            borderRadius: BorderRadius.circular(29),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.language),
+                                              SizedBox(width: 10),
+                                              Text(
+                                                'Select Language',
+                                                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                                              ),
+                                              Spacer(),
+                                              Icon(
+                                                isLanguageListVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                                                size: 18,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    Visibility(
-                                      visible: isLanguageListVisible,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          // Search bar
-                                          Padding(
-                                            padding:
-                                            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                            child: TextField(
-                                              controller: searchController,
-                                              onChanged: (query) {
-                                                setState(() {
-                                                  filteredLanguages = languages
-                                                      .where((language) =>
-                                                      language['lang']
-                                                          .toLowerCase()
-                                                          .contains(query.toLowerCase()))
-                                                      .toList();
-                                                });
-                                              },
-                                              decoration: InputDecoration(
-                                                hintText: 'Search languages...',
-                                                prefixIcon: Icon(Icons.search),
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
+
+                                      // Search bar
+                                      Visibility(
+                                        visible: isSearchBarVisible,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          child: TextField(
+                                            onChanged: (query) {
+                                              setState(() {
+                                                filteredLanguages = languages
+                                                    .where((language) => language['lang']
+                                                    .toLowerCase()
+                                                    .contains(query.toLowerCase()))
+                                                    .toList();
+                                              });
+                                            },
+                                            decoration: InputDecoration(
+                                              hintText: 'Search languages...',
+                                              prefixIcon: Icon(Icons.search),
+                                              border: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(10),
                                               ),
                                             ),
                                           ),
+                                        ),
+                                      ),
 
-                                          // List of languages
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: filteredLanguages.map((language) {
-                                              final langId = language['lang_id'];
-                                              final langName = language['lang'];
-                                              return CheckboxListTile(
-                                                activeColor: HexColor('#4D8D6E'),
-                                                title: Text(langName),
-                                                value: selectedLanguageIds.contains(langId),
+                                      // List of filtered languages
+                                      Visibility(
+                                        visible: isLanguageListVisible,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: filteredLanguages.map((language) {
+                                            final langName = language['lang'];
+
+                                            return ListTile(
+                                              title: Text(langName),
+
+                                              leading: Radio(
+                                                activeColor: HexColor('#4D8D6E'), // Set the color when the radio button is selected
+                                                value: langName,
+                                                groupValue: selectedLanguage, // Provide a proper group value here
                                                 onChanged: (value) {
                                                   setState(() {
-                                                    if (value!) {
-                                                      selectedLanguageIds.add(langId);
-                                                    } else {
-                                                      selectedLanguageIds.remove(langId);
-                                                    }
+
+                                                    selectedLanguage = value as String;
+                                                    isLanguageListVisible = true; // Hide the list after selecting a language
+                                                    isSearchBarVisible = true;
+                                                    print (selectedLanguage);// Hide the search bar after selecting a language
                                                   });
                                                 },
-                                              );
-
-                                            }).toList(),
-                                          ),
-                                        ],
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
+                                    ],
+                                  ),
+                                ),),
+                        SizedBox(height: 20,),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      isJobTypeListVisible = !isJobTypeListVisible;
 
-                            ,Padding(
+                                      // If the list is visible, show the full list
+                                      if (isJobTypeListVisible) {
+                                        filteredJobTypes = jobTypes;
+                                      }
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 5,
+                                    ),
+                                    height: size.height * 0.09,
+                                    width: size.width * 0.93,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(29),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.work),
+                                        SizedBox(width: 10),
+                                        Text(
+                                          'Select Job Type',
+                                          style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                                        ),
+                                        Spacer(),
+                                        Icon(
+                                          isJobTypeListVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                                          size: 18,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                // Search bar and List of filtered job types
+                                Visibility(
+                                  visible: isJobTypeListVisible,
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                        child: TextField(
+                                          onChanged: (query) {
+                                            setState(() {
+                                              filteredJobTypes = jobTypes
+                                                  .where((jobType) => jobType['type']
+                                                  .toLowerCase()
+                                                  .contains(query.toLowerCase()))
+                                                  .toList();
+                                            });
+                                          },
+                                          decoration: InputDecoration(
+                                            hintText: 'Search job types...',
+                                            prefixIcon: Icon(Icons.search),
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      // List of filtered job types
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: filteredJobTypes.map((jobType) {
+                                          final typeName = jobType['type'];
+
+                                          return ListTile(
+                                            title: Text(typeName),
+                                            leading: Radio(
+                                              value: typeName,
+                                              activeColor: HexColor('#4D8D6E'), // Set the color when the radio button is selected
+                                              groupValue: selectedJobType,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  selectedJobType = value as String;
+                                                  isJobTypeListVisible = true;
+                                                  print(selectedJobType);// Hide the list after selecting a job type
+                                                });
+                                              },
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+
+                            Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
@@ -1029,12 +1174,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               formattedPhoneNumber, // Display the formatted phone number
                               style: TextStyle(fontSize: 20.0),
                             ),
-                            SizedBox(
-                              height: ScreenUtil.sizeboxheight,
-                            ),
+
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 5),
+                                  horizontal: 20, ),
                               height: size.height * 0.09,
                               width: size.width * 0.93,
                               decoration: BoxDecoration(
@@ -1288,55 +1431,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             SizedBox(
                               height: ScreenUtil.sizeboxheight,
                             ),
-                            RoundedButton(
-                              loading: isLoading,
-                              text: 'REGISTER',
-                              press: () async {
-                                if (_formKey.currentState!.validate() &&
-                                    !isLoading &&
-                                    selectedLanguageIds.isNotEmpty) {
-                                  setState(() {
-                                    isLoading = true;
-                                  });
-
-
-                                  try {
-                                    await postDataToApi(pickedImage1! ,formattedPhoneNumber2);
-                                    print('Data posted successfully');
-                                    Get.off(layoutworker());
-
-                                   // Navigate to the layout screen
-                                  } catch (error) {
-                                    print('An error occurred: $error');
-                                    // Show snackbar with error message
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                            'An error occurred. Please try again.'),
-                                        backgroundColor: Colors
-                                            .red, // Customize the background color
-                                      ),
-                                    );
-                                  } finally {
-                                    setState(() {
-                                      isLoading = false;
-                                    });
-                                  }
-                                } else {
-                                  print(
-                                      'Please fill in all required fields and select a language');
-                                  // Show snackbar with validation error message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          'Please fill in all required fields and select a language.'),
-                                      backgroundColor: Colors
-                                          .red, // Customize the background color
-                                    ),
-                                  );
-                                }
+                            Container(
+                                width: 200,
+                                height: 50,
+                              child:ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                primary: Color(0xFF4D8D6E), // Set the color to 4D8D6E
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15.0), // Set the border radius to make it circular
+                                ),
+                              ),
+                              onPressed: () async {
+                                _registerWorker();
                               },
-                            ),
+                              child: Text('Register Worker'),
+                            ),)
+
+                            ,
                             const SizedBox(
                               height: 10,
                             ),
@@ -1344,7 +1455,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               title: "Already have an account?",
                               navigatorText: "Login here",
                               onTap: () {
-                                Navigator.push(
+                                Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) =>

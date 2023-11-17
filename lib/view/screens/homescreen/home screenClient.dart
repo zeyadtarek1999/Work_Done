@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
@@ -7,12 +9,15 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Explore/Explore Client.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
 import '../Profile (client-worker)/profilescreenworker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:http/http.dart' as http;
 
+import '../editProfile/editProfile.dart';
 import '../view profile screens/Client profile view.dart';
 
 class Homeclient extends StatefulWidget {
@@ -21,60 +26,288 @@ class Homeclient extends StatefulWidget {
   @override
   State<Homeclient> createState() => _HomeclientState();
 }
+bool isLiked = false;
 
 final advancedDrawerController = AdvancedDrawerController();
-List<builder> item2 = [
-  builder(
-    title: 'Wall Paint',
-    description:
-    'Lorem ipsum is placeholder text commonly used in the graphic, print',
-  ),
-  builder(
-    title: 'Furniture',
-    description:
-    'Furniture is the mass noun for the movable objects intended to support various human activities.',
-  ),
-  builder(
-    title: 'Decoration',
-    description:
-    'Decoration is the furnishing or adorning of a space with decorative elements.',
-  ),
-];
 
-List<CarouselItem> items = [
-  CarouselItem(
-    imageUrl: 'assets/images/testimage.jpg',
-    title: 'Wall painting',
-    description: 'Description for Image 1',
-  ),
-  CarouselItem(
-    imageUrl: 'assets/images/testimage.jpg',
-    title: 'Plumping',
-    description: 'Description for Image 2',
-  ),
-  // Add more items as needed
-];
-final List<Slide> slides = [
-  Slide(
-    title: 'Slide 1 Title',
-    description: 'Slide 1 Description goes here.',
-    imageUrl: 'assets/image1.jpg',
-  ),
-  Slide(
-    title: 'Slide 2 Title',
-    description: 'Slide 2 Description goes here.',
-    imageUrl: 'assets/image2.jpg',
-  ),
-  Slide(
-    title: 'Slide 3 Title',
-    description: 'Slide 3 Description goes here.',
-    imageUrl: 'assets/image3.jpg',
-  ),
-];
+int _currentIndex = 0;
+final CarouselController _carouselController = CarouselController();
+late Future<List<Item>> futureProjects;
+List<Item> items = [];
+TextEditingController searchController = TextEditingController();
+
+Future<List<Item>> fetchProjects() async {
+  try {
+    // Get the token from SharedPreferences
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String userToken = prefs.getString('user_token') ?? '';
+
+    final response = await http.post(
+      Uri.parse('https://workdonecorp.com/api/get_all_projects'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $userToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> projectsJson = json.decode(response.body)['projects'];
+
+      List<Item> projects = projectsJson.map((json) {
+        return Item(
+          projectId: json['project_id'],
+          title: json['title'],
+          description: json['desc'],
+          imageUrl: json['images'],
+          postedFrom: json['posted_from'],
+          client_firstname: json['client_firstname'],
+          liked: json['liked'],
+          numbers_of_likes: json['numbers_of_likes'],     isLiked: isLiked,
+
+        );
+      }).toList();
+      print(projectsJson);
+      print(Item);
+      print(projects);
+      return projects;
+    } else {
+      throw Exception('Failed to load data from API');
+    }
+  } catch (e) {
+    throw Exception('Error: $e');
+  }
+}
+
+List<String> likedProjects = []; // List to store liked project IDs
+
+Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String userToken = prefs.getString('user_token') ?? '';
+
+    final response = await http.post(
+      Uri.parse('https://workdonecorp.com/api/add_project_to_likes'),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer $userToken',
+      },
+      body: {
+        'project_id': projectId,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+
+      if (responseBody['status'] == 'success') {
+        // Project added to likes successfully
+        print('Project added to likes successfully');
+      } else if (responseBody['msg'] == 'This Project is Already in Likes !') {
+        // Project is already liked
+        print('Project is already liked');
+      } else {
+        // Handle other error scenarios
+        print('Error: ${responseBody['msg']}');
+      }
+
+      return responseBody;
+    } else {
+      // Handle other status codes
+      print('Failed to add project to likes. Status code: ${response.statusCode}');
+      return {'status': 'error', 'msg': 'Failed to add project to likes'};
+    }
+  } catch (e) {
+    // Handle exception
+    print('Error: $e');
+    return {'status': 'error', 'msg': 'An error occurred'};
+  }
+}
+Map<int, bool> likedProjectsMap = {};
+
+
+Future<Map<String, dynamic>> removeProjectFromLikes(String projectId) async {
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String token = prefs.getString('user_token') ?? '';
+    final response = await http.post(
+      Uri.parse('https://workdonecorp.com/api/remove_project_from_likes'),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'project_id': projectId,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Successful request, you can handle the response here if needed
+      print('Project removed from likes successfully');
+      return {'status': 'success', 'msg': 'Project removed from likes successfully'};
+    } else {
+      // Handle error
+      print('Failed to remove project from likes. Status code: ${response.statusCode}');
+      return {'status': 'error', 'msg': 'Failed to remove project from likes'};
+    }
+  } catch (e) {
+    // Handle exception
+    print('Error: $e');
+    return {'status': 'error', 'msg': 'An error occurred'};
+  }
+}
+
+
 
 class _HomeclientState extends State<Homeclient> {
   int _currentIndex = 0;
   final CarouselController _carouselController = CarouselController();
+  @override
+  void initState() {
+    super.initState();
+    initializeProjects();
+    _getUserProfile();
+
+
+
+  }
+  String profile_pic ='' ;
+  String firstname ='' ;
+  String secondname ='' ;
+  String email ='' ;
+  Future<void> _getUserProfile() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_profile_info';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('data')) {
+            Map<String, dynamic> profileData = responseData['data'];
+
+            setState(() {
+              firstname = profileData['firstname'] ?? '';
+              secondname = profileData['lastname'] ?? '';
+              email = profileData['email'] ?? '';
+              profile_pic = profileData['profile_pic'] ?? '';
+
+            });
+
+            print('Response: $profileData');
+            print('profile pic: $profile_pic');
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
+
+  Future<void> initializeProjects() async {
+    try {
+      // Initialize futureProjects in initState or wherever appropriate
+      futureProjects = fetchProjects();
+
+      // Wait for the future to complete
+      List<Item> items = await futureProjects;
+
+      // Iterate through the list of items and check if each project is liked
+      items.forEach((item) {
+        checkIfProjectIsLiked(item);
+      });
+    } catch (e) {
+      // Handle exceptions if any
+      print('Error initializing projects: $e');
+    }
+  }
+  Map<int, bool> likedProjectsMap = {};
+
+
+
+  Future<void> checkIfProjectIsLiked(Item item) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String userToken = prefs.getString('user_token') ?? '';
+
+      final response = await addProjectToLikes(item.projectId.toString());
+
+      if (response['status'] == 'success') {
+        // Project is already liked
+        setState(() {
+          likedProjectsMap[item.projectId] = true;
+        });
+        print('Project is already liked');
+      } else if (response['msg'] == 'This Project is Already in Likes !') {
+        // Project is not liked
+        setState(() {
+          likedProjectsMap[item.projectId] = false;
+          print(          likedProjectsMap
+          );
+
+        });
+        print('Project is not liked');
+      } else {
+        // Handle other error scenarios
+        print('Error: ${response['msg']}');
+      }
+    } catch (e) {
+      // Handle exception
+      print('Error: $e');
+    }
+  }
+  List<Item> filteredItems = [];
+  List<InlineSpan> _buildTextSpans(String text, String query) {
+    final spans = <InlineSpan>[];
+    final matches = RegExp(query, caseSensitive: false).allMatches(text.toLowerCase());
+
+    if (matches.isEmpty) {
+      spans.add(TextSpan(text: text));
+      return spans;
+    }
+
+    int currentIndex = 0;
+    for (var match in matches) {
+      if (match.start > currentIndex) {
+        spans.add(TextSpan(text: text.substring(currentIndex, match.start)));
+      }
+      spans.add(
+        TextSpan(
+          text: text.substring(match.start, match.end),
+          style: TextStyle(
+            backgroundColor: Colors.yellow,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+      currentIndex = match.end;
+    }
+
+    if (currentIndex < text.length) {
+      spans.add(TextSpan(text: text.substring(currentIndex)));
+    }
+
+    return spans;
+  }
 
 
   @override
@@ -103,13 +336,15 @@ class _HomeclientState extends State<Homeclient> {
             children: [
               CircleAvatar(
                 radius: 35,
-                backgroundImage: AssetImage('assets/images/profileimage.png'),
-              ),
+            backgroundImage: profile_pic.isNotEmpty
+                ? NetworkImage(profile_pic)
+                : AssetImage('assets/images/profileimage.png') as ImageProvider,
+          ),
               SizedBox(
                 height: 12,
               ),
               Text(
-                'Zeyad Tarek',
+                '$firstname $secondname',
                 style: GoogleFonts.poppins(
                   textStyle: TextStyle(
                       color: HexColor('1A1D1E'),
@@ -121,7 +356,7 @@ class _HomeclientState extends State<Homeclient> {
                 height: 9,
               ),
               Text(
-                'zzeyadtarek11@gmail.com',
+                '$email',
                 style: GoogleFonts.poppins(
                   textStyle: TextStyle(
                       color: HexColor('6A6A6A'),
@@ -143,7 +378,7 @@ class _HomeclientState extends State<Homeclient> {
                     width: 8,
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {Get.to(editProfile());},
                     child: Text(
                       'Edit Profile',
                       style: GoogleFonts.poppins(
@@ -311,8 +546,10 @@ class _HomeclientState extends State<Homeclient> {
                           child: CircleAvatar(
                             radius: 27,
                             backgroundColor: Colors.transparent,
-                            backgroundImage:
-                                AssetImage('assets/images/profileimage.png'),
+                            backgroundImage: profile_pic.isNotEmpty
+                                ? NetworkImage(profile_pic)
+                                : AssetImage('assets/images/profileimage.png') as ImageProvider,
+
                           ),
                         ),
                       ],
@@ -352,18 +589,27 @@ class _HomeclientState extends State<Homeclient> {
                   SizedBox(
                     height: 14,
                   ),
-                  Column(
-                    children: [
-                      CarouselSlider.builder(
+            Column(
+              children: [
+                FutureBuilder<List<Item>>(
+                  future: futureProjects,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Text('No data found.');
+                    } else {
+                      // Update the items list
+                      items = snapshot.data!;
+
+                      return CarouselSlider.builder(
                         carouselController: _carouselController,
                         itemCount: items.length,
-                        itemBuilder:
-                            (BuildContext context, int index, int realIndex) {
-                          return CarouselItemWidget(
-                            item: items[index],
-                            borderRadius: BorderRadius.circular(
-                                30), // Rounded border for the item
-                          );
+                        itemBuilder: (BuildContext context, int index, int realIndex) {
+                          Item currentItem = items[index];
+                          return buildListItem2(currentItem);
                         },
                         options: CarouselOptions(
                           height: 230,
@@ -376,8 +622,7 @@ class _HomeclientState extends State<Homeclient> {
                           padEnds: true,
                           enlargeCenterPage: true,
                           autoPlayInterval: Duration(seconds: 5),
-                          autoPlayAnimationDuration:
-                              Duration(milliseconds: 1000),
+                          autoPlayAnimationDuration: Duration(milliseconds: 1000),
                           autoPlayCurve: Curves.fastOutSlowIn,
                           onPageChanged: (index, reason) {
                             setState(() {
@@ -385,22 +630,25 @@ class _HomeclientState extends State<Homeclient> {
                             });
                           },
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 1.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: items.map((item) {
-                            int itemIndex = items.indexOf(item);
-                            return CircularIndicator(
-                              itemIndex: itemIndex,
-                              currentIndex: _currentIndex,
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ],
+                      );
+                    }
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 1.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: items.map((item) {
+                      int itemIndex = items.indexOf(item);
+                      return CircularIndicator(
+                        itemIndex: itemIndex,
+                        currentIndex: _currentIndex,
+                      );
+                    }).toList(),
                   ),
+                ),
+              ],
+            ),
                   SizedBox(
                     height: 15,
                   ),
@@ -438,31 +686,204 @@ class _HomeclientState extends State<Homeclient> {
                   SizedBox(
                     height: 7,
                   ),
-                  ListView.builder(
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: items.length,
-                    // Replace with the actual length of your data list
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: buildListItem(item2[index]),
-                      );
+                  FutureBuilder<List<Item>>(
+                    future: futureProjects,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Text('No projects found.');
+                      } else {
+                        return ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true, // Set shrinkWrap to true
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (context, index) {
+                            return buildListItem(snapshot.data![index]);
+                          },
+                        );
+                      }
                     },
-                  )
+                  ),
                 ],
               ),
             ),
           )),
     );
   }
+  Widget buildListItem2(Item item) {
 
-  Widget buildListItem(builder item) {
+    return GestureDetector(onTap: (){Get.to(bidDetailsClient(projectId: item.projectId));},
+      child: Stack(
+            children: [
+              Container(
+                height: 170,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(30),
+                  child: Image.network(
+                    item.imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Spacer(), // Pushes the container to the right
+                    Container(
+                      height: 50,
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0, left: 5),
+                            child: Text(
+                              "${item.numbers_of_likes}" ,
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          IconButton(
+                            iconSize: 22,
+                            icon: Icon(
+                              likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                  ? Colors.red
+                                  : Colors.grey,
+                            ),
+                            onPressed: () async {
+                              try {
+                                if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
+                                  // If liked, remove like
+                                  final response = await removeProjectFromLikes(item.projectId.toString());
+
+                                  if (response['status'] == 'success') {
+                                    // If successfully removed from likes
+                                    setState(() {
+                                      likedProjectsMap[item.projectId] ?? item.liked == "false";
+                                      likedProjectsMap[item.projectId] = false;
+                                    });
+                                    print('Project removed from likes');
+                                  } else {
+                                    // Handle the case where the project is not removed from likes
+                                    print('Error: ${response['msg']}');
+                                  }
+                                } else {
+                                  // If not liked, add like
+                                  final response = await addProjectToLikes(item.projectId.toString());
+
+                                  if (response['status'] == 'success') {
+                                    // If successfully added to likes
+                                    setState(() {
+                                      likedProjectsMap[item.projectId] = true;
+                                    });
+                                    print('Project added to likes');
+                                  } else if (response['msg'] == 'This Project is Already in Likes !') {
+                                    // If the project is already liked, switch to Icons.favorite_border
+                                    setState(() {
+                                      likedProjectsMap[item.projectId] = false;
+                                    });
+                                    print('Project is already liked');
+                                  } else {
+                                    // Handle the case where the project is not added to likes
+                                    print('Error: ${response['msg']}');
+                                  }
+                                }
+                              } catch (e) {
+                                print('Error: $e');
+                              }
+                            },
+                          ),                      ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          Positioned(
+                bottom: 17,
+                left: 30,
+                right: 30,
+                child: Container(
+                  height: 122,
+                  width: 160,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                      bottomLeft: Radius.circular(30),
+                      bottomRight: Radius.circular(30),
+                    ),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 4,
+                        blurRadius: 5,
+                        offset: Offset(3, 2),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10.0,
+                      vertical: 20,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          item.title,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: HexColor('#398048'),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 7,
+                        ),
+                        Text(
+                          item.description,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: HexColor('#706F6F'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+    );
+      }
+
+  Widget buildListItem(Item item) {
     return GestureDetector(
-      onTap: (){Get.to(bidDetailsClient());},
+      onTap: () {
+        Get.to(
+                () => bidDetailsClient(projectId: item.projectId),  );    },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 11.0,horizontal: 4),
-        padding: EdgeInsets.symmetric(vertical: 15.0,horizontal: 14),
+        margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
+        padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
           color: Colors.white,
@@ -477,26 +898,120 @@ class _HomeclientState extends State<Homeclient> {
         ),
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              height: 170.0,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-                image: DecorationImage(
-                  image: AssetImage('assets/images/testimage.jpg'), // Replace with your image URL
-                  fit: BoxFit.cover,
+            Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 170.0,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20.0),
+                    image: DecorationImage(
+                      image: NetworkImage(item.imageUrl), // Use the image URL from the fetched data
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Spacer(), // Pushes the container to the right
+                      Container(
+                        height: 50,
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0, left: 5),
+                              child: Text(
+                                "${item.numbers_of_likes}",
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                  IconButton(
+                    iconSize: 22,
+                    icon: Icon(
+                      likedProjectsMap[item.projectId] ?? item.liked == "true"
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: likedProjectsMap[item.projectId] ?? item.liked == "true"
+                          ? Colors.red
+                          : Colors.grey,
+                    ),
+                    onPressed: () async {
+                      try {
+                        if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
+                          // If liked, remove like
+                          final response = await removeProjectFromLikes(item.projectId.toString());
+
+                          if (response['status'] == 'success') {
+                            // If successfully removed from likes
+                            setState(() {
+                              likedProjectsMap[item.projectId] ?? item.liked == "false";
+                              likedProjectsMap[item.projectId] = false;
+                            });
+                            print('Project removed from likes');
+                          } else {
+                            // Handle the case where the project is not removed from likes
+                            print('Error: ${response['msg']}');
+                          }
+                        } else {
+                          // If not liked, add like
+                          final response = await addProjectToLikes(item.projectId.toString());
+
+                          if (response['status'] == 'success') {
+                            // If successfully added to likes
+                            setState(() {
+                              likedProjectsMap[item.projectId] = true;
+                            });
+                            print('Project added to likes');
+                          } else if (response['msg'] == 'This Project is Already in Likes !') {
+                            // If the project is already liked, switch to Icons.favorite_border
+                            setState(() {
+                              likedProjectsMap[item.projectId] = false;
+                            });
+                            print('Project is already liked');
+                          } else {
+                            // Handle the case where the project is not added to likes
+                            print('Error: ${response['msg']}');
+                          }
+                        }
+                      } catch (e) {
+                        print('Error: $e');
+                      }
+                    },
+                  ),                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              ],
             ),
             SizedBox(height: 10.0),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 7.0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(
-                        item.title,
+                      Text.rich(
+                        TextSpan(
+                          children: _buildTextSpans(item.title, searchController.text),
+                        ),
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('131330'),
@@ -519,7 +1034,7 @@ class _HomeclientState extends State<Homeclient> {
                       SizedBox(width: 4,),
                       Container(
                         height: 30,
-                        width: 50,
+                        width: 60,
                         padding: EdgeInsets.zero,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
@@ -532,23 +1047,29 @@ class _HomeclientState extends State<Homeclient> {
                             fixedSize: Size(50, 30), // Adjust the size as needed
                             padding: EdgeInsets.zero,
                           ),
-                          child: Text(
-                            'John',
+                          child: Text.rich(
+                            TextSpan(
+                              children: _buildTextSpans(item.client_firstname, searchController.text),
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis, // Use the client name from the fetched data
                             style: TextStyle(
                               color: HexColor('4D8D6E'),
-                              fontSize: 15,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                   SizedBox(height: 6),
-                  Text(
-                    item.description,
-                    maxLines: 3, // Limit the text to three lines
-                    overflow: TextOverflow.ellipsis, // Add ellipsis for overflow
+                  Text.rich(
+                    TextSpan(
+                      children: _buildTextSpans(item.description, searchController.text),
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.openSans(
                       textStyle: TextStyle(
                         color: HexColor('393B3E'),
@@ -567,7 +1088,7 @@ class _HomeclientState extends State<Homeclient> {
                       ),
                       SizedBox(width: 5),
                       Text(
-                        '22 min',
+                        item.postedFrom, // Use the posted time from the fetched data
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('777778'),
@@ -577,16 +1098,6 @@ class _HomeclientState extends State<Homeclient> {
                         ),
                       ),
                       SizedBox(width: 2),
-                      Text(
-                        'ago',
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                            color: HexColor('777778'),
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                      ),
                       Spacer(),
                       Container(
                         width: 80,
@@ -596,15 +1107,19 @@ class _HomeclientState extends State<Homeclient> {
                           borderRadius: BorderRadius.circular(11),
                         ),
                         child: ElevatedButton(
-                          onPressed: () {Get.to( bidDetailsClient());},
+                          onPressed: () {
+                            Get.to(
+                                  () => bidDetailsClient(projectId: item.projectId),  );
+                            // Handle button press
+                          },
                           child: Text('Details'),
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent, // Make the button background transparent
-                            elevation: 0, // Remove button elevation
-                            textStyle: TextStyle(color: Colors.white), // Set text color to white
+                            primary: Colors.transparent,
+                            elevation: 0,
+                            textStyle: TextStyle(color: Colors.white),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ],
@@ -646,145 +1161,27 @@ class CircularIndicator extends StatelessWidget {
   }
 }
 
-class CarouselItem {
-  final String imageUrl;
+
+class Item {
+  final int projectId;
   final String title;
-  final String description;
-
-  CarouselItem({
-    required this.imageUrl,
-    required this.title,
-    required this.description,
-  });
-}
-
-class CarouselItemWidget extends StatelessWidget {
-  final CarouselItem item;
-  final BorderRadius borderRadius;
-
-  CarouselItemWidget({
-    required this.item,
-    required this.borderRadius, // Accept the borderRadius as a parameter
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          height: 170,
-          child: ClipRRect(
-            borderRadius: borderRadius,
-            // Apply the provided borderRadius
-            child: Image.asset(
-              item.imageUrl,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: 17,
-          left: 30,
-          right: 30,
-          child: Container(
-            height: 122,
-            width: 160,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(borderRadius.topLeft.x),
-                topRight: Radius.circular(borderRadius.topRight.x),
-                bottomLeft: Radius.circular(borderRadius.bottomLeft.x),
-                bottomRight: Radius.circular(borderRadius.bottomRight.x),
-              ),
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 4,
-                  blurRadius: 5,
-                  offset: Offset(3, 2),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10.0,
-                  vertical: 20,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.title,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: HexColor('#398048'),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 7,
-                    ),
-                    Text(
-                      item.description,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: HexColor('#706F6F'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// class CarouselWithDescription extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return CarouselSlider.builder(
-//       itemCount: items.length,
-//       itemBuilder: (BuildContext context, int index, int realIndex) {
-//         return CarouselItemWidget(item: items[index]);
-//       },
-//       options: CarouselOptions(
-//         height: 300,
-//         aspectRatio: 16 / 9,
-//         viewportFraction: 0.8,
-//         enableInfiniteScroll: true,
-//         autoPlay: true,
-//         autoPlayInterval: Duration(seconds: 3),
-//         autoPlayAnimationDuration: Duration(milliseconds: 800),
-//         autoPlayCurve: Curves.fastOutSlowIn,
-//         enlargeCenterPage: true,
-//       ),
-//     );
-//   }
-// }
-class Slide {
-  final String title;
+  final String client_firstname;
+  final String liked;
   final String description;
   final String imageUrl;
+  final int numbers_of_likes;
+  final String postedFrom;
+  bool isLiked;
 
-  Slide({
+  Item({
+    required this.projectId,
     required this.title,
+    required this.client_firstname,
     required this.description,
+    required this.liked,
+    required this.numbers_of_likes,
     required this.imageUrl,
-  });
-}
-class builder {
-  final String title;
-  final String description;
-
-  builder({
-    required this.title,
-    required this.description,
-  });
+    required this.postedFrom,
+    bool? isLiked,
+  }) : isLiked = isLiked ?? liked.toLowerCase() == 'true';
 }

@@ -9,11 +9,11 @@ import '../welcome/welcome_screen.dart';
 class Moreworker extends StatelessWidget {
   const Moreworker({Key? key}) : super(key: key);
 
-  Future<void> clearWorkerId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('worker_id');
-  }
 
+  Future<void> clearSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -219,7 +219,8 @@ class Moreworker extends StatelessWidget {
               children: [
                 TextButton(
                   onPressed: () async {
-                    await clearWorkerId();
+                    await clearSharedPreferences(); // Add this line to clear SharedPreferences
+
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => WelcomeScreen()),

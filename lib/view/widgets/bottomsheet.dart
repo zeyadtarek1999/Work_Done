@@ -34,7 +34,7 @@ class ChooseRoleBottomSheet extends StatelessWidget {
             ),
           ),
           SizedBox(height: 20),
-          GestureDetector(onTap: () => Get.to(SignUpScreen2()),
+          GestureDetector(onTap: () => Get.to(SignUpScreen2(addressLine: '', addressSt2: '', city: '', state: '',)),
             child: Container(
               height: ScreenUtil.cardheight,
               width: ScreenUtil.cardwidth,
@@ -88,7 +88,7 @@ class ChooseRoleBottomSheet extends StatelessWidget {
             ),
           ),
           SizedBox(height: 14),
-          GestureDetector(onTap: () => Get.to(SignUpScreen()),
+          GestureDetector(onTap: () => Get.to(SignUpScreen(addressLine: '', addressSt2: '', city: '', state: '',)),
             child: Container(
               height: ScreenUtil.cardheight,
               width: ScreenUtil.cardwidth,

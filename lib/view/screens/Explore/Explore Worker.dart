@@ -249,7 +249,7 @@ class _exploreWorkerState extends State<exploreWorker> {
 
   Widget buildListItem(Item item) {
     return GestureDetector(
-      onTap: (){Get.to(bidDetailsWorker());},
+      // onTap: (){Get.to(bidDetailsWorker());},
 
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 4),
@@ -392,7 +392,7 @@ class _exploreWorkerState extends State<exploreWorker> {
                         ),
                         child: ElevatedButton(
                           onPressed: () {
-                            Get.to(bidDetailsWorker());
+                            // Get.to(bidDetailsWorker());
                             // Handle button press
                           },
                           child: Text('Bid'),

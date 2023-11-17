@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
 
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../model/login_model.dart';
 import '../../model/textinputformatter.dart';
 import '../widgets/bottomsheet.dart';
 import '../components/page_title_bar.dart';
@@ -25,79 +27,126 @@ class LoginScreenclient extends StatefulWidget {
 
 class _LoginScreenclientState extends State<LoginScreenclient> {
   final formKey = GlobalKey<FormState>();
+  bool isLoading = false;
 
-  final _emailController = TextEditingController();
-
-  final _passwordController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   bool _isObscured = true;
 
   String _email = '';
-
   String _password = '';
-  Future<void> loginUser(BuildContext context, String email, String password) async {
+  final ApiClient apiClient = ApiClient("https://workdonecorp.com"); // Replace with your actual base URL
 
-    final apiUrl = 'http://172.233.199.17/clients.php';  // Change the API URL for clients
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'type': 'client',  // Change the user type to 'client'
-        'email': email,
-        'password': password,
-        'action': 'login',
-      },
-    );
+  Future<void> _login() async {
+    setState(() {
+      isLoading = true;
+    });
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
+    try {
+      String email = emailController.text;
+      String password = passwordController.text;
 
-      if (jsonResponse['client_id'] != null) {
-        String clientId = jsonResponse['client_id'];
+      if (email.isNotEmpty && password.isNotEmpty) {
+        final loginResponse = await apiClient.login(email, password);
 
-        // Save the client ID using the saveClientId function
-        await saveClientId(int.parse(clientId));  // Change the function name and parameter
+        // Print the entire response for debugging purposes
+        print('Login Response: $loginResponse');
 
-        print('Client ID: $clientId');
+        // Check if 'msg' key exists and is not null in the response
+        if (loginResponse.containsKey('msg') && loginResponse['msg'] != null) {
+          String errorMessage = loginResponse['msg'];
 
-        // Navigate to the next screen
-        // For example:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => layoutclient()),  // Change the layout to the client layout
-        );
+          if (errorMessage == 'you provided wrong credentials') {
+            // Show SnackBar for wrong credentials
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Login failed: you provided wrong credentials'),
+              backgroundColor: Colors.red,
+            ));
+          } else {
+            // Handle other error messages if needed
+            // Display a user-friendly error message or throw an exception if needed
+          }
+        } else if (loginResponse.containsKey('token') && loginResponse['token'] != null) {
+          // Access the token from the response
+          String token = loginResponse['token'];
+          String status = loginResponse['status'];
+          String account_type = loginResponse['account_type'];
+
+          // Save the token, status, and account_type using shared preferences
+          await _saveTokenToSharedPreferences(token);
+
+          // Navigate to the next screen or perform other actions after a successful login
+          print('Login successful. Token: $token');
+          print('Login successful. Status: $status');
+          print('Login successful. Account Type: $account_type');
+
+          if (account_type == 'worker') {
+            // Display a toast and do not navigate to layoutworker()
+            Fluttertoast.showToast(
+              msg: 'It\'s a worker account. Please enter a client account.',
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+            );
+          } else {
+            // Navigate to layoutworker() for non-client accounts
+            Get.to(layoutclient());
+          }
+        } else {
+          // Handle the case when 'token' is null or not present in the response
+          print('Login failed. Token is null or not present in the response.');
+          // Display a user-friendly error message or throw an exception if needed
+        }
       } else {
-        print('Client ID not found in response.');
-        // Display an error message to the user
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed')),
-        );
+
+        // Display an error message if email or password is empty
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Please enter both email and password'),
+          backgroundColor: Colors.red,
+        ));
+        print('Please enter both email and password');
       }
-    } else {
-      print('Failed to post login data. Status code: ${response.statusCode}');
-      // Display an error message to the user
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed')),
-      );
+    } catch (error) {
+      // Handle errors
+      print('Error during login: $error');
+      // Display a snackbar or toast with the error message
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Login failed: $error'),
+        backgroundColor: Colors.red,
+      ));
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
-  Future<void> saveClientId(int clientId) async {
+  Future<void> _checkSavedToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt('client_id', clientId);
+    String savedToken = prefs.getString('user_token') ?? 'Token not found';
+
+    print('Saved Token: $savedToken');
   }
 
-  Future<int?> getSavedClientId() async {
-    int clientIdStr = (await getClientId()) as int; // Get the client ID as a String
-    int? clientId = int.tryParse(clientIdStr as String); // Convert to int if possible
+// Function to save data using shared preferences
+// Function to save data using shared preferences
+  Future<void> _saveTokenToSharedPreferences(String token) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('user_token', token);
+    print('Token is ' + token);
+  }
+  Future<void> _testSavedToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String savedToken = prefs.getString('user_token') ?? 'Token not found';
 
-    print('Fetched Client ID: $clientId');
-    return clientId;
+    print('Saved Token: $savedToken');
   }
 
-  Future<String> getClientId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String clientId = prefs.getInt('client_id').toString() ?? '0';
-    return clientId;
+  bool _isValidEmail(String email) {
+    // Add your email validation logic here
+    // For simplicity, this example checks if the email contains '@'
+    return email.contains('@');
   }
 
   String _validationMessage = '';
@@ -106,8 +155,8 @@ class _LoginScreenclientState extends State<LoginScreenclient> {
 
   @override
   void dispose() {
-    _passwordController.dispose();
-    _emailController.dispose();
+    passwordController.dispose();
+    emailController.dispose();
     super.dispose();
   }
 
@@ -137,6 +186,11 @@ class _LoginScreenclientState extends State<LoginScreenclient> {
         return ChooseRoleBottomSheet();
       },
     );
+  }
+  @override
+  void initState() {
+    super.initState();
+    _testSavedToken(); // Test the saved token
   }
 
   String? _validatePassword(String value) {
@@ -228,7 +282,7 @@ class _LoginScreenclientState extends State<LoginScreenclient> {
                                         child: TextFormField(
                                           keyboardType:
                                           TextInputType.emailAddress,
-                                          controller: _emailController,
+                                          controller: emailController,
                                           validator: (value) =>
                                               _validateEmail(value!),
                                           onSaved: (value) {
@@ -284,7 +338,7 @@ class _LoginScreenclientState extends State<LoginScreenclient> {
                                             // Apply the custom formatter
 
                                             keyboardType: TextInputType.text,
-                                            controller: _passwordController,
+                                            controller: passwordController,
                                             obscureText: _isObscured,
                                             validator: (value) =>
                                                 _validatePassword(value!),
@@ -313,31 +367,22 @@ class _LoginScreenclientState extends State<LoginScreenclient> {
                                   ),
                                 ),
                               ),
-                              RoundedButton(
-                                text: 'LOGIN',
-                                press: () async {
-                                  if (formKey.currentState!.validate()) {
-                                    String email = _emailController.text;
-                                    String password = _passwordController.text;
-
-                                    // Pass the BuildContext to loginUser function
-                                    await loginUser(context, email, password);
-                                    print('Login successful');
-                                  } else {
-                                    // Show custom validation message inside the container
-                                    setState(() {
-                                      Fluttertoast.showToast(
-                                        msg: 'Error',
-                                        toastLength: Toast.LENGTH_SHORT,
-                                        gravity: ToastGravity.SNACKBAR,
-                                        timeInSecForIosWeb: 1,
-                                        backgroundColor: Colors.red,
-                                        textColor: Colors.white,
-                                        fontSize: 16.0,
-                                      );
-                                    });
-                                  }
-                                },
+                              SizedBox(height: 15,),
+                              Container(
+                                width: 200,
+                                height: 50,
+                                child: ElevatedButton(
+                                  onPressed: isLoading ? null : _login,
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Color(0xFF4D8D6E), // Set the color to 4D8D6E
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15.0), // Set the border radius to make it circular
+                                    ),
+                                  ),
+                                  child: isLoading
+                                      ? CircularProgressIndicator()
+                                      : Text('Login'),
+                                ),
                               ),
                               const SizedBox(
                                 height: 10,

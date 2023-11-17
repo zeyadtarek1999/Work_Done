@@ -48,6 +48,7 @@ dependencies:
   syncfusion_flutter_sliders: ^23.1.36
   flutter_plugin_android_lifecycle: ^2.0.16
   lottie: ^2.6.0
+  dio: ^5.3.3
 
 
 

@@ -13,6 +13,7 @@ import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../model/Register_clientModel.dart';
 import '../../model/mediaquery.dart';
 import '../../model/textinputformatter.dart';
 import '../components/page_title_bar.dart';
@@ -27,15 +28,36 @@ import 'login_screen_client.dart';
 import 'login_screen_worker.dart';
 
 class SignUpScreen2 extends StatefulWidget {
-  const SignUpScreen2({Key? key}) : super(key: key);
 
+  final String addressLine;
+  final String addressSt2;
+  final String city;
+  final String state;
+
+  SignUpScreen2({
+    required this.addressLine,
+    required this.addressSt2,
+    required this.city,
+    required this.state,
+  });
   @override
   State<SignUpScreen2> createState() => _SignUpScreen2State();
 }
 
 class _SignUpScreen2State extends State<SignUpScreen2> {
   final _formKey = GlobalKey<FormState>();
+  List<Map<String, dynamic>> languages = [
+    {'lang_id': '1', 'lang': 'English'},
+    {'lang_id': '2', 'lang': 'Arabic'},
+    {'lang_id': '3', 'lang': 'French'},
+  ];
+  String addressLine = '';
+  String addressSt2 = '';
+  String city = '';
+  String state = '';
 
+  String selectedLanguage = '';
+bool isSearchBarVisible =false;
   bool isLanguageListVisible = false; // Add this variable
   String selectedCountryCode = '+1'; // Default country code for the United States
 
@@ -108,13 +130,7 @@ class _SignUpScreen2State extends State<SignUpScreen2> {
   final zipcodeController = TextEditingController();
   final emailController2 = TextEditingController();
 
-  // final TextEditingController addressLineController;
-  // final TextEditingController cityController;
-  // final TextEditingController stateController;
-  // final TextEditingController streetController;
-  //
-  // final TextEditingController companyController;
-  // final TextEditingController SuitenumberController;
+
   double defaultPadding = 16.0;
 
   TextEditingController passwordController = TextEditingController();
@@ -215,7 +231,6 @@ class _SignUpScreen2State extends State<SignUpScreen2> {
   void initState() {
     super.initState();
     // Initialize checkedItems with the same length as items, and all values as false
-    fetchLanguages(); // Call the function to fetch languages
   }
 
   void _togglePasswordVisibility() {
@@ -230,105 +245,77 @@ class _SignUpScreen2State extends State<SignUpScreen2> {
     });
   }
 
-  Future<String> getclient_id() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('client_id') ?? '';
-  }
 
-  Future<void> saveClientId(int clientId) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt('client_id', clientId);
-  }
 
-  Future<int?> getSavedClientId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int? clientId = prefs.getInt('client_id');
-    print(clientId);
-    return clientId;
-  }
 
-  List<Map<String, dynamic>> languages = [];
-  String? selectedLanguageId;
 
-  Future<void> fetchLanguages() async {
-    final response =
-    await http.get(Uri.parse('http://172.233.199.17/lang.php'));
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> jsonResponse = json.decode(response.body);
-      setState(() {
-        languages = List<Map<String, dynamic>>.from(jsonResponse['languages']);
-      });
-    } else {
-      print('Failed to fetch languages. Status code: ${response.statusCode}');
+
+
+  final RegisterClientApiClient apiClient = RegisterClientApiClient(); // Create an instance of the API client
+
+  Future<void> _register() async {
+    try {
+      // Call the registerClient method from the apiClient
+      final registrationResponse = await apiClient.registerClient(
+        firstName: firstnameController.text,
+        lastName: lastnameController.text,
+        email: emailController2.text,
+        password: passwordController.text,
+        phone: phoneNumberController.text,
+        language: selectedLanguage,  // Use the selected language directly
+        addressZip: zipcodeController.text,
+        street1: capturedAddressLine,
+        street2: capturedAddressLine2,
+        city: capturedCity,
+        state: capturedState,
+      );
+       print (capturedAddressLine);
+       print (capturedAddressLine2);
+       print (capturedCity);
+       print (capturedState);
+       print (selectedLanguage);
+       print (phoneNumberController);
+      // Print the complete registration response for debugging
+      print('Registration Response: $registrationResponse');
+
+      // Handle the registration response as needed
+      if (registrationResponse.containsKey('status') &&
+          registrationResponse.containsKey('msg') &&
+          registrationResponse.containsKey('token')) {
+        final String user_token = registrationResponse['token'];
+
+        // Store the token in shared preferences
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('user_token', user_token);
+        Get.off(layoutclient());
+      } else {
+        // Handle the case where the expected keys are not present in the response
+        print('Invalid registration response format');
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error during registration: $error');
+      // Display a snackbar or toast with the error message
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Registration failed: $error'),
+        backgroundColor: Colors.red,
+      ));
     }
   }
-
-  String selectedLanguage = ''; // Declare and initialize the variable
-  List<String> selectedLanguageIds = [];
-
-  // Example function to handle checkbox click
-  void handleLanguageCheckboxClick(String languageId, bool isChecked) {
-    if (isChecked) {
-      selectedLanguageIds.add(languageId); // Add the language ID to the list
-    } else {
-      selectedLanguageIds.remove(languageId); // Remove the language ID from the list
-    }
+  // Function to save the token in shared preferences
+  Future<void> _saveToken(String token) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', token);
+    print ( 'Saved Token is $token');
   }
 
+// Function to retrieve the token from shared preferences
+  Future<String?> _getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
   bool isLoading = false; // Add a loading state
-  Future<void> postDataToApi(String phoneNumber) async {
-    if (selectedLanguageIds.isEmpty) {
-      // Check if at least one language is selected
-      print('Please select at least one language');
-      return;
-    }
-
-    final url = Uri.parse('http://172.233.199.17/clients.php');
-    final request = http.MultipartRequest('POST', url)
-      ..fields['client_firstname'] = firstnameController.text
-      ..fields['client_lastname'] = lastnameController.text
-      ..fields['client_email'] = emailController2.text
-      ..fields['client_phone'] = phoneNumber
-      ..fields['client_zip'] = zipcodeController.text
-      ..fields['address_st1'] = capturedAddressLine
-      ..fields['address_st2'] = capturedAddressLine2
-      ..fields['address_city'] = capturedCity
-      ..fields['address_state'] = capturedState
-      ..fields['address_zip'] = zipcodeController.text
-      ..fields['client_password'] = passwordController.text
-      ..fields['client_profile_pic'] = ''
-      ..fields['action'] = 'add_client';
-
-    // Add selected language IDs with unique keys
-    for (int i = 0; i < selectedLanguageIds.length; i++) {
-      final languageId = selectedLanguageIds[i];
-      request.fields['langs[$i]'] = languageId;
-    }
-
-    final response = await request.send();
-    if (response.statusCode == 200) {
-      print('Data posted successfully');
-      // Handle response as needed
-      final responseData =
-      await response.stream.bytesToString(); // Convert stream to string
-      final jsonResponse = json.decode(responseData);
-      // Fetch languages again to update the list after adding a language
-      // Extract worker_id as a string
-      String clientIdString = jsonResponse['client_id'];
-
-      // Convert worker_id string to an integer
-      int clientId = int.parse(clientIdString);
-
-      // Save the worker_id to SharedPreferences
-      await saveClientId(clientId);
-
-      print('Client ID: $clientId');
-    } else {
-      print('Failed to post data. Status code: ${response.statusCode}');
-      throw Exception('Failed to fetch languages');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -441,6 +428,7 @@ class _SignUpScreen2State extends State<SignUpScreen2> {
                                       height:
                                       33.0, // Replace with the desired height of the icon                      // Replace with the path to your SVG file
                                     ),
+                                    SizedBox(width: 5,),
                                     // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
                                     Container(
                                       child: Expanded(
@@ -547,37 +535,38 @@ class _SignUpScreen2State extends State<SignUpScreen2> {
                                 setState(() {
                                   _isFormFilled = true; // Set this based on your validation logic
                                 });
-
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 5),
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                                 height: size.height * 0.09,
                                 width: size.width * 0.93,
                                 decoration: BoxDecoration(
                                   color: HexColor('#F5F5F5'),
                                   borderRadius: BorderRadius.circular(29),
                                 ),
-                                child: Row(children: [
-                                  SvgPicture.asset(
-                                    'assets/icons/addressicon.svg',
-                                    // Replace with the path to your SVG file
-                                    width: 33.0,
-                                    // Replace with the desired width of the icon
-                                    height:
-                                    33.0, // Replace with the desired height of the icon                      // Replace with the path to your SVG file
-                                  ),
-                                  // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
-                                  SizedBox(width: 20.0),
-                                  Text(
-                                    ' Address',
-                                    style:
-                                    TextStyle(color: HexColor('#707070')),
-                                  ),
-                                  Spacer(),
-                                  if (_isFormFilled)
-                                    Icon(Icons.check, color: Colors.green),
-                                ]),
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/icons/addressicon.svg',
+                                      width: 33.0,
+                                      height: 33.0,
+                                    ),
+                                    SizedBox(width: 20.0),
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Address',
+                                          style: TextStyle(color: HexColor('#707070')),
+                                        ),
+                                      ],
+                                    ),
+                                    Spacer(),
+                                    if (_isFormFilled)
+                                      Icon(Icons.check, color: Colors.green),
+                                  ],
+                                ),
                               ),
                             ),
                             SizedBox(
@@ -634,7 +623,7 @@ class _SignUpScreen2State extends State<SignUpScreen2> {
                               height: ScreenUtil.sizeboxheight,
                             ),
                             Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
                               child: SingleChildScrollView(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -643,7 +632,7 @@ class _SignUpScreen2State extends State<SignUpScreen2> {
                                       onTap: () {
                                         setState(() {
                                           isLanguageListVisible = !isLanguageListVisible;
-                                          filteredLanguages = languages; // Set filteredLanguages to contain all languages initially
+                                          isSearchBarVisible = isLanguageListVisible; // Show the search bar only when the list is visible
                                         });
                                       },
                                       child: Container(
@@ -654,99 +643,86 @@ class _SignUpScreen2State extends State<SignUpScreen2> {
                                         height: size.height * 0.09,
                                         width: size.width * 0.93,
                                         decoration: BoxDecoration(
-                                          color: HexColor('#F5F5F5'),
+                                          color: Colors.grey[200],
                                           borderRadius: BorderRadius.circular(29),
                                         ),
                                         child: Row(
                                           children: [
-                                            SvgPicture.asset(
-                                              'assets/icons/language.svg',
-                                              width: 33.0,
-                                              height: 33.0,
-                                            ),
+                                            Icon(Icons.language),
                                             SizedBox(width: 10),
                                             Text(
-                                              'Select Languages',
+                                              'Select Language',
                                               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                                             ),
                                             Spacer(),
                                             Icon(
-                                              isLanguageListVisible
-                                                  ? Icons.arrow_drop_up
-                                                  : Icons.arrow_drop_down,
+                                              isLanguageListVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
                                               size: 18,
                                             ),
                                           ],
                                         ),
                                       ),
                                     ),
+                                    // Search bar
+                                    Visibility(
+                                      visible: isSearchBarVisible,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                        child: TextField(
+                                          onChanged: (query) {
+                                            setState(() {
+                                              filteredLanguages = languages
+                                                  .where((language) => language['lang']
+                                                  .toLowerCase()
+                                                  .contains(query.toLowerCase()))
+                                                  .toList();
+                                            });
+                                          },
+                                          decoration: InputDecoration(
+                                            hintText: 'Search languages...',
+                                            prefixIcon: Icon(Icons.search),
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    // List of filtered languages
                                     Visibility(
                                       visible: isLanguageListVisible,
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          // Search bar
-                                          Padding(
-                                            padding:
-                                            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                            child: TextField(
-                                              controller: searchController,
-                                              onChanged: (query) {
+                                        children: filteredLanguages.map((language) {
+                                          final langName = language['lang'];
+
+                                          return ListTile(
+                                            title: Text(langName),
+                                            leading: Radio(
+                                              value: langName,
+                                              groupValue: selectedLanguage,
+                                              onChanged: (value) {
                                                 setState(() {
-                                                  filteredLanguages = languages
-                                                      .where((language) =>
-                                                      language['lang']
-                                                          .toLowerCase()
-                                                          .contains(query.toLowerCase()))
-                                                      .toList();
+                                                  selectedLanguage = value as String;
+                                                  isLanguageListVisible = false; // Hide the list after selecting a language
+                                                  isSearchBarVisible = false; // Hide the search bar after selecting a language
                                                 });
                                               },
-                                              decoration: InputDecoration(
-                                                hintText: 'Search languages...',
-                                                prefixIcon: Icon(Icons.search),
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                              ),
                                             ),
-                                          ),
-
-                                          // List of languages
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: filteredLanguages.map((language) {
-                                              final langId = language['lang_id'];
-                                              final langName = language['lang'];
-                                              bool isSelected = selectedLanguageIds.contains(langId);
-
-                                              return CheckboxListTile(
-                                                activeColor: HexColor('#4D8D6E'),
-                                                title: Text(langName),
-                                                value: selectedLanguageIds.contains(langId),
-                                                onChanged: (value) {
-                                                  setState(() {
-                                                    if (value!) {
-                                                      selectedLanguageIds.add(langId);
-                                                    } else {
-                                                      selectedLanguageIds.remove(langId);
-                                                    }
-                                                  });
-                                                },
-                                              );
-
-
-                                            }).toList(),
-                                          ),
-                                        ],
+                                          );
+                                        }).toList(),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                             )
-
-                        ,Padding(
-                    padding: const EdgeInsets.all(16.0),
+                      ,SizedBox(
+                      height: ScreenUtil.sizeboxheight,
+                    ),
+                        Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
                       height: size.height * 0.103,
@@ -785,52 +761,44 @@ class _SignUpScreen2State extends State<SignUpScreen2> {
                                 SizedBox(width: 8), // Add some spacing between the dropdown and the text field
                                 Expanded(
                                   child: TextFormField(
-
                                     controller: phoneNumberController,
                                     decoration: InputDecoration(
                                       hintText: 'Phone Number',
                                       border: InputBorder.none,
-                                      contentPadding: EdgeInsets.all(0), // Remove content padding
-
+                                      contentPadding: EdgeInsets.all(0),
                                     ),
                                     keyboardType: TextInputType.phone,
                                     onChanged: (value) {
                                       setState(() {
-                                        // Format the phone number using the formatPhoneNumber function
-                                        final formattedPhoneNumber = formatPhoneNumber(value);
+                                        // Remove non-digit characters from the input
+                                        final cleanedValue = value.replaceAll(RegExp(r'\D'), '');
+
+                                        // Format the cleaned phone number using the formatPhoneNumber function
+                                        final formattedPhoneNumber = formatPhoneNumber(cleanedValue);
                                         phoneNumberController.value = TextEditingValue(
                                           text: formattedPhoneNumber,
                                           selection: TextSelection.collapsed(offset: formattedPhoneNumber.length),
-
                                         );
-// Add +1 prefix to the formatted phone number
-                                        phoneNumberController.text = '$formattedPhoneNumber';
 
-                                        // Ensure the cursor position is at the end
-                                        phoneNumberController.selection = TextSelection.fromPosition(
-                                            TextPosition(offset: phoneNumberController.text.length),
-                                        );
-                                        print(phoneNumberController.text);
-                                            // Validate the phone number
-                                        isPhoneNumberValid = validatePhoneNumber(formattedPhoneNumber);
+                                        // Validate the phone number
+                                        isPhoneNumberValid = validatePhoneNumber(cleanedValue);
                                       });
                                     },
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly,
-                                      LengthLimitingTextInputFormatter(10), // Limit the input length to 10 digits
+                                      LengthLimitingTextInputFormatter(10),
                                     ],
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Please enter a phone number';
                                       }
 
-                                      // Basic validation: Check if the formatted phone number has 10 digits
-                                      final formattedPhoneNumber = formatPhoneNumber(value);
-                                      if (formattedPhoneNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
+                                      // Basic validation: Check if the input has 10 digits
+                                      if (value.replaceAll(RegExp(r'\D'), '').length != 10) {
                                         return 'Invalid phone number';
                                       }
 
-                                      return null; // Return null if the input is valid
+                                      return null;
                                     },
                                   ),
                                 ),
@@ -1062,55 +1030,7 @@ class _SignUpScreen2State extends State<SignUpScreen2> {
                             RoundedButton(
                               loading: isLoading,
                               text: 'REGISTER',
-                              press: () async {
-                                if (_formKey.currentState!.validate() &&
-                                    !isLoading &&
-                                    selectedLanguageIds.isNotEmpty) {
-                                  setState(() {
-                                    isLoading = true;
-                                  });
-
-                                  try {
-                                    // Send the API request to post data
-                                    await postDataToApi(formattedPhoneNumber2);
-
-                                    // Fetch languages after successful registration
-                                    await fetchLanguages();
-                                    print('Data posted successfully');
-
-                                    // Navigate to the layout screen
-                                    Get.off(layoutclient());
-                                  } catch (error) {
-                                    print('An error occurred: $error');
-                                    // Show snackbar with error message
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('An error occurred. Please try again.'),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  } finally {
-                                    setState(() {
-                                      isLoading = false;
-                                    });
-                                  }
-                                } else {
-                                  print('Please fill in all required fields and select a language');
-                                  // Show snackbar with validation error message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Please fill in all required fields and select a language.'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Please select at least one language.'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              },
+                              press: () => _register(),
                             ),
                             const SizedBox(
                               height: 10,
@@ -1174,6 +1094,10 @@ class _AddressPickerPopupState extends State<AddressPickerPopup> {
   _AddressPickerPopupState() {
     assert(statesOfAmerica.toSet().length == statesOfAmerica.length,
     'Duplicate values found in statesOfAmerica list');
+  }
+  // Define a callback function to pass data back to SignUpScreen2
+  void _onDonePressed(String addressLine, String addressLine2, String city, String state) {
+    widget.onDonePressed(addressLine, addressLine2, city, state);
   }
   @override
   Widget build(BuildContext context) {
@@ -1293,31 +1217,31 @@ class _AddressPickerPopupState extends State<AddressPickerPopup> {
 
 
               SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () {
-                  if (formKey.currentState!.validate()) {
-                    String addressLine = addressLineController.text;
-                    String addressLine2 = addressst2Controller.text;
-                    String city = cityController.text;
-                    String state = selectedState;
+    ElevatedButton(
+    onPressed: () {
+    if (formKey.currentState!.validate()) {
+    String addressLine = addressLineController.text;
+    String addressLine2 = addressst2Controller.text;
+    String city = cityController.text;
+    String state = selectedState;
 
-                    // Call the onDonePressed function and pass the values
-                    widget.onDonePressed(addressLine, addressLine2, city, state);
-                    setState(() {
-                      _isFormFilled = true;
-                    });
-                    Navigator.pop(context);
-                  }
-                },
-                child: Text(
-                  'Done',
-                  style: TextStyle(color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  primary: HexColor('#4D8D6E'),
-                ),
-              ),
-            ],
+    // Call the onDonePressed function and pass the values
+    _onDonePressed(addressLine, addressLine2, city, state);
+    setState(() {
+    _isFormFilled = true;
+    });
+    Navigator.pop(context);
+    }
+    },
+    child: Text(
+    'Done',
+    style: TextStyle(color: Colors.white),
+    ),
+    style: ElevatedButton.styleFrom(
+    primary: HexColor('#4D8D6E'),
+    ),
+    ),
+              ],
           ),
         ),
       ),

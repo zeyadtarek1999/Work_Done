@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
 
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../model/login_model.dart';
 import '../../model/textinputformatter.dart';
 import '../widgets/bottomsheet.dart';
 import '../components/page_title_bar.dart';
@@ -24,91 +26,133 @@ class LoginScreenworker extends StatefulWidget {
 class _LoginScreenworkerState extends State<LoginScreenworker> {
   final formKey = GlobalKey<FormState>();
 
-  final _emailController = TextEditingController();
+  final emailController = TextEditingController();
 
-  final _passwordController = TextEditingController();
+  final passwordController = TextEditingController();
+  bool isLoading = false;
 
   bool _isObscured = true;
 
   String _email = '';
 
   String _password = '';
-  Future<void> loginUser(BuildContext context, String email, String password) async {
+  final ApiClient apiClient = ApiClient("https://workdonecorp.com"); // Replace with your actual base URL
 
-    final apiUrl = 'http://172.233.199.17/worker.php';
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'type': 'worker',
-        'email': email,
-        'password': password,
-        'action': 'login',
-      },
-    );
+  Future<void> _login() async {
+    setState(() {
+      isLoading = true;
+    });
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
+    try {
+      String email = emailController.text;
+      String password = passwordController.text;
 
-      if (jsonResponse['worker_id'] != null) {
-        String workerId = jsonResponse['worker_id'];
+      if (email.isNotEmpty && password.isNotEmpty) {
+        final loginResponse = await apiClient.login(email, password);
 
-        // Save the worker ID using the saveWorkerId function
-        await saveWorkerId(int.parse(workerId));
+        // Print the entire response for debugging purposes
+        print('Login Response: $loginResponse');
 
-        print('Worker ID: $workerId');
+        // Check if 'msg' key exists and is not null in the response
+        if (loginResponse.containsKey('msg') && loginResponse['msg'] != null) {
+          String errorMessage = loginResponse['msg'];
 
-        // Navigate to the next screen
-        // For example:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => layoutworker()),
-        );
+          if (errorMessage == 'you provided wrong credentials') {
+            // Show SnackBar for wrong credentials
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Login failed: you provided wrong credentials'),
+              backgroundColor: Colors.red,
+            ));
+          } else {
+            // Handle other error messages if needed
+            // Display a user-friendly error message or throw an exception if needed
+          }
+        } else if (loginResponse.containsKey('token') && loginResponse['token'] != null) {
+          // Access the token from the response
+          String token = loginResponse['token'];
+          String status = loginResponse['status'];
+          String account_type = loginResponse['account_type'];
+
+          // Save the token, status, and account_type using shared preferences
+          await _saveTokenToSharedPreferences(token);
+
+          // Navigate to the next screen or perform other actions after a successful login
+          print('Login successful. Token: $token');
+          print('Login successful. Status: $status');
+          print('Login successful. Account Type: $account_type');
+
+          if (account_type == 'client') {
+            // Display a toast and do not navigate to layoutworker()
+            Fluttertoast.showToast(
+              msg: 'It\'s a client account. Please enter a worker account.',
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+            );
+          } else {
+            // Navigate to layoutworker() for non-client accounts
+            Get.to(layoutworker());
+          }
+        } else {
+          // Handle the case when 'token' is null or not present in the response
+          print('Login failed. Token is null or not present in the response.');
+          // Display a user-friendly error message or throw an exception if needed
+        }
       } else {
-        print('Worker ID not found in response.');
-        // Display an error message to the user
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed')),
-        );
+
+        // Display an error message if email or password is empty
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Please enter both email and password'),
+          backgroundColor: Colors.red,
+        ));
+        print('Please enter both email and password');
       }
-    } else {
-      print('Failed to post login data. Status code: ${response.statusCode}');
-      // Display an error message to the user
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed')),
-      );
+    } catch (error) {
+      // Handle errors
+      print('Error during login: $error');
+      // Display a snackbar or toast with the error message
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Login failed: $error'),
+        backgroundColor: Colors.red,
+      ));
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
-
-  Future<void> saveWorkerId(int workerId) async {
+  Future<void> _checkSavedToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt('worker_id', workerId);
+    String savedToken = prefs.getString('user_token') ?? 'Token not found';
+
+    print('Saved Token: $savedToken');
   }
-
-
-  Future<int?> getSavedWorkerId() async {
-    int workerIdStr = await getWorkerId(); // Get the worker ID as a String
-    int? workerId = int.tryParse(workerIdStr as String); // Convert to int if possible
-
-    print('Fetched Worker ID: $workerId');
-    return workerId;
-  }
-
-
-  Future<int> getWorkerId() async {
+// Function to save data using shared preferences
+  Future<void> _saveTokenToSharedPreferences(String token) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    int workerId = prefs.getInt('worker_id') ?? 0;
-    return workerId;
+    prefs.setString('user_token', token);
+    print('Token is ' + token);
   }
+  Future<void> _testSavedToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String savedToken = prefs.getString('user_token') ?? 'Token not found';
 
+    print('Saved Token: $savedToken');
+  }
   String _validationMessage = '';
 
   bool _isEmailValid = true;
+  @override
+  void initState() {
+    super.initState();
+    _testSavedToken(); // Test the saved token
+  }
 
   @override
   void dispose() {
-    _passwordController.dispose();
-    _emailController.dispose();
+    passwordController.dispose();
+    emailController.dispose();
     super.dispose();
   }
 
@@ -229,7 +273,7 @@ class _LoginScreenworkerState extends State<LoginScreenworker> {
                                         child: TextFormField(
                                           keyboardType:
                                               TextInputType.emailAddress,
-                                          controller: _emailController,
+                                          controller: emailController,
                                           validator: (value) =>
                                               _validateEmail(value!),
                                           onSaved: (value) {
@@ -285,7 +329,7 @@ class _LoginScreenworkerState extends State<LoginScreenworker> {
                                             // Apply the custom formatter
 
                                             keyboardType: TextInputType.text,
-                                            controller: _passwordController,
+                                            controller: passwordController,
                                             obscureText: _isObscured,
                                             validator: (value) =>
                                                 _validatePassword(value!),
@@ -314,31 +358,22 @@ class _LoginScreenworkerState extends State<LoginScreenworker> {
                                   ),
                                 ),
                               ),
-                              RoundedButton(
-                                text: 'LOGIN',
-                                press: () async {
-                                  if (formKey.currentState!.validate()) {
-                                    String email = _emailController.text;
-                                    String password = _passwordController.text;
-
-                                    // Pass the BuildContext to loginUser function
-                                    await loginUser(context, email, password);
-                                    print('Login successful');
-                                  } else {
-                                    // Show custom validation message inside the container
-                                    setState(() {
-                                      Fluttertoast.showToast(
-                                        msg: 'Error',
-                                        toastLength: Toast.LENGTH_SHORT,
-                                        gravity: ToastGravity.SNACKBAR,
-                                        timeInSecForIosWeb: 1,
-                                        backgroundColor: Colors.red,
-                                        textColor: Colors.white,
-                                        fontSize: 16.0,
-                                      );
-                                    });
-                                  }
-                                },
+                              SizedBox(height: 15,),
+                              Container(
+                                width: 200,
+                                height: 50,
+                                child: ElevatedButton(
+                                  onPressed: isLoading ? null : _login,
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Color(0xFF4D8D6E), // Set the color to 4D8D6E
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15.0), // Set the border radius to make it circular
+                                    ),
+                                  ),
+                                  child: isLoading
+                                      ? CircularProgressIndicator()
+                                      : Text('Login'),
+                                ),
                               ),
                               const SizedBox(
                                 height: 10,

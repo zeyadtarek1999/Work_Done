@@ -181,7 +181,7 @@ class _ProfilePageClientState extends State<ProfilePageClient> {
   }
   Widget buildListproject(items item) {
     return GestureDetector(
-      onTap: (){Get.to(bidDetailsWorker());},
+      // onTap: (){Get.to(bidDetailsWorker());},
       child: Container(
         height: 330, // Adjust the height as needed
         width: 280,  // Adjust the width as needed
@@ -326,7 +326,7 @@ Spacer(),
 
   Widget buildListReviews(reviewsitems reviewsitems) {
     return GestureDetector(
-      onTap: (){Get.to(bidDetailsWorker());},
+      // onTap: (){Get.to(bidDetailsWorker());},
       child: Container(
         height: 330, // Adjust the height as needed
         width: 280,  // Adjust the width as needed

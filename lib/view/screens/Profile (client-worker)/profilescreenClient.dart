@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../controller/DrawerControllerworker.dart';
 import '../../../model/mediaquery.dart';
+import '../editProfile/editProfile.dart';
 
 class ProfileScreenClient2 extends StatefulWidget {
   @override
@@ -22,8 +23,6 @@ class ProfileScreenClient2 extends StatefulWidget {
 }
 
 class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
-  String firstName = '';
-  String lastName = '';
   String phonenumber = '';
   String email = '';
   int? clientId;
@@ -32,171 +31,131 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
 
   List<Map<String, dynamic>> languages = [];
 
+
+  String firstname = '';
+  String secondname = '';
+  String password = '';
+  String profile_pic = '';
+  String language = '';
+  late String userToken;
   @override
   void initState() {
     super.initState();
-    fetchClientData();
-    retrieveClientId();
-    if (clientId != null) {
-      fetchLanguages(clientId!).then((fetchedLanguages) {
-        setState(() {
-          languages = fetchedLanguages;
-        });
-      });
-    } else {
-      // Handle the case when clientId is null
-      print('Client ID is null.');
-    }
-  }
+    _getUserProfile();
+    getaddressuser();
+  }String addressline1 = '';
 
+  String addressline2 = '';
 
-  Future<int?> getSavedClientId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int? clientId = prefs.getInt('client_id');
-    print('Fetched Client ID: $clientId');
-    return clientId;
-  }
+  String city = '';
 
-  void retrieveClientId() async {
-    int? id = await getSavedClientId();
-    setState(() {
-      clientId = id;
-    });
-  }
+  String state = '';
+  String addressZip = '';
 
-  Future<void> fetchClientData() async {
-    int? clientId = await getSavedClientId();
+  Future<void> getaddressuser() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
 
-    if (clientId != null) {
-      final apiUrl = 'http://172.233.199.17/clients.php';
-      final url = Uri.parse(
-          '$apiUrl?client_id=$clientId'); // Use string interpolation to build the URL
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_address';
+        print(userToken);
 
-      final response = await http.get(url);
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
 
-      if (response.statusCode == 200) {
-        final jsonResponse = json.decode(response.body);
-        Map<String, dynamic> clientData = jsonResponse['data']['client'];
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
 
-        // Extract specific fields from the client data
-        String clientFirstName = clientData['client_firstname'];
-        String clientLastName = clientData['client_lastname'];
-        String clientphonenumber = clientData['client_phone'];
-        String clientemail = clientData['client_email'];
-        if (clientId != null) {
-          fetchLanguages(clientId!).then((fetchedLanguages) {
+          if (responseData.containsKey('Address_data')) {
+            Map<String, dynamic> Addressdata = responseData['Address_data'];
+
             setState(() {
-              languages = fetchedLanguages;
+              addressline1  = Addressdata['street1'] ?? '';
+              addressline2  = Addressdata['street2'] ?? '';
+              city  = Addressdata['city'] ?? '';
+              state  = Addressdata['state'] ?? '';
+              addressZip = Addressdata['address_zip']?.toString() ?? '';
             });
-          });
+
+            print('Response: $Addressdata');
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
         } else {
-          // Handle the case when clientId is null
-          print('Client ID is null.');
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
         }
-        setState(() {
-          firstName = clientFirstName;
-          lastName = clientLastName;
-          phonenumber = clientphonenumber;
-          email = clientemail;
-          print('First Name: $firstName'); // Added a label for clarity
-          print('Last Name: $lastName'); // Added a label for clarity
-          print('phone number: $phonenumber'); // Added a label for clarity
-          print('email : $clientemail'); // Added a label for clarity
-        });
-      } else {
-        print(
-            'Failed to fetch client data. Status code: ${response.statusCode}');
       }
-    } else {
-      print('Client ID not found in SharedPreferences.');
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchLanguages(int clientId) async {
-    final apiUrl = 'http://172.233.199.17/clients.php';
-    final url =
-        Uri.parse('$apiUrl?client_id=$clientId'); // Append client_id to the URL
 
-    final response = await http.get(url);
+  Future<void> _getUserProfile() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-      List<dynamic> languagesData = jsonResponse['data']['languages'];
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_profile_info';
+        print(userToken);
 
-      // Convert the list of languages to a list of maps
-      List<Map<String, dynamic>> languages = languagesData.map((language) {
-        return {
-          'lang_id': language['lang_id'],
-          'lang': language['lang'],
-        };
-      }).toList();
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
 
-      return languages;
-    } else {
-      throw Exception('Failed to fetch languages');
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('data')) {
+            Map<String, dynamic> profileData = responseData['data'];
+
+            setState(() {
+              firstname = profileData['firstname'] ?? '';
+              secondname = profileData['lastname'] ?? '';
+              email = profileData['email'] ?? '';
+              profile_pic = profileData['profile_pic'] ?? '';
+              phonenumber = profileData['phone'] ?? '';
+              language = profileData['language'] ?? '';
+            });
+
+            print('Response: $profileData');
+            print('prifole pic: $profile_pic');
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
     }
   }
 
-// Future<void> fetchWorkerData() async {
-//   int? workerId = await getSavedWorkerId();
-//   print('Fetched Worker ID: $workerId'); // Add this line
-//
-//   if (workerId != null) {
-//     final url = Uri.https('172.233.199.17', '/worker.php', {'worker_id': workerId.toString()});
-//     print('Fetched Worker ID: $workerId'); // Print the worker ID
-//
-//     var http;
-//     final response = await http.get(url);
-//
-//
-//
-//     if (response.statusCode == 200) {
-//       final responseData = response.body;
-//       final jsonResponse = json.decode(responseData);
-//
-//       // Extract the data from the response JSON
-//       Map<String, dynamic> workerData = jsonResponse['data']['worker'];
-//       List<dynamic> languages = jsonResponse['data']['languages'];
-//
-//       // Now you can access the worker data and languages list
-//       print('Worker Data: $workerData');
-//       print('Languages: $languages');
-//
-//       // You can also extract specific fields from the worker data
-//       firstName  = workerData['worker_firstname'];
-//       lastName  = workerData['worker_lastname'];
-//       String workerLicenseNo = workerData['worker_license_no'];
-//       String workerEmail = workerData['worker_email'];
-//       String workerPhone = workerData['worker_phone'];
-//       String workerAddress = workerData['worker_address'];
-//       String workerProfilePic = workerData['worker_profile_pic'];
-//       String workerJobType = workerData['worker_job_type'];
-//       String workerOtherJobType = workerData['worker_other_job_type'];
-//       String workerExpYears = workerData['worker_exp_years'];
-//       String workerZip = workerData['worker_zip'];
-//       String workerRadius = workerData['worker_raduis'];
-//       String workerPreferredPay = workerData['worker_prefered_pay'];
-//       String workerUsername = workerData['worker_username'];
-//       String workerPassword = workerData['worker_password'];
-//       String addressId = workerData['address_id'];
-//       String street1 = workerData['street1'];
-//       String street2 = workerData['street2'];
-//       String city = workerData['city'];
-//       String state = workerData['state'];
-//       String zip = workerData['zip'];
-//       // You can also loop through the languages list and extract each language
-//       for (var language in languages) {
-//         String langId = language['lang_id'];
-//         String lang = language['lang'];
-//         print('Language ID: $langId, Language: $lang');
-//       }
-//     } else {
-//       print('Failed to fetch worker data. Status code: ${response.statusCode}');
-//     }
-//   } else {
-//     print('Worker ID not found in SharedPreferences.');
-//   }
-// }
+
+
+
+
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   double buttonscreenwidth = ScreenUtil.screenWidth! * 0.75;
 
@@ -233,14 +192,16 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                 children: [
                   CircleAvatar(
                     radius: 35,
-                    backgroundImage:
-                        AssetImage('assets/images/profileimage.png'),
-                  ),
+                backgroundImage: profile_pic.isNotEmpty
+                    ? NetworkImage(profile_pic)
+                    : AssetImage('assets/images/profileimage.png') as ImageProvider,
+              ),
+
                   SizedBox(
                     height: 12,
                   ),
                   Text(
-                    'Zeyad Tarek',
+                    "$firstname $secondname" ,
                     style: GoogleFonts.poppins(
                       textStyle: TextStyle(
                           color: HexColor('1A1D1E'),
@@ -524,7 +485,7 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                                         ],
                                       ),
                                       Text(
-                                        '$firstName $lastName',
+                                        '$firstname $secondname',
                                         style: TextStyle(
                                             color: HexColor('#022C43'),
                                             fontSize: 26,
@@ -551,9 +512,13 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                                 ),
                               ),
                               child: ClipOval(
-                                child: Image.asset(
+                                child:  profile_pic.isNotEmpty
+                                    ? Image.network(
+                                  profile_pic,
+                                  fit: BoxFit.cover,
+                                )
+                                    : Image.asset(
                                   'assets/images/profileimage.png',
-                                  // Replace with the image URL
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -680,21 +645,49 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                                       ),
                                     ),
                                     SizedBox(width: ScreenUtil.sizeboxwidth3),
-                                    Expanded(
-                                      child: Text(
-                                        languages != null
-                                            ? languages
-                                                .map((language) => language['lang'])
-                                                .join(' , ')
-                                            : '',
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                    ),
+                                    Text(
+                                      '$language',
+                                      style: TextStyle(
+                                          color: HexColor('#404040'), fontSize: 15),
+                                    )
                                   ],
                                 )),
+                            Container(
+                              height: 50,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: HexColor('#707070').withOpacity(0.1),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 12),
+                                      child: Text(
+                                        'Address:',
+                                        style: TextStyle(
+                                            color: HexColor('#4D8D6E'),
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 17),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: ScreenUtil.sizeboxwidth3,
+                                    ),
+                                    Text(
+                                      '$addressline1 , $addressline2 , $city , $state  ',
+                                      style: TextStyle(
+                                          color: HexColor('#404040'), fontSize: 15),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
                             Container(
                               height: 50,
                               decoration: BoxDecoration(
@@ -710,7 +703,7 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                                   Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 12),
                                     child: Text(
-                                      'Address:',
+                                      'Zip Code:',
                                       style: TextStyle(
                                           color: HexColor('#4D8D6E'),
                                           fontWeight: FontWeight.w400,
@@ -721,13 +714,14 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                                     width: ScreenUtil.sizeboxwidth3,
                                   ),
                                   Text(
-                                    'New York ',
+                                    '$addressZip    ',
                                     style: TextStyle(
                                         color: HexColor('#404040'), fontSize: 15),
                                   )
                                 ],
                               ),
                             ),
+
                           ],
                         ),
                       ),
@@ -741,7 +735,7 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                         height: 45,
                         margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {Get.to(editProfile());},
                           style: ElevatedButton.styleFrom(
                             backgroundColor: HexColor('#4D8D6E'),
                             shape: RoundedRectangleBorder(

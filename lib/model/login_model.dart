@@ -1,29 +1,44 @@
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+class ApiClient {
+  final String baseUrl;
 
-Future<void> fetchUserData() async {
-  final response = await http.get(Uri.parse('https://api.example.com/user'));
+  ApiClient(this.baseUrl);
 
-  if (response.statusCode == 200) {
-    final userData = response.body;
-    print(userData);
-  } else {
-    print('Request failed with status: ${response.statusCode}');
-  }
-}
-Future<void> loginUser(String email, String password) async {
-  final response = await http.post(
-    Uri.parse('https://api.example.com/login'),
-    body: {
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final loginEndpoint = "/api/login";
+    final loginUrl = Uri.parse('$baseUrl$loginEndpoint');
+
+    final Map<String, String> headers = {
+      'Content-Type': 'application/json',
+    };
+
+    final Map<String, String> body = {
       'email': email,
       'password': password,
-    },
-  );
+    };
 
-  if (response.statusCode == 200) {
-    final responseData = response.body;
-    print(responseData);
-  } else {
-    print('Request failed with status: ${response.statusCode}');
+    try {
+      final response = await http.post(
+        loginUrl,
+        headers: headers,
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        // Successful login, parse the response
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        return responseData;
+      } else {
+        // Login failed, handle the error
+        throw Exception('Failed to login: ${response.statusCode}');
+      }
+    } catch (error) {
+      // Handle network or other errors
+      throw Exception('Failed to connect: $error');
+    }
   }
 }
+
+

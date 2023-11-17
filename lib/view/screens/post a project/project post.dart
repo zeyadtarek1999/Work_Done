@@ -1,14 +1,22 @@
-import 'dart:ffi';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../model/getprojecttypesmodel.dart';
+import '../../../model/postProjectmodel.dart';
 import '../../widgets/rounded_button.dart';
+import '../Screens_layout/layoutWorker.dart';
+import '../Screens_layout/layoutclient.dart';
 
 class projectPost extends StatefulWidget {
    projectPost({super.key});
@@ -18,24 +26,131 @@ class projectPost extends StatefulWidget {
 }
 
 class _projectPostState extends State<projectPost> {
+  File? _image;
+  final picker = ImagePicker();
+  String profile_pic = '';
+  String project_type_id = '';
+
+  Future<void> _getImageFromGallery() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      }
+    });
+  }
+  late String userToken;
+
   double _startValue = 0;
   double _endValue = 10;
-  List<String> buttonLabels = [
-    '1-2',
-    '1-4',
-    '1-6',
-    '1-7',
-    '1-10',
-    '1-15',
-    '1-20',
-    '1-25',
-    '1-30',
+  final titleController = TextEditingController();
+  final descController = TextEditingController();
+  final project_type_idController = TextEditingController();
+  final timeframeControllerstart = TextEditingController();
+  final timeframeControllerend = TextEditingController();
 
-  ];
-  String selectedButtonText = '0-1';
+  @override
+  void initState() {
+    super.initState();
+    _getUserToken();
+    _fetchProjectTypes();
+  }
+  void _getUserToken() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    userToken = prefs.getString('user_token') ?? '';
+  }
 
-  double _sliderValue = 1;
+  void _postaproject() async {
+    // Make sure to fill in the values from your text controllers or other sources
+    String title = titleController.text;
+    String project_type_id = project_type_idController.text;
+    String desc = descController.text;
+    String timeframe_start = timeframeControllerstart.text;
+    String timeframe_end = timeframeControllerend.text;
+    String primary_image = _image!.path;
 
+    if (_image == null) {
+      // Show a toast message and return early
+      Fluttertoast.showToast(
+        msg: "Please select an image",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      return;
+    }
+
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      userToken = prefs.getString('user_token') ?? '';
+
+      await PostProjectApi.PostnewProject(
+        token: userToken,
+        project_type_id: selectedProjectType != null ? selectedProjectType!['id'] ?? "1" : "1",
+        title: title,
+        desc: desc,
+        timeframe_start: timeframe_start,
+        timeframe_end: timeframe_end,
+        primary_image: primary_image,
+      );
+
+      print(_image!.path);
+      print(userToken);
+
+      // Display a success toast message
+      Fluttertoast.showToast(
+        msg: "Project Posted Successfully",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+
+      // Navigate to layoutclient
+      Get.to(layoutclient());
+
+    } catch (error) {
+      // Print the full error, including the server response
+      print('Error during post project: $error');
+      // Display a snackbar or toast with the error message
+      print(_image!.path);
+      print(timeframe_start);
+      print(timeframe_end);
+      print(primary_image);
+      print(desc);
+      print(userToken);
+      print(title);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error during post project: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+
+  }
+  List<Map<String, String>> projectTypes = [];
+  Map<String, String>? selectedProjectType;
+
+// Function to fetch project types and update the list
+  void _fetchProjectTypes() async {
+    try {
+      final getAllProjectTypesApi = GetAllProjectTypesApi(baseUrl: 'https://workdonecorp.com');
+      projectTypes = await getAllProjectTypesApi.getAllProjectTypes();
+      setState(() {
+        // Update the state to trigger a rebuild with the new data
+      });
+    } catch (error) {
+      print('Error fetching project types: $error');
+    }
+  }
 
 
   @override
@@ -77,18 +192,21 @@ class _projectPostState extends State<projectPost> {
             children: [
               Row(
                 children: [
-                  Text('Upload Photo', style: GoogleFonts.poppins(
-                    textStyle: TextStyle(
+                  Text(
+                    _image == null ? 'Upload Photo' : 'Selected Photo',
+                    style: GoogleFonts.poppins(
+                      textStyle: TextStyle(
                         color: HexColor('1A1D1E'),
                         fontSize: 17,
-                        fontWeight: FontWeight.w500),
-                  ),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                   SizedBox(width: 6,),
                   IconButton(
                     icon: Icon(
                       Icons.info_outline, // "i" icon
-                      color: Colors.red,
+                      color: Colors.grey,
                       size: 22,// Red color
                     ),
                     onPressed: () {
@@ -97,7 +215,7 @@ class _projectPostState extends State<projectPost> {
                         SnackBar(
                           backgroundColor: Colors.red,
                           content: Text(
-                            'Upload photo is Required',
+                            _image == null ? 'Upload photo is Required' : 'Selected photo information',
                             style: TextStyle(color: Colors.white), // Red text color
                           ),
                         ),
@@ -109,43 +227,71 @@ class _projectPostState extends State<projectPost> {
               SizedBox(
                 height: 7,
               ),
-              Container(
-                height: 150,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15), color: Colors.white),
-                child: Column(mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Upload Here', style: GoogleFonts.poppins(
-                      textStyle: TextStyle(
+              GestureDetector(
+                onTap: () {
+                  _getImageFromGallery(); // Call the function when tapped
+                },
+                child: Center(
+                  child: Container(
+                    height: _image == null ? 150 : null, // Adjust height based on image selection
+                    width: 350,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.white,
+                    ),
+                    child: _image == null
+                        ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Upload Here',
+                          style: GoogleFonts.poppins(
+                            textStyle: TextStyle(
+                              color: HexColor('4D8D6E'),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
+                          child: Center(
+                            child: Text(
+                              'Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!',
+                              style: GoogleFonts.poppins(
+                                textStyle: TextStyle(
+                                  color: HexColor('888C8A'),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        Icon(
+                          Icons.file_upload,
                           color: HexColor('4D8D6E'),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500),
-                    ),
-                    ),Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 5),
-                      child: Center(
-                        child: Text('Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!', style: GoogleFonts.poppins(
-                          textStyle: TextStyle(
-                              color: HexColor('888C8A'),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500),
+                          size: 30,
                         ),
-                        ),
+                      ],
+                    )
+
+
+                      : Image.file(
+                        _image!,
+                        height: 150,
+                        width: 150, // Set width and height to make it circular
+                        fit: BoxFit.fill,
                       ),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Icon(
-                      Icons.file_upload,
-                      color: HexColor('4D8D6E'),
-                      size: 30,
-                    ),
-                  ],
+
+
+                  ),
                 ),
               ),
-              SizedBox(height: 14,),
+           SizedBox(height: 14,),
               Row(
                 children: [
                   Text('Title of Project', style: GoogleFonts.poppins(
@@ -159,7 +305,7 @@ class _projectPostState extends State<projectPost> {
                   IconButton(
                     icon: Icon(
                       Icons.info_outline, // "i" icon
-                      color: Colors.red,
+                      color: Colors.grey,
                       size: 22,// Red color
                     ),
                     onPressed: () {
@@ -186,7 +332,7 @@ class _projectPostState extends State<projectPost> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
                 ),
-                child: TextFormField(
+                child: TextFormField(controller: titleController,
                   decoration: InputDecoration(
                     hintText: 'Write a Project Title',
                     hintStyle: TextStyle(
@@ -222,34 +368,39 @@ class _projectPostState extends State<projectPost> {
                       Text(
                         'Select Project Type',
                         style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16.0,
-                          ),
+                          color: Colors.grey,
+                          fontSize: 16.0,
+                        ),
                       ),
                       Spacer(),
-                      DropdownButton<String>(
+                      DropdownButton<Map<String, String>>(
                         underline: SizedBox(), // Remove the underline
                         icon: Icon(Icons.arrow_drop_down, color: Colors.black54),
-                        items: <String>[
-                          'Option 1',
-                          'Option 2',
-                          'Option 3',
-                          // Add your job types here
-                        ].map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
+                        value: selectedProjectType, // Track the selected value
+                        items: projectTypes.map<DropdownMenuItem<Map<String, String>>>((Map<String, String> type) {
+                          return DropdownMenuItem<Map<String, String>>(
+                            value: type,
+                            child: Text(type['name']!),
                           );
                         }).toList(),
-                        onChanged: (String? newValue) {
-                          // Handle dropdown value change
+                        onChanged: (Map<String, String>? newValue) {
+                          setState(() {
+                            selectedProjectType = newValue;
+                          });
+                          // Handle dropdown value change, you can use the selectedProjectType
+                          // to get the selected project type ID and send it to the API
+                          if (selectedProjectType != null) {
+                            String projectId = selectedProjectType!['id']!;
+                            String projectName = selectedProjectType!['name']!;
+                            print('Selected Project ID: $projectId');
+                            print('Selected Project Name: $projectName');
+                          }
                         },
                       ),
                     ],
                   ),
                 ),
-              ),
-              SizedBox(height: 14,),
+              ),            SizedBox(height: 14,),
 
               Row(
                 children: [
@@ -264,7 +415,7 @@ class _projectPostState extends State<projectPost> {
                   IconButton(
                     icon: Icon(
                       Icons.info_outline, // "i" icon
-                      color: Colors.red,
+                      color: Colors.grey,
                       size: 22,// Red color
                     ),
                     onPressed: () {
@@ -283,59 +434,6 @@ class _projectPostState extends State<projectPost> {
 
                 ],
               ),
-          // RowScrollFastor(  children:
-          // List.generate(
-          //   buttonLabels.length,
-          //       (index) {
-          //     return Padding(
-          //       padding: EdgeInsets.symmetric(horizontal: 5.0,vertical: 7), // Adjust the value for the desired space
-          //       child: ElevatedButton(
-          //         onPressed: () {
-          //           setState(() {
-          //             selectedButtonText = buttonLabels[index];
-          //           });
-          //         },
-          //         style: ElevatedButton.styleFrom(
-          //           primary: selectedButtonText == buttonLabels[index]
-          //               ? HexColor('4D8D6E')
-          //               : Colors.white,
-          //           shape: RoundedRectangleBorder(
-          //             borderRadius: BorderRadius.circular(30.0),
-          //           ),
-          //         ),
-          //         child: Text(
-          //           buttonLabels[index],
-          //           style: TextStyle(color:selectedButtonText == buttonLabels[index]? Colors.white : Colors.grey[700],
-          //           ),
-          //         ),
-          //       ),
-          //     );
-          //
-          //   },
-          //
-          // ),
-          // ),
-          //     SizedBox(height: 6),
-          //     Row(
-          //       children: [
-          //         Text(  'Project period (Range): ', style: GoogleFonts.poppins(
-          //           textStyle: TextStyle(
-          //               color: HexColor('605E5E'),
-          //               fontSize: 15,
-          //               fontWeight: FontWeight.w500),
-          //         ),
-          //         ),
-          //         Text(   '${selectedButtonText } days', style: GoogleFonts.poppins(
-          //           textStyle: TextStyle(
-          //               color: HexColor('4D8D6E'),
-          //               fontSize: 16,
-          //               fontWeight: FontWeight.w500),
-          //         ),
-          //         ),
-          //
-          //       ],
-          //     ),
-          //     SizedBox(height: 14,),
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -345,6 +443,8 @@ class _projectPostState extends State<projectPost> {
                       setState(() {
                         _startValue = values.start;
                         _endValue = values.end;
+                        timeframeControllerstart.text = _startValue.toInt().toString();
+                        timeframeControllerend.text = _endValue.toInt().toString();
                       });
                     },
                     min: 0,
@@ -352,11 +452,12 @@ class _projectPostState extends State<projectPost> {
                     divisions: 100, // Divisions set to 1 for two thumbs
                     labels: RangeLabels(
                       _startValue.toInt().toString(),
-                      _endValue.toInt().toString()
+                      _endValue.toInt().toString(),
                     ),
                     activeColor: Color(0xFF4D8D6E),
                     inactiveColor: Colors.grey,
                   ),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -376,11 +477,13 @@ class _projectPostState extends State<projectPost> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
+
                     ],
                   ),
+
                 ],
-              ),
-          SizedBox(height: 20),
+              )
+          ,SizedBox(height: 20),
               Row(
                 children: [
                   Text('Job Description', style: GoogleFonts.poppins(
@@ -395,7 +498,7 @@ class _projectPostState extends State<projectPost> {
                   IconButton(
                     icon: Icon(
                       Icons.info_outline, // "i" icon
-                      color: Colors.red,
+                      color: Colors.grey,
                       size: 22,// Red color
                     ),
                     onPressed: () {
@@ -426,7 +529,7 @@ class _projectPostState extends State<projectPost> {
                 ),
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 16.0,),
-                  child: TextFormField(
+                  child: TextFormField(controller: descController,
                     maxLines: null, // Allows the text to take up multiple lines
                     decoration: InputDecoration(
                       hintText: 'Please write a detailed description to help the worker place an accurate bid!',
@@ -446,7 +549,7 @@ class _projectPostState extends State<projectPost> {
                 child: RoundedButton(
                   text: 'Done',
                   press: ()  {
-
+                    _postaproject();
                   },
                 ),
               ),

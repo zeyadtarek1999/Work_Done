@@ -1,10 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Screens_layout/layoutWorker.dart';
 import '../Screens_layout/layoutclient.dart';
 import '../login_screen_worker.dart';
 import '../login_screen_client.dart'; // Import the login screen for clients
 import 'welcome_screen.dart';
+import 'package:http/http.dart' as http;
 
 class AppLauncher extends StatefulWidget {
   @override
@@ -15,46 +20,67 @@ class _AppLauncherState extends State<AppLauncher> {
   @override
   void initState() {
     super.initState();
-    checkIdAndNavigate();
+    _getusertype();
+    _getUserToken();
+  }
+  late String userToken;
+
+  void _getUserToken() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    userToken = prefs.getString('user_token') ?? '';
   }
 
-  Future<void> checkIdAndNavigate() async {
-    // Check if there's a worker ID or client ID
-    int? savedWorkerId = await getSavedWorkerId();
-    int? savedClientId = await getSavedClientId();
+  Future<void> _getusertype() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
 
-    if (savedWorkerId != null && savedWorkerId > 0) {
-      // Worker ID exists, navigate to Worker layout
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => layoutworker()),
-      );
-    } else if (savedClientId != null && savedClientId > 0) {
-      // Client ID exists, navigate to Client layout
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => layoutclient()),
-      );
-    } else {
-      // No worker ID or client ID, navigate to Welcome screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => WelcomeScreen()),
-      );
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_user_type';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('user_type')) {
+            String userType = responseData['user_type'];
+
+            // Navigate based on user type
+            if (userType == 'client') {
+              Get.off(layoutclient());
+            } else if (userType == 'worker') {
+              Get.off(layoutworker());
+            } else {
+              print('Error: Unknown user type.');
+              throw Exception('Failed to load profile information');
+            }
+          } else {
+            print('Error: Response data does not contain user_type.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      } else {
+        // No token in SharedPreferences, navigate to WelcomeScreen
+        Get.off(WelcomeScreen());
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
     }
   }
 
-  Future<int?> getSavedWorkerId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int? workerId = prefs.getInt('worker_id');
-    return workerId;
-  }
 
-  Future<int?> getSavedClientId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int? clientId = prefs.getInt('client_id');
-    return clientId;
-  }
 
   @override
   Widget build(BuildContext context) {
