@@ -8,6 +8,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:lottie/lottie.dart';
 import 'package:workdone/view/screens/check%20out%20client/payment.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutclient.dart';
+import 'package:workdone/view/screens/check%20out%20client/paypal%20checkout.dart';
 import 'package:workdone/view/widgets/rounded_button.dart';
 
 import '../homescreen/home screenClient.dart';
@@ -392,18 +393,8 @@ class _checkOutClientState extends State<checkOutClient> {
             ),
             SizedBox(height: 12,),
 Center(child: RoundedButton(text: 'Pay Now', press: (){
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return SuccessPopup();
-    },
-  );
-
-  // Automatically close the dialog and navigate to the home screen after 8 seconds
-  Future.delayed(Duration(seconds: 4), () {
-    Navigator.of(context).pop(); // Close the dialog
-Get.to(layoutclient());  });
+ // Close the dialog
+Get.to(CheckoutPage());
 })),
 SizedBox(height: 14,)
 
@@ -517,7 +508,7 @@ class _CarouselItemWidgetState extends State<CarouselItemWidget> {
                   fontSize: 16,
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 8),
               Row(
                 children: [
                   Text(

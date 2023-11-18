@@ -7,6 +7,10 @@ import 'view/screens/Screens_layout/layoutWorker.dart';
 import 'view/screens/Screens_layout/moreworker.dart';
 import 'view/screens/splashscreen.dart';
 
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
 void main() {
   runApp(MyApp());
 

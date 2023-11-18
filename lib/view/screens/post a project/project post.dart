@@ -12,7 +12,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../main.dart';
 import '../../../model/getprojecttypesmodel.dart';
+import '../../../model/notificationmodel.dart';
 import '../../../model/postProjectmodel.dart';
 import '../../widgets/rounded_button.dart';
 import '../Screens_layout/layoutWorker.dart';
@@ -55,6 +57,8 @@ class _projectPostState extends State<projectPost> {
     super.initState();
     _getUserToken();
     _fetchProjectTypes();
+    Noti.initialize(flutterLocalNotificationsPlugin);
+
   }
   void _getUserToken() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -113,6 +117,7 @@ class _projectPostState extends State<projectPost> {
       );
 
       // Navigate to layoutclient
+
       Get.to(layoutclient());
 
     } catch (error) {
@@ -549,7 +554,10 @@ class _projectPostState extends State<projectPost> {
                 child: RoundedButton(
                   text: 'Done',
                   press: ()  {
+                    Noti.showBigTextNotification(title: "Your Project", body: "Your Project is now Live", fln: flutterLocalNotificationsPlugin);
+
                     _postaproject();
+
                   },
                 ),
               ),

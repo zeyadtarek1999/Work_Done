@@ -1100,7 +1100,7 @@ class _HomeclientState extends State<Homeclient> {
                       SizedBox(width: 2),
                       Spacer(),
                       Container(
-                        width: 80,
+                        width: 93,
                         height: 36,
                         decoration: BoxDecoration(
                           color: HexColor('4D8D6E'),
@@ -1112,7 +1112,7 @@ class _HomeclientState extends State<Homeclient> {
                                   () => bidDetailsClient(projectId: item.projectId),  );
                             // Handle button press
                           },
-                          child: Text('Details'),
+                          child: Text('Details',style: TextStyle(color: Colors.white),),
                           style: ElevatedButton.styleFrom(
                             primary: Colors.transparent,
                             elevation: 0,
