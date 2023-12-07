@@ -798,11 +798,11 @@ Get.off(layoutworker());
                                         33.0, // Replace with the desired height of the icon                      // Replace with the path to your SVG file
                                   ),
                                   // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
-                                  SizedBox(width: 20.0),
+                                  SizedBox(width: 15.0),
                                   Text(
                                     ' Address',
                                     style:
-                                        TextStyle(color: HexColor('#707070')),
+                                        TextStyle(color: HexColor('#707070') ,fontSize: 16 ,fontWeight: FontWeight.w500),
                                   ),
                                   Spacer(),
                                   if (_isFormFilled)
@@ -1071,7 +1071,7 @@ Get.off(layoutworker());
 
 
                             Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.symmetric(horizontal: 20.0 ,vertical: 10),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
                                 height: size.height * 0.103,
@@ -1444,7 +1444,7 @@ Get.off(layoutworker());
                               onPressed: () async {
                                 _registerWorker();
                               },
-                              child: Text('Register Worker'),
+                              child: Text('Register' ,style: TextStyle(color: Colors.white, fontSize: 16 ),),
                             ),)
 
                             ,

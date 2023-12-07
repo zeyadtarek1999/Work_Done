@@ -50,6 +50,14 @@ dependencies:
   lottie: ^2.6.0
   flutter_paypal_checkout: ^1.0.1
   flutter_local_notifications: ^16.1.0
+  firebase_core: ^2.24.0
+  firebase_auth: ^4.15.0
+  cloud_firestore: ^4.13.3
+  firebase_database: ^10.3.6
+  awesome_notifications: ^0.8.2
+  shimmer: ^3.0.0
+  firebase_storage: ^11.5.3
+  firebase_app_check: ^0.2.1+6
 
 
 

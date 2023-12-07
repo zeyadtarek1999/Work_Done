@@ -190,7 +190,7 @@ print(_image!.path);
           icon: Icon(Icons.arrow_back_sharp),
           color: Colors.black,
           onPressed: () {
-            Get.back;
+            Navigator.pop(context);
           },
         ),
       ),
@@ -468,11 +468,7 @@ SizedBox(height: 13,)
               SizedBox(
                 height: 12,
               ),
-              Text('First Name: $firstname'),
-              Text('Last Name: $secondname'),
-              Text('Email: $email'),
-              Text('Password: $password'),
-              Text('Phone Number: $phonenumber'),
+             SizedBox(height: 15,),
               Center(
                 child: RoundedButton(
                   text: 'Done',

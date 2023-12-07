@@ -1,0 +1,15 @@
+platform :ios, '9.0'
+
+target 'Runner' do
+  use_frameworks! # Add this line if it's not already present
+
+  # ... (existing configuration)
+
+  # Configuring iOS settings for Runner target
+  config = use_native_modules!
+  config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'NO'
+  config.build_settings['CLANG_WARN_OBJC_LITERAL_CONVERSION'] = 'YES'
+
+  # Set iOS Deployment Target
+  config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+end

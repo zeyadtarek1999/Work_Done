@@ -23,7 +23,7 @@ class _BodyState extends State<Body> {
   double buttonscreenwidth=ScreenUtil.screenWidth! * 0.75;
 
   void _showBottomSheet(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet(elevation: 5,backgroundColor: Colors.white,
       context: context,
       builder: (BuildContext context) {
         return ChooseRoleBottomSheet();
@@ -31,7 +31,9 @@ class _BodyState extends State<Body> {
     );
   }
   void _showBottomSheetlogin(BuildContext context) {
+
     showModalBottomSheet(
+      elevation: 5,backgroundColor: Colors.white,
       context: context,
       builder: (BuildContext context) {
         return ChooseRoleBottomSheetlogin();
@@ -89,6 +91,7 @@ class _BodyState extends State<Body> {
               ),
             ),
             Container(
+              color: Colors.white,
               width: ScreenUtil.buttonscreenwidth,
               height: 45,
               margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 24.0),

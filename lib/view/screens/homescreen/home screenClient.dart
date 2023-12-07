@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,8 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shimmer/shimmer.dart';
+import '../../../controller/shimmers/shimmer basic.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Explore/Explore Client.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
@@ -26,19 +29,20 @@ class Homeclient extends StatefulWidget {
   @override
   State<Homeclient> createState() => _HomeclientState();
 }
+
 bool isLiked = false;
+bool isLoading = true; // Initially set to true to show shimmer
 
 final advancedDrawerController = AdvancedDrawerController();
+int currentPage = 2;
 
 int _currentIndex = 0;
 final CarouselController _carouselController = CarouselController();
 late Future<List<Item>> futureProjects;
 List<Item> items = [];
 TextEditingController searchController = TextEditingController();
-
 Future<List<Item>> fetchProjects() async {
   try {
-    // Get the token from SharedPreferences
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String userToken = prefs.getString('user_token') ?? '';
 
@@ -48,28 +52,40 @@ Future<List<Item>> fetchProjects() async {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $userToken',
       },
+      body: json.encode({
+        'filter': 'all',
+        'page': currentPage.toString(),
+        // Include other parameters as needed
+      }),
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> projectsJson = json.decode(response.body)['projects'];
+      final dynamic responseData = json.decode(response.body);
 
-      List<Item> projects = projectsJson.map((json) {
-        return Item(
-          projectId: json['project_id'],
-          title: json['title'],
-          description: json['desc'],
-          imageUrl: json['images'],
-          postedFrom: json['posted_from'],
-          client_firstname: json['client_firstname'],
-          liked: json['liked'],
-          numbers_of_likes: json['numbers_of_likes'],     isLiked: isLiked,
+      if (responseData['status'] == 'success') {
+        final List<dynamic> projectsJson = responseData['projects'];
 
-        );
-      }).toList();
-      print(projectsJson);
-      print(Item);
-      print(projects);
-      return projects;
+        List<Item> projects = projectsJson.map((json) {
+          return Item(
+            projectId: json['project_id'],
+            title: json['title'],
+            description: json['desc'],
+            imageUrl: json['images'] != null ? json['images'] : 'https://eod-grss-ieee.com/uploads/science/1655561736_noimg_-_Copy.png',
+            postedFrom: json['posted_from'],
+            client_firstname: json['client_firstname'],
+            liked: json['liked'],
+            numbers_of_likes: json['numbers_of_likes'],
+            isLiked: json['liked'],
+          );
+        }).toList();
+
+        print(projectsJson);
+        print(Item);
+        print(projects);
+        return projects;
+      } else {
+        throw Exception('Failed to load data from API: ${responseData['msg']}');
+      }
     } else {
       throw Exception('Failed to load data from API');
     }
@@ -77,7 +93,10 @@ Future<List<Item>> fetchProjects() async {
     throw Exception('Error: $e');
   }
 }
+final StreamController<String> _likedStatusController = StreamController<String>();
 
+
+Stream<String> get likedStatusStream => _likedStatusController.stream;
 List<String> likedProjects = []; // List to store liked project IDs
 
 Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
@@ -102,6 +121,8 @@ Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
       if (responseBody['status'] == 'success') {
         // Project added to likes successfully
         print('Project added to likes successfully');
+        _likedStatusController.add("true");
+
       } else if (responseBody['msg'] == 'This Project is Already in Likes !') {
         // Project is already liked
         print('Project is already liked');
@@ -159,6 +180,8 @@ Future<Map<String, dynamic>> removeProjectFromLikes(String projectId) async {
 
 
 class _HomeclientState extends State<Homeclient> {
+
+
   int _currentIndex = 0;
   final CarouselController _carouselController = CarouselController();
   @override
@@ -201,7 +224,6 @@ class _HomeclientState extends State<Homeclient> {
               secondname = profileData['lastname'] ?? '';
               email = profileData['email'] ?? '';
               profile_pic = profileData['profile_pic'] ?? '';
-
             });
 
             print('Response: $profileData');
@@ -217,17 +239,22 @@ class _HomeclientState extends State<Homeclient> {
           throw Exception('Failed to load profile information');
         }
       }
+      setState(() {
+        isLoading = false;
+      });
     } catch (error) {
       // Handle errors
       print('Error getting profile information: $error');
     }
   }
-
+  void refreshProjects() {
+    futureProjects = fetchProjects();
+  }
   Future<void> initializeProjects() async {
     try {
       // Initialize futureProjects in initState or wherever appropriate
       futureProjects = fetchProjects();
-
+      refreshProjects();
       // Wait for the future to complete
       List<Item> items = await futureProjects;
 
@@ -343,19 +370,39 @@ class _HomeclientState extends State<Homeclient> {
               SizedBox(
                 height: 12,
               ),
-              Text(
-                '$firstname $secondname',
-                style: GoogleFonts.poppins(
-                  textStyle: TextStyle(
-                      color: HexColor('1A1D1E'),
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold),
-                ),
+          isLoading
+              ? Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Container(
+              height: 24,
+              width: 200,
+              color: Colors.white,
+            ),
+          )
+              : Text(
+            '$firstname $secondname',
+            style: GoogleFonts.poppins(
+              textStyle: TextStyle(
+                color: HexColor('1A1D1E'),
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
               ),
+            ),),
               SizedBox(
                 height: 9,
               ),
-              Text(
+              isLoading
+                  ? Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  height: 24,
+                  width: 200,
+                  color: Colors.white,
+                ),
+              )
+                  : Text(
                 '$email',
                 style: GoogleFonts.poppins(
                   textStyle: TextStyle(
@@ -595,7 +642,12 @@ class _HomeclientState extends State<Homeclient> {
                   future: futureProjects,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
+                      // Replace CircularProgressIndicator with Shimmer.fromColors
+                      return Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: YourShimmerWidget(), // Your custom shimmer widget
+                      );
                     } else if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}');
                     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -636,15 +688,18 @@ class _HomeclientState extends State<Homeclient> {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 1.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: items.map((item) {
-                      int itemIndex = items.indexOf(item);
-                      return CircularIndicator(
-                        itemIndex: itemIndex,
-                        currentIndex: _currentIndex,
-                      );
-                    }).toList(),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: items.map((item) {
+                        int itemIndex = items.indexOf(item);
+                        return CircularIndicator(
+                          itemIndex: itemIndex,
+                          currentIndex: _currentIndex,
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ],
@@ -686,27 +741,96 @@ class _HomeclientState extends State<Homeclient> {
                   SizedBox(
                     height: 7,
                   ),
-                  FutureBuilder<List<Item>>(
-                    future: futureProjects,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Text('No projects found.');
-                      } else {
-                        return ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true, // Set shrinkWrap to true
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (context, index) {
-                            return buildListItem(snapshot.data![index]);
-                          },
-                        );
-                      }
-                    },
-                  ),
+                  Column(
+                    children: [
+                      FutureBuilder<List<Item>>(
+                        future: futureProjects,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else if (snapshot.data != null && snapshot.data!.isEmpty) {
+                            // If projects list is empty, reset current page to 0 and refresh
+                            currentPage = 0;
+                            refreshProjects();
+                            return Text('No projects found.');
+                          } else {
+                            return ListView.builder(
+                              physics: NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemCount: snapshot.data!.length,
+                              itemBuilder: (context, index) {
+                                return buildListItem(snapshot.data![index]);
+                              },
+                            );
+                          }
+                        },
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          if (currentPage > 0)
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  currentPage--;
+                                  refreshProjects(); // Use refreshProjects instead of fetchProjects
+                                });
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                primary: Colors.white,
+                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text(
+                                'Previous Page',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          TextButton(
+                            onPressed: () async {
+                              setState(() {
+                                currentPage++;
+                              });
+
+
+                              try {
+                                List<Item>? nextPageProjects = await fetchProjects();
+
+                                if (nextPageProjects == null || nextPageProjects.isEmpty) {
+                                  // If the response is empty, reset current page to 0 and refresh
+                                  currentPage = 0;
+                                  refreshProjects();
+                                } else {
+                                  // Update the futureProjects with the fetched projects
+                                  futureProjects = Future.value(nextPageProjects);
+                                }
+                              } catch (e) {
+                                // Handle the error, you can show an error message or take appropriate action
+                                print('Error fetching next page: $e');
+                              }
+                            },
+                            style: TextButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              primary: Colors.white,
+                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: Text(
+                              'Next Page',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
                 ],
               ),
             ),
@@ -760,10 +884,10 @@ class _HomeclientState extends State<Homeclient> {
                           IconButton(
                             iconSize: 22,
                             icon: Icon(
-                              likedProjectsMap[item.projectId] ?? item.liked == "true"
+                              item.liked == "true"
                                   ? Icons.favorite
                                   : Icons.favorite_border,
-                              color: likedProjectsMap[item.projectId] ?? item.liked == "true"
+                              color: item.liked == "true"
                                   ? Colors.red
                                   : Colors.grey,
                             ),
@@ -906,7 +1030,7 @@ class _HomeclientState extends State<Homeclient> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20.0),
                     image: DecorationImage(
-                      image: NetworkImage(item.imageUrl), // Use the image URL from the fetched data
+                      image: NetworkImage(item.imageUrl)  , // Use the image URL from the fetched data
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -941,16 +1065,16 @@ class _HomeclientState extends State<Homeclient> {
                   IconButton(
                     iconSize: 22,
                     icon: Icon(
-                      likedProjectsMap[item.projectId] ?? item.liked == "true"
+                       item.liked == "true"
                           ? Icons.favorite
                           : Icons.favorite_border,
-                      color: likedProjectsMap[item.projectId] ?? item.liked == "true"
+                      color:  item.liked == "true"
                           ? Colors.red
                           : Colors.grey,
                     ),
                     onPressed: () async {
                       try {
-                        if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
+                        if (item.liked == "true") {
                           // If liked, remove like
                           final response = await removeProjectFromLikes(item.projectId.toString());
 
@@ -1171,7 +1295,7 @@ class Item {
   final String imageUrl;
   final int numbers_of_likes;
   final String postedFrom;
-  bool isLiked;
+  String isLiked;
 
   Item({
     required this.projectId,
@@ -1182,6 +1306,6 @@ class Item {
     required this.numbers_of_likes,
     required this.imageUrl,
     required this.postedFrom,
-    bool? isLiked,
-  }) : isLiked = isLiked ?? liked.toLowerCase() == 'true';
+    required this. isLiked,
+  }) ;
 }

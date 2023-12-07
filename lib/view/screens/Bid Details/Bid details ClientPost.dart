@@ -9,8 +9,9 @@ import 'package:workdone/view/screens/check%20out%20client/checkoutClient.dart';
 import '../view profile screens/Worker profile view.dart';
 
 class bidDetailsClientPost extends StatefulWidget {
-  const bidDetailsClientPost({super.key});
+  final int projectId;
 
+  bidDetailsClientPost({required this.projectId});
   @override
   State<bidDetailsClientPost> createState() => _bidDetailsClientPostState();
 }

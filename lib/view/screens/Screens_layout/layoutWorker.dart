@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 
 
+import '../InboxwithChat/inboxWorker.dart';
 import '../homescreen/homeWorker.dart';
-import 'inbox.dart';
+import '../InboxwithChat/inboxClient.dart';
 import 'moreclient.dart';
 import 'moreworker.dart';
 import 'projects Worker.dart';
@@ -20,7 +21,7 @@ class _layoutworkerState extends State<layoutworker> {
   List<Widget> _screens = [
     Homescreenworker(),
     projectsWorker(),
-    Inbox(),
+    InboxWorker(),
     Moreworker(),
   ];
 

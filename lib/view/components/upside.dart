@@ -1,6 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:hexcolor/hexcolor.dart';
+
+import '../screens/welcome/welcome_screen.dart';
 
 class Upside extends StatelessWidget {
   const Upside({Key? key, required this.imgUrl}) : super(key: key);
@@ -51,7 +55,7 @@ iconBackButton(BuildContext context) {
     iconSize: 28,
     icon: const Icon(CupertinoIcons.back),
     onPressed: (){
-      Navigator.pop(context);
+      Get.off(WelcomeScreen());
     },
   );
 }

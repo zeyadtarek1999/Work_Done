@@ -92,7 +92,7 @@ class _LoginScreenclientState extends State<LoginScreenclient> {
             );
           } else {
             // Navigate to layoutworker() for non-client accounts
-            Get.to(layoutclient());
+            Get.off(layoutclient());
           }
         } else {
           // Handle the case when 'token' is null or not present in the response
@@ -381,7 +381,7 @@ class _LoginScreenclientState extends State<LoginScreenclient> {
                                   ),
                                   child: isLoading
                                       ? CircularProgressIndicator()
-                                      : Text('Login'),
+                                      : Text('Login',style: TextStyle(color: Colors.white,fontSize: 16),) ,
                                 ),
                               ),
                               const SizedBox(

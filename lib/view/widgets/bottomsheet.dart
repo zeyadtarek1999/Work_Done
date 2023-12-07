@@ -26,7 +26,7 @@ class ChooseRoleBottomSheet extends StatelessWidget {
             width: double.infinity,
             height: 10,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: Colors.white,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(10),
                 topRight: Radius.circular(10),
@@ -36,9 +36,11 @@ class ChooseRoleBottomSheet extends StatelessWidget {
           SizedBox(height: 20),
           GestureDetector(onTap: () => Get.to(SignUpScreen2(addressLine: '', addressSt2: '', city: '', state: '',)),
             child: Container(
+              color: Colors.white,
               height: ScreenUtil.cardheight,
               width: ScreenUtil.cardwidth,
               child: Card(
+                color: Colors.white,
                   elevation: 5,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -62,6 +64,7 @@ class ChooseRoleBottomSheet extends StatelessWidget {
                         width: 12,
                       ),
                       Container(
+
                           height: 26,
                           width: 3,
                           decoration: BoxDecoration(
@@ -76,7 +79,6 @@ class ChooseRoleBottomSheet extends StatelessWidget {
                       ),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
                         ), // Set the height of the right column
                         child: Text(
                             style: TextStyle(
@@ -90,9 +92,11 @@ class ChooseRoleBottomSheet extends StatelessWidget {
           SizedBox(height: 14),
           GestureDetector(onTap: () => Get.to(SignUpScreen(addressLine: '', addressSt2: '', city: '', state: '',)),
             child: Container(
+              color: Colors.white,
               height: ScreenUtil.cardheight,
               width: ScreenUtil.cardwidth,
               child: Card(
+                color: Colors.white,
                   elevation: 5,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -130,7 +134,6 @@ class ChooseRoleBottomSheet extends StatelessWidget {
                       ),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
                         ), // Set the height of the right column
                         child: Text(
                             style: TextStyle(

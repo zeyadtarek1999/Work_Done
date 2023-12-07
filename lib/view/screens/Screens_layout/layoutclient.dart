@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
+import '../InboxwithChat/inboxClient.dart';
 import '../check out client/payment.dart';
 import '../homescreen/home screenClient.dart';
 import '../homescreen/homeWorker.dart';
@@ -24,7 +25,7 @@ class _layoutclientState extends State<layoutclient> {
   List<Widget> _screens = [
     Homeclient(),
     projectsClient(),
-    CreditCardPage(),
+    InboxClient(),
     Moreclient(),
 
   ];
