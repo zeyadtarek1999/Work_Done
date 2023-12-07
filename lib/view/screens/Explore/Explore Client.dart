@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -21,10 +22,18 @@ class exploreClient extends StatefulWidget {
 class _exploreClientState extends State<exploreClient> {
   TextEditingController searchController = TextEditingController();
   late Future<List<Item>> futureProjects;
+  int currentPage = 0;
+  void refreshProjects() {
+    futureProjects = fetchProjects();
+  }
+  bool shouldShowNextButton(List<Item>? nextPageData) {
+    // Add your condition to check if the next page is not empty here
+    return nextPageData != null && nextPageData.isNotEmpty;
+  }
+  Timer? searchDebouncer;
 
   Future<List<Item>> fetchProjects() async {
     try {
-      // Get the token from SharedPreferences
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String userToken = prefs.getString('user_token') ?? '';
 
@@ -34,25 +43,43 @@ class _exploreClientState extends State<exploreClient> {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $userToken',
         },
+        body: json.encode({
+          'filter': 'search', // Set filter to 'search'
+          'search_key': searchController.text, // Include the search key
+          'page': currentPage.toString(),
+          // Include other parameters as needed
+        }),
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> projectsJson = json.decode(response.body)['projects'];
+        final dynamic responseData = json.decode(response.body);
 
-        List<Item> projects = projectsJson.map((json) {
-          return Item(
-            projectId: json['project_id'],
-            title: json['title'],
-            description: json['desc'],
-            imageUrl: json['images'],
-            postedFrom: json['posted_from'],
-            client_firstname: json['client_firstname'],
-          );
-        }).toList();
-print(projectsJson);
-print(Item);
-print(projects);
-        return projects;
+        if (responseData['status'] == 'success') {
+          final List<dynamic> projectsJson = responseData['projects'];
+
+          List<Item> projects = projectsJson.map((json) {
+            return Item(
+              projectId: json['project_id'],
+              title: json['title'],
+              description: json['desc'],
+              imageUrl: json['images'] != null
+                  ? json['images']
+                  : 'https://eod-grss-ieee.com/uploads/science/1655561736_noimg_-_Copy.png',
+              postedFrom: json['posted_from'],
+              client_firstname: json['client_firstname'],
+              liked: json['liked'],
+              numbers_of_likes: json['numbers_of_likes'],
+              isLiked: json['liked'],
+            );
+          }).toList();
+
+          print(projectsJson);
+          print(Item);
+          print(projects);
+          return projects;
+        } else {
+          throw Exception('Failed to load data from API: ${responseData['msg']}');
+        }
       } else {
         throw Exception('Failed to load data from API');
       }
@@ -168,15 +195,12 @@ print(projects);
         ],
 
       ),
-      body: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
 
+      body:                   SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 13.0),
                 child: Container(
@@ -215,6 +239,7 @@ print(projects);
                           ),
                         ),
                       ),
+
                       Expanded(
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -233,6 +258,25 @@ print(projects);
                                 child: TextField(
                                   controller: searchController,
                                   onChanged: (query) {
+                                    // Use a debounce mechanism to delay the refresh and avoid unnecessary API calls
+                                    if (searchDebouncer?.isActive ?? false) {
+                                      searchDebouncer!.cancel();
+                                    }
+
+                                    searchDebouncer = Timer(Duration(milliseconds: 500), () {
+
+                                     setState(() {
+                                       refreshProjects();
+
+                                     }); // Trigger the refresh after a delay (e.g., 500 milliseconds)
+                                    });
+                                  },
+                                  onSubmitted: (query) {
+                                    // Trigger the refresh when the user presses "Done" on the keyboard
+                                    setState(() {
+                                      refreshProjects();
+
+                                    });
                                   },
                                   decoration: InputDecoration(
                                     hintText: 'Search',
@@ -240,7 +284,10 @@ print(projects);
                                     border: InputBorder.none,
                                   ),
                                   style: TextStyle(color: Colors.black),
-                                ),
+                                )
+
+
+                                ,
 
                               ),
                             ],
@@ -251,19 +298,27 @@ print(projects);
                   ),
                 ),
               ),
+
               FutureBuilder<List<Item>>(
                 future: futureProjects,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
+                    return Column(
+                      children: [
+                        SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
+                      ],
+                    );
                   } else if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  } else if (snapshot.data != null && snapshot.data!.isEmpty) {
+                    // If projects list is empty, reset current page to 0 and refresh
+                    currentPage = 0;
+                    refreshProjects();
                     return Text('No projects found.');
                   } else {
                     return ListView.builder(
                       physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true, // Set shrinkWrap to true
+                      shrinkWrap: true,
                       itemCount: snapshot.data!.length,
                       itemBuilder: (context, index) {
                         return buildListItem(snapshot.data![index]);
@@ -272,16 +327,67 @@ print(projects);
                   }
                 },
               ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  if (currentPage > 0)
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          currentPage--;
+                          refreshProjects(); // Use refreshProjects instead of fetchProjects
+                        });
+                      },
+                      style: TextButton.styleFrom(
 
+                        primary: Colors.redAccent,
 
+                      ),
+                      child: Text(
+                        'Previous Page',
+                        style: TextStyle(fontSize: 16, ),
+                      ),
+                    ),
+                  TextButton(
+                    onPressed: () async {
+                      setState(() {
+                        currentPage++;
+                        refreshProjects();
+                      });
 
+                      // Fetch the projects for the next page
+                      List<Item>? nextPageProjects = await fetchProjects();
 
+                      // Check if the next page is empty or no data and hide the button accordingly
+                      if (!shouldShowNextButton(nextPageProjects)) {
+                        setState(() {
+                          currentPage = 0;
+                          refreshProjects();
+                        });
+                      } else {
+                        // Update the futureProjects with the fetched projects
+                        futureProjects = Future.value(nextPageProjects);
+                      }
+                    },
+                    style: TextButton.styleFrom(
 
+                      primary: Colors.black45,
 
+                    ),
+                    child: Text(
+                      'Next Page',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 50,)
             ],
           ),
         ),
-      ),
+      )
+
+
 
     );
   }
@@ -420,7 +526,7 @@ print(projects);
                       SizedBox(width: 2),
                       Spacer(),
                       Container(
-                        width: 80,
+                        width: 85,
                         height: 36,
                         decoration: BoxDecoration(
                           color: HexColor('4D8D6E'),
@@ -431,7 +537,7 @@ print(projects);
                             // Get.to(bidDetailsClient());
                             // Handle button press
                           },
-                          child: Text('Details'),
+                          child: Text('Details',style: TextStyle(color: Colors.white,fontSize: 12),),
                           style: ElevatedButton.styleFrom(
                             primary: Colors.transparent,
                             elevation: 0,
@@ -454,16 +560,22 @@ class Item {
   final int projectId;
   final String title;
   final String client_firstname;
+  final String liked;
   final String description;
   final String imageUrl;
+  final int numbers_of_likes;
   final String postedFrom;
+  String isLiked;
 
   Item({
     required this.projectId,
     required this.title,
     required this.client_firstname,
     required this.description,
+    required this.liked,
+    required this.numbers_of_likes,
     required this.imageUrl,
     required this.postedFrom,
-  });
+    required this. isLiked,
+  }) ;
 }

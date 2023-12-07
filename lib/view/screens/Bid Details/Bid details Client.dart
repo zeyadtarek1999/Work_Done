@@ -784,3 +784,144 @@ class ProjectBid {
   });
 }
 
+
+
+
+class ProjectDetailsResponse {
+  String status;
+  String msg;
+  Access access;
+  ClientData clientData;
+  ProjectData data;
+
+  ProjectDetailsResponse({
+    required this.status,
+    required this.msg,
+    required this.access,
+    required this.clientData,
+    required this.data,
+  });
+
+  factory ProjectDetailsResponse.fromJson(Map<String, dynamic> json) {
+    return ProjectDetailsResponse(
+      status: json['status'],
+      msg: json['msg'],
+      access: Access.fromJson(json['access']),
+      clientData: ClientData.fromJson(json['client_data']),
+      data: ProjectData.fromJson(json['data']),
+    );
+  }
+}
+
+class Access {
+  int user;
+  bool owner;
+  String projectStatus;
+
+  Access({
+    required this.user,
+    required this.owner,
+    required this.projectStatus,
+  });
+
+  factory Access.fromJson(Map<String, dynamic> json) {
+    return Access(
+      user: json['user'],
+      owner: json['owner'],
+      projectStatus: json['project_status'],
+    );
+  }
+}
+
+class ClientData {
+  int clientId;
+  String firstname;
+  String lastname;
+  String profileImage;
+
+  ClientData({
+    required this.clientId,
+    required this.firstname,
+    required this.lastname,
+    required this.profileImage,
+  });
+
+  factory ClientData.fromJson(Map<String, dynamic> json) {
+    return ClientData(
+      clientId: json['client_id'],
+      firstname: json['firstname'],
+      lastname: json['lastname'],
+      profileImage: json['profle_image'],
+    );
+  }
+}
+
+class ProjectData {
+  String projectType;
+  String title;
+  String desc;
+  String timeframeStart;
+  String timeframeEnd;
+  String images;
+  String postedFrom;
+  String liked;
+  int numberOfLikes;
+  int lowestBid;
+  List<Bid> bids;
+
+  ProjectData({
+    required this.projectType,
+    required this.title,
+    required this.desc,
+    required this.timeframeStart,
+    required this.timeframeEnd,
+    required this.images,
+    required this.postedFrom,
+    required this.liked,
+    required this.numberOfLikes,
+    required this.lowestBid,
+    required this.bids,
+  });
+
+  factory ProjectData.fromJson(Map<String, dynamic> json) {
+    return ProjectData(
+      projectType: json['project_type'],
+      title: json['title'],
+      desc: json['desc'],
+      timeframeStart: json['timeframe_start'],
+      timeframeEnd: json['timeframe_end'],
+      images: json['images'],
+      postedFrom: json['posted_from'],
+      liked: json['liked'],
+      numberOfLikes: json['number_of_likes'],
+      lowestBid: json['lowest_bid'],
+      bids: List<Bid>.from(json['bids'].map((bid) => Bid.fromJson(bid))),
+    );
+  }
+}
+
+class Bid {
+  int workerId;
+  String workerFirstname;
+  String workerProfilePic;
+  int amount;
+  String comment;
+
+  Bid({
+    required this.workerId,
+    required this.workerFirstname,
+    required this.workerProfilePic,
+    required this.amount,
+    required this.comment,
+  });
+
+  factory Bid.fromJson(Map<String, dynamic> json) {
+    return Bid(
+      workerId: json['worker_id'],
+      workerFirstname: json['worker_firstname'],
+      workerProfilePic: json['worker_profile_pic'],
+      amount: json['amount'],
+      comment: json['comment'],
+    );
+  }
+}

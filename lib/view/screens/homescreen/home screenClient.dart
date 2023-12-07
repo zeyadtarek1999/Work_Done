@@ -34,8 +34,11 @@ bool isLiked = false;
 bool isLoading = true; // Initially set to true to show shimmer
 
 final advancedDrawerController = AdvancedDrawerController();
-int currentPage = 2;
-
+int currentPage = 0;
+bool shouldShowNextButton(List<Item>? nextPageData) {
+  // Add your condition to check if the next page is not empty here
+  return nextPageData != null && nextPageData.isNotEmpty;
+}
 int _currentIndex = 0;
 final CarouselController _carouselController = CarouselController();
 late Future<List<Item>> futureProjects;
@@ -747,7 +750,11 @@ class _HomeclientState extends State<Homeclient> {
                         future: futureProjects,
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
+                            return Column(
+                              children: [
+                       SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
+                              ],
+                            );
                           } else if (snapshot.hasError) {
                             return Text('Error: ${snapshot.error}');
                           } else if (snapshot.data != null && snapshot.data!.isEmpty) {
@@ -779,48 +786,40 @@ class _HomeclientState extends State<Homeclient> {
                                 });
                               },
                               style: TextButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                primary: Colors.white,
-                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+
+                                primary: Colors.redAccent,
+
                               ),
                               child: Text(
                                 'Previous Page',
-                                style: TextStyle(fontSize: 16),
+                                style: TextStyle(fontSize: 16, ),
                               ),
                             ),
                           TextButton(
                             onPressed: () async {
                               setState(() {
                                 currentPage++;
+                                refreshProjects();
                               });
 
+                              // Fetch the projects for the next page
+                              List<Item>? nextPageProjects = await fetchProjects();
 
-                              try {
-                                List<Item>? nextPageProjects = await fetchProjects();
-
-                                if (nextPageProjects == null || nextPageProjects.isEmpty) {
-                                  // If the response is empty, reset current page to 0 and refresh
+                              // Check if the next page is empty or no data and hide the button accordingly
+                              if (!shouldShowNextButton(nextPageProjects)) {
+                                setState(() {
                                   currentPage = 0;
                                   refreshProjects();
-                                } else {
-                                  // Update the futureProjects with the fetched projects
-                                  futureProjects = Future.value(nextPageProjects);
-                                }
-                              } catch (e) {
-                                // Handle the error, you can show an error message or take appropriate action
-                                print('Error fetching next page: $e');
+                                });
+                              } else {
+                                // Update the futureProjects with the fetched projects
+                                futureProjects = Future.value(nextPageProjects);
                               }
                             },
                             style: TextButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              primary: Colors.white,
-                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
+
+                              primary: Colors.black45,
+
                             ),
                             child: Text(
                               'Next Page',
@@ -829,6 +828,7 @@ class _HomeclientState extends State<Homeclient> {
                           ),
                         ],
                       ),
+                      SizedBox(height: 50,)
                     ],
                   )
                 ],
