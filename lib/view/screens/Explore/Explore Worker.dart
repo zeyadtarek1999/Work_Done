@@ -319,7 +319,7 @@ class _exploreWorkerState extends State<exploreWorker> {
                         ),
                         child: TextButton(
                           onPressed: () {
-                            Get.to(ProfilePageClient());
+                            // Get.to(ProfilePageClient());
                           },
                           style: TextButton.styleFrom(
                             fixedSize: Size(50, 30), // Adjust the size as needed

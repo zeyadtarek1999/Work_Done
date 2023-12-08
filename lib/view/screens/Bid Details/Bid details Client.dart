@@ -78,10 +78,15 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
     }
   }
 
+
+
+
   @override
   void initState() {
     super.initState();
     projectDetailsFuture = fetchProjectDetails();
+
+
   }
 
   String currentbid = '24';
@@ -168,7 +173,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                           children: [
                             Container(
                               height: 40,
-                              width: 60,
+                              width: 70,
                               decoration: BoxDecoration(
                                 color: HexColor('4D8D6E'),
                                 borderRadius: BorderRadius.circular(20),
@@ -223,7 +228,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                           ),
                         ),
                         SizedBox(
-                          height: 2,
+                          height: 10,
                         ),
                         Row(
                           children: [
@@ -250,7 +255,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                               ),
                               child: TextButton(
                                 onPressed: () {
-                                  Get.to(ProfilePageClient());
+                                  Get.to(ProfilePageClient(userId: projectData.access!.user.toString()));
                                 },
                                 style: TextButton.styleFrom(
                                   fixedSize: Size(50, 30),
@@ -323,7 +328,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                         width: 3,
                                       ),
                                       Text(
-                                        '${projectData.lowest_bid.toString()}',
+                                        '${projectData.lowest_bid?.toString() ?? "No Bid"}',
                                         style: GoogleFonts.openSans(
                                           textStyle: TextStyle(
                                             color: HexColor('4D8D6E'),
@@ -548,8 +553,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                   currentbid: currentbid,
                   projectdesc:projectdesc,
                   projectimage: projectimage,
-                  projecttitle: projecttitle,
-
+                  projecttitle: projecttitle,workerId: worker_id,
+project_id: widget.projectId.toString(),
                 ));
               },
               child: Text('Accept',
@@ -609,10 +614,14 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
 class Access {
   int user;
   String owner;
+  String chat_ID;
+  String project_status;
   String projectStatus;
 
   Access({
     required this.user,
+    required this.project_status,
+    required this.chat_ID,
     required this.owner,
     required this.projectStatus,
   });
@@ -620,8 +629,9 @@ class Access {
   factory Access.fromJson(Map<String, dynamic> json) {
     return Access(
       user: json['user'],
+      chat_ID: json['chat_ID'] ?? '0',
       owner: json['owner'].toString(),
-      projectStatus: json['project_status'],
+      projectStatus: json['project_status'], project_status: json['project_status'],
     );
   }
 }
@@ -745,3 +755,5 @@ class Bid {
 
   }
 }
+
+

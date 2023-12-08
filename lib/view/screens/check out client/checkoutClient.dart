@@ -24,14 +24,18 @@ class checkOutClient extends StatefulWidget {
   final String workerimage;
   final String projectimage;
   final String currentbid;
+  final String workerId;
   final String workername;
   final String projecttitle;
+  final String project_id;
   final String projectdesc;
 
   checkOutClient(
       {required this.userId,
       required this.workerimage,
       required this.projectimage,
+      required this.project_id,
+      required this.workerId,
       required this.currentbid,
       required this.projecttitle,
       required this.projectdesc,
@@ -53,10 +57,64 @@ class _checkOutClientState extends State<checkOutClient> {
 
   String state = '';
   String addressZip = '';
-
-
+  String chat = '';
 
 // Define a function to handle item selection
+  Future<int> acceptproject() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+      double fee = 3.0; // Replace this with your actual fee
+      double currentBidAmount = double.parse(widget.currentbid);
+
+// Calculate the total by adding the current bid and fee
+      double total = currentBidAmount + fee;
+      final response = await http.post(
+        Uri.parse('https://workdonecorp.com/api/accept_worker_bid'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $userToken',
+        },
+        body: jsonEncode({
+          'project_id': widget.project_id.toString(),
+          'worker_id': widget.userId.toString(),
+          'accepted_bid':total.toString()
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        Map<dynamic, dynamic> responseData = json.decode(response.body);
+
+        if (responseData.containsKey('chat')) {
+          int chat = responseData['chat'];
+
+          setState(() {
+            chat = chat;
+
+          });
+
+          print('Response: $chat');
+
+          print(chat);
+          print(total.toString());
+          print(total);
+          print(total);
+          print(total);
+          print(total);
+          print(chat);
+          return chat;
+        } else {
+          throw Exception('Failed to load data from API: ${responseData['msg']}');
+        }
+      } else {
+        throw Exception('Failed to load data from API');
+      }
+
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
 
   Future<void> getaddressuser() async {
     try {
@@ -247,11 +305,13 @@ class _checkOutClientState extends State<checkOutClient> {
             Container(
               width: double.infinity,
               height: 275,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 12),                     child: Text(
+                        horizontal: 20.0, vertical: 12),
+                    child: Text(
                       'Project details',
                       style: GoogleFonts.roboto(
                         textStyle: TextStyle(
@@ -262,10 +322,10 @@ class _checkOutClientState extends State<checkOutClient> {
                       ),
                     ),
                   ),
-
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 12),                    child: Row(
+                        horizontal: 20.0, vertical: 12),
+                    child: Row(
                       children: [
                         Row(
                           children: [
@@ -295,9 +355,10 @@ class _checkOutClientState extends State<checkOutClient> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                )
-                             ,
-                             SizedBox(height: 6,) ,
+                                ),
+                                SizedBox(
+                                  height: 6,
+                                ),
                                 Text(
                                   widget.projectdesc.toString(),
                                   style: GoogleFonts.roboto(
@@ -307,13 +368,12 @@ class _checkOutClientState extends State<checkOutClient> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                )
-                                ,
+                                ),
                               ],
                             )
                           ],
                         ),
-                    Spacer(),
+                        Spacer(),
                         Text(
                           widget.currentbid.toString(),
                           style: GoogleFonts.roboto(
@@ -324,7 +384,9 @@ class _checkOutClientState extends State<checkOutClient> {
                             ),
                           ),
                         ),
-                        SizedBox(width: 3,),
+                        SizedBox(
+                          width: 3,
+                        ),
                         Text(
                           '\$',
                           style: GoogleFonts.roboto(
@@ -335,61 +397,58 @@ class _checkOutClientState extends State<checkOutClient> {
                             ),
                           ),
                         )
-
-
                       ],
                     ),
                   ),
-      Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 20.0, vertical: 12),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.grey),
-          ),
-          padding: EdgeInsets.all(16),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundImage: NetworkImage(
-                  widget.workerimage== ''
-                      ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
-                      : widget.workerimage
-                ),
-                radius: 25,
-              ),
-              SizedBox(width: 5),
-              TextButton(
-                onPressed: () {
-                  // Your button onPressed logic here
-                },
-                child: Text(widget.workername.toString() ,style: GoogleFonts.roboto(
-                textStyle: TextStyle(
-                color: HexColor('#4D8D6E'),
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-
-      ),
-    ),),
-              ),
-              Spacer(),
-              Text(
-                '4.5',
-                style: TextStyle(fontSize: 16),
-              ),
-              Icon(
-                Icons.star,
-                color: Colors.yellow,
-                size: 24,
-              ),
-            ],
-          ),
-        ),
-      )
-
-
-      ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey),
+                      ),
+                      padding: EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundImage: NetworkImage(widget.workerimage ==
+                                    ''
+                                ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
+                                : widget.workerimage),
+                            radius: 25,
+                          ),
+                          SizedBox(width: 5),
+                          TextButton(
+                            onPressed: () {
+                              // Your button onPressed logic here
+                            },
+                            child: Text(
+                              widget.workername.toString(),
+                              style: GoogleFonts.roboto(
+                                textStyle: TextStyle(
+                                  color: HexColor('#4D8D6E'),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Spacer(),
+                          Text(
+                            '4.5',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          Icon(
+                            Icons.star,
+                            color: Colors.yellow,
+                            size: 24,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                ],
               ),
             ),
             SizedBox(
@@ -592,73 +651,81 @@ class _checkOutClientState extends State<checkOutClient> {
             Center(
                 child: RoundedButton(
                     text: 'Pay Now',
-                    press: ()async {
-    Navigator.of(context).push(MaterialPageRoute(
-    builder: (BuildContext context) => PaypalCheckout(
-    sandboxMode: true,
-    clientId: "AbL0i4Sq6zpEJnQHt6hes-TH3qp6MWCPYYFToB1CCtlaIuKOnQBRr_4oWKxvkBFoSib0jFIYN3P1kHac",
-    secretKey: "ELHtrs_24GdOJakv0DGWufiSSsefkv6j6SU3ri5rmFfUjLg4qk13hQqVWs3lxDmy1ZRkgj_TH8988cQV",
-    returnURL: "success.snippetcoder.com",
-    cancelURL: "cancel.snippetcoder.com",
-    transactions: const [
-    {
-    "amount": {
-    "total": '70',
-    "currency": "USD",
-    "details": {
-    "subtotal": '70',
-    "shipping": '0',
-    "shipping_discount": 0
-    }
-    },
-    "description": "The payment transaction description.",
-    // "payment_options": {
-    //   "allowed_payment_method":
-    //       "INSTANT_FUNDING_SOURCE"
-    // },
-    "item_list": {
-    "items": [
-    {
-    "name": "Apple",
-    "quantity": 4,
-    "price": '5',
-    "currency": "USD"
-    },
-    {
-    "name": "Pineapple",
-    "quantity": 5,
-    "price": '10',
-    "currency": "USD"
-    }
-    ],
+                    press: () async {
+                      acceptproject();
 
-    // shipping address is not required though
-    //   "shipping_address": {
-    //     "recipient_name": "Raman Singh",
-    //     "line1": "Delhi",
-    //     "line2": "",
-    //     "city": "Delhi",
-    //     "country_code": "IN",
-    //     "postal_code": "11001",
-    //     "phone": "+00000000",
-    //     "state": "Texas"
-    //  },
-    }
-    }
-    ],
-    note: "Contact us for any questions on your order.",
-    onSuccess: (Map params) async {
-    print("onSuccess: $params");
-    },
-    onError: (error) {
-    print("onError: $error");
-    Navigator.pop(context);
-    },
-    onCancel: () {
-    print('cancelled:');
-    },
-    ),
-    ),);})),
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (BuildContext context) => PaypalCheckout(
+                            sandboxMode: true,
+                            clientId:
+                                "AbL0i4Sq6zpEJnQHt6hes-TH3qp6MWCPYYFToB1CCtlaIuKOnQBRr_4oWKxvkBFoSib0jFIYN3P1kHac",
+                            secretKey:
+                                "ELHtrs_24GdOJakv0DGWufiSSsefkv6j6SU3ri5rmFfUjLg4qk13hQqVWs3lxDmy1ZRkgj_TH8988cQV",
+                            returnURL: "success.snippetcoder.com",
+                            cancelURL: "cancel.snippetcoder.com",
+                            transactions: const [
+                              {
+                                "amount": {
+                                  "total": '70',
+                                  "currency": "USD",
+                                  "details": {
+                                    "subtotal": '70',
+                                    "shipping": '0',
+                                    "shipping_discount": 0
+                                  }
+                                },
+                                "description":
+                                    "The payment transaction description.",
+                                // "payment_options": {
+                                //   "allowed_payment_method":
+                                //       "INSTANT_FUNDING_SOURCE"
+                                // },
+                                "item_list": {
+                                  "items": [
+                                    {
+                                      "name": "Apple",
+                                      "quantity": 4,
+                                      "price": '5',
+                                      "currency": "USD"
+                                    },
+                                    {
+                                      "name": "Pineapple",
+                                      "quantity": 5,
+                                      "price": '10',
+                                      "currency": "USD"
+                                    }
+                                  ],
+
+                                  // shipping address is not required though
+                                  //   "shipping_address": {
+                                  //     "recipient_name": "Raman Singh",
+                                  //     "line1": "Delhi",
+                                  //     "line2": "",
+                                  //     "city": "Delhi",
+                                  //     "country_code": "IN",
+                                  //     "postal_code": "11001",
+                                  //     "phone": "+00000000",
+                                  //     "state": "Texas"
+                                  //  },
+                                }
+                              }
+                            ],
+                            note: "Contact us for any questions on your order.",
+                            onSuccess: (Map params) async {
+                              print("onSuccess: $params");
+                            },
+                            onError: (error) {
+                              print("onError: $error");
+                              Navigator.pop(context);
+                            },
+                            onCancel: () {
+                              print('cancelled:');
+                            },
+                          ),
+                        ),
+                      );
+                    })),
             SizedBox(
               height: 14,
             )
@@ -668,11 +735,6 @@ class _checkOutClientState extends State<checkOutClient> {
     );
   }
 }
-
-
-
-
-
 
 class SuccessPopup extends StatelessWidget {
   @override
@@ -701,4 +763,16 @@ class SuccessPopup extends StatelessWidget {
       ),
     );
   }
+}
+class AcceptProject {
+
+  final String chat;
+
+
+
+  AcceptProject({
+    required this.chat,
+
+  });
+
 }

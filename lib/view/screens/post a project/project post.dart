@@ -615,18 +615,6 @@ class _projectPostState extends State<projectPost> {
                 },
               ),
             ),
-            Center(
-              child: RoundedButton(
-                text: 'notification',
-                press: () {
-                  AwesomeNotifications().createNotification(
-                    content:
-                        NotificationContent(id: 1, channelKey: 'postProject',title: 'hello test',body:'its only test '),
-
-                  );
-                },
-              ),
-            ),
             SizedBox(
               height: 14,
             ),

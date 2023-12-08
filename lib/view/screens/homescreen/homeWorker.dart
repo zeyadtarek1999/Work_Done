@@ -809,7 +809,12 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                       ),
                       ConstrainedBox(
                         constraints: BoxConstraints(maxHeight: 35.5), // Adjust the maximum width as needed
-                        child: TextButton(onPressed: () { Get.to(ProfilePageClient()); },
+                        child: TextButton(onPressed: () {
+
+                          // Get.to(ProfilePageClient());
+
+
+                          },
                         child: Text(
                         project.client_firstname,
                         style: GoogleFonts.openSans(
@@ -1048,7 +1053,9 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                         ),
                         child: TextButton(
                           onPressed: () {
-                            Get.to(ProfilePageClient());
+                            // Get.to(
+                            //
+                            //     ProfilePageClient());
                           },
                           style: TextButton.styleFrom(
                             fixedSize: Size(50, 30), // Adjust the size as needed

@@ -59,6 +59,7 @@ class _exploreClientState extends State<exploreClient> {
 
           List<Item> projects = projectsJson.map((json) {
             return Item(
+              client_id: json['client_id'],
               projectId: json['project_id'],
               title: json['title'],
               description: json['desc'],
@@ -182,7 +183,9 @@ class _exploreClientState extends State<exploreClient> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: GestureDetector(
-              onTap: (){},
+              onTap: (){
+
+              },
               child:
               SvgPicture.asset(
                 'assets/icons/iconnotification.svg',
@@ -395,7 +398,7 @@ class _exploreClientState extends State<exploreClient> {
   Widget buildListItem(Item item) {
     return GestureDetector(
       onTap: () {
-        // Get.to(bidDetailsClient());
+        Get.to(bidDetailsClient(projectId: item.projectId,));
       },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 4),
@@ -434,18 +437,23 @@ class _exploreClientState extends State<exploreClient> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text.rich(
-                        TextSpan(
-                          children: _buildTextSpans(item.title, searchController.text),
-                        ),
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                            color: HexColor('131330'),
-                            fontSize: 19,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+              Text.rich(
+              TextSpan(
+              children: _buildTextSpans(
+              item.title.length > 17
+              ? '${item.title.substring(0, 16)}...' // Truncate to 14 characters and add ellipsis
+              : item.title,
+              searchController.text,
+            ),
+      ),
+      style: GoogleFonts.openSans(
+        textStyle: TextStyle(
+          color: HexColor('131330'),
+          fontSize: 19,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ),
                       Spacer(),
                       Text(
                         'By',
@@ -467,7 +475,7 @@ class _exploreClientState extends State<exploreClient> {
                         ),
                         child: TextButton(
                           onPressed: () {
-                            Get.to(ProfilePageClient());
+                            Get.to(ProfilePageClient(userId: item.client_id.toString()));
                           },
                           style: TextButton.styleFrom(
                             fixedSize: Size(50, 30), // Adjust the size as needed
@@ -534,8 +542,7 @@ class _exploreClientState extends State<exploreClient> {
                         ),
                         child: ElevatedButton(
                           onPressed: () {
-                            // Get.to(bidDetailsClient());
-                            // Handle button press
+                            Get.to(bidDetailsClient(projectId: item.projectId,));
                           },
                           child: Text('Details',style: TextStyle(color: Colors.white,fontSize: 12),),
                           style: ElevatedButton.styleFrom(
@@ -560,6 +567,8 @@ class Item {
   final int projectId;
   final String title;
   final String client_firstname;
+  final int client_id;
+
   final String liked;
   final String description;
   final String imageUrl;
@@ -570,6 +579,7 @@ class Item {
   Item({
     required this.projectId,
     required this.title,
+    required this.client_id,
     required this.client_firstname,
     required this.description,
     required this.liked,

@@ -507,7 +507,7 @@ class _projectsClientState extends State<projectsClient> {
                         ),
                         child: TextButton(
                           onPressed: () {
-                            Get.to(ProfilePageClient());
+                            // Get.to(ProfilePageClient());
                           },
                           style: TextButton.styleFrom(
                             fixedSize: Size(50, 30),
