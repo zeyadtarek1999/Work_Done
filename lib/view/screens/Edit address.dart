@@ -11,9 +11,8 @@ import '../widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
 
 class editAddressClient extends StatefulWidget {
-  final String userToken;
+  const editAddressClient({super.key});
 
-  editAddressClient({required this.userToken});
 
   @override
   State<editAddressClient> createState() => _editAddressClientState();
@@ -334,8 +333,31 @@ class _editAddressClientState extends State<editAddressClient> {
             ),
 
             SizedBox(height: 20),
-            RoundedButton(text: 'Confirm', press: (){        _updateAddress();
-            }),
+      RoundedButton(
+        text: 'Confirm',
+        press: () async {
+          await _updateAddress();
+
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Update Address Done'),
+                content: Text('Your address has been successfully updated.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Close the dialog
+                      Navigator.pop(context); // Close the screen
+                    },
+                    child: Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      )
           ],
         ),
       ),

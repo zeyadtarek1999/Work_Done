@@ -480,7 +480,11 @@ SizedBox(height: 12,),
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: ElevatedButton(
-                  onPressed: ()  {Get.to(checkOutClient()); },
+                  onPressed: ()
+                  {
+                    // Get.to(checkOutClient());
+
+                    },
                   child: Text('Accept',style: TextStyle(fontSize: 13),),
                   style: ElevatedButton.styleFrom(
                     primary: Colors.transparent, // Make the button background transparent

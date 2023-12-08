@@ -86,7 +86,9 @@ class _editProfileState extends State<editProfile> {
     // Call the API to update the client's profile
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      userToken = prefs.getString('user_token') ?? '';
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
       await UpdateClientProfileApi.updateClientProfile(
         token: userToken,
         firstName: firstName,
@@ -442,7 +444,7 @@ SizedBox(height: 13,)
 
                     // Check if userToken is not empty before navigating
                     if (userToken.isNotEmpty) {
-                      Get.to(editAddressClient(userToken: userToken));
+                      Get.to(editAddressClient());
                     } else {
                       // Handle the case where userToken is empty, e.g., show a message
                       print('User token is empty. Cannot navigate to ChangePasswordScreen.');
