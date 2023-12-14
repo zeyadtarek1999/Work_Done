@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -21,7 +22,6 @@ import 'package:http/http.dart' as http;
 import '../editProfile/editProfile.dart';
 import '../view profile screens/Client profile view.dart';
 
-
 class Homescreenworker extends StatefulWidget {
   Homescreenworker({Key? key}) : super(key: key);
 
@@ -29,9 +29,197 @@ class Homescreenworker extends StatefulWidget {
   State<Homescreenworker> createState() => _HomescreenworkerState();
 }
 
+int currentPage = 0;
+
+bool shouldShowNextButton(List<Item>? nextPageData) {
+  // Add your condition to check if the next page is not empty here
+  return nextPageData != null && nextPageData.isNotEmpty;
+}
+
+bool isLiked = false;
+bool isLoading = true; // Initially set to true to show shimmer
+int client_id = 0; // Initially set to true to show shimmer
+
+final advancedDrawerController = AdvancedDrawerController();
+
+late Future<List<Item>> futureProjects;
+List<Item> items = [];
+TextEditingController searchController = TextEditingController();
+
+Map<int, String> likedStatusMap = {};
+
+Future<List<Item>> fetchProjects() async {
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String userToken = prefs.getString('user_token') ?? '';
+print(userToken);
+    final response = await http.post(
+      Uri.parse('https://workdonecorp.com/api/get_all_projects'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $userToken',
+      },
+      body: json.encode({
+        'filter': 'all',
+        'page': currentPage.toString(),
+        // Include other parameters as needed
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final dynamic responseData = json.decode(response.body);
+
+      if (responseData['status'] == 'success') {
+        final List<dynamic> projectsJson = responseData['projects'];
+
+        List<Item> projects = projectsJson.map((json) {
+          final int projectId = json['project_id'];
+          final String likedStatus = json['liked'];
+          client_id = json['client_id'];
+          likedStatusMap[projectId] = likedStatus;
+          print(client_id);
+          return Item(
+            projectId: json['project_id'],
+            client_id: json['client_id'],
+            title: json['title'],
+            description: json['desc'],
+            imageUrl: json['images'] != null
+                ? json['images']
+                : 'https://eod-grss-ieee.com/uploads/science/1655561736_noimg_-_Copy.png',
+            postedFrom: json['posted_from'],
+            client_firstname: json['client_firstname'],
+            liked: json['liked'],
+            numbers_of_likes: json['numbers_of_likes'],
+            isLiked: json['liked'],
+          );
+        }).toList();
+
+        print(client_id);
+
+        print(projectsJson);
+        print(Item);
+        print(projects);
+        return projects;
+      } else {
+        throw Exception('Failed to load data from API: ${responseData['msg']}');
+      }
+    } else {
+      throw Exception('Failed to load data from API');
+    }
+  } catch (e) {
+    throw Exception('Error: $e');
+  }
+}
+
+final StreamController<String> _likedStatusController =
+    StreamController<String>();
+
+void refreshProjects() {
+  futureProjects = fetchProjects();
+}
+
+Future<void> initializeProjects() async {
+  try {
+    // Initialize futureProjects in initState or wherever appropriate
+    futureProjects = fetchProjects();
+    refreshProjects();
+    // Wait for the future to complete
+
+    // Iterate through the list of items and check if each project is liked
+  } catch (e) {
+    // Handle exceptions if any
+    print('Error initializing projects: $e');
+  }
+}
+
+Stream<String> get likedStatusStream => _likedStatusController.stream;
+List<String> likedProjects = []; // List to store liked project IDs
+Map<int, String> likedProjectsMap = {};
+
+Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String userToken = prefs.getString('user_token') ?? '';
+
+    final response = await http.post(
+      Uri.parse('https://workdonecorp.com/api/add_project_to_likes'),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer $userToken',
+      },
+      body: {
+        'project_id': projectId,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+
+      if (responseBody['status'] == 'success') {
+        // Project added to likes successfully
+        print('Project added to likes successfully');
+        _likedStatusController.add("true");
+      } else if (responseBody['msg'] == 'This Project is Already in Likes !') {
+        // Project is already liked
+        print('Project is already liked');
+      } else {
+        // Handle other error scenarios
+        print('Error: ${responseBody['msg']}');
+      }
+
+      return responseBody;
+    } else {
+      // Handle other status codes
+      print(
+          'Failed to add project to likes. Status code: ${response.statusCode}');
+      return {'status': 'error', 'msg': 'Failed to add project to likes'};
+    }
+  } catch (e) {
+    // Handle exception
+    print('Error: $e');
+    return {'status': 'error', 'msg': 'An error occurred'};
+  }
+}
+
+Future<Map<String, dynamic>> removeProjectFromLikes(String projectId) async {
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String token = prefs.getString('user_token') ?? '';
+    final response = await http.post(
+      Uri.parse('https://workdonecorp.com/api/remove_project_from_likes'),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        'project_id': projectId,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Successful request, you can handle the response here if needed
+      print('Project removed from likes successfully');
+      return {
+        'status': 'success',
+        'msg': 'Project removed from likes successfully'
+      };
+    } else {
+      // Handle error
+      print(
+          'Failed to remove project from likes. Status code: ${response.statusCode}');
+      return {'status': 'error', 'msg': 'Failed to remove project from likes'};
+    }
+  } catch (e) {
+    // Handle exception
+    print('Error: $e');
+    return {'status': 'error', 'msg': 'An error occurred'};
+  }
+}
+
 class _HomescreenworkerState extends State<Homescreenworker> {
   int _currentIndex = 0;
   final CarouselController _carouselController = CarouselController();
+
   String truncateText(String text, int numberOfWords) {
     List<String> words = text.split(' ');
 
@@ -46,77 +234,18 @@ class _HomescreenworkerState extends State<Homescreenworker> {
   final advancedDrawerController = AdvancedDrawerController();
 
   Map<int, bool> likedProjectsMap = {};
-  Future<void> initializeProjects() async {
-    try {
-      // Initialize futureProjects in initState or wherever appropriate
-      futureProjects = fetchProjects();
 
-      // Wait for the future to complete
-      List<Item> items = await futureProjects;
 
-      // Iterate through the list of items and check if each project is liked
-      items.forEach((item) {
-        checkIfProjectIsLiked(item);
-      });
-    } catch (e) {
-      // Handle exceptions if any
-      print('Error initializing projects: $e');
-    }
-  }
   @override
   void initState() {
     super.initState();
     initializeProjects();
-
-
-
+    likedProjectsMap= {};
   }
-  late Future<List<Item>> futureProjects;
+
   List<Item> items = [];
   TextEditingController searchController = TextEditingController();
   bool isLiked = false;
-
-  Future<List<Item>> fetchProjects() async {
-    try {
-      // Get the token from SharedPreferences
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String userToken = prefs.getString('user_token') ?? '';
-
-      final response = await http.post(
-        Uri.parse('https://workdonecorp.com/api/get_all_projects'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $userToken',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> projectsJson = json.decode(response.body)['projects'];
-
-        List<Item> projects = projectsJson.map((json) {
-          return Item(
-            projectId: json['project_id'],
-            title: json['title'],
-            description: json['desc'],
-            imageUrl: json['images'],
-            postedFrom: json['posted_from'],
-            client_firstname: json['client_firstname'],
-            liked: json['liked'],
-            numbers_of_likes: json['numbers_of_likes'],     isLiked: isLiked,
-
-          );
-        }).toList();
-        print(projectsJson);
-        print(Item);
-        print(projects);
-        return projects;
-      } else {
-        throw Exception('Failed to load data from API');
-      }
-    } catch (e) {
-      throw Exception('Error: $e');
-    }
-  }
 
   List<String> likedProjects = []; // List to store liked project IDs
 
@@ -142,7 +271,8 @@ class _HomescreenworkerState extends State<Homescreenworker> {
         if (responseBody['status'] == 'success') {
           // Project added to likes successfully
           print('Project added to likes successfully');
-        } else if (responseBody['msg'] == 'This Project is Already in Likes !') {
+        } else if (responseBody['msg'] ==
+            'This Project is Already in Likes !') {
           // Project is already liked
           print('Project is already liked');
         } else {
@@ -153,7 +283,8 @@ class _HomescreenworkerState extends State<Homescreenworker> {
         return responseBody;
       } else {
         // Handle other status codes
-        print('Failed to add project to likes. Status code: ${response.statusCode}');
+        print(
+            'Failed to add project to likes. Status code: ${response.statusCode}');
         return {'status': 'error', 'msg': 'Failed to add project to likes'};
       }
     } catch (e) {
@@ -162,7 +293,6 @@ class _HomescreenworkerState extends State<Homescreenworker> {
       return {'status': 'error', 'msg': 'An error occurred'};
     }
   }
-
 
   Future<Map<String, dynamic>> removeProjectFromLikes(String projectId) async {
     try {
@@ -182,11 +312,18 @@ class _HomescreenworkerState extends State<Homescreenworker> {
       if (response.statusCode == 200) {
         // Successful request, you can handle the response here if needed
         print('Project removed from likes successfully');
-        return {'status': 'success', 'msg': 'Project removed from likes successfully'};
+        return {
+          'status': 'success',
+          'msg': 'Project removed from likes successfully'
+        };
       } else {
         // Handle error
-        print('Failed to remove project from likes. Status code: ${response.statusCode}');
-        return {'status': 'error', 'msg': 'Failed to remove project from likes'};
+        print(
+            'Failed to remove project from likes. Status code: ${response.statusCode}');
+        return {
+          'status': 'error',
+          'msg': 'Failed to remove project from likes'
+        };
       }
     } catch (e) {
       // Handle exception
@@ -194,7 +331,6 @@ class _HomescreenworkerState extends State<Homescreenworker> {
       return {'status': 'error', 'msg': 'An error occurred'};
     }
   }
-
 
   Future<void> checkIfProjectIsLiked(Item item) async {
     try {
@@ -213,9 +349,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
         // Project is not liked
         setState(() {
           likedProjectsMap[item.projectId] = false;
-          print(          likedProjectsMap
-          );
-
+          print(likedProjectsMap);
         });
         print('Project is not liked');
       } else {
@@ -226,10 +360,14 @@ class _HomescreenworkerState extends State<Homescreenworker> {
       // Handle exception
       print('Error: $e');
     }
-  }  List<Item> filteredItems = [];
+  }
+
+  List<Item> filteredItems = [];
+
   List<InlineSpan> _buildTextSpans(String text, String query) {
     final spans = <InlineSpan>[];
-    final matches = RegExp(query, caseSensitive: false).allMatches(text.toLowerCase());
+    final matches =
+        RegExp(query, caseSensitive: false).allMatches(text.toLowerCase());
 
     if (matches.isEmpty) {
       spans.add(TextSpan(text: text));
@@ -271,17 +409,19 @@ class _HomescreenworkerState extends State<Homescreenworker> {
           final client_firstname = project.client_firstname.toLowerCase();
           final searchQuery = query.toLowerCase();
 
-          return title.contains(searchQuery) || description.contains(searchQuery);
+          return title.contains(searchQuery) ||
+              description.contains(searchQuery);
         }).toList();
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: HexColor('F0EEEE'),
       statusBarIconBrightness:
-      Brightness.dark, //Change the status bar ico ns' color (dark or light)
+          Brightness.dark, //Change the status bar ico ns' color (dark or light)
     ));
     return AdvancedDrawer(
         openRatio: 0.5,
@@ -340,7 +480,9 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                       width: 8,
                     ),
                     TextButton(
-                      onPressed: () {Get.to(editProfile());},
+                      onPressed: () {
+                        Get.to(editProfile());
+                      },
                       child: Text(
                         'Edit Profile',
                         style: GoogleFonts.poppins(
@@ -545,26 +687,43 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                             ),
                           )
                         ],
-
                       ),
                     ),
-                    SizedBox(height: 7,),
+                    SizedBox(
+                      height: 7,
+                    ),
                     Container(
                       height: 300,
                       width: double.infinity,
-                      child:                  FutureBuilder<List<Item>>(
+                      child: FutureBuilder<List<Item>>(
                         future: futureProjects,
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Column(
+                              children: [
+                                SizedBox(
+                                  height: 80,
+                                ),
+                                Center(child: CircularProgressIndicator()),
+                                SizedBox(
+                                  height: 80,
+                                )
+                              ],
+                            );
                           } else if (snapshot.hasError) {
                             return Text('Error: ${snapshot.error}');
-                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          } else if (snapshot.data != null &&
+                              snapshot.data!.isEmpty) {
+                            // If projects list is empty, reset current page to 0 and refresh
+                            currentPage = 0;
+                            refreshProjects();
                             return Text('No projects found.');
                           } else {
                             return ListView.builder(
                               physics: BouncingScrollPhysics(),
-                              scrollDirection: Axis.horizontal, // Set shrinkWrap to true
+                              scrollDirection: Axis.horizontal,
+                              // Set shrinkWrap to true
                               itemCount: snapshot.data!.length,
                               itemBuilder: (context, index) {
                                 return buildListItem(snapshot.data![index]);
@@ -573,9 +732,10 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                           }
                         },
                       ),
-
                     ),
-                    SizedBox(height: 10,),
+                    SizedBox(
+                      height: 10,
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 25.0,
@@ -587,12 +747,15 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey[700], // Change the color as needed
+                              color: Colors
+                                  .grey[700], // Change the color as needed
                             ),
                           ),
                           Spacer(),
                           TextButton(
-                            onPressed: () {Get.to(exploreWorker());},
+                            onPressed: () {
+                              Get.to(exploreWorker());
+                            },
                             child: Text(
                               'See all',
                               style: GoogleFonts.openSans(
@@ -603,19 +766,32 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                               ),
                             ),
                           )
-
                         ],
                       ),
                     ),
-
                     FutureBuilder<List<Item>>(
                       future: futureProjects,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Column(
+                            children: [
+                              SizedBox(
+                                height: 80,
+                              ),
+                              Center(child: CircularProgressIndicator()),
+                              SizedBox(
+                                height: 80,
+                              )
+                            ],
+                          );
                         } else if (snapshot.hasError) {
                           return Text('Error: ${snapshot.error}');
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        } else if (snapshot.data != null &&
+                            snapshot.data!.isEmpty) {
+                          // If projects list is empty, reset current page to 0 and refresh
+                          currentPage = 0;
+                          refreshProjects();
                           return Text('No projects found.');
                         } else {
                           return ListView.builder(
@@ -623,34 +799,91 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                             shrinkWrap: true, // Set shrinkWrap to true
                             itemCount: snapshot.data!.length,
                             itemBuilder: (context, index) {
-                              return buildListItemNewProjects(snapshot.data![index]);
+                              return buildListItemNewProjects(
+                                  snapshot.data![index]);
                             },
                           );
                         }
                       },
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        if (currentPage > 0)
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                currentPage--;
+                                refreshProjects(); // Use refreshProjects instead of fetchProjects
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              primary: Colors.redAccent,
+                            ),
+                            child: Text(
+                              'Previous Page',
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        TextButton(
+                          onPressed: () async {
+                            setState(() {
+                              currentPage++;
+                              refreshProjects();
+                            });
 
+                            // Fetch the projects for the next page
+                            List<Item>? nextPageProjects =
+                                await fetchProjects();
 
-
-
-    ]),
+                            // Check if the next page is empty or no data and hide the button accordingly
+                            if (!shouldShowNextButton(nextPageProjects)) {
+                              setState(() {
+                                currentPage = 0;
+                                refreshProjects();
+                              });
+                            } else {
+                              // Update the futureProjects with the fetched projects
+                              futureProjects = Future.value(nextPageProjects);
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                            primary: Colors.black45,
+                          ),
+                          child: Text(
+                            'Next Page',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 50,
+                    )
+                  ]),
             ),
           ),
         ));
   }
+
   void drawerControl() {
     advancedDrawerController.showDrawer();
   }
 
   Widget buildListItem(Item project) {
     return GestureDetector(
-      onTap: (){Get.to(Get.to(
-            () => bidDetailsWorker(projectId: project.projectId)));},
+      onTap: () {
+        Get.to(Get.to(() => bidDetailsWorker(projectId: project.projectId)));
+      },
       child: Container(
-        height: 120, // Adjust the height as needed
-        width: 270,  // Adjust the width as needed
-        margin: EdgeInsets.symmetric(horizontal: 12.0,vertical: 12),
-        padding: EdgeInsets.symmetric(horizontal: 19.0,vertical: 16),
+        height: 120,
+        // Adjust the height as needed
+        width: 270,
+        // Adjust the width as needed
+        margin: EdgeInsets.symmetric(horizontal: 12.0, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 19.0, vertical: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
           color: Colors.white,
@@ -668,8 +901,10 @@ class _HomescreenworkerState extends State<Homescreenworker> {
             Stack(
               children: [
                 Container(
-                  width: 250,  // Adjust the width of the image container as needed
-                  height: 135.0, // Adjust the height of the image container as needed
+                  width: 250,
+                  // Adjust the width of the image container as needed
+                  height: 135.0,
+                  // Adjust the height of the image container as needed
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20.0),
                     image: DecorationImage(
@@ -685,84 +920,86 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Spacer(),
-                Container(
-                  height: 50,
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0, left: 5),
-                        child: Text(
-                          "${project.numbers_of_likes}" ,
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                      Container(
+                        height: 50,
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0, left: 5),
+                              child: Text(
+                                "${project.numbers_of_likes}",
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            IconButton(
+                              iconSize: 22,
+                              icon: Icon(
+                                likedProjectsMap[project.projectId] ?? project.liked == "true"
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: likedProjectsMap[project.projectId] ?? project.liked == "true"
+                                    ? Colors.red
+                                    : Colors.grey,
+                              ),
+                              onPressed: () async {
+                                try {
+                                  if (likedProjectsMap[project.projectId] ?? project.liked == "true") {
+                                    // If liked, remove like
+                                    final response = await removeProjectFromLikes(project.projectId.toString());
+
+                                    if (response['status'] == 'success') {
+                                      // If successfully removed from likes
+                                      setState(() {
+                                        likedProjectsMap[project.projectId] = false;
+                                        project.numbers_of_likes = (project.numbers_of_likes ?? 0) - 1;
+                                      });
+                                      print('Project removed from likes');
+                                    } else {
+                                      // Handle the case where the project is not removed from likes
+                                      print('Error: ${response['msg']}');
+                                    }
+                                  } else {
+                                    // If not liked, add like
+                                    final response = await addProjectToLikes(project.projectId.toString());
+
+                                    if (response['status'] == 'success') {
+                                      // If successfully added to likes
+                                      setState(() {
+                                        likedProjectsMap[project.projectId] = true;
+                                        project.numbers_of_likes = (project.numbers_of_likes ?? 0) + 1;
+                                      });
+                                      print('Project added to likes');
+                                    } else if (response['msg'] == 'This Project is Already in Likes !') {
+                                      // If the project is already liked, switch to Icons.favorite_border
+                                      setState(() {
+                                        likedProjectsMap[project.projectId] = false;
+                                      });
+                                      print('Project is already liked');
+                                    } else {
+                                      // Handle the case where the project is not added to likes
+                                      print('Error: ${response['msg']}');
+                                    }
+                                  }
+                                } catch (e) {
+                                  print('Error: $e');
+                                }
+                              },
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(width: 8),
-                      IconButton(
-                        iconSize: 22,
-                        icon: Icon(
-                          likedProjectsMap[project.projectId] ?? project.liked == "true"
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: likedProjectsMap[project.projectId] ?? project.liked == "true"
-                              ? Colors.red
-                              : Colors.grey,
-                        ),
-                        onPressed: () async {
-                          try {
-                            if (likedProjectsMap[project.projectId] ?? project.liked == "true") {
-                              // If liked, remove like
-                              final response = await removeProjectFromLikes(project.projectId.toString());
-
-                              if (response['status'] == 'success') {
-                                // If successfully removed from likes
-                                setState(() {
-                                  likedProjectsMap[project.projectId] ?? project.liked == "false";
-                                  likedProjectsMap[project.projectId] = false;
-                                });
-                                print('Project removed from likes');
-                              } else {
-                                // Handle the case where the project is not removed from likes
-                                print('Error: ${response['msg']}');
-                              }
-                            } else {
-                              // If not liked, add like
-                              final response = await addProjectToLikes(project.projectId.toString());
-
-                              if (response['status'] == 'success') {
-                                // If successfully added to likes
-                                setState(() {
-                                  likedProjectsMap[project.projectId] = true;
-                                });
-                                print('Project added to likes');
-                              } else if (response['msg'] == 'This Project is Already in Likes !') {
-                                // If the project is already liked, switch to Icons.favorite_border
-                                setState(() {
-                                  likedProjectsMap[project.projectId] = false;
-                                });
-                                print('Project is already liked');
-                              } else {
-                                // Handle the case where the project is not added to likes
-                                print('Error: ${response['msg']}');
-                              }
-                            }
-                          } catch (e) {
-                            print('Error: $e');
-                          }
-                        },
-                      ),                      ],
+                    ],
                   ),
                 ),
-        ],
-      ),
-    ),
               ],
             ),
             SizedBox(height: 10.0),
@@ -773,7 +1010,9 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                   Row(
                     children: [
                       Text(
-                        truncateText(project.title, 2),
+                        project.title.length > 12
+                            ? '${project.title.substring(0, 12)}...' // Truncate to 14 characters and add ellipsis
+                            : project.title,
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('131330'),
@@ -808,23 +1047,22 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                         ),
                       ),
                       ConstrainedBox(
-                        constraints: BoxConstraints(maxHeight: 35.5), // Adjust the maximum width as needed
-                        child: TextButton(onPressed: () {
-
-                          // Get.to(ProfilePageClient());
-
-
-                          },
-                        child: Text(
-                        project.client_firstname,
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                            color: HexColor('43745C'),
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ))),
+                          constraints: BoxConstraints(maxHeight: 35.5),
+                          // Adjust the maximum width as needed
+                          child: TextButton(
+                              onPressed: () {
+                                Get.to(ProfilePageClient(userId:project.client_id.toString()));
+                              },
+                              child: Text(
+                                project.client_firstname,
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                    color: HexColor('43745C'),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ))),
                       SizedBox(width: 5),
                       Spacer(),
                       Text(
@@ -855,7 +1093,6 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                           ),
                         ),
                       ),
-
                       SizedBox(width: 5),
                       Spacer(),
                       Container(
@@ -866,9 +1103,16 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                           borderRadius: BorderRadius.circular(11),
                         ),
                         child: ElevatedButton(
-                          onPressed: () {Get.to(
-                                () => bidDetailsWorker(projectId: project.projectId),  );},
-                          child: Text('Bid'),
+                          onPressed: () {
+                            Get.to(
+                              () => bidDetailsWorker(
+                                  projectId: project.projectId),
+                            );
+                          },
+                          child: Text(
+                            'Bid',
+                            style: TextStyle(color: Colors.white),
+                          ),
                           style: ElevatedButton.styleFrom(
                             primary: Colors.transparent,
                             elevation: 0,
@@ -887,15 +1131,16 @@ class _HomescreenworkerState extends State<Homescreenworker> {
     );
   }
 
-
   Widget buildListItemNewProjects(Item item) {
     return GestureDetector(
       onTap: () {
         Get.to(
-              () => bidDetailsWorker(projectId: item.projectId),  );    },
+          () => bidDetailsWorker(projectId: item.projectId),
+        );
+      },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
-        padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
+        margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 13),
+        padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
           color: Colors.white,
@@ -918,7 +1163,8 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20.0),
                     image: DecorationImage(
-                      image: NetworkImage(item.imageUrl), // Use the image URL from the fetched data
+                      image: NetworkImage(item.imageUrl),
+                      // Use the image URL from the fetched data
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -969,8 +1215,8 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                                     if (response['status'] == 'success') {
                                       // If successfully removed from likes
                                       setState(() {
-                                        likedProjectsMap[item.projectId] ?? item.liked == "false";
                                         likedProjectsMap[item.projectId] = false;
+                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) - 1;
                                       });
                                       print('Project removed from likes');
                                     } else {
@@ -985,6 +1231,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                                       // If successfully added to likes
                                       setState(() {
                                         likedProjectsMap[item.projectId] = true;
+                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) + 1;
                                       });
                                       print('Project added to likes');
                                     } else if (response['msg'] == 'This Project is Already in Likes !') {
@@ -1002,13 +1249,13 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                                   print('Error: $e');
                                 }
                               },
-                            ),                          ],
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-
               ],
             ),
             SizedBox(height: 10.0),
@@ -1020,10 +1267,10 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text.rich(
-                        TextSpan(
-                          children: _buildTextSpans(item.title, searchController.text),
-                        ),
+                      Text(
+                        item.title.length > 17
+                            ? '${item.title.substring(0, 17)}...' // Truncate to 14 characters and add ellipsis
+                            : item.title,
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('131330'),
@@ -1043,7 +1290,9 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                           ),
                         ),
                       ),
-                      SizedBox(width: 4,),
+                      SizedBox(
+                        width: 4,
+                      ),
                       Container(
                         height: 30,
                         width: 60,
@@ -1053,20 +1302,22 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                         ),
                         child: TextButton(
                           onPressed: () {
-                            // Get.to(
-                            //
-                            //     ProfilePageClient());
+                            Get.to(ProfilePageClient(userId:item.client_id.toString()));
+
                           },
                           style: TextButton.styleFrom(
-                            fixedSize: Size(50, 30), // Adjust the size as needed
+                            fixedSize: Size(50, 30),
+                            // Adjust the size as needed
                             padding: EdgeInsets.zero,
                           ),
                           child: Text.rich(
                             TextSpan(
-                              children: _buildTextSpans(item.client_firstname, searchController.text),
+                              children: _buildTextSpans(
+                                  item.client_firstname, searchController.text),
                             ),
                             maxLines: 3,
-                            overflow: TextOverflow.ellipsis, // Use the client name from the fetched data
+                            overflow: TextOverflow.ellipsis,
+                            // Use the client name from the fetched data
                             style: TextStyle(
                               color: HexColor('4D8D6E'),
                               fontSize: 18,
@@ -1080,7 +1331,8 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                   SizedBox(height: 6),
                   Text.rich(
                     TextSpan(
-                      children: _buildTextSpans(item.description, searchController.text),
+                      children: _buildTextSpans(
+                          item.description, searchController.text),
                     ),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
@@ -1102,7 +1354,8 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                       ),
                       SizedBox(width: 5),
                       Text(
-                        item.postedFrom, // Use the posted time from the fetched data
+                        item.postedFrom,
+                        // Use the posted time from the fetched data
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('777778'),
@@ -1114,7 +1367,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                       SizedBox(width: 2),
                       Spacer(),
                       Container(
-                        width: 80,
+                        width: 92,
                         height: 36,
                         decoration: BoxDecoration(
                           color: HexColor('4D8D6E'),
@@ -1123,10 +1376,14 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                         child: ElevatedButton(
                           onPressed: () {
                             Get.to(
-                                  () => bidDetailsWorker(projectId: item.projectId),  );
+                              () => bidDetailsWorker(projectId: item.projectId),
+                            );
                             // Handle button press
                           },
-                          child: Text('Details'),
+                          child: Text(
+                            'Details',
+                            style: TextStyle(color: Colors.white),
+                          ),
                           style: ElevatedButton.styleFrom(
                             primary: Colors.transparent,
                             elevation: 0,
@@ -1144,22 +1401,23 @@ class _HomescreenworkerState extends State<Homescreenworker> {
       ),
     );
   }
-
 }
 
 class Item {
   final int projectId;
+  final int client_id;
   final String title;
   final String client_firstname;
-  final String liked;
+  late final String liked;
   final String description;
   final String imageUrl;
-  final int numbers_of_likes;
+   int numbers_of_likes;
   final String postedFrom;
-  bool isLiked;
+  String isLiked;
 
   Item({
     required this.projectId,
+    required this.client_id,
     required this.title,
     required this.client_firstname,
     required this.description,
@@ -1167,6 +1425,6 @@ class Item {
     required this.numbers_of_likes,
     required this.imageUrl,
     required this.postedFrom,
-    bool? isLiked,
-  }) : isLiked = isLiked ?? liked.toLowerCase() == 'true';
+    required this.isLiked,
+  });
 }

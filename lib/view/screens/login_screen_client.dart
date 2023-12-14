@@ -92,7 +92,7 @@ class _LoginScreenclientState extends State<LoginScreenclient> {
             );
           } else {
             // Navigate to layoutworker() for non-client accounts
-            Get.off(layoutclient());
+            Get.offAll(layoutclient(), fullscreenDialog: true);
           }
         } else {
           // Handle the case when 'token' is null or not present in the response

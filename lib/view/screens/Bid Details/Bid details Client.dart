@@ -9,6 +9,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
 
+import '../InboxwithChat/ChatClient.dart';
 import '../check out client/checkoutClient.dart';
 import '../view profile screens/Client profile view.dart';
 import 'package:http/http.dart' as http;
@@ -78,15 +79,10 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
     }
   }
 
-
-
-
   @override
   void initState() {
     super.initState();
     projectDetailsFuture = fetchProjectDetails();
-
-
   }
 
   String currentbid = '24';
@@ -143,9 +139,12 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                   ProjectData projectData = snapshot.data!;
                   currentbid = projectData.lowest_bid.toString();
                   client_id = projectData.clientData!.clientId.toString();
-                   projectimage = projectData.images.toString();;
-                   projecttitle = projectData.title.toString();;
-                   projectdesc = projectData.desc.toString();;
+                  projectimage = projectData.images.toString();
+                  ;
+                  projecttitle = projectData.title.toString();
+                  ;
+                  projectdesc = projectData.desc.toString();
+                  ;
                   owner = projectData.access!.owner.toString();
                   return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,7 +254,9 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                               ),
                               child: TextButton(
                                 onPressed: () {
-                                  Get.to(ProfilePageClient(userId: projectData.access!.user.toString()));
+                                  Get.to(ProfilePageClient(
+                                      userId: projectData.clientData!.clientId
+                                          .toString()));
                                 },
                                 style: TextButton.styleFrom(
                                   fixedSize: Size(50, 30),
@@ -398,50 +399,119 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                         SizedBox(
                           height: 17,
                         ),
-                        projectData.bids.isNotEmpty
-                            ? FutureBuilder<ProjectData>(
-                                future: fetchProjectDetails(),
-                                // Use the function without awaiting it
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return Center(
-                                        child: CircularProgressIndicator());
-                                  } else if (snapshot.hasError) {
-                                    return Center(
-                                        child:
-                                            Text('Error: ${snapshot.error}'));
-                                  } else if (!snapshot.hasData) {
-                                    return Center(
-                                        child: Text('No data available',
-                                            style: GoogleFonts.openSans(
-                                              textStyle: TextStyle(
-                                                color: HexColor('454545'),
-                                                fontSize: 22,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            )));
-                                  } else {
-                                    ProjectData projectData = snapshot.data!;
+                        FutureBuilder<ProjectData>(
+                          future: fetchProjectDetails(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Error: ${snapshot.error}'));
+                            } else if (!snapshot.hasData) {
+                              return Center(
+                                child: Text(
+                                  'No data available',
+                                  style: GoogleFonts.openSans(
+                                    textStyle: TextStyle(
+                                      color: HexColor('454545'),
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            } else {
+                              ProjectData projectData = snapshot.data!;
 
-                                    // Use projectData to build your UI
-                                    return ListView.builder(
-                                      physics: NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
-                                      itemCount: projectData.bids.length,
-                                      itemBuilder: (context, index) {
-                                        Bid bid = projectData.bids[index];
-                                        return buildListItem(bid);
-                                      },
-                                    );
-                                  }
-                                },
-                              )
-                            : Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 14.0),
-                                child: Center(child: Text('No bids yet')),
-                              ),
+                              if (projectData.access!.project_status ==
+                                      'bid_accepted' &&
+                                  projectData.access!.owner == 'true') {
+                                // Render a row with buttons
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 15.0),
+                                  child: Row(
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          // Handle the action for the "End" button
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          primary: Colors.red,
+                                          // Background color
+                                          onPrimary: Colors.white,
+                                          // Text color
+                                          elevation: 8,
+                                          // Elevation
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                8), // Rounded corners
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: Text('End'),
+                                        ),
+                                      ),
+                                      SizedBox(width: 16),
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            Get.to(ChatScreen(
+                                              chatId:
+                                                  projectData.access!.chat_ID,
+                                              currentUser: projectData
+                                                  .clientData!.firstname,
+                                              secondUserName: 'worker',
+                                              userId: projectData
+                                                  .clientData!.clientId.toString(),
+                                            ));
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            primary: Colors.blue,
+                                            // Background color
+                                            onPrimary: Colors.white,
+                                            // Text color
+                                            elevation: 8,
+                                            // Elevation
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      8), // Rounded corners
+                                            ),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(12.0),
+                                            child: Text('Chat'),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else if (projectData.bids.isNotEmpty) {
+                                // Render a ListView with bids
+                                return ListView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: projectData.bids.length,
+                                  itemBuilder: (context, index) {
+                                    Bid bid = projectData.bids[index];
+                                    return buildListItem(bid);
+                                  },
+                                );
+                              } else {
+                                // Render a message when there are no bids
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 14.0),
+                                  child: Center(child: Text('No bids yet')),
+                                );
+                              }
+                            }
+                          },
+                        )
                       ]);
                 }
               }),
@@ -463,11 +533,9 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
           CircleAvatar(
             radius: 28,
             backgroundColor: Colors.transparent,
-            backgroundImage: NetworkImage(
-              item.workerProfilePic == ''
-                  ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
-                  : item.workerProfilePic
-            ),
+            backgroundImage: NetworkImage(item.workerProfilePic == ''
+                ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
+                : item.workerProfilePic),
           ),
           SizedBox(
             width: 12,
@@ -482,10 +550,13 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                     onTap: () {
                       // Navigate to worker profile page
                       // You can replace this with your navigation logic
-                      Get.to(ProfilePageWorker());
+                      Get.to(
+                          ProfilePageClient(userId: item.workerId.toString()));
                     },
                     child: Text(
-                      item.workerFirstname,
+                      item.workerFirstname.length > 7
+                          ? '${item.workerFirstname.substring(0, 7)}...' // Display first 14 letters with ellipsis
+                          : item.workerFirstname,
                       style: GoogleFonts.openSans(
                         textStyle: TextStyle(
                           color: HexColor('9DA2A3'),
@@ -551,10 +622,11 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                   workerimage: item.workerProfilePic,
                   workername: item.workerFirstname,
                   currentbid: currentbid,
-                  projectdesc:projectdesc,
+                  projectdesc: projectdesc,
                   projectimage: projectimage,
-                  projecttitle: projecttitle,workerId: worker_id,
-project_id: widget.projectId.toString(),
+                  projecttitle: projecttitle,
+                  workerId: item.workerId,
+                  project_id: widget.projectId.toString(),
                 ));
               },
               child: Text('Accept',
@@ -631,7 +703,8 @@ class Access {
       user: json['user'],
       chat_ID: json['chat_ID'] ?? '0',
       owner: json['owner'].toString(),
-      projectStatus: json['project_status'], project_status: json['project_status'],
+      projectStatus: json['project_status'],
+      project_status: json['project_status'],
     );
   }
 }
@@ -741,19 +814,16 @@ class Bid {
   });
 
   factory Bid.fromJson(
-      Map<String, dynamic> json,
-      Map<String, dynamic> accessDataJson,
-   ) {
+    Map<String, dynamic> json,
+    Map<String, dynamic> accessDataJson,
+  ) {
     return Bid(
-      workerId: json['worker_id'],
-      workerFirstname: json['worker_firstname'],
-      workerProfilePic: json['worker_profile_pic'] ??
-          'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
-      amount: json['amount'],
-      comment: json['comment'],
-      access: Access.fromJson(accessDataJson));
-
+        workerId: json['worker_id'],
+        workerFirstname: json['worker_firstname'],
+        workerProfilePic: json['worker_profile_pic'] ??
+            'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
+        amount: json['amount'],
+        comment: json['comment'],
+        access: Access.fromJson(accessDataJson));
   }
 }
-
-

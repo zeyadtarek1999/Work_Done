@@ -92,7 +92,7 @@ class _LoginScreenworkerState extends State<LoginScreenworker> {
             );
           } else {
             // Navigate to layoutworker() for non-client accounts
-            Get.off(layoutworker(), transition: Transition.fadeIn );
+            Get.offAll(layoutworker(), transition: Transition.fadeIn );
           }
         } else {
           // Handle the case when 'token' is null or not present in the response

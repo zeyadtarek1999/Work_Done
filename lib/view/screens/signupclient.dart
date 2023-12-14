@@ -288,7 +288,7 @@ bool isSearchBarVisible =false;
         // Store the token in shared preferences
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('user_token', user_token);
-        Get.off(layoutclient());
+        Get.offAll(layoutclient());
       } else {
         // Handle the case where the expected keys are not present in the response
         print('Invalid registration response format');

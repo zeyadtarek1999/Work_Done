@@ -291,7 +291,7 @@ class InboxWorker extends StatelessWidget {
                       ElevatedButton(onPressed: (){Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>  ChatScreen(chatId: '2',currentUser: 'worker',)),
+                            builder: (context) =>  ChatScreen(chatId: '2',currentUser: 'worker', secondUserName: '', userId: '',)),
                       );}, child: Text('go'))
 
                     ],

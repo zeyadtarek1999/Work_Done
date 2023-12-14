@@ -18,13 +18,14 @@ import 'package:http/http.dart' as http;
 
 import '../Edit address.dart';
 import '../homescreen/home screenClient.dart';
+import '../view profile screens/Client profile view.dart';
 
 class checkOutClient extends StatefulWidget {
   final int userId;
   final String workerimage;
   final String projectimage;
   final String currentbid;
-  final String workerId;
+  final int workerId;
   final String workername;
   final String projecttitle;
   final String project_id;
@@ -78,11 +79,26 @@ class _checkOutClientState extends State<checkOutClient> {
         },
         body: jsonEncode({
           'project_id': widget.project_id.toString(),
-          'worker_id': widget.userId.toString(),
-          'accepted_bid':total.toString()
+          'worker_id': widget.workerId.toString(),
+          'final_bid':total.toString()
         }),
       );
+      print(chat);
+      print(chat);
+      print(chat);
 
+      print(widget.workerId);
+      print(widget.workerId);
+      print(widget.workerId);
+
+      print(widget.project_id);
+      print(widget.project_id);
+      print(widget.project_id);
+
+
+      print(total);
+      print(total);
+      print(total);
       if (response.statusCode == 200) {
         Map<dynamic, dynamic> responseData = json.decode(response.body);
 
@@ -96,13 +112,22 @@ class _checkOutClientState extends State<checkOutClient> {
 
           print('Response: $chat');
 
+          print("accepted \n ${chat}");
           print(chat);
-          print(total.toString());
-          print(total);
-          print(total);
-          print(total);
-          print(total);
           print(chat);
+
+          print(widget.workerId);
+          print(widget.workerId);
+          print(widget.workerId);
+
+          print(widget.project_id);
+          print(widget.project_id);
+          print(widget.project_id);
+
+
+          print(total);
+          print(total);
+          print(total);
           return chat;
         } else {
           throw Exception('Failed to load data from API: ${responseData['msg']}');
@@ -421,7 +446,7 @@ class _checkOutClientState extends State<checkOutClient> {
                           SizedBox(width: 5),
                           TextButton(
                             onPressed: () {
-                              // Your button onPressed logic here
+                              Get.to(ProfilePageClient(userId: widget.workerId.toString()));
                             },
                             child: Text(
                               widget.workername.toString(),

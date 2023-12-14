@@ -35,53 +35,67 @@ double total =0;
   }
   TextEditingController calculate = TextEditingController();
   final commentController = TextEditingController();
+  late Future<ProjectData> projectDetailsFuture;
 
-  late Future<ProjectDetails> projectDetails;
-  String clientFirstName ='';
-  String? clientLastName;
-  String ?projectType;
-  String title = '';
-  String ?description;
-  String ?timeframeStart;
-  String ?timeframeEnd;
-  String ?imageUrl;
-  String ?postedFrom;
-  bool ?liked;
-  int ?numberOfLikes;
-  Future<void> fetchData() async {
+  String client_id = '';
+  String worker_id = '';
+  String projectimage = '';
+  String projecttitle = '';
+  String projectdesc = '';
+  String owner = '';
+
+  Future<ProjectData> fetchProjectDetails() async {
     try {
-      ProjectDetails details = await getProjectDetails(widget.projectId);
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String userToken = prefs.getString('user_token') ?? '';
 
-      // Now you can use details in your code
-      print('Client First Name: ${details.clientFirstName}');
-      print('Title: ${details.title}');
-      print('Number of Likes: ${details.numberOfLikes}');
-      print('Number of bids: ${details.bids.length}');
-      details.bids.forEach((bids) {
-        print('Worker: ${bids.workerFirstName}, Amount: ${bids.amount}');
-      });
+      final response = await http.post(
+        Uri.parse('https://workdonecorp.com/api/get_project_details'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $userToken',
+        },
+        body: jsonEncode({
+          'project_id': widget.projectId.toString(),
+        }),
+      );
 
-      // You can also use details to update your UI or perform other actions
-      // For example, updating the state in a StatefulWidget
-      setState(() {
-        title=details.title;
-        clientFirstName = details.clientFirstName;
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      print(responseData);
+      print(widget.projectId);
 
-      });
-    } catch (e) {
-      // Handle any errors that might occur during the API call
-      print('Error fetching project details: $e');
+      if (response.statusCode == 200) {
+        final Map<String, dynamic>? projectDataJson = responseData['data'];
+        final Map<String, dynamic>? clientDataJson =
+        responseData['client_data'];
+        final Map<String, dynamic>? accessDataJson = responseData['access'];
+
+        if (projectDataJson != null &&
+            clientDataJson != null &&
+            accessDataJson != null) {
+          return ProjectData.fromJson(
+              projectDataJson, clientDataJson, accessDataJson);
+        } else {
+          throw Exception(
+              'No project data or client data available in the response');
+        }
+      } else {
+        throw Exception(
+            'Failed to load project details. Status code: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error fetching project details: $error');
+      throw error; // rethrow the error to notify the caller
     }
   }
+
 
   @override
   void initState() {
     super.initState();
     receive.addListener(updateTotal);
-    projectDetails = getProjectDetails(widget.projectId);
-    fetchData();
-
-    // Set curren
+    fetchProjectDetails();
+    projectDetailsFuture = fetchProjectDetails();
   }
 
   void updateTotal() {
@@ -99,10 +113,10 @@ double total =0;
 
   Future<void> insertBid() async {
     final url = Uri.parse('https://workdonecorp.com/api/insert_bid');
-String comment = commentController.text;
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String userToken = prefs.getString('user_token') ?? '';
+      print (userToken);
       // Prepare the request body
 
 
@@ -171,70 +185,6 @@ String comment = commentController.text;
     }
   }
 
-  Future<ProjectDetails> getProjectDetails(int projectId) async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String userToken = prefs.getString('user_token') ?? '';
-
-      final response = await http.post(
-        Uri.parse('https://workdonecorp.com/api/get_project_details'),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': 'Bearer $userToken',
-        },
-        body: {
-          'project_id': projectId.toString(), // Convert to String if needed
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseBody = json.decode(response.body);
-
-        if (response.statusCode == 200) {
-          // Parse the response into the ProjectDetails model
-          ProjectDetails projectDetails = ProjectDetails(
-            clientFirstName: responseBody['client_fname'],
-            clientLastName: responseBody['client_lname'],
-            projectType: responseBody['project_type'],
-            title: responseBody['title'],
-            description: responseBody['desc'],
-            timeframeStart: responseBody['timeframe_start'],
-            timeframeEnd: responseBody['timeframe_end'],
-            imageUrl: responseBody['images'],
-            postedFrom: responseBody['posted_from'],
-            liked: responseBody['liked'] == 'true',
-            numberOfLikes: responseBody['number_of_likes'],
-            bids: (responseBody['bids'] as List<dynamic>).map((bid) {
-              return Bid(
-                workerFirstName: bid['worker_firstname'],
-                workerProfilePic: bid['worker_profile_pic'],
-                amount: bid['amount'],
-              );
-            }).toList(),
-          );
-
-          return projectDetails;
-        } else {
-          print (projectId);
-          // Handle other error scenarios
-          print('Error: of what ${responseBody['msg']}');
-          throw Exception(responseBody['msg']);
-        }
-      } else {
-        print (projectId);
-
-        // Handle other status codes
-        print('Failed to get project details. Status code: ${response.statusCode}');
-        throw Exception('Failed to get project details');
-      }
-    } catch (e) {
-      print (projectId);
-
-      // Handle exception
-      print('Error: $e');
-      throw Exception('An error occurred');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -269,7 +219,24 @@ String comment = commentController.text;
               color: HexColor('4D8D6E'), // Color
               borderRadius: BorderRadius.circular(30.0), // Circular radius
             ),child:
-            Column(
+    FutureBuilder<ProjectData>(
+    future: projectDetailsFuture,
+    builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+    return Center(child: CircularProgressIndicator());
+    } else if (snapshot.hasError) {
+    return Center(child: Text('Error: ${snapshot.error}'));
+    } else if (!snapshot.hasData) {
+    return Center(child: Text('No data available'));
+    } else {
+    ProjectData projectData = snapshot.data!;
+    client_id = projectData.clientData!.clientId.toString();
+    projectimage = projectData.images.toString();
+    projecttitle = projectData.title.toString();
+    projectdesc = projectData.desc.toString();
+    owner = projectData.access!.owner.toString();
+
+    return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -291,7 +258,7 @@ String comment = commentController.text;
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            title,
+                            projecttitle,
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
                                 color: HexColor('FFFFFF'),
@@ -322,32 +289,33 @@ String comment = commentController.text;
                                 ),
                                 child: TextButton(
                                   onPressed: () {
-                                    // Get.to(ProfilePageClient());
+                                    Get.to(ProfilePageClient(userId: projectData.clientData!.clientId.toString()));
                                   },
                                   style: TextButton.styleFrom(
                                     fixedSize: Size(50, 30), // Adjust the size as needed
                                     padding: EdgeInsets.zero,
                                   ),
                                   child: Text(
-                                    clientFirstName,
+                                    projectData.clientData!.firstname,
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                       decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                                      ),
+                                      ),
+    ),
+    )
+    ],
+    ),
+    ],
+    ),
+    ],
+    ),
+    ),
 
-                Padding(
+
+    Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0,vertical: 10),
                   child: Text('Enter your bid',style: GoogleFonts.openSans(
                     textStyle: TextStyle(
@@ -492,8 +460,8 @@ String comment = commentController.text;
 
 
               ],
-            )),
-          ),
+            );}}),
+          ),),
       SizedBox(height: 10,),
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40.0),
@@ -595,44 +563,149 @@ String comment = commentController.text;
     );
   }
 }
-class ProjectDetails {
-  final String clientFirstName;
-  final String clientLastName;
-  final String projectType;
+class Access {
+  int user;
+  String owner;
+  String chat_ID;
+  String project_status;
+  String projectStatus;
+
+  Access({
+    required this.user,
+    required this.project_status,
+    required this.chat_ID,
+    required this.owner,
+    required this.projectStatus,
+  });
+
+  factory Access.fromJson(Map<String, dynamic> json) {
+    return Access(
+      user: json['user'],
+      chat_ID: json['chat_ID'] ?? '0',
+      owner: json['owner'].toString(),
+      projectStatus: json['project_status'], project_status: json['project_status'],
+    );
+  }
+}
+
+class ClientData {
+  int clientId;
+  String firstname;
+  String lastname;
+  String profileImage;
+
+  ClientData({
+    required this.clientId,
+    required this.firstname,
+    required this.lastname,
+    required this.profileImage,
+  });
+
+  factory ClientData.fromJson(Map<String, dynamic> json) {
+    return ClientData(
+      clientId: json['client_id'],
+      firstname: json['firstname'],
+      lastname: json['lastname'],
+      profileImage: json['profle_image'] ??
+          'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+    );
+  }
+}
+
+class ProjectData {
   final String title;
-  final String description;
+  final String images;
+  final String project_type;
+  final String posted_from;
+  final String desc;
+  final String liked;
+  final int number_of_likes;
+  final dynamic lowest_bid;
   final String timeframeStart;
   final String timeframeEnd;
-  final String imageUrl;
-  final String postedFrom;
-  final bool liked;
-  final int numberOfLikes;
   final List<Bid> bids;
+  final ClientData? clientData;
+  final Access? access;
 
-  ProjectDetails({
-    required this.clientFirstName,
-    required this.clientLastName,
-    required this.projectType,
+  // Include the client data
+
+  ProjectData({
     required this.title,
-    required this.description,
+    required this.images,
+    required this.project_type,
+    required this.access,
+    required this.posted_from,
+    required this.liked,
+    required this.clientData,
+    required this.number_of_likes,
+    required this.lowest_bid,
+    required this.desc,
     required this.timeframeStart,
     required this.timeframeEnd,
-    required this.imageUrl,
-    required this.postedFrom,
-    required this.liked,
-    required this.numberOfLikes,
     required this.bids,
   });
+
+  factory ProjectData.fromJson(
+      Map<String, dynamic> projectDataJson,
+      Map<String, dynamic> clientDataJson,
+      Map<String, dynamic> accessDataJson,
+      ) {
+    List<Bid> bids = [];
+    if (projectDataJson['bids'] != null) {
+      bids = List<Bid>.from(projectDataJson['bids']
+          .map((bid) => Bid.fromJson(bid, accessDataJson)));
+    }
+
+    return ProjectData(
+      title: projectDataJson['title'] ?? '',
+      desc: projectDataJson['desc'] ?? '',
+      timeframeStart: projectDataJson['timeframe_start'] ?? '',
+      timeframeEnd: projectDataJson['timeframe_end'] ?? '',
+      bids: bids,
+      images: projectDataJson['images'] ??
+          'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
+      project_type: projectDataJson['project_type'] ?? '',
+      posted_from: projectDataJson['posted_from'] ?? '',
+      liked: projectDataJson['liked'] ?? '',
+      number_of_likes: projectDataJson['number_of_likes'] ?? 0,
+      lowest_bid: projectDataJson['lowest_bid'],
+      clientData: ClientData.fromJson(clientDataJson),
+      access: Access.fromJson(accessDataJson),
+    );
+  }
 }
 
 class Bid {
-  final String workerFirstName;
+  final int workerId;
+  final String workerFirstname;
   final String workerProfilePic;
   final int amount;
+  final String comment;
+  final Access? access;
 
   Bid({
-    required this.workerFirstName,
+    required this.workerId,
+    required this.workerFirstname,
     required this.workerProfilePic,
     required this.amount,
+    required this.access,
+    required this.comment,
   });
+
+  factory Bid.fromJson(
+      Map<String, dynamic> json,
+      Map<String, dynamic> accessDataJson,
+      ) {
+    return Bid(
+        workerId: json['worker_id'],
+        workerFirstname: json['worker_firstname'],
+        workerProfilePic: json['worker_profile_pic'] ??
+            'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
+        amount: json['amount'],
+        comment: json['comment'],
+        access: Access.fromJson(accessDataJson));
+
+  }
 }
+
+

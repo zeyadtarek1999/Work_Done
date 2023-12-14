@@ -458,7 +458,7 @@ late String user_token='';
         // Store the token in shared preferences
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('user_token', user_token);
-Get.off(layoutworker());
+        Get.offAll(layoutworker());
         // Navigate to the next screen (you may want to do this based on certain conditions)
         // Example: Get.to(layoutworker());
       } else {

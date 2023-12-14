@@ -3,7 +3,7 @@ import 'package:hexcolor/hexcolor.dart';
 
 class Chatbody extends StatefulWidget {
   final String chatId; // Unique identifier for the chat
-  final String currentUser; // Identify whether the current user is client or worker
+  final String currentUser; //
 
   Chatbody({required this.chatId, required this.currentUser});
   @override

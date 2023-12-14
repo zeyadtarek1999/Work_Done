@@ -40,13 +40,10 @@ bool shouldShowNextButton(List<Item>? nextPageData) {
   // Add your condition to check if the next page is not empty here
   return nextPageData != null && nextPageData.isNotEmpty;
 }
-int _currentIndex = 0;
-final CarouselController _carouselController = CarouselController();
 late Future<List<Item>> futureProjects;
 List<Item> items = [];
 TextEditingController searchController = TextEditingController();
 
-Map<int, String> likedStatusMap = {};
 
 Future<List<Item>> fetchProjects() async {
   try {
@@ -73,10 +70,7 @@ Future<List<Item>> fetchProjects() async {
         final List<dynamic> projectsJson = responseData['projects'];
 
         List<Item> projects = projectsJson.map((json) {
-          final int projectId = json['project_id'];
-          final String likedStatus = json['liked'];
            client_id = json['client_id'];
-          likedStatusMap[projectId] = likedStatus;
 print(client_id);
           return Item(
             projectId: json['project_id'],
@@ -115,7 +109,7 @@ final StreamController<String> _likedStatusController = StreamController<String>
 
 Stream<String> get likedStatusStream => _likedStatusController.stream;
 List<String> likedProjects = []; // List to store liked project IDs
-Map<int, String> likedProjectsMap = {};
+Map<int, bool> likedProjectsMap = {};
 
 Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
   try {
@@ -197,66 +191,6 @@ Future<Map<String, dynamic>> removeProjectFromLikes(String projectId) async {
 
 
 class _HomeclientState extends State<Homeclient> {
-  Future<List<likesandnumber>> refreshLikes() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String userToken = prefs.getString('user_token') ?? '';
-
-      final response = await http.post(
-        Uri.parse('https://workdonecorp.com/api/get_all_projects'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $userToken',
-        },
-        body: json.encode({
-          'filter': 'all',
-          'page': currentPage.toString(),
-          // Include other parameters as needed
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final dynamic responseData = json.decode(response.body);
-
-        if (responseData['status'] == 'success') {
-          final List<dynamic> projectsJson = responseData['projects'];
-
-          List<likesandnumber> likes = projectsJson.map((json) {
-            final int projectId = json['project_id'];
-            final String likedStatus = json['liked'];
-            likedStatusMap[projectId] = likedStatus;
-            return likesandnumber(
-              projectId: json['project_id'],
-              liked: json['liked'],
-              numbers_of_likes: json['numbers_of_likes'],
-              isLiked: json['liked'],
-            );
-          }).toList();
-
-          // Replace the current data with the refreshed data
-          setState(() {
-            likedProjectsMap.clear();
-            likedProjectsMap = Map.fromIterable(
-              likes,
-              key: (like) => like.projectId,
-              value: (like) => like.liked,
-            );
-          });
-
-          print(projectsJson);
-          print(Item);
-          print(likes);
-          return likes;
-        } else {
-          throw Exception('Failed to load data from API: ${responseData['msg']}');
-        }
-      } else {
-        throw Exception('Failed to load data from API');
-      }
-    } catch (e) {
-      throw Exception('Error: $e');
-    }
-  }
 
 
   int _currentIndex = 0;
@@ -266,6 +200,7 @@ class _HomeclientState extends State<Homeclient> {
     super.initState();
     initializeProjects();
     _getUserProfile();
+    likedProjectsMap= {};
 
 
 
@@ -353,7 +288,6 @@ class _HomeclientState extends State<Homeclient> {
 
         if (response['status'] == 'success') {
           // If successfully removed from likes
-          updateLikedStatus(item.projectId, "false");
           print('Project removed from likes');
         } else {
           // Handle the case where the project is not removed from likes
@@ -366,11 +300,9 @@ class _HomeclientState extends State<Homeclient> {
         if (response['status'] == 'success') {
           // If successfully added to likes, fetch updated data for the project
           final updatedItem = await fetchUpdatedProject(item.projectId);
-          updateLikedStatus(item.projectId, "true");
           print('Project added to likes');
         } else if (response['msg'] == 'This Project is Already in Likes !') {
           // If the project is already liked, switch to Icons.favorite_border
-          updateLikedStatus(item.projectId, "false");
           print('Project is already liked');
         } else {
           // Handle the case where the project is not added to likes
@@ -389,11 +321,6 @@ class _HomeclientState extends State<Homeclient> {
     return updatedProjects.firstWhere((project) => project.projectId == projectId);
   }
 
-  void updateLikedStatus(int projectId, String isLiked) {
-    setState(() {
-      likedProjectsMap[projectId] = isLiked;
-    });
-  }
 
 
   List<Item> filteredItems = [];
@@ -973,57 +900,66 @@ class _HomeclientState extends State<Homeclient> {
                           Padding(
                             padding: const EdgeInsets.only(top: 8.0, left: 5),
                             child: Text(
-                              "${item.numbers_of_likes}" ,
+                              "${item.numbers_of_likes}",
                               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                             ),
                           ),
                           SizedBox(width: 8),
-                IconButton(
-                  iconSize: 22,
-                  icon: Icon(
-                    item.isLiked == "true"
-                        ? Icons.favorite
-                        : Icons.favorite_border,
-                    color: item.isLiked == "true"
-                        ? Colors.red
-                        : Colors.grey,
-                  ),
-                  onPressed: () async {
-                    final int projectId = item.projectId;
-                    final String likedStatus = likedStatusMap[projectId] ?? "false";
+                          IconButton(
+                            iconSize: 22,
+                            icon: Icon(
+                              likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                  ? Colors.red
+                                  : Colors.grey,
+                            ),
+                            onPressed: () async {
+                              try {
+                                if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
+                                  // If liked, remove like
+                                  final response = await removeProjectFromLikes(item.projectId.toString());
 
-                    try {
-                      if (likedStatus == "true") {
-                        // If liked, remove like
-                        final response = await removeProjectFromLikes(projectId.toString());
-                        if (response['status'] == 'success') {
-                          print('Project removed from likes');
-                        } else {
-                          print('Error: ${response['msg']}');
-                        }
-                      } else {
-                        // If not liked, add like
-                        final response = await addProjectToLikes(projectId.toString());
-                        if (response['status'] == 'success') {
-                          print('Project added to likes');
-                        } else if (response['msg'] == 'This Project is Already in Likes !') {
-                          print('Project is already liked');
-                        } else {
-                          print('Error: ${response['msg']}');
-                        }
-                      }
+                                  if (response['status'] == 'success') {
+                                    // If successfully removed from likes
+                                    setState(() {
+                                      likedProjectsMap[item.projectId] = false;
+                                      item.numbers_of_likes = (item.numbers_of_likes ?? 0) - 1;
+                                    });
+                                    print('Project removed from likes');
+                                  } else {
+                                    // Handle the case where the project is not removed from likes
+                                    print('Error: ${response['msg']}');
+                                  }
+                                } else {
+                                  // If not liked, add like
+                                  final response = await addProjectToLikes(item.projectId.toString());
 
-                      // Toggle liked status in the map
-                      setState(() {
-                        likedStatusMap[projectId] = likedStatus == "true" ? "false" : "true";
-                      });
-
-                    } catch (e) {
-                      print('Error: $e');
-                    }
-                  },
-                )
-                ],
+                                  if (response['status'] == 'success') {
+                                    // If successfully added to likes
+                                    setState(() {
+                                      likedProjectsMap[item.projectId] = true;
+                                      item.numbers_of_likes = (item.numbers_of_likes ?? 0) + 1;
+                                    });
+                                    print('Project added to likes');
+                                  } else if (response['msg'] == 'This Project is Already in Likes !') {
+                                    // If the project is already liked, switch to Icons.favorite_border
+                                    setState(() {
+                                      likedProjectsMap[item.projectId] = false;
+                                    });
+                                    print('Project is already liked');
+                                  } else {
+                                    // Handle the case where the project is not added to likes
+                                    print('Error: ${response['msg']}');
+                                  }
+                                }
+                              } catch (e) {
+                                print('Error: $e');
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -1163,23 +1099,24 @@ class _HomeclientState extends State<Homeclient> {
                             IconButton(
                               iconSize: 22,
                               icon: Icon(
-                                item.liked == "true"
+                                likedProjectsMap[item.projectId] ?? item.liked == "true"
                                     ? Icons.favorite
                                     : Icons.favorite_border,
-                                color:  item.liked == "true"
+                                color: likedProjectsMap[item.projectId] ?? item.liked == "true"
                                     ? Colors.red
                                     : Colors.grey,
                               ),
                               onPressed: () async {
                                 try {
-                                  if (item.liked == "true") {
+                                  if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
                                     // If liked, remove like
                                     final response = await removeProjectFromLikes(item.projectId.toString());
 
                                     if (response['status'] == 'success') {
                                       // If successfully removed from likes
                                       setState(() {
-                                        likedProjectsMap[item.projectId] = 'false'; // Change to a boolean value
+                                        likedProjectsMap[item.projectId] = false;
+                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) - 1;
                                       });
                                       print('Project removed from likes');
                                     } else {
@@ -1193,13 +1130,14 @@ class _HomeclientState extends State<Homeclient> {
                                     if (response['status'] == 'success') {
                                       // If successfully added to likes
                                       setState(() {
-                                        likedProjectsMap[item.projectId] = "true";
+                                        likedProjectsMap[item.projectId] = true;
+                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) + 1;
                                       });
                                       print('Project added to likes');
                                     } else if (response['msg'] == 'This Project is Already in Likes !') {
                                       // If the project is already liked, switch to Icons.favorite_border
                                       setState(() {
-                                        likedProjectsMap[item.projectId] = "false";
+                                        likedProjectsMap[item.projectId] = false;
                                       });
                                       print('Project is already liked');
                                     } else {
@@ -1207,16 +1145,14 @@ class _HomeclientState extends State<Homeclient> {
                                       print('Error: ${response['msg']}');
                                     }
                                   }
-
-                                  // Refresh likes after add or remove
-                                  await refreshLikes();
                                 } catch (e) {
                                   print('Error: $e');
                                 }
                               },
-                            )
+                            ),
                           ],
                         ),
+
                       ),
                     ],
                   ),
@@ -1267,7 +1203,7 @@ class _HomeclientState extends State<Homeclient> {
                         ),
                         child: TextButton(
                           onPressed: () {
-                            Get.to(ProfilePageClient(userId: item.client_id.toString()));
+                            Get.to(ProfilePageClient(userId:item.client_id.toString()));
                           },
                           style: TextButton.styleFrom(
                             fixedSize: Size(50, 30), // Adjust the size as needed
@@ -1385,22 +1321,6 @@ class CircularIndicator extends StatelessWidget {
       ),
     );
   }
-}class likesandnumber {
-  final int projectId;
-
-  late final String liked;
-
-
-  final int numbers_of_likes;
-  String isLiked;
-
-  likesandnumber({
-    required this.projectId,
-    required this.liked,
-    required this.numbers_of_likes,
-
-    required this. isLiked,
-  }) ;
 }
 
 
@@ -1409,10 +1329,10 @@ class Item {
   final int client_id;
   final String title;
   final String client_firstname;
-  late final String liked;
+  late  String liked;
   final String description;
   final String imageUrl;
-  final int numbers_of_likes;
+   int numbers_of_likes;
   final String postedFrom;
   String isLiked;
 

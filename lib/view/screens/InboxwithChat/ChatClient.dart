@@ -3,15 +3,22 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../view profile screens/Client profile view.dart';
+
 class ChatScreen extends StatelessWidget {
   final String chatId; // Unique identifier for the chat
   final String currentUser; // Identify whether the current user is client or worker
-
-  ChatScreen({required this.chatId, required this.currentUser});
+  final String secondUserName; // Add this line
+  final String userId; // Add this line
+  ChatScreen(
+      {required this.chatId, required this.currentUser, required this.secondUserName,required this.userId});
 
   final TextEditingController _messageController = TextEditingController();
 
@@ -22,122 +29,126 @@ class ChatScreen extends StatelessWidget {
       body: Container(
         margin: EdgeInsets.only(top: 60),
         child: Column(
+            children: [
+        Padding(
+        padding: const EdgeInsets.only(left: 10.0),
+        child: Row(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 10.0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.arrow_back_ios_new_outlined,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-
-                      // Handle back button press
-                    },
-                  ),
-                  SizedBox(
-                    width: 85,
-                  ),
-                  Center(
-                    child: Text(
-                      'Mohamed',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Expanded (
-              child: Container(
-                padding: EdgeInsets.all(20),
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: StreamBuilder(
-                        stream: FirebaseFirestore.instance
-                            .collection('chats')
-                            .doc(chatId)
-                            .collection('messages')
-                            .orderBy('timestamp',
-                            descending: true) // Ensure descending order
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
-                            return Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-
-                          var messages = snapshot.data!.docs;
-                          // List<Widget> messageWidgets = [];
-                          // for (var message in messages) {
-                          //   var messageContent = message['content'];
-                          //   var messageSender = message['sender'];
-                          //
-                          //   var messageWidget = MessageWidget(
-                          //     sender: messageSender,
-                          //     content: messageContent,
-                          //     isClient: currentUser == 'client',
-                          //   );
-                          //   messageWidgets.add(messageWidget);
-                          // }
-
-                          return ListView.builder(
-                            reverse: true,
-                            itemCount: messages.length,
-                            itemBuilder: (context, index) {
-                              var messageContent = messages[index]['content'];
-                              var messageSender = messages[index]['sender'];
-                              var imageUrl = messages[index]['image']; // Add this line
-
-                              return ChatBubble(
-                                currentuser: messageSender,
-                                message: messageContent,
-                                isSentByMe: messageSender == currentUser,
-                                imageUrl: imageUrl, // Add this line
-                              );
-                            },
-                          );
-                        },
-                      ),
-
-
-                    ),
-                    SizedBox(height: 20),
-                    SendMessageField(
-                      onSendMessage: (message, image) {
-                        sendMessage(message, image);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+        IconButton(
+        icon: Icon(
+        Icons.arrow_back_ios_new_outlined,
+          color: Colors.white,
         ),
+        onPressed: () {
+          Navigator.pop(context);
+
+          // Handle back button press
+        },
       ),
+      SizedBox(
+        width: 85,
+      ),
+      Center(
+        child: TextButton(onPressed: () {
+          Get.to(ProfilePageClient(
+              userId: userId ));
+        },
+          child: Text(
+            '${secondUserName}',
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w500),
+          ),
+        ),
+      )],
+      ),
+    ),
+    SizedBox(
+    height: 10,
+    ),
+    Expanded (
+    child: Container(
+    padding: EdgeInsets.all(20),
+    width: MediaQuery
+        .of(context)
+        .size
+        .width,
+    decoration: BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.only(
+    topLeft: Radius.circular(30),
+    topRight: Radius.circular(30),
+    ),
+    ),
+    child: Column(
+    children: [
+    Expanded(
+    child: StreamBuilder(
+    stream: FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('timestamp',
+    descending: true) // Ensure descending order
+        .snapshots(),
+    builder: (context, snapshot) {
+    if (!snapshot.hasData) {
+    return Center(
+    child: CircularProgressIndicator(),
     );
-  }
+    }
+
+    var messages = snapshot.data!.docs;
+    // List<Widget> messageWidgets = [];
+    // for (var message in messages) {
+    //   var messageContent = message['content'];
+    //   var messageSender = message['sender'];
+    //
+    //   var messageWidget = MessageWidget(
+    //     sender: messageSender,
+    //     content: messageContent,
+    //     isClient: currentUser == 'client',
+    //   );
+    //   messageWidgets.add(messageWidget);
+    // }
+print(chatId);
+    return ListView.builder(
+    reverse: true,
+    itemCount: messages.length,
+    itemBuilder: (context, index) {
+    var messageContent = messages[index]['content'];
+    var messageSender = messages[index]['sender'];
+    var imageUrl = messages[index]['image']; // Add this line
+
+    return ChatBubble(
+    currentuser: messageSender,
+    message: messageContent,
+    isSentByMe: messageSender == currentUser,
+    imageUrl: imageUrl, // Add this line
+    );
+    },
+    );
+    },
+    ),
+
+
+    ),
+    SizedBox(height: 20),
+    SendMessageField(
+    onSendMessage: (message, image) {
+    sendMessage(message, image);
+    },
+    ),
+    ],
+    ),
+    ),
+    ),
+    ],
+    ),
+    ),
+    );
+    }
 
   void sendMessage(String content, File? image) async {
     try {
@@ -157,7 +168,8 @@ class ChatScreen extends StatelessWidget {
         imageUrl = await uploadImageToStorage(image);
       }
 
-      FirebaseFirestore.instance.collection('chats').doc(chatId).collection('messages').add({
+      FirebaseFirestore.instance.collection('chats').doc(chatId).collection(
+          'messages').add({
         'sender': currentUser,
         'content': content,
         'image': imageUrl, // Store image URL or path
@@ -168,10 +180,13 @@ class ChatScreen extends StatelessWidget {
       print('Error sending message: $e');
     }
   }
+
   Future<String?> uploadImageToStorage(File image) async {
     try {
       final Reference storageReference =
-      FirebaseStorage.instance.ref().child('images/${DateTime.now().millisecondsSinceEpoch}');
+      FirebaseStorage.instance.ref().child('images/${DateTime
+          .now()
+          .millisecondsSinceEpoch}');
 
       final UploadTask uploadTask = storageReference.putFile(image);
 
@@ -210,10 +225,14 @@ class ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: isSentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: isSentByMe
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: isSentByMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+          mainAxisAlignment: isSentByMe
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.start,
           children: [
             Text(
               currentuser,
@@ -243,7 +262,8 @@ class ChatBubble extends StatelessWidget {
                   width: 200,
                   height: 200,
                 ),
-              if (message.isNotEmpty) // Display the text message if it's not an empty string
+              if (message
+                  .isNotEmpty) // Display the text message if it's not an empty string
                 Text(
                   message,
                   style: TextStyle(fontSize: 16, color: Colors.black),
@@ -268,14 +288,17 @@ class SendMessageField extends StatefulWidget {
 class _SendMessageFieldState extends State<SendMessageField> {
   final TextEditingController _messageController = TextEditingController();
   File? _selectedImage;
+
   Future<void> _getImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -301,7 +324,8 @@ class _SendMessageFieldState extends State<SendMessageField> {
                     ),
                   ),
                 ),
-                if (_selectedImage != null) // Display delete icon only if an image is selected
+                if (_selectedImage !=
+                    null) // Display delete icon only if an image is selected
                   IconButton(
                     icon: Icon(
                       Icons.delete,
@@ -320,7 +344,8 @@ class _SendMessageFieldState extends State<SendMessageField> {
                   ),
                   onPressed: () async {
                     // Trigger the image picker
-                    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+                    final pickedFile = await ImagePicker().pickImage(
+                        source: ImageSource.gallery);
                     if (pickedFile != null) {
                       setState(() {
                         _selectedImage = File(pickedFile.path);
