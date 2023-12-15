@@ -30,6 +30,7 @@ class bidDetailsClient extends StatefulWidget {
 }
 
 class _bidDetailsClientState extends State<bidDetailsClient> {
+
   late Future<ProjectData> projectDetailsFuture;
   String client_id = '';
   String worker_id = '';
@@ -121,6 +122,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
       statusBarIconBrightness:
           Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenheight = MediaQuery.of(context).size.height;
 
     return Stack(
         children: <Widget>[ Scaffold( floatingActionButton:
@@ -572,17 +575,29 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 20,),
-                  Center(child: Text('End Project',
-                    style: GoogleFonts.roboto(
-                      textStyle: TextStyle(
-                        color: Colors.grey[900],
-                        fontSize: 23,
-                        fontWeight: FontWeight.bold,
+                  SizedBox(height: screenheight*0.02,),
+
+
+
+                  Row(
+                    children: [
+                      IconButton(onPressed: (){
+
+                        panelController.collapse();
+
+
+                      }, icon:Icon(Icons.expand_circle_down ,color: Colors.grey[700],)),
+                      Text('End Project',
+                        style: GoogleFonts.roboto(
+                          textStyle: TextStyle(
+                            color: Colors.grey[900],
+                            fontSize: 23,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),),
-                  SizedBox(height: 20,),
+                    ],
+                  ),
                   ListTile(
                     title: Text('Upload Photo Or Video',
                       style: GoogleFonts.roboto(
@@ -611,7 +626,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                           children: [
                             Icon(Icons.image ,color: HexColor('4D8D6E'),), // Replace with the appropriate icon
                             SizedBox(height: 8),
-                            Text('Select Image or Video'),
+                            Text('Upload here',style: TextStyle(color: Colors.grey),),
                           ],
                         ),
                         onTap: () {
@@ -620,6 +635,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                       ),
                     ),
                   ),
+                  SizedBox(height: screenheight*0.02,),
 
                   ListTile(
                     title: Text('Rating',
@@ -651,7 +667,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 20,),                      Padding(
+                  SizedBox(height: screenheight*0.02,),
+                  Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12.0, ),
                     child: Container(
                       decoration: BoxDecoration(
@@ -675,7 +692,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
 
 
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 50),
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 20),
                     child: Center(
                       child: ActionSlider.standard(
                         sliderBehavior: SliderBehavior.stretch,
@@ -708,7 +725,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 20,),
+                  SizedBox(height: screenheight*0.02,),
                 ],
               ),
             ),
