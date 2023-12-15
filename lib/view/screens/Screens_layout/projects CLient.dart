@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../model/mediaquery.dart';
 import '../Bid Details/Bid details Client.dart';
@@ -95,6 +96,7 @@ class _projectsClientState extends State<projectsClient> {
   }
 
 
+  final ScreenshotController screenshotController2 = ScreenshotController();
 
   @override
   void initState() {
@@ -153,7 +155,7 @@ class _projectsClientState extends State<projectsClient> {
         floatingActionButton:
         FloatingActionButton(
           onPressed: () {
-            NavigationHelper.navigateToNextPage(context, screenshotController);
+            NavigationHelper.navigateToNextPage(context, screenshotController2);
           },
           backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
           child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon

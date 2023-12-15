@@ -1,34 +1,50 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 
-class SupportScreen extends StatelessWidget {
+class SupportScreen extends StatefulWidget {
   final Uint8List? screenshotImageBytes;
 
   SupportScreen({required this.screenshotImageBytes});
+
+  @override
+  _SupportScreenState createState() => _SupportScreenState();
+}
+
+class _SupportScreenState extends State<SupportScreen> {
+  @override
+  void dispose() {
+    // Dispose of any resources when the widget is removed
+    if (widget.screenshotImageBytes != null) {
+      widget.screenshotImageBytes!.buffer.asUint8List().clear();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HexColor('F5F5F5'),
       appBar: AppBar(
-        title: Text('Support',style: GoogleFonts.roboto(
-        textStyle: TextStyle(
-        color: HexColor('3A3939'),
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-    ),
+        title: Text(
+          'Support',
+          style: GoogleFonts.roboto(
+            textStyle: TextStyle(
+              color: HexColor('3A3939'),
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
         elevation: 3,
         centerTitle: true,
         backgroundColor: Colors.grey[300],
         leading: IconButton(
-          onPressed: () {Get.back();},
+          onPressed: () {
+            Navigator.pop(context);
+          },
           icon: Icon(
             Icons.arrow_back_sharp,
             color: HexColor('1A1D1E'),
@@ -45,42 +61,39 @@ class SupportScreen extends StatelessWidget {
             children: [
               Text(
                 'Content of Screen',
-
-              style: GoogleFonts.roboto(
-              textStyle: TextStyle(
-              color: HexColor('424347'),
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    ),
+                style: GoogleFonts.roboto(
+                  textStyle: TextStyle(
+                    color: HexColor('424347'),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               SizedBox(height: 20),
-              if (screenshotImageBytes != null)
+              if (widget.screenshotImageBytes != null)
                 Center(
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.grey[700]!, // Set the desired dark grey color
-                        width: 2.0, // Set the desired border width
+                        color: Colors.grey[700]!,
+                        width: 2.0,
                       ),
-                      borderRadius: BorderRadius.circular(10), // Set the desired border radius
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    width: 300, // Set the width to match the image width
-                    height: 340, // Set the height to match the image height
+                    width: 300,
+                    height: 340,
                     child: Center(
                       child: Image.memory(
-                        screenshotImageBytes!,
+                        widget.screenshotImageBytes!,
                         width: double.infinity,
                         height: double.infinity,
                       ),
                     ),
                   ),
-                )
-,
+                ),
               SizedBox(height: 20),
               Text(
                 'Describe the issue:',
-
                 style: GoogleFonts.roboto(
                   textStyle: TextStyle(
                     color: HexColor('424347'),
@@ -99,9 +112,8 @@ class SupportScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: TextFormField(
                     decoration: InputDecoration(
-                      hintText: 'Please write a detailed message . \nThe support will respond to you shortly.',
+                      hintText: 'Please write a detailed message...',
                       hintStyle: TextStyle(color: Colors.grey[500]),
-
                       border: InputBorder.none,
                     ),
                     maxLines: 5,
@@ -116,15 +128,15 @@ class SupportScreen extends StatelessWidget {
                     // You can use the content of the TextFormField and the screenshot image
                   },
                   style: ElevatedButton.styleFrom(
-                    primary: Color(0xFF4D8D6E), // Set the desired color
+                    primary: Color(0xFF4D8D6E),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20), // Increase the border radius
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    minimumSize: Size(200, 50), // Set the minimum size of the button
+                    minimumSize: Size(200, 50),
                   ),
                   child: Text(
                     'Submit',
-                    style: TextStyle(fontSize: 18,color: Colors.white), // Set the font size of the button text
+                    style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ),
               ),

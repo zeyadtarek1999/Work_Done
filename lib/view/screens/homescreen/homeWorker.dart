@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/view/screens/Explore/Explore%20Worker.dart';
 import '../Bid Details/Bid details Worker.dart';
@@ -21,6 +22,7 @@ import 'package:http/http.dart' as http;
 
 import '../Reviews/reviews.dart';
 import '../Support Screen/Helper.dart';
+import '../Support Screen/Support.dart';
 import '../editProfile/editProfile.dart';
 import '../view profile screens/Client profile view.dart';
 import 'home screenClient.dart';
@@ -32,12 +34,14 @@ class Homescreenworker extends StatefulWidget {
   State<Homescreenworker> createState() => _HomescreenworkerState();
 }
 
-int currentPage = 0;
+int currentPage = 1;
 
 bool shouldShowNextButton(List<Item>? nextPageData) {
   // Add your condition to check if the next page is not empty here
   return nextPageData != null && nextPageData.isNotEmpty;
 }
+
+
 
 bool isLiked = false;
 bool isLoading = true; // Initially set to true to show shimmer
@@ -127,7 +131,6 @@ Future<void> initializeProjects() async {
     futureProjects = fetchProjects();
     refreshProjects();
     // Wait for the future to complete
-
     // Iterate through the list of items and check if each project is liked
   } catch (e) {
     // Handle exceptions if any
@@ -421,6 +424,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
 
   @override
   Widget build(BuildContext context) {
+
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: HexColor('F0EEEE'),
       statusBarIconBrightness:
@@ -591,8 +595,8 @@ class _HomescreenworkerState extends State<Homescreenworker> {
           floatingActionButton:
           FloatingActionButton(
             onPressed: () {
-              NavigationHelper.navigateToNextPage(context, screenshotController);
-            },
+              _navigateToNextPage(context);
+              },
             backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
             child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
             shape: CircleBorder(), // Make the button circular
@@ -705,7 +709,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                           } else if (snapshot.data != null &&
                               snapshot.data!.isEmpty) {
                             // If projects list is empty, reset current page to 0 and refresh
-                            currentPage = 0;
+                            currentPage = 1;
                             refreshProjects();
                             return Text('No projects found.');
                           } else {
@@ -779,7 +783,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                         } else if (snapshot.data != null &&
                             snapshot.data!.isEmpty) {
                           // If projects list is empty, reset current page to 0 and refresh
-                          currentPage = 0;
+                          currentPage = 1;
                           refreshProjects();
                           return Text('No projects found.');
                         } else {
@@ -798,7 +802,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        if (currentPage > 0)
+                        if (currentPage > 1)
                           TextButton(
                             onPressed: () {
                               setState(() {
@@ -830,7 +834,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                             // Check if the next page is empty or no data and hide the button accordingly
                             if (!shouldShowNextButton(nextPageProjects)) {
                               setState(() {
-                                currentPage = 0;
+                                currentPage = 1;
                                 refreshProjects();
                               });
                             } else {
@@ -854,9 +858,24 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                   ]),
             ),
           ),
-        ));
-  }
 
+        )
+
+    );
+
+  }
+  final ScreenshotController screenshotController2 = ScreenshotController();
+
+  void _navigateToNextPage(BuildContext context) async {
+    Uint8List? imageBytes = await screenshotController2.capture();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SupportScreen(screenshotImageBytes: imageBytes),
+      ),
+    );
+  }
   void drawerControl() {
     advancedDrawerController.showDrawer();
   }
@@ -1389,6 +1408,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
         ),
       ),
     );
+
   }
 }
 

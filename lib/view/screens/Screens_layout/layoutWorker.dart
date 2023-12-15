@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:workdone/view/screens/Screens_layout/projects%20CLient.dart';
 
 
 import '../InboxwithChat/inboxWorker.dart';
@@ -20,7 +21,7 @@ class _layoutworkerState extends State<layoutworker> {
   int _currentIndex = 0;
   List<Widget> _screens = [
     Homescreenworker(),
-    projectsWorker(),
+    projectsClient(),
     InboxClient(),
     Moreworker(),
   ];
