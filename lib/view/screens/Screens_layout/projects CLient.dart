@@ -22,21 +22,91 @@ class projectsClient extends StatefulWidget {
 }
 
 class _projectsClientState extends State<projectsClient> {
+  int currentPage = 1;
+  bool shouldShowNextButton(List<Item>? nextPageData) {
+    // Add your condition to check if the next page is not empty here
+    return nextPageData != null && nextPageData.isNotEmpty;
+  }
   List<String> filteredItems = [];
   late Future<List<Item>> futureProjects;
   List<Item> items = [];
   TextEditingController searchController = TextEditingController();
+  void refreshProjects() {
+    futureProjects = fetchProjects();
+  }
+
+
+  Future<List<Item>> fetchProjects() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String userToken = prefs.getString('user_token') ?? '';
+
+      final response = await http.post(
+        Uri.parse('https://workdonecorp.com/api/get_my_profile_projects'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $userToken',
+        },
+        body: json.encode({
+          'filter': 'current',
+          // Include other parameters as needed
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseData = json.decode(response.body);
+
+        if (responseData['status'] == 'success') {
+          final List<dynamic> projectsJson = responseData['projects'];
+
+          List<Item> projects = projectsJson.map((json) {
+            client_id = json['client_id'];
+            print(client_id);
+            return Item(
+              projectId: json['project_id'],
+              client_id: json['client_id'],
+              title: json['title'],
+              description: json['desc'],
+              imageUrl: json['images'] != null ? json['images'] : 'https://eod-grss-ieee.com/uploads/science/1655561736_noimg_-_Copy.png',
+              postedFrom: json['posted_from'],
+              client_firstname: json['client_firstname'],
+              liked: json['liked'],
+              numbers_of_likes: json['numbers_of_likes'],
+              isLiked: json['liked'],
+
+            );
+          }).toList();
+
+          print(client_id);
+
+          print(projectsJson);
+          print(Item);
+          print(projects);
+          return projects;
+        } else {
+          throw Exception('Failed to load data from API: ${responseData['msg']}');
+        }
+      } else {
+        throw Exception('Failed to load data from API');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+
+
 
   @override
   void initState() {
     super.initState();
-    initializeProjects();
+    // Call the function that fetches projects and assign the result to futureProjects
+    futureProjects = fetchProjects();
+
   }
 
   List<InlineSpan> _buildTextSpans(String text, String query) {
     final spans = <InlineSpan>[];
-    final matches =
-        RegExp(query, caseSensitive: false).allMatches(text.toLowerCase());
+    final matches = RegExp(query, caseSensitive: false).allMatches(text.toLowerCase());
 
     if (matches.isEmpty) {
       spans.add(TextSpan(text: text));
@@ -67,79 +137,8 @@ class _projectsClientState extends State<projectsClient> {
     return spans;
   }
 
-  Future<void> initializeProjects() async {
-    try {
-      // Initialize futureProjects in initState or wherever appropriate
-      futureProjects = getClientProjects();
 
-      // Wait for the future to complete
-      List<Item> items = await futureProjects;
-    } catch (e) {
-      // Handle exceptions if any
-      print('Error initializing projects: $e');
-    }
-  }
 
-  void filterItems(String query) {
-    setState(() {});
-  }
-
-  TextEditingController _searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  Future<List<Item>> getClientProjects() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final userToken = prefs.getString('user_token') ?? '';
-      print(userToken);
-      final response = await http.post(
-        Uri.parse('https://workdonecorp.com/api/get_client_projects'),
-        headers: {'Authorization': 'Bearer $userToken'},
-        body: {'filter': 'current'},
-      );
-
-      if (response.statusCode == 200) {
-        // Parse the response body
-        final Map<String, dynamic> responseData = json.decode(response.body);
-        final List<dynamic> projectsJson =
-            json.decode(response.body)['projects'];
-
-        List<Item> projects = projectsJson.map((json) {
-          return Item(
-            projectId: json['project_id'],
-            title: json['title'],
-            desc: json['desc'],
-            images: json['images'],
-            postedFrom: json['posted_from'],
-            client_firstname: json['client_firstname'],
-            numbers_of_likes: json['numbers_of_likes'],
-            timeframe_start:json['timeframe_start'],
-            timeframe_end: json['timeframe_end'],
-            project_type_id: json['project_type_id'],
-          );
-        }).toList();
-        print(projectsJson);
-        print(Item);
-        print(projects);
-        return projects;
-        // Handle the response as needed
-        print('Response: $responseData');
-      } else {
-        // Handle the error response
-        print('Error: ${response.statusCode}, ${response.reasonPhrase}');
-        throw Exception('Failed to fetch client projects');
-      }
-    } catch (error) {
-      // Handle exceptions
-      print('Error: $error');
-      throw Exception('An error occurred while fetching client projects');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -260,53 +259,97 @@ class _projectsClientState extends State<projectsClient> {
         ),
         body: TabBarView(
           children: [
+            
             SingleChildScrollView(
               child: Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 14.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white, // Background color
-                        borderRadius:
-                            BorderRadius.circular(30), // Circular border radius
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-              
-                        decoration: InputDecoration(
-                          hintText: 'Search', // Hint text
-                          border: InputBorder.none, // Remove underline
-                          prefixIcon: Icon(Icons.search), // Search icon
-                        ),
-                        onChanged:
-                            filterItems, // Call filterItems when the text changes
-                      ),
-                    ),
-                  ),
                   FutureBuilder<List<Item>>(
-                      future: futureProjects,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator(color:HexColor('#4D8D6E') ,));
-                        } else if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Text('No projects found.');
-                        } else {
-                          return ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            shrinkWrap: true, // Set shrinkWrap to true
-                            itemCount: snapshot.data!.length,
-                            itemBuilder: (context, index) {
-                              return buildListItem(snapshot.data![index]);
-                            },
-                          );
-                        }
-                      })
+                    future: futureProjects,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Column(
+                          children: [
+                            SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
+                          ],
+                        );
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else if (snapshot.data != null && snapshot.data!.isEmpty) {
+                        // If projects list is empty, reset current page to 0 and refresh
+                        currentPage = 0;
+                        refreshProjects();
+                        return Text('No projects found.');
+                      } else {
+                        return ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (context, index) {
+                            return buildListItem(snapshot.data![index]);
+                          },
+                        );
+                      }
+                    },
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      if (currentPage > 0)
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              currentPage--;
+                              refreshProjects(); // Use refreshProjects instead of fetchProjects
+                            });
+                          },
+                          style: TextButton.styleFrom(
+              
+                            primary: Colors.redAccent,
+              
+                          ),
+                          child: Text(
+                            'Previous Page',
+                            style: TextStyle(fontSize: 16, ),
+                          ),
+                        ),
+                      TextButton(
+                        onPressed: () async {
+                          setState(() {
+                            currentPage++;
+                            refreshProjects();
+                          });
+              
+                          // Fetch the projects for the next page
+                          List<Item>? nextPageProjects = await fetchProjects();
+              
+                          // Check if the next page is empty or no data and hide the button accordingly
+                          if (!shouldShowNextButton(nextPageProjects)) {
+                            setState(() {
+                              currentPage = 0;
+                              refreshProjects();
+                            });
+                          } else {
+                            // Update the futureProjects with the fetched projects
+                            futureProjects = Future.value(nextPageProjects);
+                          }
+                        },
+                        style: TextButton.styleFrom(
+              
+                          primary: Colors.black45,
+              
+                        ),
+                        child: Text(
+                          'Next Page',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 50,),
                 ],
               ),
             ),
+
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20.0),
               child: Column(
@@ -427,11 +470,12 @@ class _projectsClientState extends State<projectsClient> {
   }
 
   Widget buildListItem(Item item) {
-    return GestureDetector(onTap: (){
-
-      Get.to(bidDetailsClientPost(projectId: item.projectId));},
+    return GestureDetector(
+      onTap: () {
+        Get.to(bidDetailsClient(projectId: item.projectId,));
+      },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
+        margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 4),
         padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
@@ -447,31 +491,16 @@ class _projectsClientState extends State<projectsClient> {
         ),
         child: Column(
           children: [
-            Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 170.0,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20.0),
-                    image: DecorationImage(
-                      image: NetworkImage(item.images),
-                      // Use the image URL from the fetched data
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+            Container(
+              width: double.infinity,
+              height: 170.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20.0),
+                image: DecorationImage(
+                  image: NetworkImage(item.imageUrl), // Use the image URL from the fetched data
+                  fit: BoxFit.cover,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Spacer(), // Pushes the container to the right
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
             SizedBox(height: 10.0),
             Padding(
@@ -485,7 +514,11 @@ class _projectsClientState extends State<projectsClient> {
                       Text.rich(
                         TextSpan(
                           children: _buildTextSpans(
-                              item.title, searchController.text),
+                            item.title.length > 17
+                                ? '${item.title.substring(0, 16)}...' // Truncate to 14 characters and add ellipsis
+                                : item.title,
+                            searchController.text,
+                          ),
                         ),
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
@@ -506,9 +539,7 @@ class _projectsClientState extends State<projectsClient> {
                           ),
                         ),
                       ),
-                      SizedBox(
-                        width: 4,
-                      ),
+                      SizedBox(width: 4,),
                       Container(
                         height: 30,
                         width: 60,
@@ -518,21 +549,18 @@ class _projectsClientState extends State<projectsClient> {
                         ),
                         child: TextButton(
                           onPressed: () {
-                            // Get.to(ProfilePageClient());
+                            Get.to(ProfilePageClient(userId: item.client_id.toString()));
                           },
                           style: TextButton.styleFrom(
-                            fixedSize: Size(50, 30),
-                            // Adjust the size as needed
+                            fixedSize: Size(50, 30), // Adjust the size as needed
                             padding: EdgeInsets.zero,
                           ),
                           child: Text.rich(
                             TextSpan(
-                              children: _buildTextSpans(
-                                  item.client_firstname, searchController.text),
+                              children: _buildTextSpans(item.client_firstname, searchController.text),
                             ),
                             maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            // Use the client name from the fetched data
+                            overflow: TextOverflow.ellipsis, // Use the client name from the fetched data
                             style: TextStyle(
                               color: HexColor('4D8D6E'),
                               fontSize: 18,
@@ -546,8 +574,7 @@ class _projectsClientState extends State<projectsClient> {
                   SizedBox(height: 6),
                   Text.rich(
                     TextSpan(
-                      children:
-                          _buildTextSpans(item.desc, searchController.text),
+                      children: _buildTextSpans(item.description, searchController.text),
                     ),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
@@ -569,8 +596,7 @@ class _projectsClientState extends State<projectsClient> {
                       ),
                       SizedBox(width: 5),
                       Text(
-                        item.postedFrom,
-                        // Use the posted time from the fetched data
+                        item.postedFrom, // Use the posted time from the fetched data
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('777778'),
@@ -582,7 +608,7 @@ class _projectsClientState extends State<projectsClient> {
                       SizedBox(width: 2),
                       Spacer(),
                       Container(
-                        width: 93,
+                        width: 85,
                         height: 36,
                         decoration: BoxDecoration(
                           color: HexColor('4D8D6E'),
@@ -590,13 +616,9 @@ class _projectsClientState extends State<projectsClient> {
                         ),
                         child: ElevatedButton(
                           onPressed: () {
-                            Get.to(bidDetailsClientPost(projectId: item.projectId));
-                            // Handle button press
+                            Get.to(bidDetailsClient(projectId: item.projectId,));
                           },
-                          child: Text(
-                            'Details',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                          child: Text('Details',style: TextStyle(color: Colors.white,fontSize: 12),),
                           style: ElevatedButton.styleFrom(
                             primary: Colors.transparent,
                             elevation: 0,
@@ -614,30 +636,33 @@ class _projectsClientState extends State<projectsClient> {
       ),
     );
   }
+
+
 }
 
 class Item {
   final int projectId;
-  final int project_type_id;
   final String title;
   final String client_firstname;
-  final String desc;
-  final String images;
-  final String timeframe_start;
-  final String timeframe_end;
+  final int client_id;
+
+  final String liked;
+  final String description;
+  final String imageUrl;
   final int numbers_of_likes;
   final String postedFrom;
+  String isLiked;
 
   Item({
     required this.projectId,
-    required this.timeframe_start,
-    required this.timeframe_end,
-    required this.project_type_id,
     required this.title,
+    required this.client_id,
     required this.client_firstname,
-    required this.desc,
+    required this.description,
+    required this.liked,
     required this.numbers_of_likes,
-    required this.images,
+    required this.imageUrl,
     required this.postedFrom,
-  });
+    required this. isLiked,
+  }) ;
 }

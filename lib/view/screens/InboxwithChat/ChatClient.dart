@@ -27,15 +27,7 @@ class ChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton:
-      FloatingActionButton(
-        onPressed: () {
-          NavigationHelper.navigateToNextPage(context, screenshotController);
-        },
-        backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-        shape: CircleBorder(), // Make the button circular
-      ),
+      
       backgroundColor: HexColor('4D8D6E'),
       body: Container(
         margin: EdgeInsets.only(top: 60),
