@@ -21,7 +21,7 @@ class _layoutworkerState extends State<layoutworker> {
   List<Widget> _screens = [
     Homescreenworker(),
     projectsWorker(),
-    InboxWorker(),
+    InboxClient(),
     Moreworker(),
   ];
 

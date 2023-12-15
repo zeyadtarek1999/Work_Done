@@ -14,8 +14,6 @@ import '../homescreen/home screenClient.dart';
 
 
 class Reviews extends StatefulWidget {
-  final String userId;
-  Reviews( {required this.userId,});
   @override
   _ReviewsState createState() => _ReviewsState();
 }
@@ -114,10 +112,9 @@ class _ReviewsState extends State<Reviews> {
           'Authorization': 'Bearer $userToken',
         },
         body: jsonEncode({
-          'user_id': widget.userId.toString(),
+          'user_id': "widget.userId.toString(),"
         }),
       );
-      print(widget.userId.toString(),);
       if (response.statusCode == 200) {
         Map<dynamic, dynamic> responseData = json.decode(response.body);
 
@@ -161,7 +158,7 @@ class _ReviewsState extends State<Reviews> {
           'Authorization': 'Bearer $userToken',
         },
         body: jsonEncode({
-          'user_id': widget.userId.toString(),
+          'user_id':"",
         }),
       );
 
@@ -215,10 +212,9 @@ class _ReviewsState extends State<Reviews> {
           'Authorization': 'Bearer $userToken',
         },
         body: jsonEncode({
-          'user_id': widget.userId.toString(),
+          'user_id': "widget.userId.toString(),"
         }),
       );
-      print(widget.userId.toString(),);
       if (response.statusCode == 200) {
         Map<dynamic, dynamic> responseData = json.decode(response.body);
 

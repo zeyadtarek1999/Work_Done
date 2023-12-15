@@ -19,6 +19,7 @@ import '../Profile (client-worker)/profilescreenworker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 
+import '../Reviews/reviews.dart';
 import '../Support Screen/Helper.dart';
 import '../editProfile/editProfile.dart';
 import '../view profile screens/Client profile view.dart';
@@ -554,57 +555,34 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                 SizedBox(
                   height: 12,
                 ),
-                Row(
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/portfolioicon.svg',
-                      width: 35.0,
-                      height: 35.0,
-                    ),
-                    SizedBox(
-                      width: 8,
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        'Portfolio',
-                        style: GoogleFonts.poppins(
-                          textStyle: TextStyle(
-                              color: HexColor('1A1D1E'),
-                              fontSize: 15,
-                              fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                    )
-                  ],
+            Row(
+              children: [
+                SvgPicture.asset(
+                  'assets/icons/portfolioicon.svg',
+                  width: 35.0,
+                  height: 35.0,
                 ),
                 SizedBox(
-                  height: 60,
+                  width: 8,
                 ),
-                Row(
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/logout.svg',
-                      width: 35.0,
-                      height: 35.0,
+                TextButton(
+
+
+                  onPressed: () {Get.to(Reviews());},
+                  child: Text(
+                    'Review',
+                    style: GoogleFonts.poppins(
+                      textStyle: TextStyle(
+                          color: HexColor('1A1D1E'),
+                          fontSize: 15,
+                          fontWeight: FontWeight.normal),
                     ),
-                    SizedBox(
-                      width: 8,
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        'Log Out',
-                        style: GoogleFonts.poppins(
-                          textStyle: TextStyle(
-                              color: HexColor('1A1D1E'),
-                              fontSize: 15,
-                              fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                    )
-                  ],
+                  ),
                 )
+              ],
+            ),
+            SizedBox(
+              height: 60,)
               ],
             ),
           ),

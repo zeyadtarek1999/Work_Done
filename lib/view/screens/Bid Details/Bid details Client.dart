@@ -587,6 +587,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
 
 
                       }, icon:Icon(Icons.expand_circle_down ,color: Colors.grey[700],)),
+
+
                       Text('End Project',
                         style: GoogleFonts.roboto(
                           textStyle: TextStyle(

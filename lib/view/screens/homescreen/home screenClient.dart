@@ -21,6 +21,7 @@ import '../Profile (client-worker)/profilescreenworker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 
+import '../Reviews/reviews.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../editProfile/editProfile.dart';
@@ -534,7 +535,9 @@ class _HomeclientState extends State<Homeclient> {
                     width: 8,
                   ),
                   TextButton(
-                    onPressed: () {},
+
+
+                    onPressed: () {Get.to(Reviews());},
                     child: Text(
                       'Review',
                       style: GoogleFonts.poppins(
@@ -550,30 +553,6 @@ class _HomeclientState extends State<Homeclient> {
               SizedBox(
                 height: 60,
               ),
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    'assets/icons/logout.svg',
-                    width: 35.0,
-                    height: 35.0,
-                  ),
-                  SizedBox(
-                    width: 8,
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Log Out',
-                      style: GoogleFonts.poppins(
-                        textStyle: TextStyle(
-                            color: HexColor('1A1D1E'),
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal),
-                      ),
-                    ),
-                  )
-                ],
-              )
             ],
           ),
         ),
