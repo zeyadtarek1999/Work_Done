@@ -21,6 +21,8 @@ import '../../../model/postProjectmodel.dart';
 import '../../widgets/rounded_button.dart';
 import '../Screens_layout/layoutWorker.dart';
 import '../Screens_layout/layoutclient.dart';
+import '../Support Screen/Helper.dart';
+import '../homescreen/home screenClient.dart';
 
 class projectPost extends StatefulWidget {
   projectPost({super.key});
@@ -183,6 +185,15 @@ class _projectPostState extends State<projectPost> {
           Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
     return Scaffold(
+      floatingActionButton:
+      FloatingActionButton(
+        onPressed: () {
+          NavigationHelper.navigateToNextPage(context, screenshotController);
+        },
+        backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+        shape: CircleBorder(), // Make the button circular
+      ),
       backgroundColor: HexColor('ECECEC'),
       appBar: AppBar(
         backgroundColor: HexColor('ECECEC'),

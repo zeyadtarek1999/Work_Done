@@ -6,6 +6,8 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
+import '../Support Screen/Helper.dart';
+import '../homescreen/home screenClient.dart';
 import '../welcome/welcome_screen.dart';
 
 class Moreclient extends StatelessWidget {
@@ -25,6 +27,15 @@ class Moreclient extends StatelessWidget {
           Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
     return Scaffold(
+      floatingActionButton:
+      FloatingActionButton(
+        onPressed: () {
+          NavigationHelper.navigateToNextPage(context, screenshotController);
+        },
+        backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+        shape: CircleBorder(), // Make the button circular
+      ),
       backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.only(top: 50.0, left: 20, right: 20),

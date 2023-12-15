@@ -10,6 +10,8 @@ import 'package:workdone/view/screens/InboxwithChat/ChatClient.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../controller/shimmers/shimmer basic.dart';
+import '../Support Screen/Helper.dart';
+import '../homescreen/home screenClient.dart';
 
 class InboxClient extends StatefulWidget {
   const InboxClient({super.key});
@@ -118,6 +120,15 @@ class _InboxClientState extends State<InboxClient> {
           Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
     return Scaffold(
+      floatingActionButton:
+      FloatingActionButton(
+        onPressed: () {
+          NavigationHelper.navigateToNextPage(context, screenshotController);
+        },
+        backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+        shape: CircleBorder(), // Make the button circular
+      ),
       backgroundColor: HexColor('4D8D6E'),
       body: Container(
         child: Column(

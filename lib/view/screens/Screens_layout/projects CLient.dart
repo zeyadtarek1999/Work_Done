@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../model/mediaquery.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Bid Details/Bid details ClientPost.dart';
+import '../Support Screen/Helper.dart';
+import '../homescreen/home screenClient.dart';
 import '../view profile screens/Client profile view.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -149,6 +151,15 @@ class _projectsClientState extends State<projectsClient> {
     return DefaultTabController(
       length: 3, // Number of tabs
       child: Scaffold(
+        floatingActionButton:
+        FloatingActionButton(
+          onPressed: () {
+            NavigationHelper.navigateToNextPage(context, screenshotController);
+          },
+          backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+          child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+          shape: CircleBorder(), // Make the button circular
+        ),
         backgroundColor: HexColor('EAEAEE'),
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(170.0), // Adjust the height as needed

@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../controller/shimmers/shimmer basic.dart';
@@ -20,6 +21,8 @@ import '../Profile (client-worker)/profilescreenworker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 
+import '../Support Screen/Helper.dart';
+import '../Support Screen/Support.dart';
 import '../editProfile/editProfile.dart';
 import '../view profile screens/Client profile view.dart';
 
@@ -35,7 +38,7 @@ bool isLoading = true; // Initially set to true to show shimmer
 int client_id = 0; // Initially set to true to show shimmer
 
 final advancedDrawerController = AdvancedDrawerController();
-int currentPage = 0;
+int currentPage = 1;
 bool shouldShowNextButton(List<Item>? nextPageData) {
   // Add your condition to check if the next page is not empty here
   return nextPageData != null && nextPageData.isNotEmpty;
@@ -187,7 +190,7 @@ Future<Map<String, dynamic>> removeProjectFromLikes(String projectId) async {
     return {'status': 'error', 'msg': 'An error occurred'};
   }
 }
-
+final ScreenshotController screenshotController = ScreenshotController();
 
 
 class _HomeclientState extends State<Homeclient> {
@@ -366,6 +369,7 @@ class _HomeclientState extends State<Homeclient> {
       statusBarIconBrightness:
           Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
+
     return AdvancedDrawer(
 
       openRatio: 0.5,
@@ -574,288 +578,302 @@ class _HomeclientState extends State<Homeclient> {
           ),
         ),
       ),
+
       child: Scaffold(
           backgroundColor: HexColor('F0EEEE'),
-          body: SingleChildScrollView(
-            physics: BouncingScrollPhysics(),
-            child: SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 15, vertical: 11),
-                    child: Row(
-                      children: [
-                        InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () {
-                            drawerControl();
-                          },
-                          child: SvgPicture.asset(
-                            'assets/icons/menuicon.svg',
-                            width: 57.0,
-                            height: 57.0,
-                          ),
-                        ),
-                        Spacer(),
-                        Text(
-                          'Home',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color:
-                                Colors.grey[700], // Change the color as needed
-                          ),
-                        ),
-                        Spacer(),
-                        InkWell(
-                          onTap: () {
-                            Get.to(ProfileScreenClient2());
-                            // Handle the tap event here
-                          },
-                          child: CircleAvatar(
-                            radius: 27,
-                            backgroundColor: Colors.transparent,
-                            backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                                ? (profile_pic == "https://workdonecorp.com/images/"
-                                ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
-                                : NetworkImage(profile_pic))
-                                : AssetImage('assets/images/profileimage.png') as ImageProvider,
+          floatingActionButton:
+          FloatingActionButton(
+            onPressed: () {
+              NavigationHelper.navigateToNextPage(context, screenshotController);
+            },
+            backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+            child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+            shape: CircleBorder(), // Make the button circular
+          ),
 
-
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 23.0,
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Browse Popular Projects',
-                          style: GoogleFonts.openSans(
-                            textStyle: TextStyle(
-                                color: Colors.grey[700],
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Spacer(),
-                        TextButton(
-                          onPressed: () {Get.to(exploreClient());},
-                          child: Text(
-                            'See all',
-                            style: GoogleFonts.openSans(
-                              textStyle: TextStyle(
-                                  color: HexColor('4F815A'),
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 14,
-                  ),
-            Column(
-              children: [
-                FutureBuilder<List<Item>>(
-                  future: futureProjects,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      // Replace CircularProgressIndicator with Shimmer.fromColors
-                      return Shimmer.fromColors(
-                        baseColor: Colors.grey[300]!,
-                        highlightColor: Colors.grey[100]!,
-                        child: YourShimmerWidget(), // Your custom shimmer widget
-                      );
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Text('No data found.');
-                    } else {
-                      // Update the items list
-                      items = snapshot.data!;
-
-                      return CarouselSlider.builder(
-                        carouselController: _carouselController,
-                        itemCount: items.length,
-                        itemBuilder: (BuildContext context, int index, int realIndex) {
-                          Item currentItem = items[index];
-                          return buildListItem2(currentItem);
-                        },
-                        options: CarouselOptions(
-                          height: 230,
-                          aspectRatio: 16 / 7,
-                          viewportFraction: 0.84,
-                          enableInfiniteScroll: false,
-                          autoPlay: true,
-                          animateToClosest: true,
-                          enlargeFactor: 0.27,
-                          padEnds: true,
-                          enlargeCenterPage: true,
-                          autoPlayInterval: Duration(seconds: 5),
-                          autoPlayAnimationDuration: Duration(milliseconds: 1000),
-                          autoPlayCurve: Curves.fastOutSlowIn,
-                          onPageChanged: (index, reason) {
-                            setState(() {
-                              _currentIndex = index;
-                            });
-                          },
-                        ),
-                      );
-                    }
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 1.0),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: items.map((item) {
-                        int itemIndex = items.indexOf(item);
-                        return CircularIndicator(
-                          itemIndex: itemIndex,
-                          currentIndex: _currentIndex,
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-                  SizedBox(
-                    height: 15,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 25.0,
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Projects Around You',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[700], // Change the color as needed
-                          ),
-                        ),
-                        Spacer(),
-                        TextButton(
-                          onPressed: () {Get.to(exploreClient());},
-                          child: Text(
-                            'See all',
-                            style: GoogleFonts.openSans(
-                              textStyle: TextStyle(
-                                  color: HexColor('4F815A'),
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                          ),
-                        )
-
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 7,
-                  ),
-                  Column(
-                    children: [
-                      FutureBuilder<List<Item>>(
-                        future: futureProjects,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return Column(
-                              children: [
-                       SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
-                              ],
-                            );
-                          } else if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
-                          } else if (snapshot.data != null && snapshot.data!.isEmpty) {
-                            // If projects list is empty, reset current page to 0 and refresh
-                            currentPage = 0;
-                            refreshProjects();
-                            return Text('No projects found.');
-                          } else {
-                            return ListView.builder(
-                              physics: NeverScrollableScrollPhysics(),
-                              shrinkWrap: true,
-                              itemCount: snapshot.data!.length,
-                              itemBuilder: (context, index) {
-                                return buildListItem(snapshot.data![index]);
-                              },
-                            );
-                          }
-                        },
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+          body: Screenshot(
+            controller:screenshotController ,
+            child: SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
+              child: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 15, vertical: 11),
+                      child: Row(
                         children: [
-                          if (currentPage > 0)
-                            TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  currentPage--;
-                                  refreshProjects(); // Use refreshProjects instead of fetchProjects
-                                });
-                              },
-                              style: TextButton.styleFrom(
-
-                                primary: Colors.redAccent,
-
-                              ),
-                              child: Text(
-                                'Previous Page',
-                                style: TextStyle(fontSize: 16, ),
-                              ),
-                            ),
-                          TextButton(
-                            onPressed: () async {
-                              setState(() {
-                                currentPage++;
-                                refreshProjects();
-                              });
-
-                              // Fetch the projects for the next page
-                              List<Item>? nextPageProjects = await fetchProjects();
-
-                              // Check if the next page is empty or no data and hide the button accordingly
-                              if (!shouldShowNextButton(nextPageProjects)) {
-                                setState(() {
-                                  currentPage = 0;
-                                  refreshProjects();
-                                });
-                              } else {
-                                // Update the futureProjects with the fetched projects
-                                futureProjects = Future.value(nextPageProjects);
-                              }
+                          InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () {
+                              drawerControl();
                             },
-                            style: TextButton.styleFrom(
-
-                              primary: Colors.black45,
-
+                            child: SvgPicture.asset(
+                              'assets/icons/menuicon.svg',
+                              width: 57.0,
+                              height: 57.0,
                             ),
-                            child: Text(
-                              'Next Page',
-                              style: TextStyle(fontSize: 16),
+                          ),
+                          Spacer(),
+                          Text(
+                            'Home',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  Colors.grey[700], // Change the color as needed
+                            ),
+                          ),
+                          Spacer(),
+                          InkWell(
+                            onTap: () {
+                              Get.to(ProfileScreenClient2());
+                              // Handle the tap event here
+                            },
+                            child: CircleAvatar(
+                              radius: 27,
+                              backgroundColor: Colors.transparent,
+                              backgroundImage: profile_pic != null && profile_pic.isNotEmpty
+                                  ? (profile_pic == "https://workdonecorp.com/images/"
+                                  ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
+                                  : NetworkImage(profile_pic))
+                                  : AssetImage('assets/images/profileimage.png') as ImageProvider,
+
+
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 50,)
-                    ],
-                  )
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 23.0,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Browse Popular Projects',
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Spacer(),
+                          TextButton(
+                            onPressed: () {Get.to(exploreClient());},
+                            child: Text(
+                              'See all',
+                              style: GoogleFonts.openSans(
+                                textStyle: TextStyle(
+                                    color: HexColor('4F815A'),
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 14,
+                    ),
+              Column(
+                children: [
+                  FutureBuilder<List<Item>>(
+                    future: futureProjects,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        // Replace CircularProgressIndicator with Shimmer.fromColors
+                        return Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: YourShimmerWidget(), // Your custom shimmer widget
+                        );
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Text('No data found.');
+                      } else {
+                        // Update the items list
+                        items = snapshot.data!;
+
+                        return CarouselSlider.builder(
+                          carouselController: _carouselController,
+                          itemCount: items.length,
+                          itemBuilder: (BuildContext context, int index, int realIndex) {
+                            Item currentItem = items[index];
+                            return buildListItem2(currentItem);
+                          },
+                          options: CarouselOptions(
+                            height: 230,
+                            aspectRatio: 16 / 7,
+                            viewportFraction: 0.84,
+                            enableInfiniteScroll: false,
+                            autoPlay: true,
+                            animateToClosest: true,
+                            enlargeFactor: 0.27,
+                            padEnds: true,
+                            enlargeCenterPage: true,
+                            autoPlayInterval: Duration(seconds: 5),
+                            autoPlayAnimationDuration: Duration(milliseconds: 1000),
+                            autoPlayCurve: Curves.fastOutSlowIn,
+                            onPageChanged: (index, reason) {
+                              setState(() {
+                                _currentIndex = index;
+                              });
+                            },
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: items.map((item) {
+                          int itemIndex = items.indexOf(item);
+                          return CircularIndicator(
+                            itemIndex: itemIndex,
+                            currentIndex: _currentIndex,
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
                 ],
+              ),
+                    SizedBox(
+                      height: 15,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 25.0,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Projects Around You',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[700], // Change the color as needed
+                            ),
+                          ),
+                          Spacer(),
+                          TextButton(
+                            onPressed: () {Get.to(exploreClient());},
+                            child: Text(
+                              'See all',
+                              style: GoogleFonts.openSans(
+                                textStyle: TextStyle(
+                                    color: HexColor('4F815A'),
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                          )
+
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 7,
+                    ),
+                    Column(
+                      children: [
+                        FutureBuilder<List<Item>>(
+                          future: futureProjects,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return Column(
+                                children: [
+                         SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
+                                ],
+                              );
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else if (snapshot.data != null && snapshot.data!.isEmpty) {
+                              // If projects list is empty, reset current page to 0 and refresh
+                              currentPage = 0;
+                              refreshProjects();
+                              return Text('No projects found.');
+                            } else {
+                              return ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: snapshot.data!.length,
+                                itemBuilder: (context, index) {
+                                  return buildListItem(snapshot.data![index]);
+                                },
+                              );
+                            }
+                          },
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            if (currentPage > 1)
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    currentPage--;
+                                    refreshProjects(); // Use refreshProjects instead of fetchProjects
+                                  });
+                                },
+                                style: TextButton.styleFrom(
+
+                                  primary: Colors.redAccent,
+
+                                ),
+                                child: Text(
+                                  'Previous Page',
+                                  style: TextStyle(fontSize: 16, ),
+                                ),
+                              ),
+                            TextButton(
+                              onPressed: () async {
+                                setState(() {
+                                  currentPage++;
+                                  refreshProjects();
+                                });
+
+                                // Fetch the projects for the next page
+                                List<Item>? nextPageProjects = await fetchProjects();
+
+                                // Check if the next page is empty or no data and hide the button accordingly
+                                if (!shouldShowNextButton(nextPageProjects)) {
+                                  setState(() {
+                                    currentPage = 1;
+                                    refreshProjects();
+                                  });
+                                } else {
+                                  // Update the futureProjects with the fetched projects
+                                  futureProjects = Future.value(nextPageProjects);
+                                }
+                              },
+                              style: TextButton.styleFrom(
+
+                                primary: Colors.black45,
+
+                              ),
+                              child: Text(
+                                'Next Page',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 50,)
+                      ],
+                    )
+                  ],
+                ),
               ),
             ),
           )),
@@ -1287,10 +1305,12 @@ class _HomeclientState extends State<Homeclient> {
                 ],
               ),
             ),
+
           ],
         ),
       ),
     );
+
   }
 
 

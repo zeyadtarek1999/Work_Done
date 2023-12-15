@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:http/http.dart' as http;
+import '../Support Screen/Helper.dart';
+import '../homescreen/home screenClient.dart';
 import '../view profile screens/Client profile view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -188,7 +190,16 @@ double total =0;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold( floatingActionButton:
+    FloatingActionButton(
+      onPressed: () {
+        NavigationHelper.navigateToNextPage(context, screenshotController);
+      },
+      backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+      child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+      shape: CircleBorder(), // Make the button circular
+    ),
+
       backgroundColor: Colors.white,
       appBar:AppBar(
         toolbarHeight: 70,

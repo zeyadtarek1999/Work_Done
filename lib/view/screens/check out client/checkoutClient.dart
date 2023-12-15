@@ -17,6 +17,7 @@ import 'package:workdone/view/widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
 
 import '../Edit address.dart';
+import '../Support Screen/Helper.dart';
 import '../homescreen/home screenClient.dart';
 import '../view profile screens/Client profile view.dart';
 
@@ -204,6 +205,15 @@ class _checkOutClientState extends State<checkOutClient> {
 // Calculate the total by adding the current bid and fee
     double total = currentBidAmount + fee;
     return Scaffold(
+      floatingActionButton:
+      FloatingActionButton(
+        onPressed: () {
+          NavigationHelper.navigateToNextPage(context, screenshotController);
+        },
+        backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+        shape: CircleBorder(), // Make the button circular
+      ),
       backgroundColor: HexColor('FFFFFF'),
       appBar: AppBar(
         elevation: 3,
@@ -220,7 +230,7 @@ class _checkOutClientState extends State<checkOutClient> {
           ),
         ),
         leading: IconButton(
-          onPressed: () {},
+          onPressed: () {Get.back();},
           icon: Icon(
             Icons.arrow_back_sharp,
             color: HexColor('1A1D1E'),

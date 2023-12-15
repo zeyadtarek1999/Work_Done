@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../controller/DrawerControllerworker.dart';
 import '../../../model/mediaquery.dart';
+import '../Support Screen/Helper.dart';
 import '../editProfile/editProfile.dart';
 
 class ProfileScreenClient2 extends StatefulWidget {
@@ -361,6 +362,15 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
             ),
           ),
           child: Scaffold(
+            floatingActionButton:
+            FloatingActionButton(
+              onPressed: () {
+                NavigationHelper.navigateToNextPage(context, screenshotController);
+              },
+              backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+              child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+              shape: CircleBorder(), // Make the button circular
+            ),
             key: _scaffoldKey,
             backgroundColor: HexColor('F5F5F5'),
             body : SafeArea(

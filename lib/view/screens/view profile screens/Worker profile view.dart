@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 
 import '../Bid Details/Bid details Worker.dart';
+import '../Support Screen/Helper.dart';
+import '../homescreen/home screenClient.dart';
 
 
 
@@ -63,6 +65,15 @@ class _ProfilePageWorkerState extends State<ProfilePageWorker> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton:
+      FloatingActionButton(
+        onPressed: () {
+          NavigationHelper.navigateToNextPage(context, screenshotController);
+        },
+        backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+        shape: CircleBorder(), // Make the button circular
+      ),
       backgroundColor: Colors.white,
       appBar: AppBar(
         centerTitle: true,

@@ -15,7 +15,9 @@ import '../../../model/changePassword.dart';
 import '../../../model/getClientProfiledataModel.dart';
 import '../../../model/post editprofilemodel.dart';
 import '../Edit address.dart';
+import '../Support Screen/Helper.dart';
 import '../changePassword.dart';
+import '../homescreen/home screenClient.dart';
 
 class editProfile extends StatefulWidget {
   const editProfile({super.key});
@@ -171,7 +173,16 @@ print(_image!.path);
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
 
-    return Scaffold(
+    return Scaffold( floatingActionButton:
+    FloatingActionButton(
+      onPressed: () {
+        NavigationHelper.navigateToNextPage(context, screenshotController);
+      },
+      backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+      child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+      shape: CircleBorder(), // Make the button circular
+    ),
+
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,

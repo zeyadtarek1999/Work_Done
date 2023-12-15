@@ -10,7 +10,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
 
 import '../InboxwithChat/ChatClient.dart';
+import '../Support Screen/Helper.dart';
 import '../check out client/checkoutClient.dart';
+import '../homescreen/home screenClient.dart';
 import '../view profile screens/Client profile view.dart';
 import 'package:http/http.dart' as http;
 
@@ -99,7 +101,16 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
           Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
 
-    return Scaffold(
+    return Scaffold( floatingActionButton:
+    FloatingActionButton(
+      onPressed: () {
+        NavigationHelper.navigateToNextPage(context, screenshotController);
+      },
+      backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+      child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+      shape: CircleBorder(), // Make the button circular
+    ),
+
       backgroundColor: HexColor('FFFFFF'),
       appBar: AppBar(
         backgroundColor: HexColor('FFFFFF'),

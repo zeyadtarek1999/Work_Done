@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 import '../Bid Details/Bid details Worker.dart';
+import '../Support Screen/Helper.dart';
+import '../homescreen/home screenClient.dart';
 
 
 
@@ -265,6 +267,15 @@ print(widget.userId.toString(),);
   Widget build(BuildContext context) {
 
     return Scaffold(
+      floatingActionButton:
+      FloatingActionButton(
+        onPressed: () {
+          NavigationHelper.navigateToNextPage(context, screenshotController);
+        },
+        backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+        shape: CircleBorder(), // Make the button circular
+      ),
       backgroundColor: Colors.white,
       appBar: AppBar(
         centerTitle: true,

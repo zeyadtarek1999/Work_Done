@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 
 import '../../../model/mediaquery.dart';
+import '../Support Screen/Helper.dart';
+import '../homescreen/home screenClient.dart';
 import 'layoutWorker.dart';
 
 class projectsWorker extends StatefulWidget {
@@ -53,6 +55,15 @@ class _projectsWorkerState extends State<projectsWorker> {
     return DefaultTabController(
       length: 3, // Number of tabs
       child: Scaffold(
+        floatingActionButton:
+        FloatingActionButton(
+          onPressed: () {
+            NavigationHelper.navigateToNextPage(context, screenshotController);
+          },
+          backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+          child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+          shape: CircleBorder(), // Make the button circular
+        ),
         backgroundColor: HexColor('EAEAEE'),
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(170.0), // Adjust the height as needed

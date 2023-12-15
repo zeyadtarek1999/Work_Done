@@ -10,7 +10,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
 
 import '../InboxwithChat/ChatClient.dart';
+import '../Support Screen/Helper.dart';
 import '../check out client/checkoutClient.dart';
+import '../homescreen/home screenClient.dart';
 import '../view profile screens/Client profile view.dart';
 import 'package:http/http.dart' as http;
 
@@ -96,7 +98,16 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
           Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
 
-    return Scaffold(
+    return Scaffold( floatingActionButton:
+    FloatingActionButton(
+      onPressed: () {
+        NavigationHelper.navigateToNextPage(context, screenshotController);
+      },
+      backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+      child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+      shape: CircleBorder(), // Make the button circular
+    ),
+
       backgroundColor: HexColor('FFFFFF'),
       appBar: AppBar(
         backgroundColor: HexColor('FFFFFF'),
@@ -435,18 +446,103 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                     children: [
                                       ElevatedButton(
                                         onPressed: () {
-                                          // Handle the action for the "End" button
+                                          setState(() {
+                                            showModalBottomSheet(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                // Return the content of the bottom sheet
+                                                return Container(
+                                                  // Add your content here
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      SizedBox(height: 12,),
+                                                      ListTile(
+                                                        title: Text('Upload Photo Or Video',
+                                                          style: GoogleFonts.roboto(
+                                                            textStyle: TextStyle(
+                                                              color: HexColor('424347'),
+                                                              fontSize: 20,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Padding(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                                                        child: Container(
+                                                          height: 50, // Set the desired height
+                                                          width: double.infinity, // Take the full width
+                                                          decoration: BoxDecoration(
+                                                            border: Border.all(
+                                                              color: Colors.grey, // Set the desired border color
+                                                              width: 1.0, // Set the desired border width
+                                                            ),
+                                                            borderRadius: BorderRadius.circular(10), // Set the desired border radius
+                                                          ),
+                                                          child: ListTile(
+                                                            title: Row(
+                                                              children: [
+                                                                Icon(Icons.image), // Replace with the appropriate icon
+                                                                SizedBox(width: 8),
+                                                                Text('Select Image or Video'),
+                                                              ],
+                                                            ),
+                                                            onTap: () {
+                                                              // Handle image or video selection
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+
+                                                      ListTile(
+                                                        title: Text('Rating'),
+                                                      ),
+                                                      ListTile(
+                                                        title: Row(
+                                                          children: [
+                                                            Text('Zeyad'),
+                                                            SizedBox(width: 8),
+                                                            // Replace the following with a RatingBar widget
+                                                            Icon(Icons.star, color: Colors.yellow),
+                                                            Icon(Icons.star, color: Colors.yellow),
+                                                            Icon(Icons.star, color: Colors.yellow),
+                                                            Icon(Icons.star, color: Colors.yellow),
+                                                            Icon(Icons.star_border, color: Colors.yellow),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      ListTile(
+                                                        title: TextFormField(
+                                                          decoration: InputDecoration(
+                                                            hintText: 'Write a review...',
+                                                          ),
+                                                          // Handle review text input
+                                                        ),
+                                                      ),
+                                                      ElevatedButton(
+                                                        onPressed: () {
+                                                          // Handle submit button press
+                                                        },
+                                                        child: Text('Submit'),
+                                                      ),
+                                                    ],
+                                                  ),
+
+                                                );
+                                              },
+                                            );
+                                          });
+                                          // Show modal bottom sheet
+
                                         },
                                         style: ElevatedButton.styleFrom(
                                           primary: Colors.red,
-                                          // Background color
                                           onPrimary: Colors.white,
-                                          // Text color
                                           elevation: 8,
-                                          // Elevation
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                                8), // Rounded corners
+                                            borderRadius: BorderRadius.circular(8),
                                           ),
                                         ),
                                         child: Padding(

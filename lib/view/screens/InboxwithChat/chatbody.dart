@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 
+import '../Support Screen/Helper.dart';
+import '../homescreen/home screenClient.dart';
+
 class Chatbody extends StatefulWidget {
   final String chatId; // Unique identifier for the chat
   final String currentUser; //
@@ -13,7 +16,16 @@ class Chatbody extends StatefulWidget {
 class _ChatbodyState extends State<Chatbody> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold( floatingActionButton:
+    FloatingActionButton(
+      onPressed: () {
+        NavigationHelper.navigateToNextPage(context, screenshotController);
+      },
+      backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+      child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+      shape: CircleBorder(), // Make the button circular
+    ),
+
       backgroundColor: HexColor('4D8D6E'),
       body: Container(
         margin: EdgeInsets.only(

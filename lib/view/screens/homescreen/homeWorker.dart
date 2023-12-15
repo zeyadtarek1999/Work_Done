@@ -19,8 +19,10 @@ import '../Profile (client-worker)/profilescreenworker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 
+import '../Support Screen/Helper.dart';
 import '../editProfile/editProfile.dart';
 import '../view profile screens/Client profile view.dart';
+import 'home screenClient.dart';
 
 class Homescreenworker extends StatefulWidget {
   Homescreenworker({Key? key}) : super(key: key);
@@ -608,6 +610,15 @@ class _HomescreenworkerState extends State<Homescreenworker> {
           ),
         ),
         child: Scaffold(
+          floatingActionButton:
+          FloatingActionButton(
+            onPressed: () {
+              NavigationHelper.navigateToNextPage(context, screenshotController);
+            },
+            backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+            child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+            shape: CircleBorder(), // Make the button circular
+          ),
           backgroundColor: HexColor('F0EEEE'),
           body: SafeArea(
             child: SingleChildScrollView(
