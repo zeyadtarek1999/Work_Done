@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:workdone/view/screens/InboxwithChat/ChatClient.dart';
@@ -11,6 +12,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../controller/shimmers/shimmer basic.dart';
 import '../Support Screen/Helper.dart';
+import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
 
 class InboxClient extends StatefulWidget {
@@ -111,6 +113,19 @@ class _InboxClientState extends State<InboxClient> {
 //   if (a.substring(0,1))
 // }
 
+  final ScreenshotController screenshotController = ScreenshotController();
+
+  String unique= 'inbox' ;
+  void _navigateToNextPage(BuildContext context) async {
+    Uint8List? imageBytes = await screenshotController.capture();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SupportScreen(screenshotImageBytes: imageBytes ,unique: unique),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -121,86 +136,93 @@ class _InboxClientState extends State<InboxClient> {
     ));
     return Scaffold(
       floatingActionButton:
-      FloatingActionButton(
+      FloatingActionButton(    heroTag: 'workdone_${unique}',
+
+
+
         onPressed: () {
-          NavigationHelper.navigateToNextPage(context, screenshotController);
+          _navigateToNextPage(context);
+
         },
         backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
         child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
         shape: CircleBorder(), // Make the button circular
       ),
       backgroundColor: HexColor('4D8D6E'),
-      body: Container(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 20, right: 20, top: 40, bottom: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Inbox',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  Container(
-                      margin: EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.grey[100]),
-                      child: Icon(
-                        Icons.search,
-                        color: Colors.white,
-                      ))
-                ],
+      body: Screenshot(
+        controller:screenshotController ,
+        child:Container(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 20, right: 20, top: 40, bottom: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Inbox',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    Container(
+                        margin: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.grey[100]),
+                        child: Icon(
+                          Icons.search,
+                          color: Colors.white,
+                        ))
+                  ],
+                ),
               ),
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height / 1.286,
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20))),
-              child: FutureBuilder<List<Item>>(
-                future: futurechatusers,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    // Replace CircularProgressIndicator with Shimmer.fromColors
-                    return Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      child: YourShimmerWidget(), // Your custom shimmer widget
-                    );
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Text('No data found.');
-                  } else {
-                    // Update the items list
-                     items = snapshot.data!;
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height / 1.286,
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20))),
+                child: FutureBuilder<List<Item>>(
+                  future: futurechatusers,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      // Replace CircularProgressIndicator with Shimmer.fromColors
+                      return Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: YourShimmerWidget(), // Your custom shimmer widget
+                      );
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Text('No data found.');
+                    } else {
+                      // Update the items list
+                       items = snapshot.data!;
 
-                    return ListView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        return buildListItem(snapshot.data![index]);
-                      },
-                    );
+                      return ListView.builder(
+                        physics: NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          return buildListItem(snapshot.data![index]);
+                        },
+                      );
 
-                }
-                },
+                  }
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
+
         ),
-
       ),
     );
 

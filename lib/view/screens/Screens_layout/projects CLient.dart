@@ -10,6 +10,7 @@ import '../../../model/mediaquery.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Bid Details/Bid details ClientPost.dart';
 import '../Support Screen/Helper.dart';
+import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
 import '../view profile screens/Client profile view.dart';
 import 'dart:convert';
@@ -139,7 +140,18 @@ class _projectsClientState extends State<projectsClient> {
     return spans;
   }
 
+  final ScreenshotController screenshotController = ScreenshotController();
+ String unique= 'projectclient' ;
+  void _navigateToNextPage(BuildContext context) async {
+    Uint8List? imageBytes = await screenshotController.capture();
 
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SupportScreen(screenshotImageBytes: imageBytes ,unique: unique),
+      ),
+    );
+  }
 
 
   @override
@@ -153,10 +165,14 @@ class _projectsClientState extends State<projectsClient> {
       length: 3, // Number of tabs
       child: Scaffold(
         floatingActionButton:
-        FloatingActionButton(
+        FloatingActionButton(    heroTag: 'workdone_${unique}',
+
+
+
           onPressed: () {
-            NavigationHelper.navigateToNextPage(context, screenshotController2);
-          },
+            _navigateToNextPage(context);
+
+            },
           backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
           child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
           shape: CircleBorder(), // Make the button circular
@@ -259,213 +275,216 @@ class _projectsClientState extends State<projectsClient> {
             ),
           ),
         ),
-        body: TabBarView(
-          children: [
-            
-            SingleChildScrollView(
-              child: Column(
-                children: [
-                  FutureBuilder<List<Item>>(
-                    future: futureProjects,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Column(
-                          children: [
-                            SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
-                          ],
-                        );
-                      } else if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      } else if (snapshot.data != null && snapshot.data!.isEmpty) {
-                        // If projects list is empty, reset current page to 0 and refresh
-                        currentPage = 0;
-                        refreshProjects();
-                        return Text('No projects found.');
-                      } else {
-                        return ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (context, index) {
-                            return buildListItem(snapshot.data![index]);
-                          },
-                        );
-                      }
-                    },
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      if (currentPage > 0)
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              currentPage--;
-                              refreshProjects(); // Use refreshProjects instead of fetchProjects
-                            });
-                          },
-                          style: TextButton.styleFrom(
-              
-                            primary: Colors.redAccent,
-              
-                          ),
-                          child: Text(
-                            'Previous Page',
-                            style: TextStyle(fontSize: 16, ),
-                          ),
-                        ),
-                      TextButton(
-                        onPressed: () async {
-                          setState(() {
-                            currentPage++;
-                            refreshProjects();
-                          });
-              
-                          // Fetch the projects for the next page
-                          List<Item>? nextPageProjects = await fetchProjects();
-              
-                          // Check if the next page is empty or no data and hide the button accordingly
-                          if (!shouldShowNextButton(nextPageProjects)) {
-                            setState(() {
-                              currentPage = 0;
-                              refreshProjects();
-                            });
-                          } else {
-                            // Update the futureProjects with the fetched projects
-                            futureProjects = Future.value(nextPageProjects);
-                          }
-                        },
-                        style: TextButton.styleFrom(
-              
-                          primary: Colors.black45,
-              
-                        ),
-                        child: Text(
-                          'Next Page',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 50,),
-                ],
-              ),
-            ),
+        body: Screenshot(
+          controller:screenshotController ,
+          child: TabBarView(
+            children: [
 
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: SvgPicture.asset(
-                      'assets/images/nothing.svg',
-                      width: 100.0, // Set the width you want
-                      height: 100.0, // Set the height you want
+              SingleChildScrollView(
+                child: Column(
+                  children: [
+                    FutureBuilder<List<Item>>(
+                      future: futureProjects,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Column(
+                            children: [
+                              SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
+                            ],
+                          );
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (snapshot.data != null && snapshot.data!.isEmpty) {
+                          // If projects list is empty, reset current page to 0 and refresh
+                          currentPage = 0;
+                          refreshProjects();
+                          return Text('No projects found.');
+                        } else {
+                          return ListView.builder(
+                            physics: NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              return buildListItem(snapshot.data![index]);
+                            },
+                          );
+                        }
+                      },
                     ),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Text(
-                    'No Projects yet',
-                    style: GoogleFonts.encodeSans(
-                      textStyle: TextStyle(
-                          color: HexColor('BBC3CE'),
-                          fontSize: 18,
-                          fontWeight: FontWeight.normal),
-                    ),
-                  ),
-                  Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40.0),
-                    child: Container(
-                      width: ScreenUtil.buttonscreenwidth,
-                      height: 45,
-                      margin:
-                          EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: HexColor('#4D8D6E'),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                            // Adjust the value to change the corner radius
-                            side: BorderSide(
-                                width:
-                                    130 // Adjust the value to change the width of the narrow edge
-                                ),
-                          ),
-                        ),
-                        child: Text(
-                          'Find a Project',
-                          style: TextStyle(fontSize: 16.0, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: SvgPicture.asset(
-                      'assets/images/nothing.svg',
-                      width: 100.0, // Set the width you want
-                      height: 100.0, // Set the height you want
-                    ),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Text(
-                    'No Projects yet',
-                    style: GoogleFonts.encodeSans(
-                      textStyle: TextStyle(
-                          color: HexColor('BBC3CE'),
-                          fontSize: 18,
-                          fontWeight: FontWeight.normal),
-                    ),
-                  ),
-                  Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40.0),
-                    child: Container(
-                      width: ScreenUtil.buttonscreenwidth,
-                      height: 45,
-                      margin:
-                      EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: HexColor('#4D8D6E'),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                            // Adjust the value to change the corner radius
-                            side: BorderSide(
-                                width:
-                                130 // Adjust the value to change the width of the narrow edge
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        if (currentPage > 0)
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                currentPage--;
+                                refreshProjects(); // Use refreshProjects instead of fetchProjects
+                              });
+                            },
+                            style: TextButton.styleFrom(
+
+                              primary: Colors.redAccent,
+
+                            ),
+                            child: Text(
+                              'Previous Page',
+                              style: TextStyle(fontSize: 16, ),
                             ),
                           ),
+                        TextButton(
+                          onPressed: () async {
+                            setState(() {
+                              currentPage++;
+                              refreshProjects();
+                            });
+
+                            // Fetch the projects for the next page
+                            List<Item>? nextPageProjects = await fetchProjects();
+
+                            // Check if the next page is empty or no data and hide the button accordingly
+                            if (!shouldShowNextButton(nextPageProjects)) {
+                              setState(() {
+                                currentPage = 0;
+                                refreshProjects();
+                              });
+                            } else {
+                              // Update the futureProjects with the fetched projects
+                              futureProjects = Future.value(nextPageProjects);
+                            }
+                          },
+                          style: TextButton.styleFrom(
+
+                            primary: Colors.black45,
+
+                          ),
+                          child: Text(
+                            'Next Page',
+                            style: TextStyle(fontSize: 16),
+                          ),
                         ),
-                        child: Text(
-                          'Find a Project',
-                          style: TextStyle(fontSize: 16.0, color: Colors.white),
+                      ],
+                    ),
+                    SizedBox(height: 50,),
+                  ],
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      child: SvgPicture.asset(
+                        'assets/images/nothing.svg',
+                        width: 100.0, // Set the width you want
+                        height: 100.0, // Set the height you want
+                      ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Text(
+                      'No Projects yet',
+                      style: GoogleFonts.encodeSans(
+                        textStyle: TextStyle(
+                            color: HexColor('BBC3CE'),
+                            fontSize: 18,
+                            fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                    Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40.0),
+                      child: Container(
+                        width: ScreenUtil.buttonscreenwidth,
+                        height: 45,
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: HexColor('#4D8D6E'),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                              // Adjust the value to change the corner radius
+                              side: BorderSide(
+                                  width:
+                                      130 // Adjust the value to change the width of the narrow edge
+                                  ),
+                            ),
+                          ),
+                          child: Text(
+                            'Find a Project',
+                            style: TextStyle(fontSize: 16.0, color: Colors.white),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      child: SvgPicture.asset(
+                        'assets/images/nothing.svg',
+                        width: 100.0, // Set the width you want
+                        height: 100.0, // Set the height you want
+                      ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Text(
+                      'No Projects yet',
+                      style: GoogleFonts.encodeSans(
+                        textStyle: TextStyle(
+                            color: HexColor('BBC3CE'),
+                            fontSize: 18,
+                            fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                    Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40.0),
+                      child: Container(
+                        width: ScreenUtil.buttonscreenwidth,
+                        height: 45,
+                        margin:
+                        EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: HexColor('#4D8D6E'),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                              // Adjust the value to change the corner radius
+                              side: BorderSide(
+                                  width:
+                                  130 // Adjust the value to change the width of the narrow edge
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            'Find a Project',
+                            style: TextStyle(fontSize: 16.0, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-          ],
+            ],
+          ),
         ),
       ),
     );

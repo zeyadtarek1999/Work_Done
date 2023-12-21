@@ -595,7 +595,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
           floatingActionButton:
           FloatingActionButton(
             onPressed: () {
-              _navigateToNextPage(context);
+              // _navigateToNextPage(context);
               },
             backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
             child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
@@ -864,18 +864,18 @@ class _HomescreenworkerState extends State<Homescreenworker> {
     );
 
   }
-  final ScreenshotController screenshotController2 = ScreenshotController();
+  final ScreenshotController screenshotController = ScreenshotController();
 
-  void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController2.capture();
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SupportScreen(screenshotImageBytes: imageBytes),
-      ),
-    );
-  }
+  // void _navigateToNextPage(BuildContext context) async {
+  //   Uint8List? imageBytes = await screenshotController2.capture();
+  //
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => SupportScreen(screenshotImageBytes: imageBytes),
+  //     ),
+  //   );
+  // }
   void drawerControl() {
     advancedDrawerController.showDrawer();
   }

@@ -4,9 +4,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:screenshot/screenshot.dart';
 
 import '../../../model/mediaquery.dart';
 import '../Support Screen/Helper.dart';
+import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
 import 'layoutWorker.dart';
 
@@ -45,7 +47,17 @@ class _projectsWorkerState extends State<projectsWorker> {
      _searchController.dispose();
      super.dispose();
    }
+   String unique= 'projectworker' ;
+   void _navigateToNextPage(BuildContext context) async {
+     Uint8List? imageBytes = await screenshotController.capture();
 
+     Navigator.push(
+       context,
+       MaterialPageRoute(
+         builder: (context) => SupportScreen(screenshotImageBytes: imageBytes ,unique: unique),
+       ),
+     );
+   }
 @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -56,9 +68,13 @@ class _projectsWorkerState extends State<projectsWorker> {
       length: 3, // Number of tabs
       child: Scaffold(
         floatingActionButton:
-        FloatingActionButton(
+        FloatingActionButton(    heroTag: 'workdone_${unique}',
+
+
+
           onPressed: () {
-            NavigationHelper.navigateToNextPage(context, screenshotController);
+            _navigateToNextPage(context);
+
           },
           backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
           child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
@@ -153,96 +169,49 @@ class _projectsWorkerState extends State<projectsWorker> {
             ),
           ),
         ),
-        body: TabBarView(
-          children: [
-            Column(
-              children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 14.0),
-          child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white, // Background color
-            borderRadius: BorderRadius.circular(30), // Circular border radius
-          ),
-          child: TextField(
-            controller: _searchController,
-
-            decoration: InputDecoration(
-              hintText: 'Search', // Hint text
-              border: InputBorder.none, // Remove underline
-              prefixIcon: Icon(Icons.search), // Search icon
-            ),
-            onChanged: filterItems, // Call filterItems when the text changes
-
-          ),),
-        ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: filteredItems.length,
-                    // Replace with the actual length of your data list
-                    itemBuilder: (context, index) {
-                      return buildListItem(filteredItems[index]);
-                    },
-                  ),
-                ),
-              ],
-            ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+        body:
+        Screenshot(
+          controller:screenshotController ,
+          child:TabBarView(
+            children: [
+              Column(
                 children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 14.0),
+            child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white, // Background color
+              borderRadius: BorderRadius.circular(30), // Circular border radius
+            ),
+            child: TextField(
+              controller: _searchController,
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  child: SvgPicture.asset(
-                    'assets/images/nothing.svg',
-                    width: 100.0, // Set the width you want
-                    height: 100.0, // Set the height you want
-                  ),
-                ),SizedBox(height: 20,),
-                  Text('No Projects yet',style: GoogleFonts.encodeSans(
-                    textStyle: TextStyle(color: HexColor('BBC3CE'), fontSize: 18,fontWeight: FontWeight.normal),
-                  ),),
-                  Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40.0),
-                    child: Container(
-                      width: ScreenUtil.buttonscreenwidth,
-                      height: 45,
-                      margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Get.to(layoutworker());
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: HexColor('#4D8D6E'),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                            // Adjust the value to change the corner radius
-                            side: BorderSide(
-                                width:
-                                130 // Adjust the value to change the width of the narrow edge
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          'Find a Project',
-                          style: TextStyle(fontSize: 16.0, color: Colors.white),
-                        ),
-                      ),
+              decoration: InputDecoration(
+                hintText: 'Search', // Hint text
+                border: InputBorder.none, // Remove underline
+                prefixIcon: Icon(Icons.search), // Search icon
+              ),
+              onChanged: filterItems, // Call filterItems when the text changes
+
+            ),),
+          ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredItems.length,
+                      // Replace with the actual length of your data list
+                      itemBuilder: (context, index) {
+                        return buildListItem(filteredItems[index]);
+                      },
                     ),
                   ),
+                ],
+              ),
 
-              ],),
-            )
-            ,
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
 
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -252,43 +221,94 @@ class _projectsWorkerState extends State<projectsWorker> {
                       height: 100.0, // Set the height you want
                     ),
                   ),SizedBox(height: 20,),
-                  Text('No Projects yet',style: GoogleFonts.encodeSans(
-                    textStyle: TextStyle(color: HexColor('BBC3CE'), fontSize: 18,fontWeight: FontWeight.normal),
-                  ),),
-                  Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40.0),
-                    child: Container(
-                      width: ScreenUtil.buttonscreenwidth,
-                      height: 45,
-                      margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Get.to(layoutworker());
-
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: HexColor('#4D8D6E'),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                            // Adjust the value to change the corner radius
-                            side: BorderSide(
-                                width:
-                                130 // Adjust the value to change the width of the narrow edge
+                    Text('No Projects yet',style: GoogleFonts.encodeSans(
+                      textStyle: TextStyle(color: HexColor('BBC3CE'), fontSize: 18,fontWeight: FontWeight.normal),
+                    ),),
+                    Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40.0),
+                      child: Container(
+                        width: ScreenUtil.buttonscreenwidth,
+                        height: 45,
+                        margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Get.to(layoutworker());
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: HexColor('#4D8D6E'),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                              // Adjust the value to change the corner radius
+                              side: BorderSide(
+                                  width:
+                                  130 // Adjust the value to change the width of the narrow edge
+                              ),
                             ),
                           ),
-                        ),
-                        child: Text(
-                          'Find a Project',
-                          style: TextStyle(fontSize: 16.0, color: Colors.white),
+                          child: Text(
+                            'Find a Project',
+                            style: TextStyle(fontSize: 16.0, color: Colors.white),
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
                 ],),
-            )
-          ],
+              )
+              ,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      child: SvgPicture.asset(
+                        'assets/images/nothing.svg',
+                        width: 100.0, // Set the width you want
+                        height: 100.0, // Set the height you want
+                      ),
+                    ),SizedBox(height: 20,),
+                    Text('No Projects yet',style: GoogleFonts.encodeSans(
+                      textStyle: TextStyle(color: HexColor('BBC3CE'), fontSize: 18,fontWeight: FontWeight.normal),
+                    ),),
+                    Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40.0),
+                      child: Container(
+                        width: ScreenUtil.buttonscreenwidth,
+                        height: 45,
+                        margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Get.to(layoutworker());
+
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: HexColor('#4D8D6E'),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                              // Adjust the value to change the corner radius
+                              side: BorderSide(
+                                  width:
+                                  130 // Adjust the value to change the width of the narrow edge
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            'Find a Project',
+                            style: TextStyle(fontSize: 16.0, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  ],),
+              )
+            ],
+          ),
         ),
 
       ),

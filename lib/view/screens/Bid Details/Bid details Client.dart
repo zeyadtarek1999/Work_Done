@@ -8,12 +8,14 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
 
 import '../InboxwithChat/ChatClient.dart';
 import '../Support Screen/Helper.dart';
-import '../check out client/checkoutClient.dart';
+import '../Support Screen/Support.dart';
+import '../check out client/checkout.dart';
 import '../homescreen/home screenClient.dart';
 import '../view profile screens/Client profile view.dart';
 import 'package:http/http.dart' as http;
@@ -113,6 +115,19 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
   }
 
   String currentbid = '24';
+  final ScreenshotController screenshotController = ScreenshotController();
+
+  String unique= 'biddetailsclient' ;
+  void _navigateToNextPage(BuildContext context) async {
+    Uint8List? imageBytes = await screenshotController.capture();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SupportScreen(screenshotImageBytes: imageBytes ,unique: unique),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,8 +143,10 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
     return Stack(
         children: <Widget>[ Scaffold( floatingActionButton:
     FloatingActionButton(
+
+      heroTag: 'workdone_${unique}',
       onPressed: () {
-        NavigationHelper.navigateToNextPage(context, screenshotController);
+        _navigateToNextPage(context);
       },
       backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
       child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
@@ -161,296 +178,270 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
-          child: FutureBuilder<ProjectData>(
-              future: projectDetailsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData) {
-                  return Center(child: Text('No data available'));
-                } else {
-                  ProjectData projectData = snapshot.data!;
-                  currentbid = projectData.lowest_bid.toString();
-                  client_id = projectData.clientData!.clientId.toString();
-                  projectimage = projectData.images.toString();
-                  ;
-                  projecttitle = projectData.title.toString();
-                  ;
-                  projectdesc = projectData.desc.toString();
-                  ;
-                  owner = projectData.access!.owner.toString();
-                  return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          height: 210.0,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(25.0),
-                            image: DecorationImage(
-                              image: NetworkImage(
-                                projectData.images != null
-                                    ? projectData.images
-                                    : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                              ),
-                              // Replace with your image URL
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 12,
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              height: 40,
-                              width: 70,
-                              decoration: BoxDecoration(
-                                color: HexColor('4D8D6E'),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '${projectData.project_type}',
-                                  style: GoogleFonts.roboto(
-                                    textStyle: TextStyle(
-                                      color: HexColor('FFFFFF'),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
+      body: Screenshot(
+        controller:screenshotController ,
+        child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
+            child: FutureBuilder<ProjectData>(
+                future: projectDetailsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData) {
+                    return Center(child: Text('No data available'));
+                  } else {
+                    ProjectData projectData = snapshot.data!;
+                    currentbid = projectData.lowest_bid.toString();
+                    client_id = projectData.clientData!.clientId.toString();
+                    projectimage = projectData.images.toString();
+                    ;
+                    projecttitle = projectData.title.toString();
+                    ;
+                    projectdesc = projectData.desc.toString();
+                    ;
+                    owner = projectData.access!.owner.toString();
+                    return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            height: 210.0,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(25.0),
+                              image: DecorationImage(
+                                image: NetworkImage(
+                                  projectData.images != null
+                                      ? projectData.images
+                                      : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
                                 ),
-                              ),
-                            ),
-                            Spacer(),
-                            Icon(
-                              Icons.access_time_rounded,
-                              color: HexColor('777778'),
-                              size: 18,
-                            ),
-                            SizedBox(width: 5),
-                            Text(
-                              '${projectData.posted_from}',
-                              style: GoogleFonts.openSans(
-                                textStyle: TextStyle(
-                                  color: HexColor('777778'),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 2),
-                          ],
-                        ),
-                        SizedBox(
-                          height: 12,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                          child: Text(
-                            projectData.title,
-                            style: GoogleFonts.openSans(
-                              textStyle: TextStyle(
-                                color: HexColor('454545'),
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
+                                // Replace with your image URL
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 23,
-                              backgroundColor: Colors.transparent,
-                              backgroundImage: NetworkImage(
-                                projectData.clientData?.profileImage ==
-                                        'https://workdonecorp.com/images/'
-                                    ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
-                                    : projectData.clientData?.profileImage ??
-                                        'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                              ),
-                            ),
-                            SizedBox(
-                              width: 13,
-                            ),
-                            Container(
-                              height: 30,
-                              width: 70,
-                              padding: EdgeInsets.zero,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: TextButton(
-                                onPressed: () {
-                                  Get.to(ProfilePageClient(
-                                      userId: projectData.clientData!.clientId
-                                          .toString()));
-                                },
-                                style: TextButton.styleFrom(
-                                  fixedSize: Size(50, 30),
-                                  // Adjust the size as needed
-                                  padding: EdgeInsets.zero,
-                                ),
-                                child: Text(
-                                  projectData.clientData!.firstname,
-                                  //client first name
-                                  style: TextStyle(
-                                    color: HexColor('4D8D6E'),
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Spacer(),
-                            Container(
-                              height: 75,
-                              width: 140,
-                              decoration: BoxDecoration(
-                                color: HexColor('FFFFFF'),
-                                borderRadius: BorderRadius.circular(14),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    // Color of the shadow
-                                    spreadRadius: 2,
-                                    // Spread radius
-                                    blurRadius: 3,
-                                    // Blur radius
-                                    offset: Offset(0,
-                                        2), // Offset in the x and y direction
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Center(
-                                    child: Text(
-                                      'Current lowest Bid',
-                                      style: GoogleFonts.openSans(
-                                        textStyle: TextStyle(
-                                          color: HexColor('898B8D'),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: 4,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        '\$',
-                                        style: GoogleFonts.openSans(
-                                          textStyle: TextStyle(
-                                            color: HexColor('4D8D6E'),
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 3,
-                                      ),
-                                      Text(
-                                        '${projectData.lowest_bid?.toString() ?? "No Bid"}',
-                                        style: GoogleFonts.openSans(
-                                          textStyle: TextStyle(
-                                            color: HexColor('4D8D6E'),
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                          child: Text(
-                            'Description',
-                            style: GoogleFonts.openSans(
-                              textStyle: TextStyle(
-                                color: HexColor('454545'),
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                          SizedBox(
+                            height: 12,
                           ),
-                        ),
-                        SizedBox(
-                          height: 8,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                          child: Text(
-                            projectData.desc,
-                            textAlign: TextAlign.left,
-                            style: GoogleFonts.roboto(
-                              textStyle: TextStyle(
-                                color: HexColor('706F6F'),
-                                fontSize: 16,
-                                fontWeight: FontWeight.normal,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 16,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                          child: Row(
+                          Row(
                             children: [
-                              Text(
-                                'Workers Bids',
-                                style: GoogleFonts.openSans(
-                                  textStyle: TextStyle(
-                                    color: HexColor('454545'),
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
+                              Container(
+                                height: 40,
+                                width: 70,
+                                decoration: BoxDecoration(
+                                  color: HexColor('4D8D6E'),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${projectData.project_type}',
+                                    style: GoogleFonts.roboto(
+                                      textStyle: TextStyle(
+                                        color: HexColor('FFFFFF'),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
                               Spacer(),
+                              Icon(
+                                Icons.access_time_rounded,
+                                color: HexColor('777778'),
+                                size: 18,
+                              ),
+                              SizedBox(width: 5),
+                              Text(
+                                '${projectData.posted_from}',
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                    color: HexColor('777778'),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 2),
                             ],
                           ),
-                        ),
-                        SizedBox(
-                          height: 17,
-                        ),
-                        FutureBuilder<ProjectData>(
-                          future: fetchProjectDetails(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
-                            } else if (snapshot.hasError) {
-                              return Center(
-                                  child: Text('Error: ${snapshot.error}'));
-                            } else if (!snapshot.hasData) {
-                              return Center(
-                                child: Text(
-                                  'No data available',
+                          SizedBox(
+                            height: 12,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                            child: Text(
+                              projectData.title,
+                              style: GoogleFonts.openSans(
+                                textStyle: TextStyle(
+                                  color: HexColor('454545'),
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 23,
+                                backgroundColor: Colors.transparent,
+                                backgroundImage: NetworkImage(
+                                  projectData.clientData?.profileImage ==
+                                          'https://workdonecorp.com/images/'
+                                      ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
+                                      : projectData.clientData?.profileImage ??
+                                          'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+                                ),
+                              ),
+                              SizedBox(
+                                width: 13,
+                              ),
+                              Container(
+                                height: 30,
+                                width: 70,
+                                padding: EdgeInsets.zero,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: TextButton(
+                                  onPressed: () {
+                                    Get.to(ProfilePageClient(
+                                        userId: projectData.clientData!.clientId
+                                            .toString()));
+                                  },
+                                  style: TextButton.styleFrom(
+                                    fixedSize: Size(50, 30),
+                                    // Adjust the size as needed
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                  child: Text(
+                                    projectData.clientData!.firstname,
+                                    //client first name
+                                    style: TextStyle(
+                                      color: HexColor('4D8D6E'),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Spacer(),
+                              Container(
+                                height: 75,
+                                width: 140,
+                                decoration: BoxDecoration(
+                                  color: HexColor('FFFFFF'),
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.5),
+                                      // Color of the shadow
+                                      spreadRadius: 2,
+                                      // Spread radius
+                                      blurRadius: 3,
+                                      // Blur radius
+                                      offset: Offset(0,
+                                          2), // Offset in the x and y direction
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Center(
+                                      child: Text(
+                                        'Current lowest Bid',
+                                        style: GoogleFonts.openSans(
+                                          textStyle: TextStyle(
+                                            color: HexColor('898B8D'),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 4,
+                                    ),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '\$',
+                                          style: GoogleFonts.openSans(
+                                            textStyle: TextStyle(
+                                              color: HexColor('4D8D6E'),
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: 3,
+                                        ),
+                                        Text(
+                                          '${projectData.lowest_bid?.toString() ?? "No Bid"}',
+                                          style: GoogleFonts.openSans(
+                                            textStyle: TextStyle(
+                                              color: HexColor('4D8D6E'),
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                            child: Text(
+                              'Description',
+                              style: GoogleFonts.openSans(
+                                textStyle: TextStyle(
+                                  color: HexColor('454545'),
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                            child: Text(
+                              projectData.desc,
+                              textAlign: TextAlign.left,
+                              style: GoogleFonts.roboto(
+                                textStyle: TextStyle(
+                                  color: HexColor('706F6F'),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 16,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'Workers Bids',
                                   style: GoogleFonts.openSans(
                                     textStyle: TextStyle(
                                       color: HexColor('454545'),
@@ -459,98 +450,127 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                     ),
                                   ),
                                 ),
-                              );
-                            } else {
-                              ProjectData projectData = snapshot.data!;
-
-                              if (projectData.access!.project_status ==
-                                      'bid_accepted' &&
-                                  projectData.access!.owner == 'true') {
-                                // Render a row with buttons
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 15.0),
-                                  child: Row(
-                                    children: [
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          panelController.expand();
-
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          primary: Colors.red,
-                                          onPrimary: Colors.white,
-                                          elevation: 8,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(12.0),
-                                          child: Text('End'),
-                                        ),
+                                Spacer(),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            height: 17,
+                          ),
+                          FutureBuilder<ProjectData>(
+                            future: fetchProjectDetails(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return Center(child: CircularProgressIndicator());
+                              } else if (snapshot.hasError) {
+                                return Center(
+                                    child: Text('Error: ${snapshot.error}'));
+                              } else if (!snapshot.hasData) {
+                                return Center(
+                                  child: Text(
+                                    'No data available',
+                                    style: GoogleFonts.openSans(
+                                      textStyle: TextStyle(
+                                        color: HexColor('454545'),
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                      SizedBox(width: 16),
-                                      Expanded(
-                                        child: ElevatedButton(
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                ProjectData projectData = snapshot.data!;
+
+                                if (projectData.access!.project_status ==
+                                        'bid_accepted' &&
+                                    projectData.access!.owner == 'true') {
+                                  // Render a row with buttons
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 15.0),
+                                    child: Row(
+                                      children: [
+                                        ElevatedButton(
                                           onPressed: () {
-                                            Get.to(ChatScreen(
-                                              chatId:
-                                                  projectData.access!.chat_ID,
-                                              currentUser: projectData
-                                                  .clientData!.firstname,
-                                              secondUserName: 'worker',
-                                              userId: projectData
-                                                  .clientData!.clientId.toString(),
-                                            ));
+                                            panelController.expand();
+
                                           },
                                           style: ElevatedButton.styleFrom(
-                                            primary: Colors.blue,
-                                            // Background color
+                                            primary: Colors.red,
                                             onPrimary: Colors.white,
-                                            // Text color
                                             elevation: 8,
-                                            // Elevation
                                             shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                      8), // Rounded corners
+                                              borderRadius: BorderRadius.circular(8),
                                             ),
                                           ),
                                           child: Padding(
                                             padding: const EdgeInsets.all(12.0),
-                                            child: Text('Chat'),
+                                            child: Text('End'),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              } else if (projectData.bids.isNotEmpty) {
-                                // Render a ListView with bids
-                                return ListView.builder(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  itemCount: projectData.bids.length,
-                                  itemBuilder: (context, index) {
-                                    Bid bid = projectData.bids[index];
-                                    return buildListItem(bid);
-                                  },
-                                );
-                              } else {
-                                // Render a message when there are no bids
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 14.0),
-                                  child: Center(child: Text('No bids yet')),
-                                );
+                                        SizedBox(width: 16),
+                                        Expanded(
+                                          child: ElevatedButton(
+                                            onPressed: () {
+                                              Get.to(ChatScreen(
+                                                chatId:
+                                                    projectData.access!.chat_ID,
+                                                currentUser: projectData
+                                                    .clientData!.firstname,
+                                                secondUserName: 'worker',
+                                                userId: projectData
+                                                    .clientData!.clientId.toString(),
+                                              ));
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              primary: Colors.blue,
+                                              // Background color
+                                              onPrimary: Colors.white,
+                                              // Text color
+                                              elevation: 8,
+                                              // Elevation
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        8), // Rounded corners
+                                              ),
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(12.0),
+                                              child: Text('Chat'),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                } else if (projectData.bids.isNotEmpty) {
+                                  // Render a ListView with bids
+                                  return ListView.builder(
+                                    physics: NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemCount: projectData.bids.length,
+                                    itemBuilder: (context, index) {
+                                      Bid bid = projectData.bids[index];
+                                      return buildListItem(bid);
+                                    },
+                                  );
+                                } else {
+                                  // Render a message when there are no bids
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14.0),
+                                    child: Center(child: Text('No bids yet')),
+                                  );
+                                }
                               }
-                            }
-                          },
-                        )
-                      ]);
-                }
-              }),
+                            },
+                          )
+                        ]);
+                  }
+                }),
+          ),
         ),
       ),),
           SlidingUpPanelWidget(

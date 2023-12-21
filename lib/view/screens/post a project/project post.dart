@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../controller/NotificationController.dart';
@@ -22,6 +23,7 @@ import '../../widgets/rounded_button.dart';
 import '../Screens_layout/layoutWorker.dart';
 import '../Screens_layout/layoutclient.dart';
 import '../Support Screen/Helper.dart';
+import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
 
 class projectPost extends StatefulWidget {
@@ -175,7 +177,19 @@ class _projectPostState extends State<projectPost> {
       print('Error fetching project types: $error');
     }
   }
+  final ScreenshotController screenshotController = ScreenshotController();
 
+  String unique= 'Projectpost' ;
+  void _navigateToNextPage(BuildContext context) async {
+    Uint8List? imageBytes = await screenshotController.capture();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SupportScreen(screenshotImageBytes: imageBytes ,unique: unique),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -186,9 +200,13 @@ class _projectPostState extends State<projectPost> {
     ));
     return Scaffold(
       floatingActionButton:
-      FloatingActionButton(
+      FloatingActionButton(    heroTag: 'workdone_${unique}',
+
+
+
         onPressed: () {
-          NavigationHelper.navigateToNextPage(context, screenshotController);
+          _navigateToNextPage(context);
+
         },
         backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
         child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
@@ -219,417 +237,422 @@ class _projectPostState extends State<projectPost> {
         centerTitle: true,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 12.0, left: 10, right: 10),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(
-              children: [
-                Text(
-                  _image == null ? 'Upload Photo' : 'Selected Photo',
-                  style: GoogleFonts.poppins(
-                    textStyle: TextStyle(
-                      color: HexColor('1A1D1E'),
-                      fontSize: 17,
-                      fontWeight: FontWeight.w500,
+      body:
+
+      Screenshot(
+        controller:screenshotController ,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12.0, left: 10, right: 10),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(
+                children: [
+                  Text(
+                    _image == null ? 'Upload Photo' : 'Selected Photo',
+                    style: GoogleFonts.poppins(
+                      textStyle: TextStyle(
+                        color: HexColor('1A1D1E'),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(
-                  width: 6,
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.info_outline, // "i" icon
-                    color: Colors.grey,
-                    size: 22, // Red color
+                  SizedBox(
+                    width: 6,
                   ),
-                  onPressed: () {
-                    // Show a Snackbar with the required text
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: Colors.red,
-                        content: Text(
-                          _image == null
-                              ? 'Upload photo is Required'
-                              : 'Selected photo information',
-                          style:
-                              TextStyle(color: Colors.white), // Red text color
+                  IconButton(
+                    icon: Icon(
+                      Icons.info_outline, // "i" icon
+                      color: Colors.grey,
+                      size: 22, // Red color
+                    ),
+                    onPressed: () {
+                      // Show a Snackbar with the required text
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text(
+                            _image == null
+                                ? 'Upload photo is Required'
+                                : 'Selected photo information',
+                            style:
+                                TextStyle(color: Colors.white), // Red text color
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            SizedBox(
-              height: 7,
-            ),
-            GestureDetector(
-              onTap: () {
-                _getImageFromGallery(); // Call the function when tapped
-              },
-              child: Center(
-                child: Container(
-                  height: _image == null ? 150 : null,
-                  // Adjust height based on image selection
-                  width: 350,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    color: Colors.white,
+                      );
+                    },
                   ),
-                  child: _image == null
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Upload Here',
-                              style: GoogleFonts.poppins(
-                                textStyle: TextStyle(
-                                  color: HexColor('4D8D6E'),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
+                ],
+              ),
+              SizedBox(
+                height: 7,
+              ),
+              GestureDetector(
+                onTap: () {
+                  _getImageFromGallery(); // Call the function when tapped
+                },
+                child: Center(
+                  child: Container(
+                    height: _image == null ? 150 : null,
+                    // Adjust height based on image selection
+                    width: 350,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.white,
+                    ),
+                    child: _image == null
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Upload Here',
+                                style: GoogleFonts.poppins(
+                                  textStyle: TextStyle(
+                                    color: HexColor('4D8D6E'),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10.0, vertical: 5),
-                              child: Center(
-                                child: Text(
-                                  'Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!',
-                                  style: GoogleFonts.poppins(
-                                    textStyle: TextStyle(
-                                      color: HexColor('888C8A'),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0, vertical: 5),
+                                child: Center(
+                                  child: Text(
+                                    'Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!',
+                                    style: GoogleFonts.poppins(
+                                      textStyle: TextStyle(
+                                        color: HexColor('888C8A'),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                            SizedBox(
-                              height: 5,
-                            ),
-                            Icon(
-                              Icons.file_upload,
-                              color: HexColor('4D8D6E'),
-                              size: 30,
-                            ),
-                          ],
-                        )
-                      : Image.file(
-                          _image!,
-                          height: 150,
-                          width:
-                              150, // Set width and height to make it circular
-                          fit: BoxFit.fill,
-                        ),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 14,
-            ),
-            Row(
-              children: [
-                Text(
-                  'Title of Project',
-                  style: GoogleFonts.poppins(
-                    textStyle: TextStyle(
-                        color: HexColor('1A1D1E'),
-                        fontSize: 17,
-                        fontWeight: FontWeight.w500),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Icon(
+                                Icons.file_upload,
+                                color: HexColor('4D8D6E'),
+                                size: 30,
+                              ),
+                            ],
+                          )
+                        : Image.file(
+                            _image!,
+                            height: 150,
+                            width:
+                                150, // Set width and height to make it circular
+                            fit: BoxFit.fill,
+                          ),
                   ),
                 ),
-                SizedBox(
-                  width: 6,
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.info_outline, // "i" icon
-                    color: Colors.grey,
-                    size: 22, // Red color
-                  ),
-                  onPressed: () {
-                    // Show a Snackbar with the required text
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: Colors.red,
-                        content: Text(
-                          'Title is Required',
-                          style:
-                              TextStyle(color: Colors.white), // Red text color
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            SizedBox(
-              height: 8,
-            ),
-            Container(
-              height: 55,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
               ),
-              child: TextFormField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  hintText: 'Write a Project Title',
-                  hintStyle: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 16.0,
-                  ),
-                  border: InputBorder.none, // Remove the underline
-                  contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 16.0), // Adjust padding
-                ),
+              SizedBox(
+                height: 14,
               ),
-            ),
-            SizedBox(
-              height: 14,
-            ),
-            Text(
-              'Project Type',
-              style: GoogleFonts.poppins(
-                textStyle: TextStyle(
-                    color: HexColor('1A1D1E'),
-                    fontSize: 17,
-                    fontWeight: FontWeight.w500),
-              ),
-            ),
-            SizedBox(
-              height: 8,
-            ),
-            Container(
-              height: 55,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    Text(
-                      'Select Project Type',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16.0,
-                      ),
+              Row(
+                children: [
+                  Text(
+                    'Title of Project',
+                    style: GoogleFonts.poppins(
+                      textStyle: TextStyle(
+                          color: HexColor('1A1D1E'),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500),
                     ),
-                    Spacer(),
-                    DropdownButton<Map<String, String>>(
-                      underline: SizedBox(),
-                      // Remove the underline
-                      icon: Icon(Icons.arrow_drop_down, color: Colors.black54),
-                      value: selectedProjectType,
-                      // Track the selected value
-                      items: projectTypes
-                          .map<DropdownMenuItem<Map<String, String>>>(
-                              (Map<String, String> type) {
-                        return DropdownMenuItem<Map<String, String>>(
-                          value: type,
-                          child: Text(type['name']!),
-                        );
-                      }).toList(),
-                      onChanged: (Map<String, String>? newValue) {
-                        setState(() {
-                          selectedProjectType = newValue;
-                        });
-                        // Handle dropdown value change, you can use the selectedProjectType
-                        // to get the selected project type ID and send it to the API
-                        if (selectedProjectType != null) {
-                          String projectId = selectedProjectType!['id']!;
-                          String projectName = selectedProjectType!['name']!;
-                          print('Selected Project ID: $projectId');
-                          print('Selected Project Name: $projectName');
-                        }
-                      },
+                  ),
+                  SizedBox(
+                    width: 6,
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.info_outline, // "i" icon
+                      color: Colors.grey,
+                      size: 22, // Red color
                     ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 14,
-            ),
-            Row(
-              children: [
-                Text(
-                  'Preferred Time Frame',
-                  style: GoogleFonts.poppins(
-                    textStyle: TextStyle(
-                        color: HexColor('1A1D1E'),
-                        fontSize: 17,
-                        fontWeight: FontWeight.w500),
-                  ),
-                ),
-                SizedBox(
-                  width: 6,
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.info_outline, // "i" icon
-                    color: Colors.grey,
-                    size: 22, // Red color
-                  ),
-                  onPressed: () {
-                    // Show a Snackbar with the required text
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: Colors.red,
-                        content: Text(
-                          'Time frame is Required',
-                          style:
-                              TextStyle(color: Colors.white), // Red text color
+                    onPressed: () {
+                      // Show a Snackbar with the required text
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text(
+                            'Title is Required',
+                            style:
+                                TextStyle(color: Colors.white), // Red text color
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                RangeSlider(
-                  values: RangeValues(_startValue, _endValue),
-                  onChanged: (RangeValues values) {
-                    setState(() {
-                      _startValue = values.start;
-                      _endValue = values.end;
-                      timeframeControllerstart.text =
-                          _startValue.toInt().toString();
-                      timeframeControllerend.text =
-                          _endValue.toInt().toString();
-                    });
-                  },
-                  min: 0,
-                  max: 100,
-                  divisions: 100,
-                  // Divisions set to 1 for two thumbs
-                  labels: RangeLabels(
-                    _startValue.toInt().toString(),
-                    _endValue.toInt().toString(),
+                      );
+                    },
                   ),
-                  activeColor: Color(0xFF4D8D6E),
-                  inactiveColor: Colors.grey,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Project period (Range): ',
-                      style: TextStyle(
-                        color: Colors.grey[700],
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      '${_startValue.toInt()} - ${_endValue.toInt()} days',
-                      style: TextStyle(
-                        color: Color(0xFF4D8D6E),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            Row(
-              children: [
-                Text(
-                  'Job Description',
-                  style: GoogleFonts.poppins(
-                    textStyle: TextStyle(
-                        color: HexColor('1A1D1E'),
-                        fontSize: 17,
-                        fontWeight: FontWeight.w500),
-                  ),
-                ),
-                SizedBox(
-                  width: 6,
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.info_outline, // "i" icon
-                    color: Colors.grey,
-                    size: 22, // Red color
-                  ),
-                  onPressed: () {
-                    // Show a Snackbar with the required text
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: Colors.red,
-                        content: Text(
-                          'Job Description is Required',
-                          style:
-                              TextStyle(color: Colors.white), // Red text color
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            SizedBox(
-              height: 8,
-            ),
-            Container(
-              height: 100,
-              width: double.infinity, // Set the desired width
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
+                ],
               ),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.0,
+              SizedBox(
+                height: 8,
+              ),
+              Container(
+                height: 55,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
                 ),
                 child: TextFormField(
-                  controller: descController,
-                  maxLines: null,
-                  // Allows the text to take up multiple lines
+                  controller: titleController,
                   decoration: InputDecoration(
-                    hintText:
-                        'Please write a detailed description to help the worker place an accurate bid!',
-                    border: InputBorder.none,
-                    hintMaxLines: 3,
-                    // Allows the hint text to take up multiple lines
+                    hintText: 'Write a Project Title',
                     hintStyle: TextStyle(
                       color: Colors.grey,
                       fontSize: 16.0,
                     ),
+                    border: InputBorder.none, // Remove the underline
+                    contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 16.0), // Adjust padding
                   ),
                 ),
               ),
-            ),
-            SizedBox(
-              height: 14,
-            ),
-            Center(
-              child: RoundedButton(
-                text: 'Done',
-                press: () {
-                  _postaproject();
-                },
+              SizedBox(
+                height: 14,
               ),
-            ),
-            SizedBox(
-              height: 14,
-            ),
-          ]),
+              Text(
+                'Project Type',
+                style: GoogleFonts.poppins(
+                  textStyle: TextStyle(
+                      color: HexColor('1A1D1E'),
+                      fontSize: 17,
+                      fontWeight: FontWeight.w500),
+                ),
+              ),
+              SizedBox(
+                height: 8,
+              ),
+              Container(
+                height: 55,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Select Project Type',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16.0,
+                        ),
+                      ),
+                      Spacer(),
+                      DropdownButton<Map<String, String>>(
+                        underline: SizedBox(),
+                        // Remove the underline
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.black54),
+                        value: selectedProjectType,
+                        // Track the selected value
+                        items: projectTypes
+                            .map<DropdownMenuItem<Map<String, String>>>(
+                                (Map<String, String> type) {
+                          return DropdownMenuItem<Map<String, String>>(
+                            value: type,
+                            child: Text(type['name']!),
+                          );
+                        }).toList(),
+                        onChanged: (Map<String, String>? newValue) {
+                          setState(() {
+                            selectedProjectType = newValue;
+                          });
+                          // Handle dropdown value change, you can use the selectedProjectType
+                          // to get the selected project type ID and send it to the API
+                          if (selectedProjectType != null) {
+                            String projectId = selectedProjectType!['id']!;
+                            String projectName = selectedProjectType!['name']!;
+                            print('Selected Project ID: $projectId');
+                            print('Selected Project Name: $projectName');
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 14,
+              ),
+              Row(
+                children: [
+                  Text(
+                    'Preferred Time Frame',
+                    style: GoogleFonts.poppins(
+                      textStyle: TextStyle(
+                          color: HexColor('1A1D1E'),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 6,
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.info_outline, // "i" icon
+                      color: Colors.grey,
+                      size: 22, // Red color
+                    ),
+                    onPressed: () {
+                      // Show a Snackbar with the required text
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text(
+                            'Time frame is Required',
+                            style:
+                                TextStyle(color: Colors.white), // Red text color
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  RangeSlider(
+                    values: RangeValues(_startValue, _endValue),
+                    onChanged: (RangeValues values) {
+                      setState(() {
+                        _startValue = values.start;
+                        _endValue = values.end;
+                        timeframeControllerstart.text =
+                            _startValue.toInt().toString();
+                        timeframeControllerend.text =
+                            _endValue.toInt().toString();
+                      });
+                    },
+                    min: 0,
+                    max: 100,
+                    divisions: 100,
+                    // Divisions set to 1 for two thumbs
+                    labels: RangeLabels(
+                      _startValue.toInt().toString(),
+                      _endValue.toInt().toString(),
+                    ),
+                    activeColor: Color(0xFF4D8D6E),
+                    inactiveColor: Colors.grey,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Project period (Range): ',
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        '${_startValue.toInt()} - ${_endValue.toInt()} days',
+                        style: TextStyle(
+                          color: Color(0xFF4D8D6E),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Text(
+                    'Job Description',
+                    style: GoogleFonts.poppins(
+                      textStyle: TextStyle(
+                          color: HexColor('1A1D1E'),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 6,
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.info_outline, // "i" icon
+                      color: Colors.grey,
+                      size: 22, // Red color
+                    ),
+                    onPressed: () {
+                      // Show a Snackbar with the required text
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text(
+                            'Job Description is Required',
+                            style:
+                                TextStyle(color: Colors.white), // Red text color
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 8,
+              ),
+              Container(
+                height: 100,
+                width: double.infinity, // Set the desired width
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                  ),
+                  child: TextFormField(
+                    controller: descController,
+                    maxLines: null,
+                    // Allows the text to take up multiple lines
+                    decoration: InputDecoration(
+                      hintText:
+                          'Please write a detailed description to help the worker place an accurate bid!',
+                      border: InputBorder.none,
+                      hintMaxLines: 3,
+                      // Allows the hint text to take up multiple lines
+                      hintStyle: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 14,
+              ),
+              Center(
+                child: RoundedButton(
+                  text: 'Done',
+                  press: () {
+                    _postaproject();
+                  },
+                ),
+              ),
+              SizedBox(
+                height: 14,
+              ),
+            ]),
+          ),
         ),
       ),
     );

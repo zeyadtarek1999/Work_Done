@@ -2,20 +2,21 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/view/widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
 
-import '../../../model/changePassword.dart';
-import '../../../model/getClientProfiledataModel.dart';
+
 import '../../../model/post editprofilemodel.dart';
 import '../Edit address.dart';
-import '../Support Screen/Helper.dart';
+import '../Support Screen/Support.dart';
 import '../changePassword.dart';
 import '../homescreen/home screenClient.dart';
 
@@ -169,14 +170,34 @@ print(_image!.path);
   List<Map<String, dynamic>> filteredLanguages = [];
   String selectedLanguage = '';
 
+  final ScreenshotController screenshotController = ScreenshotController();
+
+
+
+  String unique= 'editprofile' ;
+  void _navigateToNextPage(BuildContext context) async {
+    Uint8List? imageBytes = await screenshotController.capture();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SupportScreen(screenshotImageBytes: imageBytes ,unique: unique),
+      ),
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
 
     return Scaffold( floatingActionButton:
-    FloatingActionButton(
+    FloatingActionButton(    heroTag: 'workdone_${unique}',
+
+
+
       onPressed: () {
-        NavigationHelper.navigateToNextPage(context, screenshotController);
+        _navigateToNextPage(context);
+
       },
       backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
       child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
@@ -207,127 +228,65 @@ print(_image!.path);
           },
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Circular Image
-                    Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.blue, // Change the color as needed
-                        image: _image != null
-                            ? DecorationImage(
-                          fit: BoxFit.cover,
-                          image: FileImage(_image!),
-                        )
-                            : profile_pic.isNotEmpty
-                            ? DecorationImage(
-                          fit: BoxFit.cover,
-                          image: NetworkImage(profile_pic),
-                        )
-                            : null,
-                      ),
-                    ),
-                    // Opacity Overlay
-                    GestureDetector(
-                      onTap: _getImageFromGallery,
-                      child: Container(
+      body:
+      Screenshot(
+        controller:screenshotController ,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Circular Image
+                      Container(
                         width: 150,
                         height: 150,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.grey.withOpacity(0.4),
+                          color: Colors.blue, // Change the color as needed
+                          image: _image != null
+                              ? DecorationImage(
+                            fit: BoxFit.cover,
+                            image: FileImage(_image!),
+                          )
+                              : profile_pic.isNotEmpty
+                              ? DecorationImage(
+                            fit: BoxFit.cover,
+                            image: NetworkImage(profile_pic),
+                          )
+                              : null,
                         ),
                       ),
-                    ),
-                    // Camera Logo
-                    Icon(
-                      Icons.camera_alt,
-                      size: 35,
-                      color: Colors.white,
-                    ),
-                  ],
+                      // Opacity Overlay
+                      GestureDetector(
+                        onTap: _getImageFromGallery,
+                        child: Container(
+                          width: 150,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.grey.withOpacity(0.4),
+                          ),
+                        ),
+                      ),
+                      // Camera Logo
+                      Icon(
+                        Icons.camera_alt,
+                        size: 35,
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(
-                height: 30,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10.0, vertical: 10),
-                        child: Text('First Name'),
-                      ),
-                      Container(
-                          width: 156,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200], // Background color
-                            borderRadius: BorderRadius.circular(
-                                20), // Circular border radius
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: TextField(
-                              controller: firstNameController,
-                              decoration: InputDecoration(
-                                hintText: firstname,
-                                border:
-                                    InputBorder.none, // Remove default border
-                              ),
-                            ),
-                          ))
-                    ],
-                  ),
-                  Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10.0, vertical: 10),
-                        child: Text('Last Name'),
-                      ),
-                      Container(
-                          width: 156,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200], // Background color
-                            borderRadius: BorderRadius.circular(
-                                20), // Circular border radius
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: TextField(
-                              controller: lastNameController,
-                              decoration: InputDecoration(
-                                hintText: secondname,
-                                border:
-                                    InputBorder.none, // Remove default border
-                              ),
-                            ),
-                          ))
-                    ],
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
+                SizedBox(
+                  height: 30,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -335,10 +294,10 @@ print(_image!.path);
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10.0, vertical: 10),
-                          child: Text('Email'),
+                          child: Text('First Name'),
                         ),
                         Container(
-                            width: size.width * 0.90,
+                            width: 156,
                             height: 60,
                             decoration: BoxDecoration(
                               color: Colors.grey[200], // Background color
@@ -346,36 +305,29 @@ print(_image!.path);
                                   20), // Circular border radius
                             ),
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: TextField(
-                                controller: emailController,
+                                controller: firstNameController,
                                 decoration: InputDecoration(
-                                  hintText: email,
+                                  hintText: firstname,
                                   border:
                                       InputBorder.none, // Remove default border
                                 ),
                               ),
                             ))
                       ],
-                    )
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
+                    ),
+                    Spacer(),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10.0, vertical: 10),
-                          child: Text('Phone Number'),
+                          child: Text('Last Name'),
                         ),
                         Container(
-                            width: size.width * 0.90,
+                            width: 156,
                             height: 60,
                             decoration: BoxDecoration(
                               color: Colors.grey[200], // Background color
@@ -383,116 +335,189 @@ print(_image!.path);
                                   20), // Circular border radius
                             ),
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: TextField(
-                                controller: phoneController,
+                                controller: lastNameController,
                                 decoration: InputDecoration(
-                                  hintText: phonenumber,
+                                  hintText: secondname,
                                   border:
                                       InputBorder.none, // Remove default border
                                 ),
                               ),
                             ))
                       ],
-                    )
+                    ),
                   ],
                 ),
-              ),
-SizedBox(height: 13,)
- ,             Container(
-                width: size.width * 0.90,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200], // Background color
-                  borderRadius:
-                      BorderRadius.circular(20), // Circular border radius
-                ),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final SharedPreferences prefs = await SharedPreferences.getInstance();
-                    final userToken = prefs.getString('user_token') ?? '';
-                    print(userToken);
-
-                    // Check if userToken is not empty before navigating
-                    if (userToken.isNotEmpty) {
-                      Get.to(changePasswordscreen(userToken: userToken));
-                    } else {
-                      // Handle the case where userToken is empty, e.g., show a message
-                      print('User token is empty. Cannot navigate to ChangePasswordScreen.');
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.grey[200], // Button background color
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20), // Circular border radius
-                    ),
-                  ),
-                  child: Text(
-                    'Change Password', // Button text
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[800], // Button text color
-                    ),
-                  ),
-                ),
-
-              ),
-              SizedBox(height: 20,),
-              Container(
-                width: size.width * 0.90,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200], // Background color
-                  borderRadius:
-                  BorderRadius.circular(20), // Circular border radius
-                ),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final SharedPreferences prefs = await SharedPreferences.getInstance();
-                    final userToken = prefs.getString('user_token') ?? '';
-                    print(userToken);
-
-                    // Check if userToken is not empty before navigating
-                    if (userToken.isNotEmpty) {
-                      Get.to(editAddressClient());
-                    } else {
-                      // Handle the case where userToken is empty, e.g., show a message
-                      print('User token is empty. Cannot navigate to ChangePasswordScreen.');
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.grey[200], // Button background color
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20), // Circular border radius
-                    ),
-                  ),
-                  child: Text(
-                    'Edit Address', // Button text
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[800], // Button text color
-                    ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10.0, vertical: 10),
+                            child: Text('Email'),
+                          ),
+                          Container(
+                              width: size.width * 0.90,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200], // Background color
+                                borderRadius: BorderRadius.circular(
+                                    20), // Circular border radius
+                              ),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
+                                child: TextField(
+                                  controller: emailController,
+                                  decoration: InputDecoration(
+                                    hintText: email,
+                                    border:
+                                        InputBorder.none, // Remove default border
+                                  ),
+                                ),
+                              ))
+                        ],
+                      )
+                    ],
                   ),
                 ),
-
-              ),
-
-              SizedBox(
-                height: 12,
-              ),
-             SizedBox(height: 15,),
-              Center(
-                child: RoundedButton(
-                  text: 'Done',
-                  press: () {
-                    // Call the method to update the client profile
-                    _updateClientProfile();
-                  },
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10.0, vertical: 10),
+                            child: Text('Phone Number'),
+                          ),
+                          Container(
+                              width: size.width * 0.90,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200], // Background color
+                                borderRadius: BorderRadius.circular(
+                                    20), // Circular border radius
+                              ),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
+                                child: TextField(
+                                  controller: phoneController,
+                                  decoration: InputDecoration(
+                                    hintText: phonenumber,
+                                    border:
+                                        InputBorder.none, // Remove default border
+                                  ),
+                                ),
+                              ))
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+        SizedBox(height: 13,)
+         ,             Container(
+                  width: size.width * 0.90,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200], // Background color
+                    borderRadius:
+                        BorderRadius.circular(20), // Circular border radius
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final SharedPreferences prefs = await SharedPreferences.getInstance();
+                      final userToken = prefs.getString('user_token') ?? '';
+                      print(userToken);
+        
+                      // Check if userToken is not empty before navigating
+                      if (userToken.isNotEmpty) {
+                        Get.to(changePasswordscreen(userToken: userToken));
+                      } else {
+                        // Handle the case where userToken is empty, e.g., show a message
+                        print('User token is empty. Cannot navigate to ChangePasswordScreen.');
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[200], // Button background color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20), // Circular border radius
+                      ),
+                    ),
+                    child: Text(
+                      'Change Password', // Button text
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey[800], // Button text color
+                      ),
+                    ),
+                  ),
+        
+                ),
+                SizedBox(height: 20,),
+                Container(
+                  width: size.width * 0.90,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200], // Background color
+                    borderRadius:
+                    BorderRadius.circular(20), // Circular border radius
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final SharedPreferences prefs = await SharedPreferences.getInstance();
+                      final userToken = prefs.getString('user_token') ?? '';
+                      print(userToken);
+        
+                      // Check if userToken is not empty before navigating
+                      if (userToken.isNotEmpty) {
+                        Get.to(editAddressClient());
+                      } else {
+                        // Handle the case where userToken is empty, e.g., show a message
+                        print('User token is empty. Cannot navigate to ChangePasswordScreen.');
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[200], // Button background color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20), // Circular border radius
+                      ),
+                    ),
+                    child: Text(
+                      'Edit Address', // Button text
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey[800], // Button text color
+                      ),
+                    ),
+                  ),
+        
+                ),
+        
+                SizedBox(
+                  height: 12,
+                ),
+               SizedBox(height: 15,),
+                Center(
+                  child: RoundedButton(
+                    text: 'Done',
+                    press: () {
+                      // Call the method to update the client profile
+                      _updateClientProfile();
+                    },
+                  )
+        
                 )
-
-              )
-            ],
+              ],
+            ),
           ),
         ),
       ),

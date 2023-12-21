@@ -4,7 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:workdone/view/screens/check%20out%20client/checkoutClient.dart';
+import 'package:workdone/view/screens/check%20out%20client/checkout.dart';
 
 import '../Support Screen/Helper.dart';
 import '../homescreen/home screenClient.dart';
@@ -98,7 +98,7 @@ class _bidDetailsClientPostState extends State<bidDetailsClientPost> {
       floatingActionButton:
       FloatingActionButton(
         onPressed: () {
-          NavigationHelper.navigateToNextPage(context, screenshotController);
+          // NavigationHelper.navigateToNextPage(context, screenshotController);
         },
         backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
         child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon

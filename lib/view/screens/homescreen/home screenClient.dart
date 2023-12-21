@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,12 +16,10 @@ import '../../../controller/shimmers/shimmer basic.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Explore/Explore Client.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
-import '../Profile (client-worker)/profilescreenworker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 
 import '../Reviews/reviews.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../editProfile/editProfile.dart';
 import '../view profile screens/Client profile view.dart';
@@ -273,10 +270,6 @@ class _HomeclientState extends State<Homeclient> {
       // Initialize futureProjects in initState or wherever appropriate
       futureProjects = fetchProjects();
       refreshProjects();
-      // Wait for the future to complete
-      List<Item> items = await futureProjects;
-
-      // Iterate through the list of items and check if each project is liked
 
     } catch (e) {
       // Handle exceptions if any
@@ -303,7 +296,6 @@ class _HomeclientState extends State<Homeclient> {
 
         if (response['status'] == 'success') {
           // If successfully added to likes, fetch updated data for the project
-          final updatedItem = await fetchUpdatedProject(item.projectId);
           print('Project added to likes');
         } else if (response['msg'] == 'This Project is Already in Likes !') {
           // If the project is already liked, switch to Icons.favorite_border
@@ -361,6 +353,17 @@ class _HomeclientState extends State<Homeclient> {
     return spans;
   }
 
+  String unique= 'homescreenclient' ;
+  void _navigateToNextPage(BuildContext context) async {
+    Uint8List? imageBytes = await screenshotController.capture();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SupportScreen(screenshotImageBytes: imageBytes ,unique: unique),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -561,9 +564,13 @@ class _HomeclientState extends State<Homeclient> {
       child: Scaffold(
           backgroundColor: HexColor('F0EEEE'),
           floatingActionButton:
-          FloatingActionButton(
+          FloatingActionButton(    heroTag: 'workdone_${unique}',
+
+
+
             onPressed: () {
-              NavigationHelper.navigateToNextPage(context, screenshotController);
+              _navigateToNextPage(context);
+
             },
             backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
             child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
@@ -807,7 +814,7 @@ class _HomeclientState extends State<Homeclient> {
                                 },
                                 style: TextButton.styleFrom(
 
-                                  primary: Colors.redAccent,
+                                  foregroundColor: Colors.redAccent,
 
                                 ),
                                 child: Text(

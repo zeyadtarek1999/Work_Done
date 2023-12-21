@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:screenshot/screenshot.dart';
 
 import '../Bid Details/Bid details Worker.dart';
 import '../Support Screen/Helper.dart';
+import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
 
 
@@ -41,6 +44,7 @@ class _ProfilePageWorkerState extends State<ProfilePageWorker> {
     ),
     // Add more data items as needed
   ];
+  final ScreenshotController screenshotController = ScreenshotController();
 
   List<items> Newprojectitems = [
     items(
@@ -61,14 +65,28 @@ class _ProfilePageWorkerState extends State<ProfilePageWorker> {
     ),
     // Add more data items as needed
   ];
+  String unique= 'workerprofileview' ;
+  void _navigateToNextPage(BuildContext context) async {
+    Uint8List? imageBytes = await screenshotController.capture();
 
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SupportScreen(screenshotImageBytes: imageBytes ,unique: unique),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton:
-      FloatingActionButton(
+      FloatingActionButton(    heroTag: 'workdone_${unique}',
+
+
+
         onPressed: () {
-          NavigationHelper.navigateToNextPage(context, screenshotController);
+          _navigateToNextPage(context);
+
         },
         backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
         child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
@@ -83,104 +101,108 @@ class _ProfilePageWorkerState extends State<ProfilePageWorker> {
         leading: BackButton(color: Colors.black,),
 
       ),
-      body: NestedScrollView(
-        headerSliverBuilder: (context, value) {
-          return [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    SizedBox(height: 30,),
-                     Center(
-                      child: Container(
-                        height: 140,
-                        decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.grey.shade300, width: 5)
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(300),
-                          child: Image.asset('assets/images/profile.jpg'),
+      body:
+      Screenshot(
+        controller:screenshotController ,
+        child: NestedScrollView(
+          headerSliverBuilder: (context, value) {
+            return [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 30,),
+                       Center(
+                        child: Container(
+                          height: 140,
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.grey.shade300, width: 5)
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(300),
+                            child: Image.asset('assets/images/profile.jpg'),
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(height: 20,),
-                     Text("John", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),),
-                    SizedBox(height: 10,),
-                     Text("Worker", style: TextStyle(color: Colors.grey, fontSize: 16),),
-                    SizedBox(height: 40),
-                    Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Column(
-                                children: [
-                                  Text("8", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
-                                  SizedBox(height: 5,),
-                                  Text("Projects", style: TextStyle(color: Colors.grey,),),
-                                ],
-                              ),
-                               Column(
-                                children: [
-                                  Text("5", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
-                                  SizedBox(height: 5,),
-                                  Text("Reviews", style: TextStyle(color: Colors.grey,),),
-                                ],
-                              ),
-
-                            ]
-                        )
-                    ),
-                    SizedBox(height: 20,),
-                  ],
+                      SizedBox(height: 20,),
+                       Text("John", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),),
+                      SizedBox(height: 10,),
+                       Text("Worker", style: TextStyle(color: Colors.grey, fontSize: 16),),
+                      SizedBox(height: 40),
+                      Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Column(
+                                  children: [
+                                    Text("8", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                                    SizedBox(height: 5,),
+                                    Text("Projects", style: TextStyle(color: Colors.grey,),),
+                                  ],
+                                ),
+                                 Column(
+                                  children: [
+                                    Text("5", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                                    SizedBox(height: 5,),
+                                    Text("Reviews", style: TextStyle(color: Colors.grey,),),
+                                  ],
+                                ),
+        
+                              ]
+                          )
+                      ),
+                      SizedBox(height: 20,),
+                    ],
+                  ),
                 ),
-              ),
-            )
-          ];
-        },
-        body: DefaultTabController(
-          length: 2,
-          child: Column(
-              children: [
-                 Container(
-                    child: TabBar(
-                        labelColor: HexColor('4D8D6E'),
-                        unselectedLabelColor: Colors.grey.shade600,
-                        indicatorColor: HexColor('4D8D6E'),
-                        tabs: [
-                          Tab(icon: Icon(Icons.task_alt_outlined,),),
-                          Tab(icon: Icon(Icons.reviews_outlined,),),
-                        ]
-                    )
-                ),
-                Expanded(
-                    child:  Container(
-                        padding: EdgeInsets.symmetric(horizontal: 0,vertical: 10),
-                        child: TabBarView(
-                            children: [
-                              ListView.builder(
-                                physics: NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                itemCount: Newprojectitems.length,
-                                itemBuilder: (context, index) {
-                                  return buildListproject( Newprojectitems[index]);
-                                },
-                              ),
-                              ListView.builder(
-                                physics: NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                itemCount: reviewsitems2.length,
-                                itemBuilder: (context, index) {
-                                  return buildListReviews( reviewsitems2[index]);
-                                },
-                              ),
-                            ]
-                        )
-                    ))
-
-              ]
+              )
+            ];
+          },
+          body: DefaultTabController(
+            length: 2,
+            child: Column(
+                children: [
+                   Container(
+                      child: TabBar(
+                          labelColor: HexColor('4D8D6E'),
+                          unselectedLabelColor: Colors.grey.shade600,
+                          indicatorColor: HexColor('4D8D6E'),
+                          tabs: [
+                            Tab(icon: Icon(Icons.task_alt_outlined,),),
+                            Tab(icon: Icon(Icons.reviews_outlined,),),
+                          ]
+                      )
+                  ),
+                  Expanded(
+                      child:  Container(
+                          padding: EdgeInsets.symmetric(horizontal: 0,vertical: 10),
+                          child: TabBarView(
+                              children: [
+                                ListView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: Newprojectitems.length,
+                                  itemBuilder: (context, index) {
+                                    return buildListproject( Newprojectitems[index]);
+                                  },
+                                ),
+                                ListView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: reviewsitems2.length,
+                                  itemBuilder: (context, index) {
+                                    return buildListReviews( reviewsitems2[index]);
+                                  },
+                                ),
+                              ]
+                          )
+                      ))
+        
+                ]
+            ),
           ),
         ),
       ),

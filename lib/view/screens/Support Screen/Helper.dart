@@ -6,13 +6,21 @@ import 'package:screenshot/screenshot.dart';
 import 'Support.dart';
 
 class NavigationHelper {
-  static Future<void> navigateToNextPage(BuildContext context, ScreenshotController screenshotController) async {
+  String? unique;
+
+  NavigationHelper({required this.unique});
+
+  Future<void> navigateToNextPage(
+      BuildContext context, ScreenshotController screenshotController) async {
     Uint8List? imageBytes = await screenshotController.capture();
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SupportScreen(screenshotImageBytes: imageBytes),
+        builder: (context) => SupportScreen(
+          screenshotImageBytes: imageBytes,
+          unique: unique,
+        ),
       ),
     );
   }

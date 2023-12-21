@@ -6,8 +6,8 @@ import 'package:hexcolor/hexcolor.dart';
 
 class SupportScreen extends StatefulWidget {
   final Uint8List? screenshotImageBytes;
-
-  SupportScreen({required this.screenshotImageBytes});
+ String? unique ;
+  SupportScreen({required this.screenshotImageBytes, required this.unique});
 
   @override
   _SupportScreenState createState() => _SupportScreenState();
@@ -83,14 +83,18 @@ class _SupportScreenState extends State<SupportScreen> {
                     width: 300,
                     height: 340,
                     child: Center(
-                      child: Image.memory(
-                        widget.screenshotImageBytes!,
-                        width: double.infinity,
-                        height: double.infinity,
+                      child: Hero(
+                        tag: 'workdone_${widget.unique}',
+                        child: Image.memory(
+                          widget.screenshotImageBytes!,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
                       ),
                     ),
                   ),
                 ),
+
               SizedBox(height: 20),
               Text(
                 'Describe the issue:',
