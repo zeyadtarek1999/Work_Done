@@ -578,7 +578,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                   SizedBox(height: screenheight*0.02,),
 
 
-
+// bos yabny kilo
                   Row(
                     children: [
                       IconButton(onPressed: (){
