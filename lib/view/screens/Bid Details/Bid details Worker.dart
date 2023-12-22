@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_sliding_up_panel/sliding_up_panel_widget.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -37,6 +38,15 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
   String projectdesc = '';
   String selected_worker = '';
   String final_bid = '';
+  late ScrollController scrollController;
+
+
+
+  SlidingUpPanelController panelController = SlidingUpPanelController();
+
+  double minBound = 0;
+
+  double upperBound = 1.0;
 
   Future<ProjectData> fetchProjectDetails() async {
     try {
@@ -88,7 +98,20 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
     super.initState();
     projectDetailsFuture = fetchProjectDetails();
     fetchProjectDetails();
+    scrollController = ScrollController();
+    scrollController.addListener(() {
+      if (scrollController.offset >=
+          scrollController.position.maxScrollExtent &&
+          !scrollController.position.outOfRange) {
+        panelController.expand();
+      } else if (scrollController.offset <=
+          scrollController.position.minScrollExtent &&
+          !scrollController.position.outOfRange) {
+        panelController.anchor();
+      } else {}
+    });
   }
+
 
   String currentbid = '24';
 
