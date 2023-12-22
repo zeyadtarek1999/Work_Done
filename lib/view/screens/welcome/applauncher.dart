@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,17 +19,31 @@ class AppLauncher extends StatefulWidget {
 }
 
 class _AppLauncherState extends State<AppLauncher> {
+  String connectionStatus = 'Unknown';
+
   @override
   void initState() {
     super.initState();
     _getusertype();
     _getUserToken();
+    checkConnectivity();
+
   }
   late String userToken;
-
-  void _getUserToken() async {
+  Future<void> _getUserToken() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     userToken = prefs.getString('user_token') ?? '';
+  }
+
+  Future<void> checkConnectivity() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    setState(() {
+      connectionStatus =
+      connectivityResult == ConnectivityResult.none ? 'No Internet Connection' : 'Connected';
+      if (connectionStatus == 'No Internet Connection'){
+        print('No Internet Connection');
+      }
+    });
   }
 
   Future<void> _getusertype() async {
@@ -79,14 +95,54 @@ class _AppLauncherState extends State<AppLauncher> {
       print('Error getting profile information: $error');
     }
   }
-
-
-
+  Future<void> _handleRefresh() async {
+    await checkConnectivity();
+    if (connectionStatus == 'Connected') {
+      _getusertype();
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(toolbarHeight: 90,
+
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        title:  SvgPicture.asset(
+          'assets/images/Logo.svg',
+          width: 100.0,
+          height: 100.0,
+        ),
+
+      ),
+      backgroundColor: Colors.white,
       body: Center(
-        child: CircularProgressIndicator(),
+        child: connectionStatus == 'No Internet Connection'
+            ? Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/images/internetconnection.jpg'),
+            SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () {
+                _handleRefresh();
+              },
+              style: ElevatedButton.styleFrom(
+                primary: Color(0xFF4D8D6E), // Set the background color
+                onPrimary: Colors.white,   // Set the text color
+              ),
+              child: Text('Refresh'),
+            ),
+
+          ],
+        )
+            : RefreshIndicator(
+          onRefresh: () async {
+            await _handleRefresh();
+          },
+          child: CircularProgressIndicator(color: Colors.green),
+        ),
       ),
     );
   }

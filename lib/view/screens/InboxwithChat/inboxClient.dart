@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:screenshot/screenshot.dart';
@@ -26,6 +27,7 @@ late Future<List<Item>> futurechatusers;
 
 List<Item> items = [];
 
+
 Future<List<Item>> fetchchatusers() async {
   try {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -45,19 +47,26 @@ Future<List<Item>> fetchchatusers() async {
       if (responseData['status'] == 'success') {
         final List<dynamic> ChatsJson = responseData['chats'];
 
+        if (ChatsJson.isEmpty) {
+          // Response is empty, return a widget indicating an empty inbox
+          return [
+            Item(
+              other_side_image: '', // Replace with appropriate values
+              other_side_firstname: '',
+              other_side_lastname: '',
+              chat_id: '',
+            )
+          ];
+        }
+
         List<Item> Chats = ChatsJson.map((json) {
-
           return Item(
-
             other_side_image: json['other_side_image'],
-            other_side_firstname:  json['other_side_firstname'],
-            other_side_lastname:  json['other_side_lastname'],
+            other_side_firstname: json['other_side_firstname'],
+            other_side_lastname: json['other_side_lastname'],
             chat_id: json['chat_id'],
-
-
           );
         }).toList();
-
 
         print(ChatsJson);
         print(Item);
@@ -72,8 +81,7 @@ Future<List<Item>> fetchchatusers() async {
   } catch (e) {
     throw Exception('Error: $e');
   }
-}
-class _InboxClientState extends State<InboxClient> {
+}class _InboxClientState extends State<InboxClient> {
 
   void initState() {
     super.initState();
@@ -158,7 +166,7 @@ class _InboxClientState extends State<InboxClient> {
                 padding: const EdgeInsets.only(
                     left: 20, right: 20, top: 40, bottom: 20),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       'Inbox',
@@ -167,22 +175,13 @@ class _InboxClientState extends State<InboxClient> {
                           fontSize: 22,
                           fontWeight: FontWeight.bold),
                     ),
-                    Container(
-                        margin: EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Colors.grey[100]),
-                        child: Icon(
-                          Icons.search,
-                          color: Colors.white,
-                        ))
                   ],
                 ),
               ),
               Container(
                 padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height / 1.286,
+                height: MediaQuery.of(context).size.height / 1.279,
                 decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
@@ -199,9 +198,25 @@ class _InboxClientState extends State<InboxClient> {
                         child: YourShimmerWidget(), // Your custom shimmer widget
                       );
                     } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Text('No data found.');
+                      return  SvgPicture.asset(
+                        'assets/images/emptyinbox.svg',
+                        width: 100.0,
+                        height: 100.0,
+                      );
+
+                    } else if (snapshot.data!.isEmpty) {
+                      return  SvgPicture.asset(
+                        'assets/images/emptyinbox.svg',
+                        width: 100.0,
+                        height: 100.0,
+                      );
+
+                    }else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return  SvgPicture.asset(
+                        'assets/images/emptyinbox.svg',
+                        width: 100.0,
+                        height: 100.0,
+                      );
                     } else {
                       // Update the items list
                        items = snapshot.data!;

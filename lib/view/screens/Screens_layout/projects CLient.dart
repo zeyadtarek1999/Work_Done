@@ -298,7 +298,62 @@ class _projectsClientState extends State<projectsClient> {
                           // If projects list is empty, reset current page to 0 and refresh
                           currentPage = 0;
                           refreshProjects();
-                          return Text('No projects found.');
+                          return               Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                  child: SvgPicture.asset(
+                                    'assets/images/nothing.svg',
+                                    width: 100.0, // Set the width you want
+                                    height: 100.0, // Set the height you want
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                  'No Projects yet',
+                                  style: GoogleFonts.encodeSans(
+                                    textStyle: TextStyle(
+                                        color: HexColor('BBC3CE'),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.normal),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 80.0),
+                                  child: Container(
+                                    width: ScreenUtil.buttonscreenwidth,
+                                    height: 45,
+                                    margin:
+                                    EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
+                                    child: ElevatedButton(
+                                      onPressed: () {},
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: HexColor('#4D8D6E'),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(30.0),
+                                          // Adjust the value to change the corner radius
+                                          side: BorderSide(
+                                              width:
+                                              130 // Adjust the value to change the width of the narrow edge
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Find a Project',
+                                        style: TextStyle(fontSize: 16.0, color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+
                         } else {
                           return ListView.builder(
                             physics: NeverScrollableScrollPhysics(),

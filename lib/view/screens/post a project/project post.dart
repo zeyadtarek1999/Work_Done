@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -13,18 +14,15 @@ import 'package:image_picker/image_picker.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../../controller/NotificationController.dart';
 import '../../../main.dart';
 import '../../../model/getprojecttypesmodel.dart';
 import '../../../model/notificationmodel.dart';
 import '../../../model/postProjectmodel.dart';
 import '../../widgets/rounded_button.dart';
-import '../Screens_layout/layoutWorker.dart';
 import '../Screens_layout/layoutclient.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
-import '../homescreen/home screenClient.dart';
+
 
 class projectPost extends StatefulWidget {
   projectPost({super.key});
@@ -85,8 +83,10 @@ class _projectPostState extends State<projectPost> {
     String title = titleController.text;
     String project_type_id = project_type_idController.text;
     String desc = descController.text;
-    String timeframe_start = timeframeControllerstart.text;
-    String timeframe_end = timeframeControllerend.text;
+    String timeframe_start = timeframeControllerstart.text.isEmpty
+        ? '0'
+        : timeframeControllerstart.text;
+    String timeframe_end = timeframeControllerend.text.isEmpty ? '10' : timeframeControllerend.text;
     String primary_image = _image!.path;
 
     if (_image == null) {
@@ -128,7 +128,8 @@ class _projectPostState extends State<projectPost> {
       );
       // Display a success toast message
       Fluttertoast.showToast(
-        msg: "Project Posted Successfully",
+        msg:             'Your project is successfully completed. Please allow 48 hours until the bidding process is finalized. Then, the ball is in your court! Select your best worker – please use reviews to finalize your consideration process.',
+
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         timeInSecForIosWeb: 1,
@@ -137,7 +138,6 @@ class _projectPostState extends State<projectPost> {
         fontSize: 16.0,
       );
 
-      // Navigate to layoutclient
 
       Get.to(layoutclient());
     } catch (error) {
@@ -654,6 +654,60 @@ class _projectPostState extends State<projectPost> {
             ]),
           ),
         ),
+      ),
+    );
+  }
+}
+class CircularRadiusPopup extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.0),
+      ),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      child: contentBox(context),
+    );
+  }
+
+  Widget contentBox(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            offset: Offset(0, 10),
+            blurRadius: 10.0,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SvgPicture.asset(
+            'assets/images/Done.svg', // Replace with your SVG path
+            width: 50.0,
+            height: 50.0,
+            color: Colors.blue, // Adjust the color as needed
+          ),
+          SizedBox(height: 16.0),
+          Text(
+            'Your project is successfully completed. Please allow 48 hours until the bidding process is finalized. Then, the ball is in your court! Select your best worker – please use reviews to finalize your consideration process.',
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 16.0),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog when the button is pressed
+            },
+            child: Text('Okay'),
+          ),
+        ],
       ),
     );
   }
