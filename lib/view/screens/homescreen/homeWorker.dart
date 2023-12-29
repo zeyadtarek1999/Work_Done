@@ -595,100 +595,177 @@ class _HomescreenworkerState extends State<Homescreenworker> {
           floatingActionButton:
           FloatingActionButton(
             onPressed: () {
-              // _navigateToNextPage(context);
+              _navigateToNextPage(context);
               },
             backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
             child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
             shape: CircleBorder(), // Make the button circular
           ),
           backgroundColor: HexColor('F0EEEE'),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 15, vertical: 11),
-                      child: Row(
-                        children: [
-                          InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () {
-                              drawerControl();
-                            },
-                            child: SvgPicture.asset(
-                              'assets/icons/menuicon.svg',
-                              width: 57.0,
-                              height: 57.0,
-                            ),
-                          ),
-                          Spacer(),
-                          Text(
-                            'Home',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors
-                                  .grey[700], // Change the color as needed
-                            ),
-                          ),
-                          Spacer(),
-                          InkWell(
-                            onTap: () {
-                              Get.to(ProfileScreenworker());
-                              // Handle the tap event here
-                            },
-                            child: CircleAvatar(
-                              radius: 27,
-                              backgroundColor: Colors.transparent,
-                              backgroundImage:
-                                  AssetImage('assets/images/profileimage.png'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 23.0,
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            'Featured Projects',
-                            style: GoogleFonts.openSans(
-                              textStyle: TextStyle(
-                                  color: Colors.grey[700],
-                                  fontSize: 23,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          Spacer(),
-                          TextButton(
-                            onPressed: () {
-                              Get.to(exploreWorker());
-                            },
-                            child: Text(
-                              'See all',
-                              style: GoogleFonts.openSans(
-                                textStyle: TextStyle(
-                                    color: HexColor('4F815A'),
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w500),
+          body: Screenshot(
+            controller:screenshotController ,
+
+            child: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 11),
+                        child: Row(
+                          children: [
+                            InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                drawerControl();
+                              },
+                              child: SvgPicture.asset(
+                                'assets/icons/menuicon.svg',
+                                width: 57.0,
+                                height: 57.0,
                               ),
                             ),
-                          )
-                        ],
+                            Spacer(),
+                            Text(
+                              'Home',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors
+                                    .grey[700], // Change the color as needed
+                              ),
+                            ),
+                            Spacer(),
+                            InkWell(
+                              onTap: () {
+                                Get.to(ProfileScreenworker());
+                                // Handle the tap event here
+                              },
+                              child: CircleAvatar(
+                                radius: 27,
+                                backgroundColor: Colors.transparent,
+                                backgroundImage:
+                                    AssetImage('assets/images/profileimage.png'),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      height: 7,
-                    ),
-                    Container(
-                      height: 300,
-                      width: double.infinity,
-                      child: FutureBuilder<List<Item>>(
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 23.0,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Featured Projects',
+                              style: GoogleFonts.openSans(
+                                textStyle: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontSize: 23,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Spacer(),
+                            TextButton(
+                              onPressed: () {
+                                Get.to(exploreWorker());
+                              },
+                              child: Text(
+                                'See all',
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                      color: HexColor('4F815A'),
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 7,
+                      ),
+                      Container(
+                        height: 300,
+                        width: double.infinity,
+                        child: FutureBuilder<List<Item>>(
+                          future: futureProjects,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Column(
+                                children: [
+                                  SizedBox(
+                                    height: 80,
+                                  ),
+                                  Center(child: CircularProgressIndicator()),
+                                  SizedBox(
+                                    height: 80,
+                                  )
+                                ],
+                              );
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else if (snapshot.data != null &&
+                                snapshot.data!.isEmpty) {
+                              // If projects list is empty, reset current page to 0 and refresh
+                              currentPage = 1;
+                              refreshProjects();
+                              return Text('No projects found.');
+                            } else {
+                              return ListView.builder(
+                                physics: BouncingScrollPhysics(),
+                                scrollDirection: Axis.horizontal,
+                                // Set shrinkWrap to true
+                                itemCount: snapshot.data!.length,
+                                itemBuilder: (context, index) {
+                                  return buildListItem(snapshot.data![index]);
+                                },
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25.0,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              'New Projects',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors
+                                    .grey[700], // Change the color as needed
+                              ),
+                            ),
+                            Spacer(),
+                            TextButton(
+                              onPressed: () {
+                                Get.to(exploreWorker());
+                              },
+                              child: Text(
+                                'See all',
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                      color: HexColor('4F815A'),
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      FutureBuilder<List<Item>>(
                         future: futureProjects,
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
@@ -714,148 +791,75 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                             return Text('No projects found.');
                           } else {
                             return ListView.builder(
-                              physics: BouncingScrollPhysics(),
-                              scrollDirection: Axis.horizontal,
-                              // Set shrinkWrap to true
+                              physics: NeverScrollableScrollPhysics(),
+                              shrinkWrap: true, // Set shrinkWrap to true
                               itemCount: snapshot.data!.length,
                               itemBuilder: (context, index) {
-                                return buildListItem(snapshot.data![index]);
+                                return buildListItemNewProjects(
+                                    snapshot.data![index]);
                               },
                             );
                           }
                         },
                       ),
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 25.0,
-                      ),
-                      child: Row(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          Text(
-                            'New Projects',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors
-                                  .grey[700], // Change the color as needed
+                          if (currentPage > 1)
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  currentPage--;
+                                  refreshProjects(); // Use refreshProjects instead of fetchProjects
+                                });
+                              },
+                              style: TextButton.styleFrom(
+                                primary: Colors.redAccent,
+                              ),
+                              child: Text(
+                                'Previous Page',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
                             ),
-                          ),
-                          Spacer(),
                           TextButton(
-                            onPressed: () {
-                              Get.to(exploreWorker());
-                            },
-                            child: Text(
-                              'See all',
-                              style: GoogleFonts.openSans(
-                                textStyle: TextStyle(
-                                    color: HexColor('4F815A'),
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w500),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                    FutureBuilder<List<Item>>(
-                      future: futureProjects,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Column(
-                            children: [
-                              SizedBox(
-                                height: 80,
-                              ),
-                              Center(child: CircularProgressIndicator()),
-                              SizedBox(
-                                height: 80,
-                              )
-                            ],
-                          );
-                        } else if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        } else if (snapshot.data != null &&
-                            snapshot.data!.isEmpty) {
-                          // If projects list is empty, reset current page to 0 and refresh
-                          currentPage = 1;
-                          refreshProjects();
-                          return Text('No projects found.');
-                        } else {
-                          return ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            shrinkWrap: true, // Set shrinkWrap to true
-                            itemCount: snapshot.data!.length,
-                            itemBuilder: (context, index) {
-                              return buildListItemNewProjects(
-                                  snapshot.data![index]);
-                            },
-                          );
-                        }
-                      },
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        if (currentPage > 1)
-                          TextButton(
-                            onPressed: () {
+                            onPressed: () async {
                               setState(() {
-                                currentPage--;
-                                refreshProjects(); // Use refreshProjects instead of fetchProjects
-                              });
-                            },
-                            style: TextButton.styleFrom(
-                              primary: Colors.redAccent,
-                            ),
-                            child: Text(
-                              'Previous Page',
-                              style: TextStyle(
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        TextButton(
-                          onPressed: () async {
-                            setState(() {
-                              currentPage++;
-                              refreshProjects();
-                            });
-
-                            // Fetch the projects for the next page
-                            List<Item>? nextPageProjects =
-                                await fetchProjects();
-
-                            // Check if the next page is empty or no data and hide the button accordingly
-                            if (!shouldShowNextButton(nextPageProjects)) {
-                              setState(() {
-                                currentPage = 1;
+                                currentPage++;
                                 refreshProjects();
                               });
-                            } else {
-                              // Update the futureProjects with the fetched projects
-                              futureProjects = Future.value(nextPageProjects);
-                            }
-                          },
-                          style: TextButton.styleFrom(
-                            primary: Colors.black45,
+
+                              // Fetch the projects for the next page
+                              List<Item>? nextPageProjects =
+                                  await fetchProjects();
+
+                              // Check if the next page is empty or no data and hide the button accordingly
+                              if (!shouldShowNextButton(nextPageProjects)) {
+                                setState(() {
+                                  currentPage = 1;
+                                  refreshProjects();
+                                });
+                              } else {
+                                // Update the futureProjects with the fetched projects
+                                futureProjects = Future.value(nextPageProjects);
+                              }
+                            },
+                            style: TextButton.styleFrom(
+                              primary: Colors.black45,
+                            ),
+                            child: Text(
+                              'Next Page',
+                              style: TextStyle(fontSize: 16),
+                            ),
                           ),
-                          child: Text(
-                            'Next Page',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 50,
-                    )
-                  ]),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 50,
+                      )
+                    ]),
+              ),
             ),
           ),
 
@@ -866,16 +870,17 @@ class _HomescreenworkerState extends State<Homescreenworker> {
   }
   final ScreenshotController screenshotController = ScreenshotController();
 
-  // void _navigateToNextPage(BuildContext context) async {
-  //   Uint8List? imageBytes = await screenshotController2.capture();
-  //
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => SupportScreen(screenshotImageBytes: imageBytes),
-  //     ),
-  //   );
-  // }
+  void _navigateToNextPage(BuildContext context) async {
+    Uint8List? imageBytes = await screenshotController.capture();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SupportScreen(screenshotImageBytes: imageBytes ,unique: unique),
+      ),
+    );
+  }
+
   void drawerControl() {
     advancedDrawerController.showDrawer();
   }
