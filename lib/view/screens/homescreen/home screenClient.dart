@@ -52,14 +52,14 @@ Future<List<Item>> fetchProjects() async {
     final String userToken = prefs.getString('user_token') ?? '';
 
     final response = await http.post(
-      Uri.parse('https://workdonecorp.com/api/get_all_projects'),
+      Uri.parse('https://www.workdonecorp.com/api/get_all_projects'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $userToken',
       },
       body: json.encode({
         'filter': 'all',
-        'page': currentPage.toString(),
+        'page': currentPage.toString(), // Ensure `currentPage` is defined somewhere
         // Include other parameters as needed
       }),
     );
@@ -71,39 +71,32 @@ Future<List<Item>> fetchProjects() async {
         final List<dynamic> projectsJson = responseData['projects'];
 
         List<Item> projects = projectsJson.map((json) {
-           client_id = json['client_id'];
-print(client_id);
           return Item(
             projectId: json['project_id'],
-            client_id: json['client_id'],
+            client_id:  json['client_id'],
             title: json['title'],
             description: json['desc'],
-            imageUrl: json['images'] != null ? json['images'] : 'https://eod-grss-ieee.com/uploads/science/1655561736_noimg_-_Copy.png',
+            imageUrl: json['images'] != null ? List<String>.from(json['images']) : [], // This creates a list from the JSON array
             postedFrom: json['posted_from'],
             client_firstname: json['client_firstname'],
             liked: json['liked'],
-            numbers_of_likes: json['numbers_of_likes'],
+            numbers_of_likes:  json['numbers_of_likes'],
             isLiked: json['liked'],
-
           );
         }).toList();
 
-        print(client_id);
-
-        print(projectsJson);
-        print(Item);
-        print(projects);
         return projects;
       } else {
         throw Exception('Failed to load data from API: ${responseData['msg']}');
       }
     } else {
-      throw Exception('Failed to load data from API');
+      throw Exception('Failed to load data from API: Status code ${response.statusCode}');
     }
   } catch (e) {
-    throw Exception('Error: $e');
+    throw Exception('Error retrieving project data: $e');
   }
 }
+
 final StreamController<String> _likedStatusController = StreamController<String>();
 
 
@@ -870,17 +863,35 @@ class _HomeclientState extends State<Homeclient> {
     return GestureDetector(onTap: (){Get.to(bidDetailsClient(projectId: item.projectId));},
       child: Stack(
             children: [
-              Container(
-                height: 170,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(30),
-                  child: Image.network(
-                    item.imageUrl,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
+              CarouselSlider(
+                options: CarouselOptions(
+                  height: 170,
+                  aspectRatio: 16/9,
+                  viewportFraction: 1.0,
+                  initialPage: 0,
+                  enableInfiniteScroll: true,
+                  reverse: false,
+                  autoPlay: false,
+                  autoPlayInterval: Duration(seconds: 3),
+                  autoPlayAnimationDuration: Duration(milliseconds: 800),
+                  autoPlayCurve: Curves.fastOutSlowIn,
+                  scrollDirection: Axis.horizontal,
                 ),
+                items: item.imageUrl.map((imageUrl) {
+                  return Builder(
+                    builder: (BuildContext context) {
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          width: MediaQuery.of(context).size.width,
+                          height: double.infinity,
+                        ),
+                      );
+                    },
+                  );
+                }).toList(),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -1065,11 +1076,20 @@ class _HomeclientState extends State<Homeclient> {
                 Container(
                   width: double.infinity,
                   height: 170.0,
-                  decoration: BoxDecoration(
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(20.0),
-                    image: DecorationImage(
-                      image: NetworkImage(item.imageUrl)  , // Use the image URL from the fetched data
-                      fit: BoxFit.cover,
+                    child: PageView.builder(
+                      pageSnapping: true
+                      ,
+
+                      itemCount: item.imageUrl.length, // The count of total images
+                      controller: PageController(viewportFraction: 1), // PageController for full-page scrolling
+                      itemBuilder: (_, index) {
+                        return Image.network(
+                          item.imageUrl[index], // Access each image by index
+                          fit: BoxFit.cover, // Cover the entire area of the container
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -1337,7 +1357,7 @@ class Item {
   final String client_firstname;
   late  String liked;
   final String description;
-  final String imageUrl;
+  final List<String> imageUrl;
    int numbers_of_likes;
   final String postedFrom;
   String isLiked;

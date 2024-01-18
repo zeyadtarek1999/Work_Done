@@ -14,6 +14,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_player/video_player.dart';
 import '../../../controller/NotificationController.dart';
 import '../../../main.dart';
 import '../../../model/getprojecttypesmodel.dart';
@@ -32,19 +33,76 @@ class projectPost extends StatefulWidget {
 }
 
 class _projectPostState extends State<projectPost> {
-  File? _image;
-  final picker = ImagePicker();
+
   String profile_pic = '';
   String project_type_id = '';
+  List<XFile>? _videos = [];
+  List<File?> _images = [];
+  VideoPlayerController? _videoController;
 
+  final picker = ImagePicker();
   Future<void> _getImageFromGallery() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final List<XFile>? pickedFiles = await picker.pickMultiImage();
 
     setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
+      if (pickedFiles != null && pickedFiles.isNotEmpty) {
+        for (var pickedFile in pickedFiles) {
+          _images.add(File(pickedFile.path));
+        }
       }
     });
+  }
+  bool _isPlaying = false;
+
+  Future<void> _pickVideo() async {
+    final XFile? video = await ImagePicker().pickVideo(source: ImageSource.gallery);
+    if (video != null) {
+      _videoController?.dispose();
+      _videoController = VideoPlayerController.file(File(video.path))
+        ..initialize().then((_) {
+          // Since we don't want autoplay, we're not calling _videoController.play() here.
+          setState(() {
+            _videos?.add(video); // Add the video to the list and refresh the UI
+          });
+        });
+    }
+  }
+
+// This function is used to control video playback
+  void _toggleVideo() {
+    if (_videoController != null) {
+      if (_isPlaying) {
+        _videoController!.pause();
+      } else {
+        _videoController!.play();
+      }
+      setState(() {
+        _isPlaying = !_isPlaying;
+      });
+    }
+  }  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
+  }
+  void _showVideoDurationTooLongMessage(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Video Too Long'),
+          content: Text('Please select a video that is 20 seconds or less.'),
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   late String userToken;
@@ -87,9 +145,8 @@ class _projectPostState extends State<projectPost> {
         ? '0'
         : timeframeControllerstart.text;
     String timeframe_end = timeframeControllerend.text.isEmpty ? '10' : timeframeControllerend.text;
-    String primary_image = _image!.path;
 
-    if (_image == null) {
+    if (_images.isEmpty) {
       // Show a toast message and return early
       Fluttertoast.showToast(
         msg: "Please select an image",
@@ -102,24 +159,38 @@ class _projectPostState extends State<projectPost> {
       );
       return;
     }
+    // if (_videos!.isEmpty) {
+    //   Fluttertoast.showToast(
+    //     msg: "Please select a video",
+    //     toastLength: Toast.LENGTH_SHORT,
+    //     gravity: ToastGravity.BOTTOM,
+    //     timeInSecForIosWeb: 1,
+    //     backgroundColor: Colors.red,
+    //     textColor: Colors.white,
+    //     fontSize: 16.0,
+    //   );
+    //   return;
+    // }
 
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       userToken = prefs.getString('user_token') ?? '';
-
-      await PostProjectApi.PostnewProject(
+      List<String> imagePaths = _images.map((image) => image!.path).toList();
+      List<String> videoPaths = _videos!.map((video) => video.path).toList();
+print(imagePaths);
+      var response = await PostProjectApi.postNewProject(
         token: userToken,
-        project_type_id: selectedProjectType != null
-            ? selectedProjectType!['id'] ?? "1"
-            : "1",
+        projectTypeId:  project_type_id,
         title: title,
-        desc: desc,
-        timeframe_start: timeframe_start,
-        timeframe_end: timeframe_end,
-        primary_image: primary_image,
+        description:  desc,
+        timeframeStart: timeframe_start,
+        timeframeEnd:   timeframe_end,
+        imagesPaths: imagePaths,
+        videosPaths: imagePaths,
+        // videosPaths: videoPaths, // Add this to include videos in the API call
       );
 
-      print(_image!.path);
+
       print(userToken);
       AwesomeNotifications().createNotification(
         content:
@@ -144,10 +215,8 @@ class _projectPostState extends State<projectPost> {
       // Print the full error, including the server response
       print('Error during post project: $error');
       // Display a snackbar or toast with the error message
-      print(_image!.path);
       print(timeframe_start);
       print(timeframe_end);
-      print(primary_image);
       print(desc);
       print(userToken);
       print(title);
@@ -249,7 +318,7 @@ class _projectPostState extends State<projectPost> {
               Row(
                 children: [
                   Text(
-                    _image == null ? 'Upload Photo' : 'Selected Photo',
+                    _images == null ? 'Upload Photo' : 'Selected Photo',
                     style: GoogleFonts.poppins(
                       textStyle: TextStyle(
                         color: HexColor('1A1D1E'),
@@ -273,7 +342,7 @@ class _projectPostState extends State<projectPost> {
                         SnackBar(
                           backgroundColor: Colors.red,
                           content: Text(
-                            _image == null
+                            _images == null
                                 ? 'Upload photo is Required'
                                 : 'Selected photo information',
                             style:
@@ -288,72 +357,192 @@ class _projectPostState extends State<projectPost> {
               SizedBox(
                 height: 7,
               ),
-              GestureDetector(
-                onTap: () {
-                  _getImageFromGallery(); // Call the function when tapped
-                },
-                child: Center(
-                  child: Container(
-                    height: _image == null ? 150 : null,
-                    // Adjust height based on image selection
-                    width: 350,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: Colors.white,
-                    ),
-                    child: _image == null
-                        ? Column(
+                  GestureDetector(
+                    onTap: () {
+                      _getImageFromGallery(); // Call the function when tapped
+                    },
+                    child: Center(
+                      child: Container(
+                        height: 150, // Fixed height for the container
+                        width: 350,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          color: Colors.white,
+                        ),
+                        child: _images.isEmpty
+                            ? Center(
+                          // Show instructions if no images are selected
+                          child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                'Upload Here',
-                                style: GoogleFonts.poppins(
-                                  textStyle: TextStyle(
-                                    color: HexColor('4D8D6E'),
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0, vertical: 5),
-                                child: Center(
-                                  child: Text(
-                                    'Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!',
-                                    style: GoogleFonts.poppins(
-                                      textStyle: TextStyle(
-                                        color: HexColor('888C8A'),
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 5,
-                              ),
                               Icon(
                                 Icons.file_upload,
-                                color: HexColor('4D8D6E'),
+                                color: Theme.of(context).primaryColor,
                                 size: 30,
                               ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Upload Here',
+                                style: TextStyle(
+                                  color: Theme.of(context).primaryColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                child: Text(
+                                  'Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
                             ],
-                          )
-                        : Image.file(
-                            _image!,
-                            height: 150,
-                            width:
-                                150, // Set width and height to make it circular
-                            fit: BoxFit.fill,
                           ),
+                        )
+                            : Scrollbar(
+                          controller: ScrollController(),
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _images.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return Dialog(
+                                        child: InteractiveViewer(
+                                          panEnabled: true, // Set it to false to prevent panning.
+                                          boundaryMargin: EdgeInsets.all(20),
+                                          minScale: 0.5,
+                                          maxScale: 2,
+                                          child: Image.file(_images[index]!),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                    left: 8.0,
+                                    right: index == _images.length - 1 ? 8.0 : 0,
+                                  ),
+                                  child: Image.file(
+                                    _images[index]!,
+                                    height: 150,
+                                    width: 150,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              SizedBox(
+                  SizedBox(
                 height: 14,
               ),
+    //               Row(
+    //                 children: [
+    //                   Text(
+    //                     _videos?.isEmpty ?? true ? 'Upload Video' : 'Selected Video', // Corrected conditional expression
+    //                     style: GoogleFonts.poppins(
+    //                       textStyle: TextStyle(
+    //                         color: HexColor('1A1D1E'),
+    //                         fontSize: 17,
+    //                         fontWeight: FontWeight.w500,
+    //                       ),
+    //                     ),
+    //                   ),
+    //                   SizedBox(width: 6),
+    //                   IconButton(
+    //                     icon: Icon(
+    //                       Icons.info_outline,
+    //                       color: Colors.grey,
+    //                       size: 22,
+    //                     ),
+    //                     onPressed: () {
+    //                       // Show a Snackbar with the required text
+    //                       ScaffoldMessenger.of(context).showSnackBar(
+    //                         SnackBar(
+    //                           backgroundColor: Colors.red,
+    //                           content: Text(
+    //                             _videos?.isEmpty ?? true // Corrected conditional expression
+    //                                 ? 'Upload video is required'
+    //                                 : 'Selected video information',
+    //                             style: TextStyle(color: Colors.white),
+    //                           ),
+    //                         ),
+    //                       );
+    //                     },
+    //                   ),
+    //                 ],
+    //               ),
+    //               SizedBox(height: 7),
+    //       GestureDetector(
+    //         onTap: _pickVideo,
+    //         child: Center(
+    //           child: Container(
+    //             height: 150,
+    //             width: 350,
+    //             decoration: BoxDecoration(
+    //               borderRadius: BorderRadius.circular(15),
+    //               color: Colors.white,
+    //             ),
+    //             child: _videoController == null ||!_videoController!.value.isInitialized
+    //           ? // Display upload message if video is not picked or initialized
+    //           Center(
+    //           child: Column(
+    //             mainAxisAlignment: MainAxisAlignment.center,
+    //             children: [
+    //               Icon(
+    //                 Icons.video_call,
+    //                 color: Theme.of(context).primaryColor,
+    //                 size: 30,
+    //               ),
+    //               SizedBox(height: 8),
+    //               Text(
+    //                 'Upload Video Here',
+    //                 style: TextStyle(
+    //                   color: Theme.of(context).primaryColor,
+    //                   fontSize: 16,
+    //                   fontWeight: FontWeight.bold,
+    //                 ),
+    //               ),
+    //               SizedBox(height: 8),
+    //               Text(
+    //                 'Upload a video that shows your project in detail to help bidders provide an accurate quote!',
+    //                 textAlign: TextAlign.center,
+    //                 style: TextStyle(
+    //                   color: Colors.grey[600],
+    //                   fontSize: 12,
+    //                 ),
+    //               ),
+    //             ],
+    //           ),
+    //         )
+    //             : // If the video is picked and initialized, wrap it with a GestureDetector to play/pause the video
+    //         GestureDetector(
+    //         onTap: _toggleVideo,
+    //         child: AspectRatio(
+    //           aspectRatio: _videoController!.value.aspectRatio,
+    //           child: VideoPlayer(_videoController!), // Display the video player
+    //         ),
+    //       ),
+    //     ),
+    //   ),
+    // ),
+    //
+                  SizedBox(
+                    height: 14,
+                  ),
               Row(
                 children: [
                   Text(

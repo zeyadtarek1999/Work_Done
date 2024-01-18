@@ -69,6 +69,7 @@ dependencies:
   pin_code_fields: ^8.0.1
   easy_date_timeline: ^1.0.2
   flutter_vector_icons: ^2.0.0
+  video_player: ^2.8.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
