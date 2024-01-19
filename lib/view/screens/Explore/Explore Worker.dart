@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -68,14 +69,14 @@ class _exploreWorkerState extends State<exploreWorker> {
               projectId: json['project_id'],
               title: json['title'],
               description: json['desc'],
-              imageUrl: json['images'] != null
-                  ? json['images']
-                  : 'https://eod-grss-ieee.com/uploads/science/1655561736_noimg_-_Copy.png',
+              imageUrl: json['images'] != null ? List<String>.from(json['images']) : [], // This creates a list from the JSON array
+
               postedFrom: json['posted_from'],
               client_firstname: json['client_firstname'],
               liked: json['liked'],
               numbers_of_likes: json['numbers_of_likes'],
               isLiked: json['liked'],
+              lowest_bids: json['lowest_bid'] ?? 'No Bids', // Assign "No Bids" if null
             );
           }).toList();
 
@@ -452,16 +453,37 @@ class _exploreWorkerState extends State<exploreWorker> {
         ),
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              height: 170.0,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-                image: DecorationImage(
-                  image: NetworkImage(item.imageUrl), // Use the image URL from the fetched data
-                  fit: BoxFit.cover,
-                ),
+            CarouselSlider(
+              options: CarouselOptions(
+                pageSnapping: true,
+
+                height: 170,
+                aspectRatio: 16/9,
+                viewportFraction: 1.0,
+                initialPage: 0,
+                enableInfiniteScroll: true,
+                reverse: false,
+                autoPlay: false,
+                autoPlayInterval: Duration(seconds: 3),
+                autoPlayAnimationDuration: Duration(milliseconds: 800),
+                autoPlayCurve: Curves.fastOutSlowIn,
+                scrollDirection: Axis.horizontal,
               ),
+              items: item.imageUrl.map((imageUrl) {
+                return Builder(
+                  builder: (BuildContext context) {
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        width: MediaQuery.of(context).size.width,
+                        height: double.infinity,
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
             ),
             SizedBox(height: 10.0),
             Padding(
@@ -533,19 +555,60 @@ class _exploreWorkerState extends State<exploreWorker> {
                     ],
                   ),
                   SizedBox(height: 6),
-                  Text.rich(
-                    TextSpan(
-                      children: _buildTextSpans(item.description, searchController.text),
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.openSans(
-                      textStyle: TextStyle(
-                        color: HexColor('393B3E'),
-                        fontSize: 15,
-                        fontWeight: FontWeight.normal,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            children: _buildTextSpans(item.description, searchController.text),
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.openSans(
+                            textStyle: TextStyle(
+                              color: HexColor('393B3E'),
+                              fontSize: 15,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                      SizedBox(width: 7,),
+                      Column(
+                        children: [
+                          Text(
+                            'lowest bid',
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: HexColor('393B3E'), // Adjust color as needed
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 6,),
+                           item.lowest_bids != 'No Bids'
+                              ? Text(
+                            item.lowest_bids.toString(), // Use 'N/A' or any preferred default text
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: HexColor('393B3E'),
+                                fontSize: 15,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          )
+                              : Text(
+                            'No Bids Yet',
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                   SizedBox(height: 9),
                   Row(
@@ -606,13 +669,15 @@ class Item {
 
   final String liked;
   final String description;
-  final String imageUrl;
+  final List<String> imageUrl;
   final int numbers_of_likes;
   final String postedFrom;
   String isLiked;
+  dynamic? lowest_bids;
 
   Item({
     required this.projectId,
+    required this.lowest_bids,
     required this.title,
     required this.client_id,
     required this.client_firstname,

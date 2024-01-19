@@ -82,6 +82,7 @@ Future<List<Item>> fetchProjects() async {
             liked: json['liked'],
             numbers_of_likes:  json['numbers_of_likes'],
             isLiked: json['liked'],
+            lowest_bids: json['lowest_bid'] ?? 'No Bids', // Assign "No Bids" if null
           );
         }).toList();
 
@@ -1250,20 +1251,62 @@ class _HomeclientState extends State<Homeclient> {
                     ],
                   ),
                   SizedBox(height: 6),
-                  Text.rich(
-                    TextSpan(
-                      children: _buildTextSpans(item.description, searchController.text),
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.openSans(
-                      textStyle: TextStyle(
-                        color: HexColor('393B3E'),
-                        fontSize: 15,
-                        fontWeight: FontWeight.normal,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            children: _buildTextSpans(item.description, searchController.text),
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.openSans(
+                            textStyle: TextStyle(
+                              color: HexColor('393B3E'),
+                              fontSize: 15,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                      SizedBox(width: 7,),
+                      Column(
+                        children: [
+                          Text(
+                            'lowest bid',
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: HexColor('393B3E'), // Adjust color as needed
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 6,),
+                          item.lowest_bids != 'No Bids'
+                              ? Text(
+                            item.lowest_bids.toString() , // Use 'N/A' or any preferred default text
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: HexColor('393B3E'),
+                                fontSize: 15,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          )
+                              : Text(
+                            'No Bids Yet',
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+,
                   SizedBox(height: 9),
                   Row(
                     children: [
@@ -1361,10 +1404,13 @@ class Item {
    int numbers_of_likes;
   final String postedFrom;
   String isLiked;
+   dynamic? lowest_bids;
+
 
   Item({
     required this.projectId,
     required this.client_id,
+    required this.lowest_bids,
     required this.title,
     required this.client_firstname,
     required this.description,
@@ -1373,6 +1419,6 @@ class Item {
     required this.imageUrl,
     required this.postedFrom,
     required this. isLiked,
-  }) ;
+  }): assert(lowest_bids != null);
 }
 

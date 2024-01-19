@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:action_slider/action_slider.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_date_timeline/easy_date_timeline.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -69,56 +70,81 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
   double minBound = 0;
 
   double upperBound = 1.0;
+  Future<void> scheduleProject(int projectId, String selectedDay, String selectedInterval) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String userToken = prefs.getString('user_token') ?? '';
+    final url = Uri.parse('https://www.workdonecorp.com/api/schedule_project'); // Replace with actual URL
+    final body = jsonEncode({
+      'project_id': projectId,
+      'selected_day': selectedDay.toString(),
+      'selected_interval': selectedInterval.toString()
+    });
 
-  Future<ProjectData> fetchProjectDetails() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String userToken = prefs.getString('user_token') ?? '';
-
-      final response = await http.post(
-        Uri.parse('https://workdonecorp.com/api/get_project_details'),
+    final response = await http.post(
+        url,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $userToken',
         },
-        body: jsonEncode({
-          'project_id': widget.projectId.toString(),
-        }),
-      );
+        body: body
+    );
 
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      print(responseData);
-      print(widget.projectId);
+    if (response.statusCode == 200) {
+      // Handle successful response
+      await fetchProjectDetails(projectId); // Call fetchProjectDetails here
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => bidDetailsClient(projectId: projectId)));
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic>? projectDataJson = responseData['data'];
-        final Map<String, dynamic>? clientDataJson =
-            responseData['client_data'];
-        final Map<String, dynamic>? accessDataJson = responseData['access'];
-
-        if (projectDataJson != null &&
-            clientDataJson != null &&
-            accessDataJson != null) {
-          return ProjectData.fromJson(
-              projectDataJson, clientDataJson, accessDataJson);
-        } else {
-          throw Exception(
-              'No project data or client data available in the response');
-        }
-      } else {
-        throw Exception(
-            'Failed to load project details. Status code: ${response.statusCode}');
-      }
-    } catch (error) {
-      print('Error fetching project details: $error');
-      throw error; // rethrow the error to notify the caller
+      print('Schedule sent successfully!');
+    } else {
+      // Handle error
+      print('Schedule failed with status: ${response.statusCode}');
+      print('Response body: ${response.body}');
     }
   }
+
+  Future<ProjectData> fetchProjectDetails(int projectId) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String userToken = prefs.getString('user_token') ?? '';
+
+    final response = await http.post(
+      Uri.parse('https://www.workdonecorp.com/api/get_project_details'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $userToken',
+      },
+      body: jsonEncode({
+        'project_id': projectId.toString(),
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      // Checking if the response body contains 'status' and if it's equal to 'success'.
+      if (responseData != null && responseData['status'] == 'success') {
+        // Ensure that 'base_data' exists before trying to create a ProjectData object.
+        if (responseData.containsKey('base_data')) {
+          return ProjectData.fromJson(responseData);
+        } else {
+          throw Exception('base_data is missing from the response.');
+        }
+      } else {
+        // This else block catches cases where 'status' isn't 'success'.
+        final message = responseData != null ? responseData['message'] : 'Unknown error';
+        throw Exception('Failed to load project details from API: $message');
+      }
+    } else {
+      // The statusCode is not 200, handle the error here.
+      final message = response.body.isNotEmpty ? json.decode(response.body)['message'] : 'No error message provided';
+      throw Exception('Failed to load project details. Status code: ${response.statusCode}, Message: $message');
+    }
+  }
+
 
   @override
   void initState() {
     super.initState();
-    projectDetailsFuture = fetchProjectDetails();
+    int projectId =widget.projectId;
+    projectDetailsFuture = fetchProjectDetails(projectId); // Use the projectId in the call
     scrollController = ScrollController();
     scrollController.addListener(() {
       if (scrollController.offset >=
@@ -180,7 +206,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
           backgroundColor: HexColor('FFFFFF'),
           systemOverlayStyle: SystemUiOverlayStyle.dark,
           elevation: 0,
-          toolbarHeight: 67,
+          toolbarHeight: 60,
           leading: IconButton(
             onPressed: () {
               Get.back();
@@ -218,7 +244,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                       return Center(child: Text('No data available'));
                     } else {
                       ProjectData projectData = snapshot.data!;
-                      currentbid = projectData.lowest_bid.toString();
+                      currentbid = projectData.lowestBid.toString();
                       client_id = projectData.clientData!.clientId.toString();
                       projectimage = projectData.images.toString();
                       ;
@@ -226,25 +252,41 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                       ;
                       projectdesc = projectData.desc.toString();
                       ;
-                      owner = projectData.access!.owner.toString();
+                      owner = projectData.clientData!.firstname.toString();
                       return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: double.infinity,
-                              height: 210.0,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(25.0),
-                                image: DecorationImage(
-                                  image: NetworkImage(
-                                    projectData.images != null
-                                        ? projectData.images
-                                        : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                  ),
-                                  // Replace with your image URL
-                                  fit: BoxFit.cover,
-                                ),
+                            CarouselSlider(
+                              options: CarouselOptions(
+                                pageSnapping: true,
+
+                                height: 210,
+                                aspectRatio: 16/9,
+                                viewportFraction: 1.0,
+                                initialPage: 0,
+                                enableInfiniteScroll: true,
+                                reverse: false,
+                                autoPlay: false,
+                                autoPlayInterval: Duration(seconds: 3),
+                                autoPlayAnimationDuration: Duration(milliseconds: 800),
+                                autoPlayCurve: Curves.fastOutSlowIn,
+                                scrollDirection: Axis.horizontal,
                               ),
+                              items: projectData.images.map((images) {
+                                return Builder(
+                                  builder: (BuildContext context) {
+                                    return ClipRRect(
+                                      borderRadius: BorderRadius.circular(30),
+                                      child: Image.network(
+                                        images,
+                                        fit: BoxFit.cover,
+                                        width: MediaQuery.of(context).size.width,
+                                        height: double.infinity,
+                                      ),
+                                    );
+                                  },
+                                );
+                              }).toList(),
                             ),
                             SizedBox(
                               height: 12,
@@ -260,7 +302,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                   ),
                                   child: Center(
                                     child: Text(
-                                      '${projectData.project_type}',
+                                      '${projectData.projectType}',
                                       style: GoogleFonts.roboto(
                                         textStyle: TextStyle(
                                           color: HexColor('FFFFFF'),
@@ -279,7 +321,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                 ),
                                 SizedBox(width: 5),
                                 Text(
-                                  '${projectData.posted_from}',
+                                  '${projectData.postedFrom}',
                                   style: GoogleFonts.openSans(
                                     textStyle: TextStyle(
                                       color: HexColor('777778'),
@@ -414,7 +456,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                             width: 3,
                                           ),
                                           Text(
-                                            '${projectData.lowest_bid?.toString() ?? "No Bid"}',
+                                            '${projectData.lowestBid?.toString() ?? "No Bid"}',
                                             style: GoogleFonts.openSans(
                                               textStyle: TextStyle(
                                                 color: HexColor('4D8D6E'),
@@ -487,91 +529,103 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                             SizedBox(
                               height: 17,
                             ),
-                            DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.5), // Set the desired opacity and color
-                                borderRadius: BorderRadius.circular(12), // Optional: Set border radius
-                              ),
-                              child: Container(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 12),
-                                  child: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 28,
-                                        backgroundColor: Colors.transparent,
-                                        backgroundImage: NetworkImage('http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'),
-                                      ),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              GestureDetector(
-                                                onTap: () {
-                                                  // Navigate to worker profile page
-                                                  // You can replace this with your navigation logic
-                                                },
-                                                child: Text(
-                                                  'Ahmed',
-                                                  style: GoogleFonts.openSans(
-                                                    textStyle: TextStyle(
-                                                      color: HexColor('9DA2A3'),
-                                                      fontSize: 17,
-                                                      fontWeight: FontWeight.normal,
+
+                            //accepted worker
+                            Visibility(
+                              visible: projectData.selectworkerbid.worker_firstname != '', // Check if select_worker_bid exists
+
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.withOpacity(0.5), // Set the desired opacity and color
+                                  borderRadius: BorderRadius.circular(12), // Optional: Set border radius
+                                ),
+                                child: Container(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 12),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 28,
+                                          backgroundColor: Colors.transparent,
+                                          backgroundImage:    NetworkImage(
+                                            projectData.selectworkerbid.worker_profile_pic != null && projectData.selectworkerbid.worker_profile_pic.isNotEmpty
+                                                ? projectData.selectworkerbid.worker_profile_pic
+                                                : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // Use default if empty
+                                          ),
+
+                                        ),
+                                        SizedBox(width: 15,),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    // Navigate to worker profile page
+                                                    // You can replace this with your navigation logic
+                                                  },
+                                                  child: Text(
+                                                    projectData.selectworkerbid.worker_firstname,
+                                                    style: GoogleFonts.openSans(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('4A4949'),
+                                                        fontSize: 17,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                              SizedBox(
-                                                width: 10,
-                                              ),
-                                              Icon(
-                                                Icons.star,
-                                                color: HexColor('F3ED51'),
-                                                size: 20,
-                                              ),
-                                              SizedBox(
-                                                width: 2,
-                                              ),
-                                              Text('7'),
-                                            ],
-                                          ),
-                                          SizedBox(
-                                            height: 4,
-                                          ),
-                                          Row(
-                                            children: [
-                                              Text(
-                                                '\$',
-                                                style: GoogleFonts.openSans(
-                                                  textStyle: TextStyle(
-                                                    color: HexColor('353B3B'),
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.w500,
+                                                SizedBox(
+                                                  width: 10,
+                                                ),
+                                                Icon(
+                                                  Icons.star,
+                                                  color: HexColor('F3ED51'),
+                                                  size: 20,
+                                                ),
+                                                SizedBox(
+                                                  width: 2,
+                                                ),
+                                                Text('7'),
+                                              ],
+                                            ),
+                                            SizedBox(
+                                              height: 4,
+                                            ),
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  '\$',
+                                                  style: GoogleFonts.openSans(
+                                                    textStyle: TextStyle(
+                                                      color: HexColor('353B3B'),
+                                                      fontSize: 18,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                              SizedBox(
-                                                width: 3,
-                                              ),
-                                              Text(
-                                                '23',
-                                                style: GoogleFonts.openSans(
-                                                  textStyle: TextStyle(
-                                                    color: HexColor('353B3B'),
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.w500,
+                                                SizedBox(
+                                                  width: 3,
+                                                ),
+                                                Text(
+                                                  projectData.selectworkerbid.amount.toString(),
+                                                  style: GoogleFonts.openSans(
+                                                    textStyle: TextStyle(
+                                                      color: HexColor('353B3B'),
+                                                      fontSize: 18,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                      Spacer(),
-                                    ],
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        Spacer(),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -579,7 +633,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
 
                             SizedBox(height: 20,),
                             FutureBuilder<ProjectData>(
-                              future: fetchProjectDetails(),
+                              future: fetchProjectDetails(widget.projectId),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
@@ -604,10 +658,10 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                 } else {
                                   ProjectData projectData = snapshot.data!;
 
-                                  if (projectData.access!.project_status ==
-                                          'bid_accepted' &&
-                                      projectData.access!.owner == 'true') {
-                                    if (showAdditionalContent == false) {
+                                  if ( projectData.pageContent.currentUserRole ==
+                                      'client'){
+                                    if (projectData.status ==
+                                    'bid_accepted' ) {
                                       return Padding(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 12.0),
@@ -880,12 +934,11 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                                             width: 120, // Set the desired width
                                                                             child: ElevatedButton(
                                                                               onPressed: () {
-                                                                                setState(
-                                                                                        () {
-                                                                                          showAdditionalContent =true;
-
-                                                                                        });
-                                                                                print(showAdditionalContent);
+                                                                                setState(() async {
+                                                                                  await scheduleProject(widget.projectId,
+                                                                                      DateFormat('EEEE,  d, MM, yyyy').format(_selectedDate.toLocal()).toString(),
+                                                                                      "${formatTime(_values.start).toString() +' - ' + formatTime(_values.end).toString()}");
+                                                                                });
 
                                                                               },
                                                                               style: ElevatedButton.styleFrom(
@@ -952,13 +1005,13 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                       onPressed: () {
                                                         Get.to(ChatScreen(
                                                           chatId: projectData
-                                                              .access!.chat_ID,
+                                                              .pageaccessdata!.chat_ID,
                                                           currentUser:
                                                               projectData
                                                                   .clientData!
                                                                   .firstname,
                                                           secondUserName:
-                                                              'worker',
+                                                              projectData.selectworkerbid.worker_firstname,
                                                           userId: projectData
                                                               .clientData!
                                                               .clientId
@@ -1134,9 +1187,9 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                         ),
                                                       ),
 
-
+SizedBox(width: 5,),
                                                       Text(
-                                                        ' ${DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate.toLocal())}',
+                                                        '${projectData.pageContent.selectedDate}',
                                                         style: GoogleFonts.roboto(
                                                           textStyle: TextStyle(
                                                             color: Colors.grey [800],
@@ -1166,7 +1219,7 @@ SizedBox(height: 8,),
                                                       ),
                                                     ),
                                                     Text(
-                                                      ' ${formatTime(_values.start)} - ${formatTime(_values.end)}',
+                                                      '${projectData.pageContent.selectedInterval}',
                                                       style: GoogleFonts.roboto(
                                                         textStyle: TextStyle(
                                                           color: Colors.grey [800],
@@ -1183,19 +1236,15 @@ SizedBox(height: 8,),
                                               ),
 SizedBox(width: 3,),
                                               ElevatedButton(
-                                                onPressed: () {
 
+                                                onPressed: (projectData.pageContent.change == 'mftoo7')
+                                                    ? () {
                                                   showModalBottomSheet(
                                                     context: context,
-                                                    isScrollControlled:
-                                                    true,
-                                                    builder: (BuildContext
-                                                    context) {
+                                                    isScrollControlled: true,
+                                                    builder: (BuildContext context) {
                                                       return StatefulBuilder(
-                                                        builder: (BuildContext
-                                                        context,
-                                                            StateSetter
-                                                            setState) {
+                                                        builder: (BuildContext context, StateSetter setState) {
                                                           return Container(
                                                             padding:
                                                             EdgeInsets
@@ -1442,12 +1491,11 @@ SizedBox(width: 3,),
                                                                         width: 120, // Set the desired width
                                                                         child: ElevatedButton(
                                                                           onPressed: () {
-                                                                            setState(
-                                                                                    () {
-                                                                                  showAdditionalContent =true;
-
-                                                                                });
-                                                                            print(showAdditionalContent);
+                                                                            setState(() async {
+                                                                              await scheduleProject(widget.projectId,
+                                                                                  DateFormat('EEEE,  d, MM, yyyy').format(_selectedDate.toLocal()).toString(),
+                                                                                  "${formatTime(_values.start).toString() +' - ' + formatTime(_values.end).toString()}");
+                                                                            });
 
                                                                           },
                                                                           style: ElevatedButton.styleFrom(
@@ -1475,18 +1523,23 @@ SizedBox(width: 3,),
                                                       );
                                                     },
                                                   );
-                                                },
+                                                }
+                                                    : null, // Set onPressed to null when the condition is false
                                                 style: ElevatedButton.styleFrom(
-                                                  primary: HexColor('34446F'),
+                                                  primary:  projectData.pageContent.change == 'maftoo7' ?HexColor('34446F'): HexColor('34446F').withOpacity(0.5),
                                                   onPrimary: Colors.white,
                                                   elevation: 0,
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius: BorderRadius.circular(12),
                                                   ),
                                                 ),
-                                                child: Text(
-                                                  'Change',
-                                                  style: TextStyle(fontSize: 10), // Adjust the fontSize as needed
+                                                child: Opacity(
+                                                  opacity: (projectData.pageContent.change == 'mftoo7') ? 1.0 : 1.0, // Adjust the opacity based on the condition
+                                                  child: Text(
+                                                    'Change',
+
+                                                    style: TextStyle(fontSize: 10 ,color: Colors.white),
+                                                  ),
                                                 ),
                                               ),
 
@@ -1506,7 +1559,7 @@ SizedBox(width: 3,),
                                                     onPressed: () {
                                                       Get.to(ChatScreen(
                                                         chatId: projectData
-                                                            .access!.chat_ID,
+                                                            .pageaccessdata!.chat_ID,
                                                         currentUser:
                                                             projectData
                                                                 .clientData!
@@ -1612,151 +1665,150 @@ SizedBox(width: 3,),
                                             children: [
                                               Expanded(
                                                 child: ElevatedButton(
-                                                  onPressed: accessprojectcomplete == true || disableverfication== true
+                                                  onPressed: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7')
                                                       ? () {
-                                                    showDialog(
-                                                      context: context,
-                                                      builder: (context) => ModernPopup(
-                                                        text: 'press on project complete to generate verfication code to access it .',
-                                                      ),
-                                                    );
-
-                                }
-                                    : () {    showModalBottomSheet(
-                                                    context: context,
-                                                    isScrollControlled: true,
-                                                    builder: (BuildContext context) {
-                                                      return StatefulBuilder(
-                                                        builder: (BuildContext context, StateSetter setState) {
-                                                          return Container(
-                                                            padding: EdgeInsets.all(16.0),
-                                                            child: Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              mainAxisSize: MainAxisSize.min,
-                                                              children: [
-                                                                Center(
-                                                                  child: Text(
-                                                                    'Your ',
-                                                                    style: GoogleFonts.roboto(
-                                                                      textStyle: TextStyle(
-                                                                        color: Colors.black,
-                                                                        fontSize: 27,
-                                                                        fontWeight: FontWeight.bold,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                Center(
-                                                                  child: Text(
-                                                                    'Verification Code',
-                                                                    style: GoogleFonts.roboto(
-                                                                      textStyle: TextStyle(
-                                                                        color: Colors.black,
-                                                                        fontSize: 27,
-                                                                        fontWeight: FontWeight.bold,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                SizedBox(height: 25),
-                                                                Center(
-                                                                  child: Text(
-                                                                    'Worker Must take this code to',
-                                                                    style: GoogleFonts.roboto(
-                                                                      textStyle: TextStyle(
-                                                                        color: HexColor('706F6F'),
-                                                                        fontSize: 17,
-                                                                        fontWeight: FontWeight.normal,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                Center(
-                                                                  child: Text(
-                                                                    'access project Complete',
-                                                                    style: GoogleFonts.roboto(
-                                                                      textStyle: TextStyle(
-                                                                        color: HexColor('706F6F'),
-                                                                        fontSize: 17,
-                                                                        fontWeight: FontWeight.normal,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                SizedBox(height: 25),
-                                                                Center(
-                                                                  child: OTPDisplay(digits: ["1", "2", "3", "4"]), // Replace with your API response
-                                                                ),
-                                                                SizedBox(height: 30),
-                                                                Center(
-                                                                  child: Container(
-                                                                    height: 54, // Set the desired height
-                                                                    width: 170, // Set the desired width
-                                                                    child: ElevatedButton(
-                                                                      onPressed: () {
-                                                                        setState(() {
-                                                                          showprojectcomplete = true;
-                                                                        });
-                                                                        print(showprojectcomplete);
-                                                                      },
-                                                                      style: ElevatedButton.styleFrom(
-                                                                        primary: HexColor('4D8D6E'),
-                                                                        onPrimary: Colors.white,
-                                                                        elevation: 5,
-                                                                        shape: RoundedRectangleBorder(
-                                                                          borderRadius: BorderRadius.circular(20),
+                                                    if (projectData.pageContent.schedule_vc_generate_button == 'ma2fool') {
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (context) => ModernPopup(
+                                                          text: 'press on next button to generate verification code to access project complete.',
+                                                        ),
+                                                      );
+                                                    } else {
+                                                      showModalBottomSheet(
+                                                        context: context,
+                                                        isScrollControlled: true,
+                                                        builder: (BuildContext context) {
+                                                          return StatefulBuilder(
+                                                            builder: (BuildContext context, StateSetter setState) {
+                                                              return Container(
+                                                                padding: EdgeInsets.all(16.0),
+                                                                child: Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  children: [
+                                                                    Center(
+                                                                      child: Text(
+                                                                        'Your ',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: Colors.black,
+                                                                            fontSize: 27,
+                                                                            fontWeight: FontWeight.bold,
+                                                                          ),
                                                                         ),
                                                                       ),
+                                                                    ),
+                                                                    Center(
                                                                       child: Text(
-                                                                        'Done',
-                                                                        style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
+                                                                        'Verification Code',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: Colors.black,
+                                                                            fontSize: 27,
+                                                                            fontWeight: FontWeight.bold,
+                                                                          ),
+                                                                        ),
                                                                       ),
                                                                     ),
-                                                                  ),
+                                                                    SizedBox(height: 25),
+                                                                    Center(
+                                                                      child: Text(
+                                                                        'Worker Must take this code to',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: HexColor('706F6F'),
+                                                                            fontSize: 17,
+                                                                            fontWeight: FontWeight.normal,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    Center(
+                                                                      child: Text(
+                                                                        'Start work on project',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: HexColor('706F6F'),
+                                                                            fontSize: 17,
+                                                                            fontWeight: FontWeight.normal,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(height: 25),
+                                                                    Center(
+                                                                      child: OTPDisplay(digits: '${projectData.pageaccessdata.schedule_vc}'.split('')), // Convert the integer to a string and split its digits
+                                                                    ),
+                                                                    SizedBox(height: 30),
+                                                                    Center(
+                                                                      child: Container(
+                                                                        height: 54, // Set the desired height
+                                                                        width: 170, // Set the desired width
+                                                                        child: ElevatedButton(
+                                                                          onPressed: () {
+                                                                            Navigator.pop(context); // Close the showModalBottomSheet
+                                                                          },
+                                                                          style: ElevatedButton.styleFrom(
+                                                                            primary: HexColor('4D8D6E'),
+                                                                            onPrimary: Colors.white,
+                                                                            elevation: 5,
+                                                                            shape: RoundedRectangleBorder(
+                                                                              borderRadius: BorderRadius.circular(20),
+                                                                            ),
+                                                                          ),
+                                                                          child: Text(
+                                                                            'Done',
+                                                                            style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
                                                                 ),
-                                                              ],
-                                                            ),
+                                                              );
+                                                            },
                                                           );
                                                         },
                                                       );
-                                                    },
-                                                  );
-
-                                },
-                                style: ElevatedButton.styleFrom(
-                                primary:  accessprojectcomplete == true || disableverfication== true? HexColor('B6B021').withOpacity(0.5) : HexColor('B6B021'),
-                                onPrimary: Colors.white,
-                                elevation: 3,
-                                shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                ),
-                                ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 12.0, bottom: 12),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          'With the worker. Generate the Verification Code',
-                                          style: GoogleFonts.roboto(
-                                            textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                        if (accessprojectcomplete == true || disableverfication== true)
-                                          Icon(
-                                            AntDesign.questioncircleo, // Replace with your preferred icon
-                                            color: Colors.white,
-                                            size: 15,
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                ),                                           ],
+                                                    }
+                                                  }
+                                                      : null,
+                                                  style: ElevatedButton.styleFrom(
+                                                    primary: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
+                                                    onPrimary: Colors.white,
+                                                    elevation: 3,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(12),
+                                                    ),
+                                                  ),
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.only(top: 12.0, bottom: 12),
+                                                    child: Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                          'With the worker. Generate the Verification Code',
+                                                          style: GoogleFonts.roboto(
+                                                            textStyle: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 12,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        if (projectData.pageContent.schedule_vc_generate_button == 'ma2fool')
+                                                          Icon(
+                                                            AntDesign.questioncircleo, // Replace with your preferred icon
+                                                            color: Colors.white,
+                                                            size: 15,
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
 
                                           SizedBox(
@@ -1766,156 +1818,279 @@ SizedBox(width: 3,),
                                           Row(
                                             children: [
                                               Expanded(
+                                                child: ElevatedButton(
+                                                  onPressed: (projectData.pageContent.complete_vc_generate_button == 'mftoo7')
+                                                      ? () {
+                                                    if (projectData.pageContent.complete_vc_generate_button == 'ma2fool') {
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (context) => ModernPopup(
+                                                          text: 'press on with the worker button to generate verification code to access start work on project.',
+                                                        ),
+                                                      );
+                                                    } else {
+                                                      showModalBottomSheet(
+                                                        context: context,
+                                                        isScrollControlled: true,
+                                                        builder: (BuildContext context) {
+                                                          return StatefulBuilder(
+                                                            builder: (BuildContext context, StateSetter setState) {
+                                                              return Container(
+                                                                padding: EdgeInsets.all(16.0),
+                                                                child: Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  children: [
+                                                                    Center(
+                                                                      child: Text(
+                                                                        'Your ',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: Colors.black,
+                                                                            fontSize: 27,
+                                                                            fontWeight: FontWeight.bold,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    Center(
+                                                                      child: Text(
+                                                                        'Verification Code',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: Colors.black,
+                                                                            fontSize: 27,
+                                                                            fontWeight: FontWeight.bold,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(height: 25),
+                                                                    Center(
+                                                                      child: Text(
+                                                                        'Worker Must take this code to',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: HexColor('706F6F'),
+                                                                            fontSize: 17,
+                                                                            fontWeight: FontWeight.normal,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    Center(
+                                                                      child: Text(
+                                                                        'access project Complete',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: HexColor('706F6F'),
+                                                                            fontSize: 17,
+                                                                            fontWeight: FontWeight.normal,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(height: 25),
+                                                                    Center(
+                                                                      child: OTPDisplay(digits: '${projectData.pageaccessdata.complete_vc}'.split('')), // Convert the integer to a string and split its digits
+                                                                    ),
+                                                                    SizedBox(height: 30),
+                                                                    Center(
+                                                                      child: Container(
+                                                                        height: 54, // Set the desired height
+                                                                        width: 170, // Set the desired width
+                                                                        child: ElevatedButton(
+                                                                          onPressed: () {
+                                                                            Navigator.pop(context); // Close the showModalBottomSheet
+                                                                          },
+                                                                          style: ElevatedButton.styleFrom(
+                                                                            primary: HexColor('4D8D6E'),
+                                                                            onPrimary: Colors.white,
+                                                                            elevation: 5,
+                                                                            shape: RoundedRectangleBorder(
+                                                                              borderRadius: BorderRadius.circular(20),
+                                                                            ),
+                                                                          ),
+                                                                          child: Text(
+                                                                            'Done',
+                                                                            style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              );
+                                                            },
+                                                          );
+                                                        },
+                                                      );
+                                                    }
+                                                  }
+                                                      : null,
+                                                  style: ElevatedButton.styleFrom(
+                                                    primary: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
+                                                    onPrimary: Colors.white,
+                                                    elevation: 3,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(12),
+                                                    ),
+                                                  ),
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.only(top: 12.0, bottom: 12),
+                                                    child: Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                          'Generate the Code to access project complete',
+                                                          style: GoogleFonts.roboto(
+                                                            textStyle: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 12,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        if (projectData.pageContent.complete_vc_generate_button == 'ma2fool')
+                                                          Icon(
+                                                            AntDesign.questioncircleo, // Replace with your preferred icon
+                                                            color: Colors.white,
+                                                            size: 15,
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          SizedBox(
+                                            height: 12,
+                                          ),
+                                          Row(
+                                            children: [
+                                              Expanded(
                                                 child: Container(
                                                   width: 195.0,
                                                   height: 50,
                                                   child: ElevatedButton(
                                                     onPressed: () {
-                                                      if (showprojectcomplete) {
-                                                        if (!accessprojectcomplete) { // Show popup if access is false
-
-
-                                                            showModalBottomSheet(
-                                                              context: context,
-                                                              isScrollControlled:
-                                                              true,
-                                                              builder: (BuildContext
-                                                              context) {
-                                                                return StatefulBuilder(
-                                                                  builder: (BuildContext
-                                                                  context,
-                                                                      StateSetter
-                                                                      setState) {
-                                                                    return Container(
-                                                                      padding:
-                                                                      EdgeInsets
-                                                                          .all(
-                                                                          16.0),
-                                                                      child: Column(
-                                                                        crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                        mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .min,
-                                                                        children: [
-
-                                                                          Center(child: Text('Your ',
-                                                                            style: GoogleFonts
-                                                                                .roboto(
-                                                                              textStyle:
-                                                                              TextStyle(
-                                                                                color:
-                                                                                Colors.black,
-                                                                                fontSize: 27,
-                                                                                fontWeight:
-                                                                                FontWeight.bold,
-                                                                              ),
-                                                                            ),
-                                                                          ),),
-                                                                          Center(child: Text('Verification Code',
-                                                                            style: GoogleFonts
-                                                                                .roboto(
-                                                                              textStyle:
-                                                                              TextStyle(
-                                                                                color:
-                                                                                Colors.black,
-                                                                                fontSize: 27,
-                                                                                fontWeight:
-                                                                                FontWeight.bold,
-                                                                              ),
-                                                                            ),
-                                                                          ),),
-                                                                          SizedBox(height: 25,),
-                                                                          Center(child: Text('Worker Must take this code to',
-                                                                            style: GoogleFonts
-                                                                                .roboto(
-                                                                              textStyle:
-                                                                              TextStyle(
-                                                                                color:
-                                                                                HexColor('706F6F'),
-                                                                                fontSize: 17,
-                                                                                fontWeight:
-                                                                                FontWeight.normal,
-                                                                              ),
-                                                                            ),
-                                                                          ),),
-                                                                          Center(child: Text('access project Complete',
-                                                                            style: GoogleFonts
-                                                                                .roboto(
-                                                                              textStyle:
-                                                                              TextStyle(
-                                                                                color:
-                                                                                HexColor('706F6F'),
-                                                                                fontSize: 17,
-                                                                                fontWeight:
-                                                                                FontWeight.normal,
-                                                                              ),
-                                                                            ),
-                                                                          ),),
-
-                                                                          SizedBox(height: 25,),
-                                                                          Center(
-                                                                            child: OTPDisplay(digits: ["1", "2", "3", "4"]), // Replace with your API response
-                                                                          ),
-                                                                          SizedBox( height: 30,),
-
-                                                                          Center(
-                                                                            child: Container(
-                                                                              height: 54, // Set the desired height
-                                                                              width: 170, // Set the desired width
-                                                                              child: ElevatedButton(
-                                                                                onPressed: () {
-                                                                                  setState(
-                                                                                          () {
-                                                                                        showprojectcomplete =true;
-                                                                                        accessprojectcomplete=true;
-                                                                                         disableverfication=true;
-
-                                                                                      });
-                                                                                  print(showprojectcomplete);
-
-                                                                                },
-                                                                                style: ElevatedButton.styleFrom(
-                                                                                  primary: HexColor('4D8D6E'),
-                                                                                  onPrimary: Colors.white,
-                                                                                  elevation: 5,
-                                                                                  shape: RoundedRectangleBorder(
-                                                                                    borderRadius: BorderRadius.circular(20),
-                                                                                  ),
-                                                                                ),
-                                                                                child: Text(
-                                                                                  'Done',
-                                                                                  style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
-                                                                                ),
-                                                                              ),
+                                                      if (projectData.pageContent.project_complete_button == 'mftoo7') {
+                                                        showModalBottomSheet(
+                                                          context: context,
+                                                          isScrollControlled: true,
+                                                          builder: (BuildContext context) {
+                                                            return StatefulBuilder(
+                                                              builder: (BuildContext context, StateSetter setState) {
+                                                                return Container(
+                                                                  padding: EdgeInsets.all(16.0),
+                                                                  child: Column(
+                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                    mainAxisSize: MainAxisSize.min,
+                                                                    children: [
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'Your ',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: Colors.black,
+                                                                              fontSize: 27,
+                                                                              fontWeight: FontWeight.bold,
                                                                             ),
                                                                           ),
-
-
-                                                                        ],
+                                                                        ),
                                                                       ),
-                                                                    );
-                                                                  },
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'Verification Code',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: Colors.black,
+                                                                              fontSize: 27,
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(height: 25),
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'Worker Must take this code to',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: HexColor('706F6F'),
+                                                                              fontSize: 17,
+                                                                              fontWeight: FontWeight.normal,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'access project Complete',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: HexColor('706F6F'),
+                                                                              fontSize: 17,
+                                                                              fontWeight: FontWeight.normal,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(height: 25),
+                                                                      Center(
+                                                                        child: OTPDisplay(digits: ["1", "2", "3", "4"]), // Replace with your API response
+                                                                      ),
+                                                                      SizedBox(height: 30),
+                                                                      Center(
+                                                                        child: Container(
+                                                                          height: 54,
+                                                                          width: 170,
+                                                                          child: ElevatedButton(
+                                                                            onPressed: () {
+                                                                              setState(() {
+                                                                                showprojectcomplete = true;
+                                                                                accessprojectcomplete = true;
+                                                                                disableverfication = true;
+                                                                              });
+                                                                              print(showprojectcomplete);
+                                                                            },
+                                                                            style: ElevatedButton.styleFrom(
+                                                                              primary: HexColor('4D8D6E'),
+                                                                              onPrimary: Colors.white,
+                                                                              elevation: 5,
+                                                                              shape: RoundedRectangleBorder(
+                                                                                borderRadius: BorderRadius.circular(20),
+                                                                              ),
+                                                                            ),
+                                                                            child: Text(
+                                                                              'Done',
+                                                                              style: TextStyle(fontSize: 18),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
                                                                 );
                                                               },
                                                             );
-
-                                                      }  else if (disableverfication == true){
-                                                          panelController.expand(); // Expand panel if access is true
-                                                        }
-                                                      }else{
+                                                          },
+                                                        );
+                                                      } else {
                                                         showDialog(
                                                           context: context,
                                                           builder: (context) => ModernPopup(
                                                             text: 'Generate a Code to Start Work',
                                                           ),
                                                         );
-
                                                       }
                                                     },
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: accessprojectcomplete ? HexColor('1AA251') : HexColor('1AA251').withOpacity(0.5),
+                                                      primary: projectData.pageContent.project_complete_button == 'mftoo7'
+                                                          ? HexColor('1AA251')
+                                                          : HexColor('1AA251').withOpacity(0.5),
                                                       onPrimary: Colors.white,
                                                       elevation: 2,
                                                       shape: RoundedRectangleBorder(
@@ -1937,9 +2112,9 @@ SizedBox(width: 3,),
                                                               ),
                                                             ),
                                                           ),
-                                                          SizedBox(width: 9,),
+                                                          SizedBox(width: 9),
                                                           Icon(
-                                                            AntDesign.questioncircleo, // Replace with your preferred (i) icon
+                                                            AntDesign.questioncircleo,
                                                             color: Colors.white,
                                                             size: 18,
                                                           ),
@@ -1951,8 +2126,16 @@ SizedBox(width: 3,),
                                               ),
                                             ],
                                           ),
-
-
+SizedBox(height: 17,),
+                                            ListView.builder(
+                                            physics: NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: projectData.bids.length,
+                                itemBuilder: (context, index) {
+                                Bid bid = projectData.bids[index];
+                                return buildListItem(bid);
+                                },
+                                ),
                                         ],
                                       );
                                     }
@@ -2312,7 +2495,7 @@ SizedBox(width: 3,),
                         textStyle: TextStyle(
                           color: HexColor('9DA2A3'),
                           fontSize: 17,
-                          fontWeight: FontWeight.normal,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
@@ -2365,11 +2548,11 @@ SizedBox(width: 3,),
           ),
           Spacer(),
           Visibility(
-            visible: item.access!.owner == 'true',
+            visible: item.pageContent.buttonsText == 'efta7 Zorar el Accept',
             child: ElevatedButton(
               onPressed: () {
                 Get.to(checkOutClient(
-                  userId: item.access!.user,
+                  userId: item.clientData.clientId,
                   workerimage: item.workerProfilePic,
                   workername: item.workerFirstname,
                   currentbid: currentbid,
@@ -2408,37 +2591,76 @@ SizedBox(width: 3,),
   }
 }
 
-class Access {
-  int user;
-  String owner;
-  String chat_ID;
-  String project_status;
-  String projectStatus;
+class ProjectData {
+  final String title;
+  final List<String> images; // Images is now a List<String>
+  final String projectType;
+  final String postedFrom;
+  final String status;
+  final String desc;
+  final bool liked; // Assuming the 'liked' field should be a boolean
+  final int numberOfLikes;
+  final dynamic? lowestBid; // Assuming lowest bid could be null
+  final String timeframeStart;
+  final String timeframeEnd;
+  final List<Bid> bids;
+  final ClientData clientData;
+  final PageContent pageContent;
+  final page_access_data pageaccessdata;
+  final select_worker_bid selectworkerbid;
 
-  Access({
-    required this.user,
-    required this.project_status,
-    required this.chat_ID,
-    required this.owner,
-    required this.projectStatus,
+  ProjectData({
+    required this.title,
+    required this.images,
+    required this.projectType,
+    required this.status,
+    required this.postedFrom,
+    required this.desc,
+    required this.selectworkerbid,
+    required this.liked,
+    required this.clientData,
+    required this.numberOfLikes,
+    required this.pageaccessdata,
+    this.lowestBid,
+    required this.pageContent,
+    required this.timeframeStart,
+    required this.timeframeEnd,
+    required this.bids,
   });
 
-  factory Access.fromJson(Map<String, dynamic> json) {
-    return Access(
-      user: json['user'],
-      chat_ID: json['chat_ID'] ?? '0',
-      owner: json['owner'].toString(),
-      projectStatus: json['project_status'],
-      project_status: json['project_status'],
+  factory ProjectData.fromJson(Map<String, dynamic> jsonData) {
+
+    var baseData = jsonData['base_data'] as Map<String, dynamic>? ?? {};
+    var clientInfo = baseData['client_info'] as Map<String, dynamic>? ?? {};
+    var pageContent = jsonData['page_content'] as Map<String, dynamic>? ?? {};
+    var pageAccessData = jsonData['page_access_data'] as Map<String, dynamic>? ?? {};
+    var selectWorkerBid = jsonData['select_worker_bid'] as Map<String, dynamic>? ?? {};
+
+    return ProjectData(
+      title: baseData['title'] ?? 'No Title',
+      images: List<String>.from(baseData['images'] ?? []),
+      projectType: baseData['project_type'] ?? 'No Project Type',
+      postedFrom: baseData['posted_from'] ?? 'No Post Date',
+      status: baseData['status'] ?? 'No Status',
+      desc: baseData['desc'] ?? 'No Description',
+      liked: baseData['liked'] == 'true',
+      numberOfLikes: baseData['number_of_likes'] ?? 0,
+      lowestBid: baseData['lowest_bid'] ?? 'No Bids',
+      timeframeStart: baseData['timeframe_start'] ?? 'No Start Time',
+      timeframeEnd: baseData['timeframe_end'] ?? 'No End Time',
+      bids: (baseData['bids'] as List<dynamic>? ?? []).map((x) => Bid.fromJson(x as Map<String, dynamic>)).toList(),
+      clientData: ClientData.fromJson(clientInfo),
+      pageContent: PageContent.fromJson(pageContent),
+      pageaccessdata: page_access_data.fromJson(pageAccessData),
+      selectworkerbid: select_worker_bid.fromJson(selectWorkerBid),
     );
-  }
-}
+  }}
 
 class ClientData {
-  int clientId;
-  String firstname;
-  String lastname;
-  String profileImage;
+  final int clientId;
+  final String firstname;
+  final String lastname;
+  final String profileImage;
 
   ClientData({
     required this.clientId,
@@ -2449,75 +2671,111 @@ class ClientData {
 
   factory ClientData.fromJson(Map<String, dynamic> json) {
     return ClientData(
-      clientId: json['client_id'],
-      firstname: json['firstname'],
-      lastname: json['lastname'],
-      profileImage: json['profle_image'] ??
-          'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+      clientId: json['client_id'] as int? ?? 0,
+      firstname: json['firstname'] ?? '',
+      lastname: json['lastname'] ?? '',
+      profileImage: json['profle_image'] ?? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // corrected typo from 'profle_image' to 'profile_image'
     );
   }
 }
+class PageContent {
+  final String currentUserRole;
+  final String buttonsText;
+  final String selectedDate;
+  final String selectedInterval;
+  final String scheduleStatus;
+  final String change;
+  final String chat;
+  final String schedule_vc_generate_button;
+  final String complete_vc_generate_button;
+  final String project_complete_button;
+  final String support;
 
-class ProjectData {
-  final String title;
-  final String images;
-  final String project_type;
-  final String posted_from;
-  final String desc;
-  final String liked;
-  final int number_of_likes;
-  final dynamic lowest_bid;
-  final String timeframeStart;
-  final String timeframeEnd;
-  final List<Bid> bids;
-  final ClientData? clientData;
-  final Access? access;
 
-  // Include the client data
 
-  ProjectData({
-    required this.title,
-    required this.images,
-    required this.project_type,
-    required this.access,
-    required this.posted_from,
-    required this.liked,
-    required this.clientData,
-    required this.number_of_likes,
-    required this.lowest_bid,
-    required this.desc,
-    required this.timeframeStart,
-    required this.timeframeEnd,
-    required this.bids,
+  PageContent({required this.currentUserRole
+    , required this.buttonsText
+    , required this.selectedDate
+    , required this.selectedInterval
+    , required this.scheduleStatus
+    , required this.change
+    , required this.chat
+    , required this.schedule_vc_generate_button
+    , required this.complete_vc_generate_button
+    , required this.project_complete_button
+    , required this.support
+
+
+
   });
 
-  factory ProjectData.fromJson(
-    Map<String, dynamic> projectDataJson,
-    Map<String, dynamic> clientDataJson,
-    Map<String, dynamic> accessDataJson,
-  ) {
-    List<Bid> bids = [];
-    if (projectDataJson['bids'] != null) {
-      bids = List<Bid>.from(projectDataJson['bids']
-          .map((bid) => Bid.fromJson(bid, accessDataJson)));
+  factory PageContent.fromJson(Map<String, dynamic> json) {
+    return PageContent(
+      currentUserRole: json['current_user_role']?? '',
+      buttonsText: json['buttons']?? '',
+      selectedDate: json['selected_date'] ?? '',
+      selectedInterval: json['selected_interval'] ?? '',
+      scheduleStatus: json['schedule_status'] ?? '',
+      change: json['change'] ?? '',
+      chat: json['chat'] ?? '',
+      schedule_vc_generate_button: json['schedule_vc_generate_button'] ?? '',
+      complete_vc_generate_button: json['complete_vc_generate_button'] ?? '',
+      project_complete_button: json['project_complete_button'] ?? '',
+      support: json['support'] ?? '',
+
+    );
+  }
+}
+class page_access_data {
+  final String chat_ID;
+  final dynamic schedule_vc;
+  final dynamic complete_vc;
+
+  page_access_data({required this.chat_ID
+    ,required this.schedule_vc
+    ,required this.complete_vc
+
+  });
+
+  factory page_access_data.fromJson(Map<String, dynamic> json) {
+    return page_access_data(
+      chat_ID: json['chat_ID']?? '',
+      schedule_vc: json['schedule_vc']?? '',
+      complete_vc: json['complete_vc']?? '',
+    );
+  }
+}
+class select_worker_bid {
+  final int worker_id;
+  final String worker_firstname;
+  final String worker_profile_pic;
+  final dynamic amount;
+  final String comment;
+
+  select_worker_bid({required this.worker_id
+  ,required this.worker_firstname
+    ,required this.worker_profile_pic
+    ,required this.amount
+    ,required this.comment
+
+  });
+
+  factory select_worker_bid.fromJson(Map<String, dynamic> json) {
+    if (json == null) {
+      return select_worker_bid(
+        worker_id: 0,
+        worker_firstname: '',
+        worker_profile_pic: '',
+        amount: 0,
+        comment: '',
+      );
     }
 
-    return ProjectData(
-      title: projectDataJson['title'] ?? '',
-      desc: projectDataJson['desc'] ?? '',
-      timeframeStart: projectDataJson['timeframe_start'] ?? '',
-      timeframeEnd: projectDataJson['timeframe_end'] ?? '',
-      bids: bids,
-      images: projectDataJson['images'] ??
-          'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
-      project_type: projectDataJson['project_type'] ?? '',
-      posted_from: projectDataJson['posted_from'] ?? '',
-      liked: projectDataJson['liked'] ?? '',
-      number_of_likes: projectDataJson['number_of_likes'] ?? 0,
-      lowest_bid: projectDataJson['lowest_bid'],
-      clientData: ClientData.fromJson(clientDataJson),
-      access: Access.fromJson(accessDataJson),
-    );
+    return select_worker_bid(worker_id: json['worker_id'] ?? 0,
+        worker_firstname: json['worker_firstname']?? ''
+        ,worker_profile_pic: json['worker_profile_pic']?? '',
+        amount: json['amount']?? 0
+        , comment: json['comment']?? '');
   }
 }
 
@@ -2525,33 +2783,33 @@ class Bid {
   final int workerId;
   final String workerFirstname;
   final String workerProfilePic;
-  final int amount;
+  final dynamic amount;
   final String comment;
-  final Access? access;
+  final ClientData clientData;
+  final PageContent pageContent;
 
   Bid({
     required this.workerId,
+    required this.clientData,
+    required this.pageContent,
+
     required this.workerFirstname,
     required this.workerProfilePic,
     required this.amount,
-    required this.access,
     required this.comment,
   });
 
-  factory Bid.fromJson(
-    Map<String, dynamic> json,
-    Map<String, dynamic> accessDataJson,
-  ) {
+  factory Bid.fromJson(Map<String, dynamic> json) {
     return Bid(
-        workerId: json['worker_id'],
-        workerFirstname: json['worker_firstname'],
-        workerProfilePic: json['worker_profile_pic'] ??
-            'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
-        amount: json['amount'],
-        comment: json['comment'],
-        access: Access.fromJson(accessDataJson));
-  }
-}
+      workerId: json['worker_id'] as int? ?? 0,
+      workerFirstname: json['worker_firstname'] ?? '',
+      workerProfilePic: json['worker_profile_pic'] ?? 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
+      amount: double.tryParse(json['amount'].toString()) ?? 0,
+      comment: json['comment'] ?? '',
+      clientData: ClientData.fromJson(json['client_info'] as Map<String, dynamic>? ?? {}),
+      pageContent: PageContent.fromJson(json['page_content'] as Map<String, dynamic>? ?? {}),
+    );
+  }}
 
 class OTPDisplay extends StatelessWidget {
   final List<String> digits;
