@@ -22,6 +22,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(false);
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.clear();
+
   runApp(MyApp());
   await AwesomeNotifications().initialize(null, [
     NotificationChannel(

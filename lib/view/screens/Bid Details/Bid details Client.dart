@@ -139,6 +139,16 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
     }
   }
 
+  String? buttonsValue;
+  Future<void> fetchData() async {
+    // Assuming you have a function to fetch project details
+    final ProjectData projectData = await fetchProjectDetails(widget.projectId);
+
+    // Access the 'buttons' value
+     buttonsValue = projectData.pageContent.buttons;
+    print('Buttons Value: $buttonsValue');
+  }
+
 
   @override
   void initState() {
@@ -169,6 +179,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
         panelController2.anchor();
       } else {}
     });
+    fetchData();
   }
 
   String currentbid = '24';
@@ -658,10 +669,10 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                 } else {
                                   ProjectData projectData = snapshot.data!;
 
-                                  if ( projectData.pageContent.currentUserRole ==
-                                      'client'){
-                                    if (projectData.status ==
-                                    'bid_accepted' ) {
+                                  if (projectData.status ==
+                                      'bid_accepted' )  {
+                                    if (projectData.pageContent.currentUserRole ==
+                                        'client'){
                                       return Padding(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 12.0),
@@ -1159,54 +1170,56 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                           ],
                                         ),
                                       );
-                                    } else {
-                                      return Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
+                                    }
+                                  } else if ( projectData.status ==
+                                      'scheduled') {
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
 
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
-                                            children: [
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.start,
 
-                                                    children: [
+                                                  children: [
 
-                                                      Text('Date:',
-                                                        style: GoogleFonts.roboto(
-                                                          textStyle: TextStyle(
-                                                            color: Colors.black,
-                                                            fontSize: 14,
-                                                            fontWeight:
-                                                            FontWeight.bold,
-                                                          ),
+                                                    Text('Date:',
+                                                      style: GoogleFonts.roboto(
+                                                        textStyle: TextStyle(
+                                                          color: Colors.black,
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                          FontWeight.bold,
                                                         ),
                                                       ),
+                                                    ),
 
-SizedBox(width: 5,),
-                                                      Text(
-                                                        '${projectData.pageContent.selectedDate}',
-                                                        style: GoogleFonts.roboto(
-                                                          textStyle: TextStyle(
-                                                            color: Colors.grey [800],
-                                                            fontSize: 14,
-                                                            fontWeight:
-                                                            FontWeight.normal,
-                                                          ),
+                                                    SizedBox(width: 5,),
+                                                    Text(
+                                                      '${projectData.pageContent.selectedDate}',
+                                                      style: GoogleFonts.roboto(
+                                                        textStyle: TextStyle(
+                                                          color: Colors.grey [800],
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                          FontWeight.normal,
                                                         ),
                                                       ),
+                                                    ),
 
-                                                    ],
-                                                  ),
-SizedBox(height: 8,),
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                                  ],
+                                                ),
+                                                SizedBox(height: 8,),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.start,
 
-                                                    children: [
+                                                  children: [
 
                                                     Text('Time (Interval): ',
                                                       style: GoogleFonts.roboto(
@@ -1232,413 +1245,368 @@ SizedBox(height: 8,),
 
 
                                                   ],)
-                                                ],
-                                              ),
-SizedBox(width: 3,),
-                                              ElevatedButton(
+                                              ],
+                                            ),
+                                            SizedBox(width: 3,),
+                                            ElevatedButton(
 
-                                                onPressed: (projectData.pageContent.change == 'mftoo7')
-                                                    ? () {
-                                                  showModalBottomSheet(
-                                                    context: context,
-                                                    isScrollControlled: true,
-                                                    builder: (BuildContext context) {
-                                                      return StatefulBuilder(
-                                                        builder: (BuildContext context, StateSetter setState) {
-                                                          return Container(
-                                                            padding:
-                                                            EdgeInsets
-                                                                .all(
-                                                                16.0),
-                                                            child: Column(
-                                                              crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                              mainAxisSize:
-                                                              MainAxisSize
-                                                                  .min,
-                                                              children: [
-                                                                Row(
-                                                                  mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .center,
-                                                                  children: [
-                                                                    Text(
-                                                                      'Schedule',
-                                                                      style: GoogleFonts.roboto(
-                                                                        textStyle: TextStyle(
-                                                                          color: Colors.grey [900],
-                                                                          fontSize: 22,
-                                                                          fontWeight:
-                                                                          FontWeight.bold,
-                                                                        ),
+                                              onPressed: (projectData.pageContent.change == 'mftoo7')
+                                                  ? () {
+                                                showModalBottomSheet(
+                                                  context: context,
+                                                  isScrollControlled: true,
+                                                  builder: (BuildContext context) {
+                                                    return StatefulBuilder(
+                                                      builder: (BuildContext context, StateSetter setState) {
+                                                        return Container(
+                                                          padding:
+                                                          EdgeInsets
+                                                              .all(
+                                                              16.0),
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                            mainAxisSize:
+                                                            MainAxisSize
+                                                                .min,
+                                                            children: [
+                                                              Row(
+                                                                mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                                children: [
+                                                                  Text(
+                                                                    'Schedule',
+                                                                    style: GoogleFonts.roboto(
+                                                                      textStyle: TextStyle(
+                                                                        color: Colors.grey [900],
+                                                                        fontSize: 22,
+                                                                        fontWeight:
+                                                                        FontWeight.bold,
                                                                       ),
                                                                     ),
-                                                                  ],
-                                                                ),
-                                                                SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              SizedBox(height: MediaQuery.of(context).size.height * 0.03),
 
-                                                                Row(
-                                                                  mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .spaceBetween,
-                                                                  children: [
-                                                                    Text(
-                                                                      'Choose a day',
-                                                                      style: GoogleFonts.roboto(
-                                                                        textStyle: TextStyle(
-                                                                          color: Colors.black,
-                                                                          fontSize: 20,
-                                                                          fontWeight:
-                                                                          FontWeight.bold,
-                                                                        ),
+                                                              Row(
+                                                                mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .spaceBetween,
+                                                                children: [
+                                                                  Text(
+                                                                    'Choose a day',
+                                                                    style: GoogleFonts.roboto(
+                                                                      textStyle: TextStyle(
+                                                                        color: Colors.black,
+                                                                        fontSize: 20,
+                                                                        fontWeight:
+                                                                        FontWeight.bold,
                                                                       ),
                                                                     ),
-                                                                    IconButton(
-                                                                      onPressed:
-                                                                          () {
-                                                                        Navigator.pop(context);
-                                                                      },
-                                                                      icon:
-                                                                      Icon(
-                                                                        Icons.cancel,
-                                                                        size:
-                                                                        25,
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                                SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-
-                                                                EasyDateTimeLine(
-                                                                  initialDate:
-                                                                  DateTime
-                                                                      .now(),
-                                                                  onDateChange:
-                                                                      (selectedDate) {
-                                                                    setState(
-                                                                            () {
-                                                                          _selectedDate =
-                                                                              selectedDate;
-                                                                        });
-                                                                  },
-                                                                  activeColor:
-                                                                  HexColor(
-                                                                      '4D8D6E'),
-                                                                  headerProps:
-                                                                  const EasyHeaderProps(
-                                                                    showSelectedDate:
-                                                                    true,
-                                                                    monthPickerType:
-                                                                    MonthPickerType.switcher,
-                                                                    selectedDateFormat:
-                                                                    SelectedDateFormat.fullDateDMY,
                                                                   ),
-                                                                  dayProps:
-                                                                  const EasyDayProps(
-                                                                    activeDayStyle:
-                                                                    DayStyle(
-                                                                      borderRadius:
-                                                                      32.0,
-                                                                    ),
-                                                                    inactiveDayStyle:
-                                                                    DayStyle(
-                                                                      borderRadius:
-                                                                      32.0,
-                                                                    ),
-                                                                  ),
-                                                                  timeLineProps:
-                                                                  const EasyTimeLineProps(
-                                                                    hPadding:
-                                                                    16.0,
-                                                                    // padding from left and right
-                                                                    separatorPadding:
-                                                                    16.0, // padding between days
-                                                                  ),
-                                                                ),
-                                                                SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-
-                                                                Text(
-                                                                  'Choose Time',
-                                                                  style: GoogleFonts.roboto(
-                                                                    textStyle: TextStyle(
-                                                                      color: Colors.black,
-                                                                      fontSize: 20,
-                                                                      fontWeight:
-                                                                      FontWeight.bold,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-
-                                                                Center(
-                                                                  child:
-                                                                  SfRangeSlider(
-                                                                    activeColor: HexColor('4D8D6E'),
-                                                                    min: DateTime(2000, 01, 01, 6, 00, 00), // Set min to 6 AM
-                                                                    max: DateTime(2000, 01, 01, 22, 00, 00), // Set max to 10 PM
-                                                                    values: _values,
-                                                                    interval: 4,
-                                                                    showLabels: true,
-                                                                    showTicks: true,
-                                                                    dateFormat: DateFormat('h a'), // Display hours in AM/PM format
-                                                                    dateIntervalType: DateIntervalType.hours,
-                                                                    onChanged: (SfRangeValues newValues) {
-                                                                      if (newValues.end.difference(newValues.start).inHours < 4) {
-                                                                        // Prevent range smaller than 4 hours
-                                                                        return;
-                                                                      }
-                                                                      setState(() {
-                                                                        _values = newValues;
-                                                                      });
+                                                                  IconButton(
+                                                                    onPressed:
+                                                                        () {
+                                                                      Navigator.pop(context);
                                                                     },
-                                                                  ),                                                                ),
-                                                                SizedBox(height: MediaQuery.of(context).size.height * 0.04),
-
-                                                                Row(
-                                                                  children: [
-                                                                    Text(
-                                                                      'Selected Time Range:',
-                                                                      style: GoogleFonts.roboto(
-                                                                        textStyle: TextStyle(
-                                                                          color: Colors.grey [800],
-                                                                          fontSize: 16,
-                                                                          fontWeight:
-                                                                          FontWeight.bold,
-                                                                        ),
-                                                                      ),
+                                                                    icon:
+                                                                    Icon(
+                                                                      Icons.cancel,
+                                                                      size:
+                                                                      25,
                                                                     ),
-                                                                    Text(
-                                                                      ' ${formatTime(_values.start)} - ${formatTime(_values.end)}',
-                                                                      style: GoogleFonts.roboto(
-                                                                        textStyle: TextStyle(
-                                                                          color: HexColor('4D8D6E'),
-                                                                          fontSize: 16,
-                                                                          fontWeight:
-                                                                          FontWeight.normal,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                                SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-
-                                                                Row(
-                                                                  children: [
-                                                                    Text(
-                                                                      'Selected Date:',
-                                                                      style: GoogleFonts.roboto(
-                                                                        textStyle: TextStyle(
-                                                                          color: Colors.grey [800],
-                                                                          fontSize: 16,
-                                                                          fontWeight:
-                                                                          FontWeight.bold,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    Text(
-                                                                      ' ${DateFormat('EEEE,  d, MM, yyyy').format(_selectedDate.toLocal())}',
-                                                                      style: GoogleFonts.roboto(
-                                                                        textStyle: TextStyle(
-                                                                          color: HexColor('4D8D6E'),
-                                                                          fontSize: 16,
-                                                                          fontWeight:
-                                                                          FontWeight.normal,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-
-
-                                                                  ],
-                                                                ),
-                                                                SizedBox(
-                                                                    height: MediaQuery.of(context).size.height *
-                                                                        0.06),
-                                                                Padding(
-                                                                  padding: const EdgeInsets
-                                                                      .symmetric(
-                                                                      horizontal:
-                                                                      20.0),
-                                                                  child:
-                                                                  Row(
-                                                                    mainAxisAlignment:
-                                                                    MainAxisAlignment.spaceBetween,
-                                                                    children: [
-                                                                      Container(
-                                                                        height: 50, // Set the desired height
-                                                                        width: 120, // Set the desired width
-                                                                        child: ElevatedButton(
-                                                                          onPressed:
-                                                                              () {
-                                                                            Navigator.pop(context);
-                                                                          },
-                                                                          style:
-                                                                          ElevatedButton.styleFrom(
-                                                                            primary: HexColor('B6212A'),
-                                                                            onPrimary: Colors.white,
-                                                                            elevation: 5,
-                                                                            shape: RoundedRectangleBorder(
-                                                                              borderRadius: BorderRadius.circular(12),
-                                                                            ),
-                                                                          ),
-                                                                          child:
-                                                                          Text('Cancel',
-                                                                              style: TextStyle(fontSize: 18)),
-                                                                        ),
-                                                                      ),
-                                                                      Container(
-                                                                        height: 50, // Set the desired height
-                                                                        width: 120, // Set the desired width
-                                                                        child: ElevatedButton(
-                                                                          onPressed: () {
-                                                                            setState(() async {
-                                                                              await scheduleProject(widget.projectId,
-                                                                                  DateFormat('EEEE,  d, MM, yyyy').format(_selectedDate.toLocal()).toString(),
-                                                                                  "${formatTime(_values.start).toString() +' - ' + formatTime(_values.end).toString()}");
-                                                                            });
-
-                                                                          },
-                                                                          style: ElevatedButton.styleFrom(
-                                                                            primary: HexColor('4D8D6E'),
-                                                                            onPrimary: Colors.white,
-                                                                            elevation: 5,
-                                                                            shape: RoundedRectangleBorder(
-                                                                              borderRadius: BorderRadius.circular(12),
-                                                                            ),
-                                                                          ),
-                                                                          child: Text(
-                                                                            'Apply',
-                                                                            style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
-                                                                          ),
-                                                                        ),
-                                                                      ),
-
-                                                                    ],
                                                                   ),
-                                                                )
-                                                              ],
-                                                            ),
-                                                          );
-                                                        },
-                                                      );
-                                                    },
-                                                  );
-                                                }
-                                                    : null, // Set onPressed to null when the condition is false
-                                                style: ElevatedButton.styleFrom(
-                                                  primary:  projectData.pageContent.change == 'maftoo7' ?HexColor('34446F'): HexColor('34446F').withOpacity(0.5),
-                                                  onPrimary: Colors.white,
-                                                  elevation: 0,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(12),
-                                                  ),
-                                                ),
-                                                child: Opacity(
-                                                  opacity: (projectData.pageContent.change == 'mftoo7') ? 1.0 : 1.0, // Adjust the opacity based on the condition
-                                                  child: Text(
-                                                    'Change',
+                                                                ],
+                                                              ),
+                                                              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
 
-                                                    style: TextStyle(fontSize: 10 ,color: Colors.white),
-                                                  ),
-                                                ),
-                                              ),
+                                                              EasyDateTimeLine(
+                                                                initialDate:
+                                                                DateTime
+                                                                    .now(),
+                                                                onDateChange:
+                                                                    (selectedDate) {
+                                                                  setState(
+                                                                          () {
+                                                                        _selectedDate =
+                                                                            selectedDate;
+                                                                      });
+                                                                },
+                                                                activeColor:
+                                                                HexColor(
+                                                                    '4D8D6E'),
+                                                                headerProps:
+                                                                const EasyHeaderProps(
+                                                                  showSelectedDate:
+                                                                  true,
+                                                                  monthPickerType:
+                                                                  MonthPickerType.switcher,
+                                                                  selectedDateFormat:
+                                                                  SelectedDateFormat.fullDateDMY,
+                                                                ),
+                                                                dayProps:
+                                                                const EasyDayProps(
+                                                                  activeDayStyle:
+                                                                  DayStyle(
+                                                                    borderRadius:
+                                                                    32.0,
+                                                                  ),
+                                                                  inactiveDayStyle:
+                                                                  DayStyle(
+                                                                    borderRadius:
+                                                                    32.0,
+                                                                  ),
+                                                                ),
+                                                                timeLineProps:
+                                                                const EasyTimeLineProps(
+                                                                  hPadding:
+                                                                  16.0,
+                                                                  // padding from left and right
+                                                                  separatorPadding:
+                                                                  16.0, // padding between days
+                                                                ),
+                                                              ),
+                                                              SizedBox(height: MediaQuery.of(context).size.height * 0.03),
 
-                                            ],
+                                                              Text(
+                                                                'Choose Time',
+                                                                style: GoogleFonts.roboto(
+                                                                  textStyle: TextStyle(
+                                                                    color: Colors.black,
+                                                                    fontSize: 20,
+                                                                    fontWeight:
+                                                                    FontWeight.bold,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
 
-                                          ),
-                                          SizedBox(height: 9,),
-                                          Row(
-                                            children: [
+                                                              Center(
+                                                                child:
+                                                                SfRangeSlider(
+                                                                  activeColor: HexColor('4D8D6E'),
+                                                                  min: DateTime(2000, 01, 01, 6, 00, 00), // Set min to 6 AM
+                                                                  max: DateTime(2000, 01, 01, 22, 00, 00), // Set max to 10 PM
+                                                                  values: _values,
+                                                                  interval: 4,
+                                                                  showLabels: true,
+                                                                  showTicks: true,
+                                                                  dateFormat: DateFormat('h a'), // Display hours in AM/PM format
+                                                                  dateIntervalType: DateIntervalType.hours,
+                                                                  onChanged: (SfRangeValues newValues) {
+                                                                    if (newValues.end.difference(newValues.start).inHours < 4) {
+                                                                      // Prevent range smaller than 4 hours
+                                                                      return;
+                                                                    }
+                                                                    setState(() {
+                                                                      _values = newValues;
+                                                                    });
+                                                                  },
+                                                                ),                                                                ),
+                                                              SizedBox(height: MediaQuery.of(context).size.height * 0.04),
 
-                                              Expanded(
-                                                child: Container(
-                                                  width: 220.0,
-                                                  height: 50,
-                                                  // Set the desired width
-                                                  child: ElevatedButton(
-                                                    onPressed: () {
-                                                      Get.to(ChatScreen(
-                                                        chatId: projectData
-                                                            .pageaccessdata!.chat_ID,
-                                                        currentUser:
-                                                            projectData
-                                                                .clientData!
-                                                                .firstname,
-                                                        secondUserName:
-                                                            'worker',
-                                                        userId: projectData
-                                                            .clientData!
-                                                            .clientId
-                                                            .toString(),
-                                                      ));
-                                                    },
-                                                    style: ElevatedButton
-                                                        .styleFrom(
-                                                      primary:
-                                                          HexColor('ED6F53'),
-                                                      // Background color
-                                                      onPrimary: Colors.white,
-                                                      // Text color
-                                                      elevation: 8,
-                                                      // Elevation
-                                                      shape:
-                                                          RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                                12), // Rounded corners
-                                                      ),
-                                                    ),
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets
-                                                              .all(12.0),
-                                                      child: Text(
-                                                        'Chat',
-                                                        style: GoogleFonts
-                                                            .roboto(
-                                                          textStyle:
-                                                              TextStyle(
-                                                            color:
-                                                                Colors.white,
-                                                            fontSize: 14,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold,
+                                                              Row(
+                                                                children: [
+                                                                  Text(
+                                                                    'Selected Time Range:',
+                                                                    style: GoogleFonts.roboto(
+                                                                      textStyle: TextStyle(
+                                                                        color: Colors.grey [800],
+                                                                        fontSize: 16,
+                                                                        fontWeight:
+                                                                        FontWeight.bold,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  Text(
+                                                                    ' ${formatTime(_values.start)} - ${formatTime(_values.end)}',
+                                                                    style: GoogleFonts.roboto(
+                                                                      textStyle: TextStyle(
+                                                                        color: HexColor('4D8D6E'),
+                                                                        fontSize: 16,
+                                                                        fontWeight:
+                                                                        FontWeight.normal,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+
+                                                              Row(
+                                                                children: [
+                                                                  Text(
+                                                                    'Selected Date:',
+                                                                    style: GoogleFonts.roboto(
+                                                                      textStyle: TextStyle(
+                                                                        color: Colors.grey [800],
+                                                                        fontSize: 16,
+                                                                        fontWeight:
+                                                                        FontWeight.bold,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  Text(
+                                                                    ' ${DateFormat('EEEE,  d, MM, yyyy').format(_selectedDate.toLocal())}',
+                                                                    style: GoogleFonts.roboto(
+                                                                      textStyle: TextStyle(
+                                                                        color: HexColor('4D8D6E'),
+                                                                        fontSize: 16,
+                                                                        fontWeight:
+                                                                        FontWeight.normal,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+
+
+                                                                ],
+                                                              ),
+                                                              SizedBox(
+                                                                  height: MediaQuery.of(context).size.height *
+                                                                      0.06),
+                                                              Padding(
+                                                                padding: const EdgeInsets
+                                                                    .symmetric(
+                                                                    horizontal:
+                                                                    20.0),
+                                                                child:
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                  MainAxisAlignment.spaceBetween,
+                                                                  children: [
+                                                                    Container(
+                                                                      height: 50, // Set the desired height
+                                                                      width: 120, // Set the desired width
+                                                                      child: ElevatedButton(
+                                                                        onPressed:
+                                                                            () {
+                                                                          Navigator.pop(context);
+                                                                        },
+                                                                        style:
+                                                                        ElevatedButton.styleFrom(
+                                                                          primary: HexColor('B6212A'),
+                                                                          onPrimary: Colors.white,
+                                                                          elevation: 5,
+                                                                          shape: RoundedRectangleBorder(
+                                                                            borderRadius: BorderRadius.circular(12),
+                                                                          ),
+                                                                        ),
+                                                                        child:
+                                                                        Text('Cancel',
+                                                                            style: TextStyle(fontSize: 18)),
+                                                                      ),
+                                                                    ),
+                                                                    Container(
+                                                                      height: 50, // Set the desired height
+                                                                      width: 120, // Set the desired width
+                                                                      child: ElevatedButton(
+                                                                        onPressed: () {
+                                                                          setState(() async {
+                                                                            await scheduleProject(widget.projectId,
+                                                                                DateFormat('EEEE,  d, MM, yyyy').format(_selectedDate.toLocal()).toString(),
+                                                                                "${formatTime(_values.start).toString() +' - ' + formatTime(_values.end).toString()}");
+                                                                          });
+
+                                                                        },
+                                                                        style: ElevatedButton.styleFrom(
+                                                                          primary: HexColor('4D8D6E'),
+                                                                          onPrimary: Colors.white,
+                                                                          elevation: 5,
+                                                                          shape: RoundedRectangleBorder(
+                                                                            borderRadius: BorderRadius.circular(12),
+                                                                          ),
+                                                                        ),
+                                                                        child: Text(
+                                                                          'Apply',
+                                                                          style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
+                                                                        ),
+                                                                      ),
+                                                                    ),
+
+                                                                  ],
+                                                                ),
+                                                              )
+                                                            ],
                                                           ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
+                                                        );
+                                                      },
+                                                    );
+                                                  },
+                                                );
+                                              }
+                                                  : null, // Set onPressed to null when the condition is false
+                                              style: ElevatedButton.styleFrom(
+                                                primary:  projectData.pageContent.change == 'maftoo7' ?HexColor('34446F'): HexColor('34446F').withOpacity(0.5),
+                                                onPrimary: Colors.white,
+                                                elevation: 0,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(12),
                                                 ),
                                               ),
+                                              child: Opacity(
+                                                opacity: (projectData.pageContent.change == 'mftoo7') ? 1.0 : 1.0, // Adjust the opacity based on the condition
+                                                child: Text(
+                                                  'Change',
 
-                                              SizedBox(width: 7,),
-                                              Hero(
-                                                tag: 'workdone_${unique}',
-                                                child: Container(
-                                                  height: 50,
-                                                  child: ElevatedButton(
-                                                    onPressed: () {
-                                                      _navigateToNextPage(
-                                                          context);
-                                                    },
-                                                    style: ElevatedButton
-                                                        .styleFrom(
-                                                      primary: HexColor(
-                                                          '777031'),
-                                                      onPrimary:
-                                                      Colors.white,
-                                                      elevation: 8,
-                                                      shape:
-                                                      RoundedRectangleBorder(
-                                                        borderRadius:
-                                                        BorderRadius
-                                                            .circular(
-                                                            21),
-                                                      ),
+                                                  style: TextStyle(fontSize: 10 ,color: Colors.white),
+                                                ),
+                                              ),
+                                            ),
+
+                                          ],
+
+                                        ),
+                                        SizedBox(height: 9,),
+                                        Row(
+                                          children: [
+
+                                            Expanded(
+                                              child: Container(
+                                                width: 220.0,
+                                                height: 50,
+                                                // Set the desired width
+                                                child: ElevatedButton(
+                                                  onPressed: () {
+                                                    Get.to(ChatScreen(
+                                                      chatId: projectData
+                                                          .pageaccessdata!.chat_ID,
+                                                      currentUser:
+                                                      projectData
+                                                          .clientData!
+                                                          .firstname,
+                                                      secondUserName:
+                                                      'worker',
+                                                      userId: projectData
+                                                          .clientData!
+                                                          .clientId
+                                                          .toString(),
+                                                    ));
+                                                  },
+                                                  style: ElevatedButton
+                                                      .styleFrom(
+                                                    primary:
+                                                    HexColor('ED6F53'),
+                                                    // Background color
+                                                    onPrimary: Colors.white,
+                                                    // Text color
+                                                    elevation: 8,
+                                                    // Elevation
+                                                    shape:
+                                                    RoundedRectangleBorder(
+                                                      borderRadius:
+                                                      BorderRadius.circular(
+                                                          12), // Rounded corners
                                                     ),
+                                                  ),
+                                                  child: Padding(
+                                                    padding:
+                                                    const EdgeInsets
+                                                        .all(12.0),
                                                     child: Text(
-                                                      'Support',
+                                                      'Chat',
                                                       style: GoogleFonts
                                                           .roboto(
                                                         textStyle:
@@ -1655,180 +1623,373 @@ SizedBox(width: 3,),
                                                   ),
                                                 ),
                                               ),
+                                            ),
 
-                                            ],
-                                          ),  SizedBox(
-                                            height: 12,
-                                          ),
-
-                                          Row(
-                                            children: [
-                                              Expanded(
+                                            SizedBox(width: 7,),
+                                            Hero(
+                                              tag: 'workdone_${unique}',
+                                              child: Container(
+                                                height: 50,
                                                 child: ElevatedButton(
-                                                  onPressed: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7')
-                                                      ? () {
-                                                    if (projectData.pageContent.schedule_vc_generate_button == 'ma2fool') {
-                                                      showDialog(
-                                                        context: context,
-                                                        builder: (context) => ModernPopup(
-                                                          text: 'press on next button to generate verification code to access project complete.',
-                                                        ),
-                                                      );
-                                                    } else {
-                                                      showModalBottomSheet(
-                                                        context: context,
-                                                        isScrollControlled: true,
-                                                        builder: (BuildContext context) {
-                                                          return StatefulBuilder(
-                                                            builder: (BuildContext context, StateSetter setState) {
-                                                              return Container(
-                                                                padding: EdgeInsets.all(16.0),
-                                                                child: Column(
-                                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                                  mainAxisSize: MainAxisSize.min,
-                                                                  children: [
-                                                                    Center(
-                                                                      child: Text(
-                                                                        'Your ',
-                                                                        style: GoogleFonts.roboto(
-                                                                          textStyle: TextStyle(
-                                                                            color: Colors.black,
-                                                                            fontSize: 27,
-                                                                            fontWeight: FontWeight.bold,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    Center(
-                                                                      child: Text(
-                                                                        'Verification Code',
-                                                                        style: GoogleFonts.roboto(
-                                                                          textStyle: TextStyle(
-                                                                            color: Colors.black,
-                                                                            fontSize: 27,
-                                                                            fontWeight: FontWeight.bold,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(height: 25),
-                                                                    Center(
-                                                                      child: Text(
-                                                                        'Worker Must take this code to',
-                                                                        style: GoogleFonts.roboto(
-                                                                          textStyle: TextStyle(
-                                                                            color: HexColor('706F6F'),
-                                                                            fontSize: 17,
-                                                                            fontWeight: FontWeight.normal,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    Center(
-                                                                      child: Text(
-                                                                        'Start work on project',
-                                                                        style: GoogleFonts.roboto(
-                                                                          textStyle: TextStyle(
-                                                                            color: HexColor('706F6F'),
-                                                                            fontSize: 17,
-                                                                            fontWeight: FontWeight.normal,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(height: 25),
-                                                                    Center(
-                                                                      child: OTPDisplay(digits: '${projectData.pageaccessdata.schedule_vc}'.split('')), // Convert the integer to a string and split its digits
-                                                                    ),
-                                                                    SizedBox(height: 30),
-                                                                    Center(
-                                                                      child: Container(
-                                                                        height: 54, // Set the desired height
-                                                                        width: 170, // Set the desired width
-                                                                        child: ElevatedButton(
-                                                                          onPressed: () {
-                                                                            Navigator.pop(context); // Close the showModalBottomSheet
-                                                                          },
-                                                                          style: ElevatedButton.styleFrom(
-                                                                            primary: HexColor('4D8D6E'),
-                                                                            onPrimary: Colors.white,
-                                                                            elevation: 5,
-                                                                            shape: RoundedRectangleBorder(
-                                                                              borderRadius: BorderRadius.circular(20),
-                                                                            ),
-                                                                          ),
-                                                                          child: Text(
-                                                                            'Done',
-                                                                            style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              );
-                                                            },
-                                                          );
-                                                        },
-                                                      );
-                                                    }
-                                                  }
-                                                      : null,
-                                                  style: ElevatedButton.styleFrom(
-                                                    primary: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
-                                                    onPrimary: Colors.white,
-                                                    elevation: 3,
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius: BorderRadius.circular(12),
+                                                  onPressed: () {
+                                                    _navigateToNextPage(
+                                                        context);
+                                                  },
+                                                  style: ElevatedButton
+                                                      .styleFrom(
+                                                    primary: HexColor(
+                                                        '777031'),
+                                                    onPrimary:
+                                                    Colors.white,
+                                                    elevation: 8,
+                                                    shape:
+                                                    RoundedRectangleBorder(
+                                                      borderRadius:
+                                                      BorderRadius
+                                                          .circular(
+                                                          21),
                                                     ),
                                                   ),
-                                                  child: Padding(
-                                                    padding: const EdgeInsets.only(top: 12.0, bottom: 12),
-                                                    child: Row(
-                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                      children: [
-                                                        Text(
-                                                          'With the worker. Generate the Verification Code',
-                                                          style: GoogleFonts.roboto(
-                                                            textStyle: TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 12,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        if (projectData.pageContent.schedule_vc_generate_button == 'ma2fool')
-                                                          Icon(
-                                                            AntDesign.questioncircleo, // Replace with your preferred icon
-                                                            color: Colors.white,
-                                                            size: 15,
-                                                          ),
-                                                      ],
+                                                  child: Text(
+                                                    'Support',
+                                                    style: GoogleFonts
+                                                        .roboto(
+                                                      textStyle:
+                                                      TextStyle(
+                                                        color:
+                                                        Colors.white,
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                        FontWeight
+                                                            .bold,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
                                               ),
-                                            ],
-                                          ),
+                                            ),
 
-                                          SizedBox(
-                                            height: 12,
-                                          ),
+                                          ],
+                                        ),  SizedBox(
+                                          height: 12,
+                                        ),
 
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: ElevatedButton(
-                                                  onPressed: (projectData.pageContent.complete_vc_generate_button == 'mftoo7')
-                                                      ? () {
-                                                    if (projectData.pageContent.complete_vc_generate_button == 'ma2fool') {
-                                                      showDialog(
-                                                        context: context,
-                                                        builder: (context) => ModernPopup(
-                                                          text: 'press on with the worker button to generate verification code to access start work on project.',
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: ElevatedButton(
+                                                onPressed: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7')
+                                                    ? () {
+                                                  if (projectData.pageContent.schedule_vc_generate_button == 'ma2fool') {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (context) => ModernPopup(
+                                                        text: 'press on next button to generate verification code to access project complete.',
+                                                      ),
+                                                    );
+                                                  } else {
+                                                    showModalBottomSheet(
+                                                      context: context,
+                                                      isScrollControlled: true,
+                                                      builder: (BuildContext context) {
+                                                        return StatefulBuilder(
+                                                          builder: (BuildContext context, StateSetter setState) {
+                                                            return Container(
+                                                              padding: EdgeInsets.all(16.0),
+                                                              child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                mainAxisSize: MainAxisSize.min,
+                                                                children: [
+                                                                  Center(
+                                                                    child: Text(
+                                                                      'Your ',
+                                                                      style: GoogleFonts.roboto(
+                                                                        textStyle: TextStyle(
+                                                                          color: Colors.black,
+                                                                          fontSize: 27,
+                                                                          fontWeight: FontWeight.bold,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  Center(
+                                                                    child: Text(
+                                                                      'Verification Code',
+                                                                      style: GoogleFonts.roboto(
+                                                                        textStyle: TextStyle(
+                                                                          color: Colors.black,
+                                                                          fontSize: 27,
+                                                                          fontWeight: FontWeight.bold,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(height: 25),
+                                                                  Center(
+                                                                    child: Text(
+                                                                      'Worker Must take this code to',
+                                                                      style: GoogleFonts.roboto(
+                                                                        textStyle: TextStyle(
+                                                                          color: HexColor('706F6F'),
+                                                                          fontSize: 17,
+                                                                          fontWeight: FontWeight.normal,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  Center(
+                                                                    child: Text(
+                                                                      'Start work on project',
+                                                                      style: GoogleFonts.roboto(
+                                                                        textStyle: TextStyle(
+                                                                          color: HexColor('706F6F'),
+                                                                          fontSize: 17,
+                                                                          fontWeight: FontWeight.normal,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(height: 25),
+                                                                  Center(
+                                                                    child: OTPDisplay(digits: '${projectData.pageaccessdata.schedule_vc}'.split('')), // Convert the integer to a string and split its digits
+                                                                  ),
+                                                                  SizedBox(height: 30),
+                                                                  Center(
+                                                                    child: Container(
+                                                                      height: 54, // Set the desired height
+                                                                      width: 170, // Set the desired width
+                                                                      child: ElevatedButton(
+                                                                        onPressed: () {
+                                                                          Navigator.pop(context); // Close the showModalBottomSheet
+                                                                        },
+                                                                        style: ElevatedButton.styleFrom(
+                                                                          primary: HexColor('4D8D6E'),
+                                                                          onPrimary: Colors.white,
+                                                                          elevation: 5,
+                                                                          shape: RoundedRectangleBorder(
+                                                                            borderRadius: BorderRadius.circular(20),
+                                                                          ),
+                                                                        ),
+                                                                        child: Text(
+                                                                          'Done',
+                                                                          style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                    );
+                                                  }
+                                                }
+                                                    : null,
+                                                style: ElevatedButton.styleFrom(
+                                                  primary: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
+                                                  onPrimary: Colors.white,
+                                                  elevation: 3,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(12),
+                                                  ),
+                                                ),
+                                                child: Padding(
+                                                  padding: const EdgeInsets.only(top: 12.0, bottom: 12),
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        'With the worker. Generate the Verification Code',
+                                                        style: GoogleFonts.roboto(
+                                                          textStyle: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 12,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
                                                         ),
-                                                      );
-                                                    } else {
+                                                      ),
+                                                      if (projectData.pageContent.schedule_vc_generate_button == 'ma2fool')
+                                                        Icon(
+                                                          AntDesign.questioncircleo, // Replace with your preferred icon
+                                                          color: Colors.white,
+                                                          size: 15,
+                                                        ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+
+                                        SizedBox(
+                                          height: 12,
+                                        ),
+
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: ElevatedButton(
+                                                onPressed: (projectData.pageContent.complete_vc_generate_button == 'mftoo7')
+                                                    ? () {
+                                                  if (projectData.pageContent.complete_vc_generate_button == 'ma2fool') {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (context) => ModernPopup(
+                                                        text: 'press on with the worker button to generate verification code to access start work on project.',
+                                                      ),
+                                                    );
+                                                  } else {
+                                                    showModalBottomSheet(
+                                                      context: context,
+                                                      isScrollControlled: true,
+                                                      builder: (BuildContext context) {
+                                                        return StatefulBuilder(
+                                                          builder: (BuildContext context, StateSetter setState) {
+                                                            return Container(
+                                                              padding: EdgeInsets.all(16.0),
+                                                              child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                mainAxisSize: MainAxisSize.min,
+                                                                children: [
+                                                                  Center(
+                                                                    child: Text(
+                                                                      'Your ',
+                                                                      style: GoogleFonts.roboto(
+                                                                        textStyle: TextStyle(
+                                                                          color: Colors.black,
+                                                                          fontSize: 27,
+                                                                          fontWeight: FontWeight.bold,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  Center(
+                                                                    child: Text(
+                                                                      'Verification Code',
+                                                                      style: GoogleFonts.roboto(
+                                                                        textStyle: TextStyle(
+                                                                          color: Colors.black,
+                                                                          fontSize: 27,
+                                                                          fontWeight: FontWeight.bold,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(height: 25),
+                                                                  Center(
+                                                                    child: Text(
+                                                                      'Worker Must take this code to',
+                                                                      style: GoogleFonts.roboto(
+                                                                        textStyle: TextStyle(
+                                                                          color: HexColor('706F6F'),
+                                                                          fontSize: 17,
+                                                                          fontWeight: FontWeight.normal,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  Center(
+                                                                    child: Text(
+                                                                      'access project Complete',
+                                                                      style: GoogleFonts.roboto(
+                                                                        textStyle: TextStyle(
+                                                                          color: HexColor('706F6F'),
+                                                                          fontSize: 17,
+                                                                          fontWeight: FontWeight.normal,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(height: 25),
+                                                                  Center(
+                                                                    child: OTPDisplay(digits: '${projectData.pageaccessdata.complete_vc}'.split('')), // Convert the integer to a string and split its digits
+                                                                  ),
+                                                                  SizedBox(height: 30),
+                                                                  Center(
+                                                                    child: Container(
+                                                                      height: 54, // Set the desired height
+                                                                      width: 170, // Set the desired width
+                                                                      child: ElevatedButton(
+                                                                        onPressed: () {
+                                                                          Navigator.pop(context); // Close the showModalBottomSheet
+                                                                        },
+                                                                        style: ElevatedButton.styleFrom(
+                                                                          primary: HexColor('4D8D6E'),
+                                                                          onPrimary: Colors.white,
+                                                                          elevation: 5,
+                                                                          shape: RoundedRectangleBorder(
+                                                                            borderRadius: BorderRadius.circular(20),
+                                                                          ),
+                                                                        ),
+                                                                        child: Text(
+                                                                          'Done',
+                                                                          style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                    );
+                                                  }
+                                                }
+                                                    : null,
+                                                style: ElevatedButton.styleFrom(
+                                                  primary: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
+                                                  onPrimary: Colors.white,
+                                                  elevation: 3,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(12),
+                                                  ),
+                                                ),
+                                                child: Padding(
+                                                  padding: const EdgeInsets.only(top: 12.0, bottom: 12),
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        'Generate the Code to access project complete',
+                                                        style: GoogleFonts.roboto(
+                                                          textStyle: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 12,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      if (projectData.pageContent.complete_vc_generate_button == 'ma2fool')
+                                                        Icon(
+                                                          AntDesign.questioncircleo, // Replace with your preferred icon
+                                                          color: Colors.white,
+                                                          size: 15,
+                                                        ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+
+                                        SizedBox(
+                                          height: 12,
+                                        ),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Container(
+                                                width: 195.0,
+                                                height: 50,
+                                                child: ElevatedButton(
+                                                  onPressed: () {
+                                                    if (projectData.pageContent.project_complete_button == 'mftoo7') {
                                                       showModalBottomSheet(
                                                         context: context,
                                                         isScrollControlled: true,
@@ -1892,16 +2053,21 @@ SizedBox(width: 3,),
                                                                     ),
                                                                     SizedBox(height: 25),
                                                                     Center(
-                                                                      child: OTPDisplay(digits: '${projectData.pageaccessdata.complete_vc}'.split('')), // Convert the integer to a string and split its digits
+                                                                      child: OTPDisplay(digits: ["1", "2", "3", "4"]), // Replace with your API response
                                                                     ),
                                                                     SizedBox(height: 30),
                                                                     Center(
                                                                       child: Container(
-                                                                        height: 54, // Set the desired height
-                                                                        width: 170, // Set the desired width
+                                                                        height: 54,
+                                                                        width: 170,
                                                                         child: ElevatedButton(
                                                                           onPressed: () {
-                                                                            Navigator.pop(context); // Close the showModalBottomSheet
+                                                                            setState(() {
+                                                                              showprojectcomplete = true;
+                                                                              accessprojectcomplete = true;
+                                                                              disableverfication = true;
+                                                                            });
+                                                                            print(showprojectcomplete);
                                                                           },
                                                                           style: ElevatedButton.styleFrom(
                                                                             primary: HexColor('4D8D6E'),
@@ -1913,7 +2079,7 @@ SizedBox(width: 3,),
                                                                           ),
                                                                           child: Text(
                                                                             'Done',
-                                                                            style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
+                                                                            style: TextStyle(fontSize: 18),
                                                                           ),
                                                                         ),
                                                                       ),
@@ -1925,221 +2091,67 @@ SizedBox(width: 3,),
                                                           );
                                                         },
                                                       );
+                                                    } else {
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (context) => ModernPopup(
+                                                          text: 'Generate a Code to Start Work',
+                                                        ),
+                                                      );
                                                     }
-                                                  }
-                                                      : null,
+                                                  },
                                                   style: ElevatedButton.styleFrom(
-                                                    primary: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
+                                                    primary: projectData.pageContent.project_complete_button == 'mftoo7'
+                                                        ? HexColor('1AA251')
+                                                        : HexColor('1AA251').withOpacity(0.5),
                                                     onPrimary: Colors.white,
-                                                    elevation: 3,
+                                                    elevation: 2,
                                                     shape: RoundedRectangleBorder(
-                                                      borderRadius: BorderRadius.circular(12),
+                                                      borderRadius: BorderRadius.circular(8),
                                                     ),
                                                   ),
                                                   child: Padding(
-                                                    padding: const EdgeInsets.only(top: 12.0, bottom: 12),
+                                                    padding: const EdgeInsets.all(12.0),
                                                     child: Row(
-                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      mainAxisAlignment: MainAxisAlignment.center,
                                                       children: [
                                                         Text(
-                                                          'Generate the Code to access project complete',
+                                                          'Project Completed',
                                                           style: GoogleFonts.roboto(
                                                             textStyle: TextStyle(
                                                               color: Colors.white,
-                                                              fontSize: 12,
+                                                              fontSize: 14,
                                                               fontWeight: FontWeight.bold,
                                                             ),
                                                           ),
                                                         ),
-                                                        if (projectData.pageContent.complete_vc_generate_button == 'ma2fool')
-                                                          Icon(
-                                                            AntDesign.questioncircleo, // Replace with your preferred icon
-                                                            color: Colors.white,
-                                                            size: 15,
-                                                          ),
+                                                        SizedBox(width: 9),
+                                                        Icon(
+                                                          AntDesign.questioncircleo,
+                                                          color: Colors.white,
+                                                          size: 18,
+                                                        ),
                                                       ],
                                                     ),
                                                   ),
                                                 ),
                                               ),
-                                            ],
-                                          ),
-
-                                          SizedBox(
-                                            height: 12,
-                                          ),
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: Container(
-                                                  width: 195.0,
-                                                  height: 50,
-                                                  child: ElevatedButton(
-                                                    onPressed: () {
-                                                      if (projectData.pageContent.project_complete_button == 'mftoo7') {
-                                                        showModalBottomSheet(
-                                                          context: context,
-                                                          isScrollControlled: true,
-                                                          builder: (BuildContext context) {
-                                                            return StatefulBuilder(
-                                                              builder: (BuildContext context, StateSetter setState) {
-                                                                return Container(
-                                                                  padding: EdgeInsets.all(16.0),
-                                                                  child: Column(
-                                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                                    mainAxisSize: MainAxisSize.min,
-                                                                    children: [
-                                                                      Center(
-                                                                        child: Text(
-                                                                          'Your ',
-                                                                          style: GoogleFonts.roboto(
-                                                                            textStyle: TextStyle(
-                                                                              color: Colors.black,
-                                                                              fontSize: 27,
-                                                                              fontWeight: FontWeight.bold,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                      Center(
-                                                                        child: Text(
-                                                                          'Verification Code',
-                                                                          style: GoogleFonts.roboto(
-                                                                            textStyle: TextStyle(
-                                                                              color: Colors.black,
-                                                                              fontSize: 27,
-                                                                              fontWeight: FontWeight.bold,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                      SizedBox(height: 25),
-                                                                      Center(
-                                                                        child: Text(
-                                                                          'Worker Must take this code to',
-                                                                          style: GoogleFonts.roboto(
-                                                                            textStyle: TextStyle(
-                                                                              color: HexColor('706F6F'),
-                                                                              fontSize: 17,
-                                                                              fontWeight: FontWeight.normal,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                      Center(
-                                                                        child: Text(
-                                                                          'access project Complete',
-                                                                          style: GoogleFonts.roboto(
-                                                                            textStyle: TextStyle(
-                                                                              color: HexColor('706F6F'),
-                                                                              fontSize: 17,
-                                                                              fontWeight: FontWeight.normal,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                      SizedBox(height: 25),
-                                                                      Center(
-                                                                        child: OTPDisplay(digits: ["1", "2", "3", "4"]), // Replace with your API response
-                                                                      ),
-                                                                      SizedBox(height: 30),
-                                                                      Center(
-                                                                        child: Container(
-                                                                          height: 54,
-                                                                          width: 170,
-                                                                          child: ElevatedButton(
-                                                                            onPressed: () {
-                                                                              setState(() {
-                                                                                showprojectcomplete = true;
-                                                                                accessprojectcomplete = true;
-                                                                                disableverfication = true;
-                                                                              });
-                                                                              print(showprojectcomplete);
-                                                                            },
-                                                                            style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
-                                                                              elevation: 5,
-                                                                              shape: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.circular(20),
-                                                                              ),
-                                                                            ),
-                                                                            child: Text(
-                                                                              'Done',
-                                                                              style: TextStyle(fontSize: 18),
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                );
-                                                              },
-                                                            );
-                                                          },
-                                                        );
-                                                      } else {
-                                                        showDialog(
-                                                          context: context,
-                                                          builder: (context) => ModernPopup(
-                                                            text: 'Generate a Code to Start Work',
-                                                          ),
-                                                        );
-                                                      }
-                                                    },
-                                                    style: ElevatedButton.styleFrom(
-                                                      primary: projectData.pageContent.project_complete_button == 'mftoo7'
-                                                          ? HexColor('1AA251')
-                                                          : HexColor('1AA251').withOpacity(0.5),
-                                                      onPrimary: Colors.white,
-                                                      elevation: 2,
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(8),
-                                                      ),
-                                                    ),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets.all(12.0),
-                                                      child: Row(
-                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                        children: [
-                                                          Text(
-                                                            'Project Completed',
-                                                            style: GoogleFonts.roboto(
-                                                              textStyle: TextStyle(
-                                                                color: Colors.white,
-                                                                fontSize: 14,
-                                                                fontWeight: FontWeight.bold,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          SizedBox(width: 9),
-                                                          Icon(
-                                                            AntDesign.questioncircleo,
-                                                            color: Colors.white,
-                                                            size: 18,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-SizedBox(height: 17,),
-                                            ListView.builder(
-                                            physics: NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                itemCount: projectData.bids.length,
-                                itemBuilder: (context, index) {
-                                Bid bid = projectData.bids[index];
-                                return buildListItem(bid);
-                                },
-                                ),
-                                        ],
-                                      );
-                                    }
-                                  } else if (projectData.bids.isNotEmpty) {
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 17,),
+                                        ListView.builder(
+                                          physics: NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true,
+                                          itemCount: projectData.bids.length,
+                                          itemBuilder: (context, index) {
+                                            Bid bid = projectData.bids[index];
+                                            return buildListItem(bid);
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  }else if (projectData.bids.isNotEmpty) {
                                     // Render a ListView with bids
                                     return ListView.builder(
                                       physics: NeverScrollableScrollPhysics(),
@@ -2159,6 +2171,18 @@ SizedBox(height: 17,),
                                     );
                                   }
                                 }
+                               return Center(
+                                  child: Text(
+                                    'No data available',
+                                    style: GoogleFonts.openSans(
+                                      textStyle: TextStyle(
+                                        color: HexColor('454545'),
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                );
                               },
                             )
                           ]);
@@ -2455,6 +2479,7 @@ SizedBox(height: 17,),
   }
 
   Widget buildListItem(Bid item) {
+
     bool isMoneyLessOrEqual =
         double.parse(item.amount.toString()) <= double.parse(currentbid);
 
@@ -2546,9 +2571,12 @@ SizedBox(height: 17,),
               ),
             ],
           ),
+
           Spacer(),
           Visibility(
-            visible: item.pageContent.buttonsText == 'efta7 Zorar el Accept',
+
+            visible:
+            buttonsValue == "efta7 Zorar el Accept",
             child: ElevatedButton(
               onPressed: () {
                 Get.to(checkOutClient(
@@ -2576,15 +2604,15 @@ SizedBox(height: 17,),
           Spacer(),
           isMoneyLessOrEqual
               ? SvgPicture.asset(
-                  'assets/icons/arrowdown.svg',
-                  width: 39.0,
-                  height: 39.0,
-                )
+            'assets/icons/arrowdown.svg',
+            width: 39.0,
+            height: 39.0,
+          )
               : SvgPicture.asset(
-                  'assets/icons/arrowup.svg',
-                  width: 39.0,
-                  height: 39.0,
-                ),
+            'assets/icons/arrowup.svg',
+            width: 39.0,
+            height: 39.0,
+          ),
         ],
       ),
     );
@@ -2680,7 +2708,7 @@ class ClientData {
 }
 class PageContent {
   final String currentUserRole;
-  final String buttonsText;
+  final String buttons;
   final String selectedDate;
   final String selectedInterval;
   final String scheduleStatus;
@@ -2694,7 +2722,7 @@ class PageContent {
 
 
   PageContent({required this.currentUserRole
-    , required this.buttonsText
+    , required this.buttons
     , required this.selectedDate
     , required this.selectedInterval
     , required this.scheduleStatus
@@ -2712,7 +2740,7 @@ class PageContent {
   factory PageContent.fromJson(Map<String, dynamic> json) {
     return PageContent(
       currentUserRole: json['current_user_role']?? '',
-      buttonsText: json['buttons']?? '',
+      buttons: json['buttons']?? '',
       selectedDate: json['selected_date'] ?? '',
       selectedInterval: json['selected_interval'] ?? '',
       scheduleStatus: json['schedule_status'] ?? '',
@@ -2722,8 +2750,8 @@ class PageContent {
       complete_vc_generate_button: json['complete_vc_generate_button'] ?? '',
       project_complete_button: json['project_complete_button'] ?? '',
       support: json['support'] ?? '',
-
     );
+
   }
 }
 class page_access_data {
@@ -2792,7 +2820,6 @@ class Bid {
     required this.workerId,
     required this.clientData,
     required this.pageContent,
-
     required this.workerFirstname,
     required this.workerProfilePic,
     required this.amount,
@@ -2800,6 +2827,8 @@ class Bid {
   });
 
   factory Bid.fromJson(Map<String, dynamic> json) {
+    var pageContent = json['page_content'] as Map<String, dynamic>? ?? {};
+
     return Bid(
       workerId: json['worker_id'] as int? ?? 0,
       workerFirstname: json['worker_firstname'] ?? '',
@@ -2807,7 +2836,7 @@ class Bid {
       amount: double.tryParse(json['amount'].toString()) ?? 0,
       comment: json['comment'] ?? '',
       clientData: ClientData.fromJson(json['client_info'] as Map<String, dynamic>? ?? {}),
-      pageContent: PageContent.fromJson(json['page_content'] as Map<String, dynamic>? ?? {}),
+      pageContent: PageContent.fromJson(pageContent),
     );
   }}
 

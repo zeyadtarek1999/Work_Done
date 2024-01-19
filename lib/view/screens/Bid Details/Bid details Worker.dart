@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:intl/intl.dart';
+import 'package:pinput/pinput.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -48,6 +49,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
       DateTime(2000, 01, 01, 07, 00, 00), DateTime(2000, 01, 01, 17, 00, 00));
   DateTime dateTime = DateTime.now();
   DateTime _selectedDate = DateTime.now();
+  final TextEditingController otpController = TextEditingController();
 
   String formatTime(DateTime time) {
     return DateFormat('h:mm a').format(time);
@@ -71,29 +73,86 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
   double minBound = 0;
 
   double upperBound = 1.0;
-  Future<void> scheduleProject(int projectId, String selectedDay, String selectedInterval) async {
+  Future<void> changeScheduleStatus(int projectId, String status) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String userToken = prefs.getString('user_token') ?? '';
-    final url = Uri.parse('https://www.workdonecorp.com/api/schedule_project'); // Replace with actual URL
+
+    final url = Uri.parse('https://www.workdonecorp.com/api/change_schedule_status'); // Replace with the actual base URL
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $userToken',
+      },
+      body: json.encode({
+        'project_id': projectId,
+        'status': status,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      print(responseBody);
+    } else {
+      // Handle the error; the server didn't return a 200 OK response.
+      print('Request failed with status: ${response.statusCode}.');
+    }
+  }
+  Future<void> verify_project_schedule(int projectId, String vc) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String userToken = prefs.getString('user_token') ?? '';
+
+    final url = Uri.parse('https://www.workdonecorp.com/api/verify_project_schedule'); // Replace with the actual base URL
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $userToken',
+      },
+      body: json.encode({
+        'project_id': projectId,
+        'vc': vc,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+
+      MaterialPageRoute(
+          builder: (context) => bidDetailsWorker(projectId: projectId));
+      print(responseBody);
+    } else {
+      // Handle the error; the server didn't return a 200 OK response.
+      print('Request failed with status: ${response.statusCode}.');
+    }
+  }
+
+  Future<void> scheduleProject(
+      int projectId, String selectedDay, String selectedInterval) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String userToken = prefs.getString('user_token') ?? '';
+    final url = Uri.parse(
+        'https://www.workdonecorp.com/api/schedule_project'); // Replace with actual URL
     final body = jsonEncode({
       'project_id': projectId,
       'selected_day': selectedDay.toString(),
       'selected_interval': selectedInterval.toString()
     });
 
-    final response = await http.post(
-        url,
+    final response = await http.post(url,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $userToken',
         },
-        body: body
-    );
+        body: body);
 
     if (response.statusCode == 200) {
       // Handle successful response
       await fetchProjectDetails(projectId); // Call fetchProjectDetails here
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => bidDetailsWorker(projectId: projectId)));
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => bidDetailsWorker(projectId: projectId)));
 
       print('Schedule sent successfully!');
     } else {
@@ -130,30 +189,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
         }
       } else {
         // This else block catches cases where 'status' isn't 'success'.
-        final message = responseData != null ? responseData['message'] : 'Unknown error';
+        final message =
+            responseData != null ? responseData['message'] : 'Unknown error';
         throw Exception('Failed to load project details from API: $message');
       }
     } else {
       // The statusCode is not 200, handle the error here.
-      final message = response.body.isNotEmpty ? json.decode(response.body)['message'] : 'No error message provided';
-      throw Exception('Failed to load project details. Status code: ${response.statusCode}, Message: $message');
+      final message = response.body.isNotEmpty
+          ? json.decode(response.body)['message']
+          : 'No error message provided';
+      throw Exception(
+          'Failed to load project details. Status code: ${response.statusCode}, Message: $message');
     }
   }
-
 
   @override
   void initState() {
     super.initState();
-    int projectId =widget.projectId;
-    projectDetailsFuture = fetchProjectDetails(projectId); // Use the projectId in the call
+    int projectId = widget.projectId;
+    projectDetailsFuture =
+        fetchProjectDetails(projectId); // Use the projectId in the call
     scrollController = ScrollController();
     scrollController.addListener(() {
       if (scrollController.offset >=
-          scrollController.position.maxScrollExtent &&
+              scrollController.position.maxScrollExtent &&
           !scrollController.position.outOfRange) {
         panelController.expand();
       } else if (scrollController.offset <=
-          scrollController.position.minScrollExtent &&
+              scrollController.position.minScrollExtent &&
           !scrollController.position.outOfRange) {
         panelController.anchor();
       } else {}
@@ -161,11 +224,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
     scrollController2 = ScrollController();
     scrollController2.addListener(() {
       if (scrollController2.offset >=
-          scrollController2.position.maxScrollExtent &&
+              scrollController2.position.maxScrollExtent &&
           !scrollController2.position.outOfRange) {
         panelController2.expand();
       } else if (scrollController2.offset <=
-          scrollController2.position.minScrollExtent &&
+              scrollController2.position.minScrollExtent &&
           !scrollController2.position.outOfRange) {
         panelController2.anchor();
       } else {}
@@ -175,7 +238,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
   String currentbid = '24';
   final ScreenshotController screenshotController = ScreenshotController();
 
-  String unique = 'biddetailsclient';
+  String unique = 'biddetailsworker';
 
   void _navigateToNextPage(BuildContext context) async {
     Uint8List? imageBytes = await screenshotController.capture();
@@ -195,11 +258,23 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
       statusBarColor: HexColor('FFFFFF'),
       // Change this color to the desired one
       statusBarIconBrightness:
-      Brightness.dark, // Change the status bar icons' color (dark or light)
+          Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
     double screenWidth = MediaQuery.of(context).size.width;
     double screenheight = MediaQuery.of(context).size.height;
+    // Define the focus nodes for each text field
+    FocusNode focusNode1 = FocusNode();
+    FocusNode focusNode2 = FocusNode();
+    FocusNode focusNode3 = FocusNode();
+    FocusNode focusNode4 = FocusNode();
 
+    // These functions help to change focus from one text field to the next.
+    // They are passed to onChanged property of the text fields.
+    void nextField({required String value, FocusNode? focusNode}) {
+      if (value.length == 1) {
+        focusNode?.requestFocus();
+      }
+    }
     return Stack(children: <Widget>[
       Scaffold(
         backgroundColor: HexColor('FFFFFF'),
@@ -233,7 +308,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
             physics: BouncingScrollPhysics(),
             child: Padding(
               padding:
-              const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
+                  const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
               child: FutureBuilder<ProjectData>(
                   future: projectDetailsFuture,
                   builder: (context, snapshot) {
@@ -257,38 +332,59 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                       return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CarouselSlider(
-                              options: CarouselOptions(
-                                pageSnapping: true,
-
-                                height: 210,
-                                aspectRatio: 16/9,
-                                viewportFraction: 1.0,
-                                initialPage: 0,
-                                enableInfiniteScroll: true,
-                                reverse: false,
-                                autoPlay: false,
-                                autoPlayInterval: Duration(seconds: 3),
-                                autoPlayAnimationDuration: Duration(milliseconds: 800),
-                                autoPlayCurve: Curves.fastOutSlowIn,
-                                scrollDirection: Axis.horizontal,
-                              ),
-                              items: projectData.images.map((images) {
-                                return Builder(
-                                  builder: (BuildContext context) {
-                                    return ClipRRect(
-                                      borderRadius: BorderRadius.circular(30),
-                                      child: Image.network(
-                                        images,
-                                        fit: BoxFit.cover,
-                                        width: MediaQuery.of(context).size.width,
-                                        height: double.infinity,
-                                      ),
-                                    );
-                                  },
-                                );
-                              }).toList(),
-                            ),
+                      CarouselSlider(
+                      options: CarouselOptions(
+                      pageSnapping: true,
+                        height: 210,
+                        aspectRatio: 16 / 9,
+                        viewportFraction: 1.0,
+                        initialPage: 0,
+                        enableInfiniteScroll: true,
+                        reverse: false,
+                        autoPlay: false,
+                        autoPlayInterval: Duration(seconds: 3),
+                        autoPlayAnimationDuration: Duration(milliseconds: 800),
+                        autoPlayCurve: Curves.fastOutSlowIn,
+                        scrollDirection: Axis.horizontal,
+                      ),
+                    items: projectData.images.map((images) {
+                    return Builder(
+                    builder: (BuildContext context) {
+                    // Wrap Image in a GestureDetector to handle taps
+                    return GestureDetector(
+                    onTap: () {
+                    // When image is tapped, push a new view onto the stack with the full image
+                    Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => Scaffold(
+                    backgroundColor: Colors.black,
+                    appBar: AppBar(
+                    backgroundColor: Colors.black,
+                    elevation: 0,
+                    ),
+                    body: Center(
+                    child: InteractiveViewer(
+                    child: Image.network(
+                    images,
+                    fit: BoxFit.contain,
+                    ),
+                    ),
+                    ),
+                    ),
+                    ));
+                    },
+                    child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: Image.network(
+                    images,
+                    fit: BoxFit.cover,
+                    width: MediaQuery.of(context).size.width,
+                    height: double.infinity,
+                    ),
+                    ),
+                    );
+                    },
+                    );
+                    }).toList(),),
                             SizedBox(
                               height: 12,
                             ),
@@ -339,7 +435,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                             ),
                             Padding(
                               padding:
-                              const EdgeInsets.symmetric(horizontal: 6.0),
+                                  const EdgeInsets.symmetric(horizontal: 6.0),
                               child: Text(
                                 projectData.title,
                                 style: GoogleFonts.openSans(
@@ -361,11 +457,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                                   backgroundColor: Colors.transparent,
                                   backgroundImage: NetworkImage(
                                     projectData.clientData?.profileImage ==
-                                        'https://workdonecorp.com/images/'
+                                            'https://workdonecorp.com/images/'
                                         ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
                                         : projectData
-                                        .clientData?.profileImage ??
-                                        'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+                                                .clientData?.profileImage ??
+                                            'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
                                   ),
                                 ),
                                 SizedBox(
@@ -441,7 +537,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                                       ),
                                       Row(
                                         mainAxisAlignment:
-                                        MainAxisAlignment.center,
+                                            MainAxisAlignment.center,
                                         children: [
                                           Text(
                                             '\$',
@@ -475,7 +571,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                             ),
                             Padding(
                               padding:
-                              const EdgeInsets.symmetric(horizontal: 6.0),
+                                  const EdgeInsets.symmetric(horizontal: 6.0),
                               child: Text(
                                 'Description',
                                 style: GoogleFonts.openSans(
@@ -492,7 +588,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                             ),
                             Padding(
                               padding:
-                              const EdgeInsets.symmetric(horizontal: 5.0),
+                                  const EdgeInsets.symmetric(horizontal: 5.0),
                               child: Text(
                                 projectData.desc,
                                 textAlign: TextAlign.left,
@@ -510,7 +606,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                             ),
                             Padding(
                               padding:
-                              const EdgeInsets.symmetric(horizontal: 6.0),
+                                  const EdgeInsets.symmetric(horizontal: 6.0),
                               child: Row(
                                 children: [
                                   Text(
@@ -533,112 +629,122 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
 
                             //accepted worker
                             Visibility(
-                              visible: projectData.selectworkerbid.worker_firstname != '', // Check if select_worker_bid exists
+                              visible: projectData.pageContent.currentUserRole == 'worker' &&
+                                  (projectData.status == 'bid_accepted' || projectData.status == 'processing'),
+                              child: Visibility(
+                                visible: projectData.selectworkerbid.worker_firstname.isNotEmpty,
+                                // Check if select_worker_bid exists and has a non-empty worker_firstname
 
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withOpacity(0.5), // Set the desired opacity and color
-                                  borderRadius: BorderRadius.circular(12), // Optional: Set border radius
-                                ),
-                                child: Container(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 12),
-                                    child: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 28,
-                                          backgroundColor: Colors.transparent,
-                                          backgroundImage:    NetworkImage(
-                                            projectData.selectworkerbid.worker_profile_pic != null && projectData.selectworkerbid.worker_profile_pic.isNotEmpty
-                                                ? projectData.selectworkerbid.worker_profile_pic
-                                                : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // Use default if empty
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Container(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 12),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 28,
+                                            backgroundColor: Colors.transparent,
+                                            backgroundImage: NetworkImage(
+                                              projectData.selectworkerbid.worker_profile_pic != null &&
+                                                  projectData.selectworkerbid.worker_profile_pic.isNotEmpty
+                                                  ? projectData.selectworkerbid.worker_profile_pic
+                                                  : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+                                            ),
                                           ),
-
-                                        ),
-                                        SizedBox(width: 15,),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.start,
-                                              children: [
-                                                GestureDetector(
-                                                  onTap: () {
-                                                    // Navigate to worker profile page
-                                                    // You can replace this with your navigation logic
-                                                  },
-                                                  child: Text(
-                                                    projectData.selectworkerbid.worker_firstname,
-                                                    style: GoogleFonts.openSans(
-                                                      textStyle: TextStyle(
-                                                        color: HexColor('4A4949'),
-                                                        fontSize: 17,
-                                                        fontWeight: FontWeight.bold,
+                                          SizedBox(
+                                            width: 15,
+                                          ),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.start,
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      // Navigate to worker profile page
+                                                      // You can replace this with your navigation logic
+                                                    },
+                                                    child: Text(
+                                                      projectData.selectworkerbid.worker_firstname,
+                                                      style: GoogleFonts.openSans(
+                                                        textStyle: TextStyle(
+                                                          color: HexColor('4A4949'),
+                                                          fontSize: 17,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                                SizedBox(
-                                                  width: 10,
-                                                ),
-                                                Icon(
-                                                  Icons.star,
-                                                  color: HexColor('F3ED51'),
-                                                  size: 20,
-                                                ),
-                                                SizedBox(
-                                                  width: 2,
-                                                ),
-                                                Text('7'),
-                                              ],
-                                            ),
-                                            SizedBox(
-                                              height: 4,
-                                            ),
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  '\$',
-                                                  style: GoogleFonts.openSans(
-                                                    textStyle: TextStyle(
-                                                      color: HexColor('353B3B'),
-                                                      fontSize: 18,
-                                                      fontWeight: FontWeight.w500,
+                                                  SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  Icon(
+                                                    Icons.star,
+                                                    color: HexColor('F3ED51'),
+                                                    size: 20,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 2,
+                                                  ),
+                                                  Text('7'),
+                                                ],
+                                              ),
+                                              SizedBox(
+                                                height: 4,
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    '\$',
+                                                    style: GoogleFonts.openSans(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('353B3B'),
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
                                                     ),
                                                   ),
-                                                ),
-                                                SizedBox(
-                                                  width: 3,
-                                                ),
-                                                Text(
-                                                  projectData.selectworkerbid.amount.toString(),
-                                                  style: GoogleFonts.openSans(
-                                                    textStyle: TextStyle(
-                                                      color: HexColor('353B3B'),
-                                                      fontSize: 18,
-                                                      fontWeight: FontWeight.w500,
+                                                  SizedBox(
+                                                    width: 3,
+                                                  ),
+                                                  Text(
+                                                    projectData.selectworkerbid.amount.toString(),
+                                                    style: GoogleFonts.openSans(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('353B3B'),
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
                                                     ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                        Spacer(),
-                                      ],
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                          Spacer(),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
 
-                            SizedBox(height: 20,),
+                            SizedBox(
+                              height: 20,
+                            ),
                             FutureBuilder<ProjectData>(
                               future: fetchProjectDetails(widget.projectId),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
-                                  return Center(child: CircularProgressIndicator());
+                                  return Center(
+                                      child: CircularProgressIndicator());
                                 } else if (snapshot.hasError) {
                                   return Center(
                                       child: Text('Error: ${snapshot.error}'));
@@ -657,76 +763,356 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                                   );
                                 } else {
                                   ProjectData projectData = snapshot.data!;
+                                  if (projectData.pageContent.scheduleStatus == "pending") {
+                                    WidgetsBinding.instance?.addPostFrameCallback((_) {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isDismissible: false, // User must tap a button to dismiss
+                                        enableDrag: false, // The bottom sheet cannot be dragged down
+                                        builder: (BuildContext context) {
+                                          return SafeArea(
+                                            child: Column(
+
+                                              mainAxisSize: MainAxisSize.min, // Use minimum space necessary
+                                              children: [
+                                                Text('Date',
+                                                    style: TextStyle(fontSize: 30,color: HexColor('4D8D6E'), fontWeight: FontWeight.bold)),
+                                                SizedBox(height: 12,),
+                                                Text('${projectData.pageContent.selectedDate}'),
+                                                SizedBox(height: 20,),
+
+                                                Text('Time',
+                                                    style: TextStyle(fontSize: 30,color: HexColor('4D8D6E'), fontWeight: FontWeight.bold)),
+                                                SizedBox(height: 12,),
+
+                                                Text('${projectData.pageContent.selectedInterval}',
+                                                ),
+                                                SizedBox(height: 20,),
+
+                                                Padding(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                                                  child: Text(
+                                                    """Thank you for reviewing the client's schedule. Please confirm your availability for the selected date and time, or choose an alternative slot.\n \nIf you are unable to accept the proposed schedule, kindly click "Decline" and proceed to the chat to discuss a new date or time with the client. Open communication is key to finding a suitable arrangement that works for both parties.""",
+                                                    textAlign: TextAlign.center, // Set the text alignment to center
+                                                    style: TextStyle(
+                                                      // Define your text style here
+                                                      fontSize: 13, // Example: setting font size
+                                                      // fontWeight: FontWeight.bold, // Example: setting font weight
+                                                      // color: Colors.black, // Example: setting text color
+                                                    ),
+                                                  ),
+                                                ),
+
+                                                Spacer(), // Puts space between the texts above and the buttons below
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                  children: [
+                                                    SizedBox(
+                                                      height: 50,
+                                                      width: 120,
+                                                      child: ElevatedButton(
+                                                        onPressed: () {
+                                                          // TODO: Handle accept logic
+setState(() {
+  changeScheduleStatus(widget.projectId, 'accepted'); // Call the function with the required project_id and status
+
+});
+
+                                                        },
+                                                        style: ElevatedButton.styleFrom(
+                                                          primary: HexColor('4D8D6E'), // Accept button color
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(12), // Adjust the radius to make it circular
+                                                          ),
+                                                        ),
+                                                        child: Text('Accept',style: TextStyle(color: Colors.white),),
+                                                      ),
+                                                    ),
 
 
-                                  if ( projectData.pageContent.currentUserRole ==  'worker'&& ( projectData.status ==
-                                  'bid_accepted' || projectData.status ==
-                                      'processing' ) ){
+                                                    SizedBox(
+                                                      height: 50,
+                                                      width: 120,
+                                                      child: ElevatedButton(
+                                                        onPressed: () {
+                                                          // TODO: Handle accept logic
+                                                          Navigator.pop(context); // Close the bottom sheet
+                                                        },
+                                                        style: ElevatedButton.styleFrom(
+                                                          primary: Colors.red, // Accept button color
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(12), // Adjust the radius to make it circular
+                                                          ),
+                                                        ),
+                                                        child: Text('Decline',style: TextStyle(color: Colors.white),),
+                                                      ),
+                                                    ),
 
+                                                  ],
+                                                ),
+                                                SizedBox(height: 20,)
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    });
+                                  }
+                                  if (projectData.pageContent.currentUserRole ==
+                                          'worker' &&
+                                      (projectData.status == 'bid_accepted' ||
+                                          projectData.status == 'scheduled'
+                                         )) {
                                     // Render a row with buttons
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 15.0),
-                                      child: Row(
-                                        children: [
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              panelController.expand();
-
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              primary: Colors.red,
-                                              onPrimary: Colors.white,
-                                              elevation: 8,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                            ),
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(12.0),
-                                              child: Text('End'),
-                                            ),
-                                          ),
-                                          SizedBox(width: 16),
-                                          Expanded(
-                                            child: ElevatedButton(
+                                    return Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            ElevatedButton(
                                               onPressed: () {
                                                 Get.to(ChatScreen(
-                                                  chatId: projectData
-                                                      .pageaccessdata!.chat_ID,
-                                                  currentUser:
-                                                  projectData
-                                                      .clientData!
-                                                      .firstname,
-                                                  secondUserName:
-                                                  projectData.selectworkerbid.worker_firstname,
-                                                  userId: projectData
-                                                      .clientData!
-                                                      .clientId
-                                                      .toString(),
+                                                  chatId: projectData.pageaccessdata!.chat_ID,
+                                                  currentUser: projectData.clientData!.firstname,
+                                                  secondUserName: projectData.selectworkerbid.worker_firstname,
+                                                  userId: projectData.clientData!.clientId.toString(),
                                                 ));
                                               },
                                               style: ElevatedButton.styleFrom(
-                                                primary: Colors.blue,
-                                                // Background color
+                                                primary: HexColor('ED6F53'),
                                                 onPrimary: Colors.white,
-                                                // Text color
-                                                elevation: 8,
-                                                // Elevation
+                                                elevation: 5,
                                                 shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                  BorderRadius.circular(
-                                                      8), // Rounded corners
+                                                  borderRadius: BorderRadius.circular(12),
                                                 ),
+                                                fixedSize: Size(70, 50), // Set the desired width and height
                                               ),
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(12.0),
-                                                child: Text('Chat'),
+                                              child: Text(
+                                                'Chat',
+                                                style: TextStyle(fontSize: 10),
                                               ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
+                                            SizedBox(width: 5),
+                                            Expanded(
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.grey,
+                                                    width: 1.3, // Adjust the border width as needed
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(12.0), // Adjust the radius as needed
+                                                ),
+                                                child: Padding(
+                                                  padding: const EdgeInsets.symmetric(vertical: 8.0), // Adjust padding as needed
+                                                  child: Center(
+                                                    child: Text(
+                                                      'Wait for the Client to Schedule time \& date \n or Go to the chat to discuss work timing',
+                                                      style: TextStyle(fontSize: 8 ,fontWeight: FontWeight.bold),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(width: 5),
+                                            Hero(
+                                              tag: 'workdone_$unique',
+                                              child: Container(
+                                                height: 50,
+                                                width: 80, // Set the desired width
+                                                child: ElevatedButton(
+                                                  onPressed: () {
+                                                    _navigateToNextPage(context);
+                                                  },
+                                                  style: ElevatedButton.styleFrom(
+                                                    primary: HexColor('777031'),
+                                                    onPrimary: Colors.white,
+                                                    elevation: 8,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(21),
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    'Support',
+                                                    style: GoogleFonts.roboto(
+                                                      textStyle: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 8.5,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ), // Add ellipsis (...) for overflow
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(
+                                          height: 9,
+                                        ),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Opacity(
+                                                // Change the opacity based on the condition
+                                                opacity: projectData.pageContent.enter_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                child: ElevatedButton(
+                                                  // Disable or enable the button based on the condition
+                                                  onPressed: projectData.pageContent.enter_verification_code_button == "mftoo7" ? () {
+                                                    showModalBottomSheet(
+                                                      context: context,
+                                                      isScrollControlled: true,
+                                                      builder: (BuildContext context) {
+                                                        String otp = ''; // Initialize the OTP string
+
+                                                        return StatefulBuilder(
+                                                          builder: (BuildContext context, StateSetter setState) {
+                                                            return Container(
+                                                              padding: EdgeInsets.all(16.0),
+                                                              child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                                mainAxisSize: MainAxisSize.min,
+                                                                children: [
+                                                                  Center(child: Text('Write a \n Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+                                                                  SizedBox(height: 12,),
+
+                                                                  Text('Take verification code from client ' , style: TextStyle(fontSize: 19, color: HexColor('706F6F') , fontWeight: FontWeight.normal),),
+                                                                  SizedBox(height: 25),
+                                                                  Pinput(
+                                                                    length: 4, // The total length of the OTP
+                                                                    controller: otpController, // The single controller for the OTP
+                                                                    focusNode: focusNode1, // Current focus node
+                                                                    pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
+                                                                    onCompleted: (pin) {
+                                                                      // You can use the entered OTP for verification when the user has completed entering it.
+                                                                      print('Completed: $pin');
+                                                                    },
+                                                                    // This function will be called when the input operation is submitted (usually on the keyboard).
+                                                                    onSubmitted: (pin) {
+                                                                      // Don't forget to validate OTP and then send to API or whatever is required next.
+                                                                    },
+                                                                  ),
+
+                                                                  SizedBox(height: 30),
+                                                                  Center(
+                                                                    child: ElevatedButton(
+                                                                      onPressed:
+                                                                          () {
+
+                                                                        verify_project_schedule (widget.projectId,otpController.toString());
+                                                                      },
+                                                                      style: ElevatedButton.styleFrom(
+                                                                        primary: HexColor('4D8D6E'),
+                                                                        onPrimary: Colors.white,
+                                                                        elevation: 5,
+                                                                        shape: RoundedRectangleBorder(
+                                                                          borderRadius: BorderRadius.circular(20),
+                                                                        ),
+                                                                      ),
+                                                                      child: Text(
+                                                                        'Confirm',
+                                                                        style: TextStyle(fontSize: 18),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                    );
+                                                  } : null,
+                                                  style: ElevatedButton.styleFrom(
+                                                    primary: HexColor('B6B021'),
+                                                    onPrimary: Colors.white,
+                                                    elevation: 8,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    fixedSize: Size(double.infinity, 50),
+                                                  ),
+                                                  child: Text(
+                                                    'With the client! Let\'s Enter the Verification Code',
+                                                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),                                        SizedBox(
+                                          height: 9,
+                                        ),
+
+
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: ElevatedButton(
+                                                onPressed: () {},
+                                                style: ElevatedButton.styleFrom(
+                                                  primary: HexColor('317773'),
+                                                  onPrimary: Colors.white,
+                                                  elevation: 8,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  fixedSize: Size(double.infinity, 50), // Set the desired height
+                                                ),
+                                                child: Center(
+                                                  child: Text(
+                                                    'Generate the Verification Code to access project complete',
+                                                    style: TextStyle(fontSize: 10.5 , fontWeight: FontWeight.bold),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(
+                                          height: 9,
+                                        ),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: ElevatedButton(
+                                                onPressed: () {
+                                                  panelController.expand();
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  primary: HexColor(('66C020')),
+                                                  onPrimary: Colors.white,
+                                                  elevation: 8,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  fixedSize: Size(double.infinity, 50), // Set the desired height
+
+                                                ),
+                                                child: Padding(
+                                                  padding: const EdgeInsets.symmetric(vertical: 8.0), // Adjust padding as needed
+
+                                                  child:
+                                                      Text('Project Completed',
+                                style: TextStyle(fontSize: 12.5 , fontWeight: FontWeight.bold),
+                                ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+SizedBox(height: 20,),
+
+                                              ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: projectData.bids.length,
+                                itemBuilder: (context, index) {
+                                Bid bid = projectData.bids[index];
+                                return buildListItem(bid);
+                                },
+                                ),
+                                      ],
                                     );
                                   } else if (projectData.bids.isNotEmpty) {
                                     // Render a ListView with bids
@@ -750,16 +1136,16 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                                 }
                               },
                             ),
-
+                            SizedBox(
+                              height: 110,
+                            ),
                           ]);
-
                     }
                   }),
-     ),
+            ),
           ),
         ),
       ),
-
       Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -798,12 +1184,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                     },
                     style: ButtonStyle(
                       backgroundColor:
-                      MaterialStateProperty.all(Colors.transparent),
+                          MaterialStateProperty.all(Colors.transparent),
                       // Make the button transparent
                       elevation: MaterialStateProperty.all(0),
                       // Remove elevation
-                      shape:
-                      MaterialStateProperty.all<RoundedRectangleBorder>(
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                               12.0), // Same radius as above
@@ -823,9 +1208,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
           ),
         ],
       ),
-
-
-
       SlidingUpPanelWidget(
         child: Container(
           margin: EdgeInsets.symmetric(horizontal: 15.0),
@@ -1028,7 +1410,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
               ),
               Padding(
                 padding:
-                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
+                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
                 child: Center(
                   child: ActionSlider.standard(
                     sliderBehavior: SliderBehavior.stretch,
@@ -1041,25 +1423,25 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                         width: 55,
                         child: Center(
                             child: SizedBox(
-                              width: 24.0,
-                              height: 24.0,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2.0, color: Colors.white),
-                            ))),
+                          width: 24.0,
+                          height: 24.0,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2.0, color: Colors.white),
+                        ))),
                     successIcon: const SizedBox(
                         width: 55,
                         child: Center(
                             child: Icon(
-                              Icons.check_rounded,
-                              color: Colors.white,
-                            ))),
+                          Icons.check_rounded,
+                          color: Colors.white,
+                        ))),
                     icon: const SizedBox(
                         width: 55,
                         child: Center(
                             child: Icon(
-                              Icons.keyboard_double_arrow_right,
-                              color: Colors.white,
-                            ))),
+                          Icons.keyboard_double_arrow_right,
+                          color: Colors.white,
+                        ))),
                     action: (controller) async {
                       controller.loading(); //starts loading animation
                       await Future.delayed(const Duration(seconds: 3));
@@ -1206,7 +1588,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
           ),
           Spacer(),
           Visibility(
-            visible: item.pageContent.buttonsText == 'efta7 Zorar el Accept',
+            visible: item.pageContent.buttons == 'efta7 Zorar el Accept',
             child: ElevatedButton(
               onPressed: () {
                 Get.to(checkOutClient(
@@ -1234,18 +1616,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
           Spacer(),
           isMoneyLessOrEqual
               ? SvgPicture.asset(
-            'assets/icons/arrowdown.svg',
-            width: 39.0,
-            height: 39.0,
-          )
+                  'assets/icons/arrowdown.svg',
+                  width: 39.0,
+                  height: 39.0,
+                )
               : SvgPicture.asset(
-            'assets/icons/arrowup.svg',
-            width: 39.0,
-            height: 39.0,
-          ),
+                  'assets/icons/arrowup.svg',
+                  width: 39.0,
+                  height: 39.0,
+                ),
         ],
       ),
-
     );
   }
 }
@@ -1288,12 +1669,13 @@ class ProjectData {
   });
 
   factory ProjectData.fromJson(Map<String, dynamic> jsonData) {
-
     var baseData = jsonData['base_data'] as Map<String, dynamic>? ?? {};
     var clientInfo = baseData['client_info'] as Map<String, dynamic>? ?? {};
     var pageContent = jsonData['page_content'] as Map<String, dynamic>? ?? {};
-    var pageAccessData = jsonData['page_access_data'] as Map<String, dynamic>? ?? {};
-    var selectWorkerBid = jsonData['select_worker_bid'] as Map<String, dynamic>? ?? {};
+    var pageAccessData =
+        jsonData['page_access_data'] as Map<String, dynamic>? ?? {};
+    var selectWorkerBid =
+        jsonData['select_worker_bid'] as Map<String, dynamic>? ?? {};
 
     return ProjectData(
       title: baseData['title'] ?? 'No Title',
@@ -1307,13 +1689,16 @@ class ProjectData {
       lowestBid: baseData['lowest_bid'] ?? 'No Bids',
       timeframeStart: baseData['timeframe_start'] ?? 'No Start Time',
       timeframeEnd: baseData['timeframe_end'] ?? 'No End Time',
-      bids: (baseData['bids'] as List<dynamic>? ?? []).map((x) => Bid.fromJson(x as Map<String, dynamic>)).toList(),
+      bids: (baseData['bids'] as List<dynamic>? ?? [])
+          .map((x) => Bid.fromJson(x as Map<String, dynamic>))
+          .toList(),
       clientData: ClientData.fromJson(clientInfo),
       pageContent: PageContent.fromJson(pageContent),
       pageaccessdata: page_access_data.fromJson(pageAccessData),
       selectworkerbid: select_worker_bid.fromJson(selectWorkerBid),
     );
-  }}
+  }
+}
 
 class ClientData {
   final int clientId;
@@ -1333,77 +1718,75 @@ class ClientData {
       clientId: json['client_id'] as int? ?? 0,
       firstname: json['firstname'] ?? '',
       lastname: json['lastname'] ?? '',
-      profileImage: json['profle_image'] ?? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // corrected typo from 'profle_image' to 'profile_image'
+      profileImage: json['profle_image'] ??
+          'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // corrected typo from 'profle_image' to 'profile_image'
     );
   }
 }
+
 class PageContent {
   final String currentUserRole;
-  final String buttonsText;
+  final String buttons;
   final String selectedDate;
   final String selectedInterval;
   final String scheduleStatus;
   final String change;
   final String chat;
-  final String schedule_vc_generate_button;
+  final String enter_verification_code_button;
   final String enter_complete_project_verification_code_button;
   final String project_complete_button;
   final String support;
 
-
-
-  PageContent({required this.currentUserRole
-    , required this.buttonsText
-    , required this.selectedDate
-    , required this.selectedInterval
-    , required this.scheduleStatus
-    , required this.change
-    , required this.chat
-    , required this.schedule_vc_generate_button
-    , required this.enter_complete_project_verification_code_button
-    , required this.project_complete_button
-    , required this.support
-
-
-
-  });
+  PageContent(
+      {required this.currentUserRole,
+      required this.buttons,
+      required this.selectedDate,
+      required this.selectedInterval,
+      required this.scheduleStatus,
+      required this.change,
+      required this.chat,
+      required this.enter_verification_code_button,
+      required this.enter_complete_project_verification_code_button,
+      required this.project_complete_button,
+      required this.support});
 
   factory PageContent.fromJson(Map<String, dynamic> json) {
     return PageContent(
-      currentUserRole: json['current_user_role']?? '',
-      buttonsText: json['buttons']?? '',
+      currentUserRole: json['current_user_role'] ?? '',
+      buttons: json['buttons'] ?? '',
       selectedDate: json['selected_date'] ?? '',
       selectedInterval: json['selected_interval'] ?? '',
       scheduleStatus: json['schedule_status'] ?? '',
       change: json['change'] ?? '',
       chat: json['chat'] ?? '',
-      schedule_vc_generate_button: json['schedule_vc_generate_button'] ?? '',
-      enter_complete_project_verification_code_button: json['enter_complete_project_verification_code_button'] ?? '',
+      enter_verification_code_button: json['enter_verification_code_button'] ?? '',
+      enter_complete_project_verification_code_button:
+          json['enter_complete_project_verification_code_button'] ?? '',
       project_complete_button: json['project_complete_button'] ?? '',
       support: json['support'] ?? '',
-
     );
   }
 }
+
 class page_access_data {
   final String chat_ID;
   final dynamic schedule_vc;
   final dynamic complete_vc;
 
-  page_access_data({required this.chat_ID
-    ,required this.schedule_vc
-    ,required this.complete_vc
-
-  });
+  page_access_data(
+      {required this.chat_ID,
+      required this.schedule_vc,
+      required this.complete_vc});
 
   factory page_access_data.fromJson(Map<String, dynamic> json) {
     return page_access_data(
-      chat_ID: json['chat_ID']?? '',
-      schedule_vc: json['schedule_vc']?? '',
-      complete_vc: json['complete_vc']?? '',
+      chat_ID: json['chat_ID'] ?? '',
+      schedule_vc: json['schedule_vc'] ?? '',
+      complete_vc: json['complete_vc'] ?? '',
     );
   }
 }
+
 class select_worker_bid {
   final int worker_id;
   final String worker_firstname;
@@ -1411,13 +1794,12 @@ class select_worker_bid {
   final dynamic amount;
   final String comment;
 
-  select_worker_bid({required this.worker_id
-    ,required this.worker_firstname
-    ,required this.worker_profile_pic
-    ,required this.amount
-    ,required this.comment
-
-  });
+  select_worker_bid(
+      {required this.worker_id,
+      required this.worker_firstname,
+      required this.worker_profile_pic,
+      required this.amount,
+      required this.comment});
 
   factory select_worker_bid.fromJson(Map<String, dynamic> json) {
     if (json == null) {
@@ -1430,11 +1812,12 @@ class select_worker_bid {
       );
     }
 
-    return select_worker_bid(worker_id: json['worker_id'] ?? 0,
-        worker_firstname: json['worker_firstname']?? ''
-        ,worker_profile_pic: json['worker_profile_pic']?? '',
-        amount: json['amount']?? 0
-        , comment: json['comment']?? '');
+    return select_worker_bid(
+        worker_id: json['worker_id'] ?? 0,
+        worker_firstname: json['worker_firstname'] ?? '',
+        worker_profile_pic: json['worker_profile_pic'] ?? '',
+        amount: json['amount'] ?? 0,
+        comment: json['comment'] ?? '');
   }
 }
 
@@ -1451,7 +1834,6 @@ class Bid {
     required this.workerId,
     required this.clientData,
     required this.pageContent,
-
     required this.workerFirstname,
     required this.workerProfilePic,
     required this.amount,
@@ -1462,13 +1844,17 @@ class Bid {
     return Bid(
       workerId: json['worker_id'] as int? ?? 0,
       workerFirstname: json['worker_firstname'] ?? '',
-      workerProfilePic: json['worker_profile_pic'] ?? 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
+      workerProfilePic: json['worker_profile_pic'] ??
+          'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
       amount: double.tryParse(json['amount'].toString()) ?? 0,
       comment: json['comment'] ?? '',
-      clientData: ClientData.fromJson(json['client_info'] as Map<String, dynamic>? ?? {}),
-      pageContent: PageContent.fromJson(json['page_content'] as Map<String, dynamic>? ?? {}),
+      clientData: ClientData.fromJson(
+          json['client_info'] as Map<String, dynamic>? ?? {}),
+      pageContent: PageContent.fromJson(
+          json['page_content'] as Map<String, dynamic>? ?? {}),
     );
-  }}
+  }
+}
 
 class OTPDisplay extends StatelessWidget {
   final List<String> digits;
@@ -1486,7 +1872,7 @@ class OTPDisplay extends StatelessWidget {
             height: 100,
             margin: EdgeInsets.all(4),
             decoration: BoxDecoration(
-              border: Border.all(width: 2, color:HexColor('DFE2E8')),
+              border: Border.all(width: 2, color: HexColor('DFE2E8')),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
@@ -1499,7 +1885,6 @@ class OTPDisplay extends StatelessWidget {
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-
               ),
             ),
           ),
@@ -1514,15 +1899,12 @@ class ModernPopup extends StatelessWidget {
 
   const ModernPopup({
     Key? key,
-    required
-
-    this.text,
+    required this.text,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Container(
         height: 200,
@@ -1533,20 +1915,13 @@ class ModernPopup extends StatelessWidget {
             Text(
               text,
               textAlign: TextAlign.center,
-
-              style: GoogleFonts
-                  .roboto(
-                textStyle:
-                TextStyle(
-                  color:
-                  Colors.black,
+              style: GoogleFonts.roboto(
+                textStyle: TextStyle(
+                  color: Colors.black,
                   fontSize: 19,
-                  fontWeight:
-                  FontWeight
-                      .bold,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-
             ),
             Container(
               width: 100.0,
@@ -1578,7 +1953,6 @@ class ModernPopup extends StatelessWidget {
                 ),
               ),
             ),
-
           ],
         ),
       ),
