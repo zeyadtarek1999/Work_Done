@@ -49,48 +49,40 @@ double total =0;
   String projectdesc = '';
   String owner = '';
 
-  Future<ProjectData> fetchProjectDetails() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String userToken = prefs.getString('user_token') ?? '';
+  Future<ProjectData> fetchProjectDetails(int projectId) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String userToken = prefs.getString('user_token') ?? '';
 
-      final response = await http.post(
-        Uri.parse('https://workdonecorp.com/api/get_project_details'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $userToken',
-        },
-        body: jsonEncode({
-          'project_id': widget.projectId.toString(),
-        }),
-      );
+    final response = await http.post(
+      Uri.parse('https://www.workdonecorp.com/api/get_project_details'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $userToken',
+      },
+      body: jsonEncode({
+        'project_id': projectId.toString(),
+      }),
+    );
 
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      print(responseData);
-      print(widget.projectId);
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic>? projectDataJson = responseData['data'];
-        final Map<String, dynamic>? clientDataJson =
-        responseData['client_data'];
-        final Map<String, dynamic>? accessDataJson = responseData['access'];
-
-        if (projectDataJson != null &&
-            clientDataJson != null &&
-            accessDataJson != null) {
-          return ProjectData.fromJson(
-              projectDataJson, clientDataJson, accessDataJson);
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      // Checking if the response body contains 'status' and if it's equal to 'success'.
+      if (responseData != null && responseData['status'] == 'success') {
+        // Ensure that 'base_data' exists before trying to create a ProjectData object.
+        if (responseData.containsKey('base_data')) {
+          return ProjectData.fromJson(responseData);
         } else {
-          throw Exception(
-              'No project data or client data available in the response');
+          throw Exception('base_data is missing from the response.');
         }
       } else {
-        throw Exception(
-            'Failed to load project details. Status code: ${response.statusCode}');
+        // This else block catches cases where 'status' isn't 'success'.
+        final message = responseData != null ? responseData['message'] : 'Unknown error';
+        throw Exception('Failed to load project details from API: $message');
       }
-    } catch (error) {
-      print('Error fetching project details: $error');
-      throw error; // rethrow the error to notify the caller
+    } else {
+      // The statusCode is not 200, handle the error here.
+      final message = response.body.isNotEmpty ? json.decode(response.body)['message'] : 'No error message provided';
+      throw Exception('Failed to load project details. Status code: ${response.statusCode}, Message: $message');
     }
   }
 
@@ -100,8 +92,10 @@ double total =0;
   void initState() {
     super.initState();
     receive.addListener(updateTotal);
-    fetchProjectDetails();
-    projectDetailsFuture = fetchProjectDetails();
+
+    int projectId =widget.projectId;
+    projectDetailsFuture = fetchProjectDetails(projectId); // Use the projectId in the call
+    projectDetailsFuture = fetchProjectDetails(projectId);
   }
 
   void updateTotal() {
@@ -118,7 +112,7 @@ double total =0;
   }
 
   Future<void> insertBid() async {
-    final url = Uri.parse('https://workdonecorp.com/api/insert_bid');
+    final url = Uri.parse('https://www.workdonecorp.com/api/insert_bid');
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String userToken = prefs.getString('user_token') ?? '';
@@ -148,11 +142,11 @@ double total =0;
         if (responseBody['status'] == 'success') {
           print('Bid inserted successfully');
           Get.off(bidDetailsWorker(projectId: widget.projectId));
-        } else if (responseBody['status'] == 'error') {
+        } else if (responseBody['status'] == 'success') {
           // Check the specific error message
           String errorMsg = responseBody['msg'];
 
-          if (errorMsg == 'Already Submited Before') {
+          if (errorMsg == ' Bid Submitted') {
             // Show a Snackbar with the error message
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -266,7 +260,6 @@ double total =0;
             projectimage = projectData.images.toString();
             projecttitle = projectData.title.toString();
             projectdesc = projectData.desc.toString();
-            owner = projectData.access!.owner.toString();
 
             return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -596,36 +589,76 @@ double total =0;
     );
   }
 }
-class Access {
-  int user;
-  String owner;
-  String chat_ID;
-  String project_status;
-  String projectStatus;
+class ProjectData {
+  final String title;
+  final List<String> images; // Images is now a List<String>
+  final String projectType;
+  final String postedFrom;
+  final String status;
+  final String desc;
+  final bool liked; // Assuming the 'liked' field should be a boolean
+  final int numberOfLikes;
+  final dynamic? lowestBid; // Assuming lowest bid could be null
+  final String timeframeStart;
+  final String timeframeEnd;
+  final List<Bid> bids;
+  final ClientData clientData;
+  final PageContent pageContent;
+  final page_access_data pageaccessdata;
+  final select_worker_bid selectworkerbid;
 
-  Access({
-    required this.user,
-    required this.project_status,
-    required this.chat_ID,
-    required this.owner,
-    required this.projectStatus,
+  ProjectData({
+    required this.title,
+    required this.images,
+    required this.projectType,
+    required this.status,
+    required this.postedFrom,
+    required this.desc,
+    required this.selectworkerbid,
+    required this.liked,
+    required this.clientData,
+    required this.numberOfLikes,
+    required this.pageaccessdata,
+    this.lowestBid,
+    required this.pageContent,
+    required this.timeframeStart,
+    required this.timeframeEnd,
+    required this.bids,
   });
 
-  factory Access.fromJson(Map<String, dynamic> json) {
-    return Access(
-      user: json['user'],
-      chat_ID: json['chat_ID'] ?? '0',
-      owner: json['owner'].toString(),
-      projectStatus: json['project_status'], project_status: json['project_status'],
+  factory ProjectData.fromJson(Map<String, dynamic> jsonData) {
+
+    var baseData = jsonData['base_data'] as Map<String, dynamic>? ?? {};
+    var clientInfo = baseData['client_info'] as Map<String, dynamic>? ?? {};
+    var pageContent = jsonData['page_content'] as Map<String, dynamic>? ?? {};
+    var pageAccessData = jsonData['page_access_data'] as Map<String, dynamic>? ?? {};
+    var selectWorkerBid = jsonData['select_worker_bid'] as Map<String, dynamic>? ?? {};
+
+    return ProjectData(
+      title: baseData['title'] ?? 'No Title',
+      images: List<String>.from(baseData['images'] ?? []),
+      projectType: baseData['project_type'] ?? 'No Project Type',
+      postedFrom: baseData['posted_from'] ?? 'No Post Date',
+      status: baseData['status'] ?? 'No Status',
+      desc: baseData['desc'] ?? 'No Description',
+      liked: baseData['liked'] == 'true',
+      numberOfLikes: baseData['number_of_likes'] ?? 0,
+      lowestBid: baseData['lowest_bid'] ?? 'No Bids',
+      timeframeStart: baseData['timeframe_start'] ?? 'No Start Time',
+      timeframeEnd: baseData['timeframe_end'] ?? 'No End Time',
+      bids: (baseData['bids'] as List<dynamic>? ?? []).map((x) => Bid.fromJson(x as Map<String, dynamic>)).toList(),
+      clientData: ClientData.fromJson(clientInfo),
+      pageContent: PageContent.fromJson(pageContent),
+      pageaccessdata: page_access_data.fromJson(pageAccessData),
+      selectworkerbid: select_worker_bid.fromJson(selectWorkerBid),
     );
-  }
-}
+  }}
 
 class ClientData {
-  int clientId;
-  String firstname;
-  String lastname;
-  String profileImage;
+  final int clientId;
+  final String firstname;
+  final String lastname;
+  final String profileImage;
 
   ClientData({
     required this.clientId,
@@ -636,75 +669,111 @@ class ClientData {
 
   factory ClientData.fromJson(Map<String, dynamic> json) {
     return ClientData(
-      clientId: json['client_id'],
-      firstname: json['firstname'],
-      lastname: json['lastname'],
-      profileImage: json['profle_image'] ??
-          'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+      clientId: json['client_id'] as int? ?? 0,
+      firstname: json['firstname'] ?? '',
+      lastname: json['lastname'] ?? '',
+      profileImage: json['profle_image'] ?? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // corrected typo from 'profle_image' to 'profile_image'
     );
   }
 }
+class PageContent {
+  final String currentUserRole;
+  final String buttons;
+  final String selectedDate;
+  final String selectedInterval;
+  final String scheduleStatus;
+  final String change;
+  final String chat;
+  final String schedule_vc_generate_button;
+  final String complete_vc_generate_button;
+  final String project_complete_button;
+  final String support;
 
-class ProjectData {
-  final String title;
-  final String images;
-  final String project_type;
-  final String posted_from;
-  final String desc;
-  final String liked;
-  final int number_of_likes;
-  final dynamic lowest_bid;
-  final String timeframeStart;
-  final String timeframeEnd;
-  final List<Bid> bids;
-  final ClientData? clientData;
-  final Access? access;
 
-  // Include the client data
 
-  ProjectData({
-    required this.title,
-    required this.images,
-    required this.project_type,
-    required this.access,
-    required this.posted_from,
-    required this.liked,
-    required this.clientData,
-    required this.number_of_likes,
-    required this.lowest_bid,
-    required this.desc,
-    required this.timeframeStart,
-    required this.timeframeEnd,
-    required this.bids,
+  PageContent({required this.currentUserRole
+    , required this.buttons
+    , required this.selectedDate
+    , required this.selectedInterval
+    , required this.scheduleStatus
+    , required this.change
+    , required this.chat
+    , required this.schedule_vc_generate_button
+    , required this.complete_vc_generate_button
+    , required this.project_complete_button
+    , required this.support
+
+
+
   });
 
-  factory ProjectData.fromJson(
-      Map<String, dynamic> projectDataJson,
-      Map<String, dynamic> clientDataJson,
-      Map<String, dynamic> accessDataJson,
-      ) {
-    List<Bid> bids = [];
-    if (projectDataJson['bids'] != null) {
-      bids = List<Bid>.from(projectDataJson['bids']
-          .map((bid) => Bid.fromJson(bid, accessDataJson)));
+  factory PageContent.fromJson(Map<String, dynamic> json) {
+    return PageContent(
+      currentUserRole: json['current_user_role']?? '',
+      buttons: json['buttons']?? '',
+      selectedDate: json['selected_date'] ?? '',
+      selectedInterval: json['selected_interval'] ?? '',
+      scheduleStatus: json['schedule_status'] ?? '',
+      change: json['change'] ?? '',
+      chat: json['chat'] ?? '',
+      schedule_vc_generate_button: json['schedule_vc_generate_button'] ?? '',
+      complete_vc_generate_button: json['complete_vc_generate_button'] ?? '',
+      project_complete_button: json['project_complete_button'] ?? '',
+      support: json['support'] ?? '',
+    );
+
+  }
+}
+class page_access_data {
+  final String chat_ID;
+  final dynamic schedule_vc;
+  final dynamic complete_vc;
+
+  page_access_data({required this.chat_ID
+    ,required this.schedule_vc
+    ,required this.complete_vc
+
+  });
+
+  factory page_access_data.fromJson(Map<String, dynamic> json) {
+    return page_access_data(
+      chat_ID: json['chat_ID']?? '',
+      schedule_vc: json['schedule_vc']?? '',
+      complete_vc: json['complete_vc']?? '',
+    );
+  }
+}
+class select_worker_bid {
+  final int worker_id;
+  final String worker_firstname;
+  final String worker_profile_pic;
+  final dynamic amount;
+  final String comment;
+
+  select_worker_bid({required this.worker_id
+    ,required this.worker_firstname
+    ,required this.worker_profile_pic
+    ,required this.amount
+    ,required this.comment
+
+  });
+
+  factory select_worker_bid.fromJson(Map<String, dynamic> json) {
+    if (json == null) {
+      return select_worker_bid(
+        worker_id: 0,
+        worker_firstname: '',
+        worker_profile_pic: '',
+        amount: 0,
+        comment: '',
+      );
     }
 
-    return ProjectData(
-      title: projectDataJson['title'] ?? '',
-      desc: projectDataJson['desc'] ?? '',
-      timeframeStart: projectDataJson['timeframe_start'] ?? '',
-      timeframeEnd: projectDataJson['timeframe_end'] ?? '',
-      bids: bids,
-      images: projectDataJson['images'] ??
-          'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
-      project_type: projectDataJson['project_type'] ?? '',
-      posted_from: projectDataJson['posted_from'] ?? '',
-      liked: projectDataJson['liked'] ?? '',
-      number_of_likes: projectDataJson['number_of_likes'] ?? 0,
-      lowest_bid: projectDataJson['lowest_bid'],
-      clientData: ClientData.fromJson(clientDataJson),
-      access: Access.fromJson(accessDataJson),
-    );
+    return select_worker_bid(worker_id: json['worker_id'] ?? 0,
+        worker_firstname: json['worker_firstname']?? ''
+        ,worker_profile_pic: json['worker_profile_pic']?? '',
+        amount: json['amount']?? 0
+        , comment: json['comment']?? '');
   }
 }
 
@@ -712,33 +781,32 @@ class Bid {
   final int workerId;
   final String workerFirstname;
   final String workerProfilePic;
-  final int amount;
+  final dynamic amount;
   final String comment;
-  final Access? access;
+  final ClientData clientData;
+  final PageContent pageContent;
 
   Bid({
     required this.workerId,
+    required this.clientData,
+    required this.pageContent,
     required this.workerFirstname,
     required this.workerProfilePic,
     required this.amount,
-    required this.access,
     required this.comment,
   });
 
-  factory Bid.fromJson(
-      Map<String, dynamic> json,
-      Map<String, dynamic> accessDataJson,
-      ) {
+  factory Bid.fromJson(Map<String, dynamic> json) {
+    var pageContent = json['page_content'] as Map<String, dynamic>? ?? {};
+
     return Bid(
-        workerId: json['worker_id'],
-        workerFirstname: json['worker_firstname'],
-        workerProfilePic: json['worker_profile_pic'] ??
-            'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
-        amount: json['amount'],
-        comment: json['comment'],
-        access: Access.fromJson(accessDataJson));
-
-  }
-}
-
+      workerId: json['worker_id'] as int? ?? 0,
+      workerFirstname: json['worker_firstname'] ?? '',
+      workerProfilePic: json['worker_profile_pic'] ?? 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
+      amount: double.tryParse(json['amount'].toString()) ?? 0,
+      comment: json['comment'] ?? '',
+      clientData: ClientData.fromJson(json['client_info'] as Map<String, dynamic>? ?? {}),
+      pageContent: PageContent.fromJson(pageContent),
+    );
+  }}
 

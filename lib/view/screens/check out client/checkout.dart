@@ -27,7 +27,7 @@ import '../view profile screens/Client profile view.dart';
 class checkOutClient extends StatefulWidget {
   final int userId;
   final String workerimage;
-  final String projectimage;
+  final List<String> projectimage;
   final String currentbid;
   final int workerId;
   final String workername;
@@ -63,6 +63,7 @@ class _checkOutClientState extends State<checkOutClient> {
   String state = '';
   String addressZip = '';
   String chat = '';
+  late List<String> projectImages;
 
 // Define a function to handle item selection
   Future<int> acceptproject() async {
@@ -197,7 +198,7 @@ class _checkOutClientState extends State<checkOutClient> {
   @override
   void initState() {
     super.initState();
-    // Fetch user profile information when the screen initializes
+    projectImages = widget.projectimage;
     getaddressuser();
   }
   String unique= 'checkout' ;
@@ -359,7 +360,7 @@ class _checkOutClientState extends State<checkOutClient> {
               ),
               Container(
                 width: double.infinity,
-                height: 275,
+                height: 314,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -385,24 +386,28 @@ class _checkOutClientState extends State<checkOutClient> {
                           Row(
                             children: [
                               Container(
-                                  width: 90,
-                                  height: 90,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12.0),
-                                      image: DecorationImage(
-                                        image: NetworkImage(
-                                          widget.projectimage != null
-                                              ? widget.projectimage
-                                              : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                        ),
-                                      ))),
+                                width: 90,
+                                height: 90,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  image: DecorationImage(
+                                    image: NetworkImage(
+                                      projectImages.isNotEmpty ? projectImages[0] :  'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+
+                                    ),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
                               SizedBox(
-                                width: 10,
+                                width: 12,
                               ),
                               Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+
                                   Text(
-                                    widget.projecttitle.toString(),
+                                    widget.projecttitle.toString().substring(0, 20),
                                     style: GoogleFonts.roboto(
                                       textStyle: TextStyle(
                                         color: HexColor('030302'),
@@ -410,54 +415,52 @@ class _checkOutClientState extends State<checkOutClient> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                  ),
+                                  )
+,
                                   SizedBox(
                                     height: 6,
                                   ),
-                                  Text(
-                                    widget.projectdesc.toString(),
-                                    style: GoogleFonts.roboto(
-                                      textStyle: TextStyle(
-                                        color: HexColor('#8f8f8b'),
+                                  Container(
+                                    width: 215, // Set a width for the container
+                                    child: Text(
+                                      widget.projectdesc.toString(),
+                                      maxLines: 3, // Set the maximum number of lines
+                                      overflow: TextOverflow.ellipsis, // Overflow behavior (you can use TextOverflow.fade, TextOverflow.clip, etc.)
+                                      style: TextStyle(
                                         fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.black,
                                       ),
                                     ),
-                                  ),
+                                  )
+
+
                                 ],
                               )
                             ],
                           ),
-                          Spacer(),
-                          Text(
-                            widget.currentbid.toString(),
-                            style: GoogleFonts.roboto(
-                              textStyle: TextStyle(
-                                color: HexColor('#141414'),
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 3,
-                          ),
-                          Text(
-                            '\$',
-                            style: GoogleFonts.roboto(
-                              textStyle: TextStyle(
-                                color: HexColor('#141414'),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          )
+
                         ],
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0, vertical: 12),
+                          horizontal: 20.0, vertical: 8),
+                      child: Text(
+                        'Selected Worker',
+                        style: GoogleFonts.roboto(
+                          textStyle: TextStyle(
+                            color: HexColor('424347'),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0, vertical: 3),
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
@@ -506,8 +509,9 @@ class _checkOutClientState extends State<checkOutClient> {
                   ],
                 ),
               ),
+
               SizedBox(
-                height: 20,
+                height: 14,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 23.0),

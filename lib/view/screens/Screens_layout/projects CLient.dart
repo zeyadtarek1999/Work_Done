@@ -69,7 +69,7 @@ class _projectsClientState extends State<projectsClient> {
               client_id: json['client_id'],
               title: json['title'],
               description: json['desc'],
-              imageUrl: json['images'] != null ? json['images'] : 'https://eod-grss-ieee.com/uploads/science/1655561736_noimg_-_Copy.png',
+              imageUrl: json['images'] != null ? List<String>.from(json['images']) : [], // This creates a list from the JSON array
               postedFrom: json['posted_from'],
               client_firstname: json['client_firstname'],
               liked: json['liked'],
@@ -570,14 +570,24 @@ class _projectsClientState extends State<projectsClient> {
             Container(
               width: double.infinity,
               height: 170.0,
-              decoration: BoxDecoration(
+              child: ClipRRect(
                 borderRadius: BorderRadius.circular(20.0),
-                image: DecorationImage(
-                  image: NetworkImage(item.imageUrl), // Use the image URL from the fetched data
-                  fit: BoxFit.cover,
+                child: PageView.builder(
+                  pageSnapping: true
+                  ,
+
+                  itemCount: item.imageUrl.length, // The count of total images
+                  controller: PageController(viewportFraction: 1), // PageController for full-page scrolling
+                  itemBuilder: (_, index) {
+                    return Image.network(
+                      item.imageUrl[index], // Access each image by index
+                      fit: BoxFit.cover, // Cover the entire area of the container
+                    );
+                  },
                 ),
               ),
             ),
+
             SizedBox(height: 10.0),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 7.0),
@@ -724,7 +734,7 @@ class Item {
 
   final String liked;
   final String description;
-  final String imageUrl;
+  final List<String> imageUrl;
   final int numbers_of_likes;
   final String postedFrom;
   String isLiked;

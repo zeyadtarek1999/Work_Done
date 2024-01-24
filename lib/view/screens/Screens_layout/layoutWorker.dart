@@ -21,7 +21,7 @@ class _layoutworkerState extends State<layoutworker> {
   int _currentIndex = 0;
   List<Widget> _screens = [
     Homescreenworker(),
-    projectsClient(),
+    projectsWorker(),
     InboxClient(),
     Moreworker(),
   ];

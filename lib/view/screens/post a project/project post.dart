@@ -14,7 +14,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:video_player/video_player.dart';
 import '../../../controller/NotificationController.dart';
 import '../../../main.dart';
 import '../../../model/getprojecttypesmodel.dart';
@@ -38,7 +37,6 @@ class _projectPostState extends State<projectPost> {
   String project_type_id = '';
   List<XFile>? _videos = [];
   List<File?> _images = [];
-  VideoPlayerController? _videoController;
 
   final picker = ImagePicker();
   Future<void> _getImageFromGallery() async {
@@ -54,37 +52,10 @@ class _projectPostState extends State<projectPost> {
   }
   bool _isPlaying = false;
 
-  Future<void> _pickVideo() async {
-    final XFile? video = await ImagePicker().pickVideo(source: ImageSource.gallery);
-    if (video != null) {
-      _videoController?.dispose();
-      _videoController = VideoPlayerController.file(File(video.path))
-        ..initialize().then((_) {
-          // Since we don't want autoplay, we're not calling _videoController.play() here.
-          setState(() {
-            _videos?.add(video); // Add the video to the list and refresh the UI
-          });
-        });
-    }
-  }
+
 
 // This function is used to control video playback
-  void _toggleVideo() {
-    if (_videoController != null) {
-      if (_isPlaying) {
-        _videoController!.pause();
-      } else {
-        _videoController!.play();
-      }
-      setState(() {
-        _isPlaying = !_isPlaying;
-      });
-    }
-  }  @override
-  void dispose() {
-    _videoController?.dispose();
-    super.dispose();
-  }
+
   void _showVideoDurationTooLongMessage(BuildContext context) {
     showDialog(
       context: context,

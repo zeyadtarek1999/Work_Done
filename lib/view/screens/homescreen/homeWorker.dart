@@ -1041,7 +1041,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                       ),
                       Spacer(),
                       Text(
-                        'Start Bid',
+                        'lowest Bid',
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('393B3E'),
@@ -1084,7 +1084,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                       SizedBox(width: 5),
                       Spacer(),
                       Text(
-                        '2',
+                        '\$ ' + '${project.lowest_bids}',
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('393B3E'),
@@ -1365,21 +1365,62 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                     ],
                   ),
                   SizedBox(height: 6),
-                  Text.rich(
-                    TextSpan(
-                      children: _buildTextSpans(
-                          item.description, searchController.text),
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.openSans(
-                      textStyle: TextStyle(
-                        color: HexColor('393B3E'),
-                        fontSize: 15,
-                        fontWeight: FontWeight.normal,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            children: _buildTextSpans(item.description, searchController.text),
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.openSans(
+                            textStyle: TextStyle(
+                              color: HexColor('393B3E'),
+                              fontSize: 15,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                      SizedBox(width: 7,),
+                      Column(
+                        children: [
+                          Text(
+                            'lowest bid',
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: HexColor('393B3E'), // Adjust color as needed
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 6,),
+                          item.lowest_bids != 'No Bids'
+                              ? Text( '\$ '+
+                            item.lowest_bids.toString() , // Use 'N/A' or any preferred default text
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: HexColor('393B3E'),
+                                fontSize: 15,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          )
+                              : Text(
+                            'No Bids Yet',
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+,
                   SizedBox(height: 9),
                   Row(
                     children: [

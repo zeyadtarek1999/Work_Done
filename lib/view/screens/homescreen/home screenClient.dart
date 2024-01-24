@@ -1284,7 +1284,7 @@ class _HomeclientState extends State<Homeclient> {
                           ),
                           SizedBox(height: 6,),
                           item.lowest_bids != 'No Bids'
-                              ? Text(
+                              ? Text('\$ '+
                             item.lowest_bids.toString() , // Use 'N/A' or any preferred default text
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
