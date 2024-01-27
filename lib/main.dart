@@ -23,8 +23,8 @@ Future<void> main() async {
   await Firebase.initializeApp();
   await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(false);
 
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.clear();
+  // SharedPreferences prefs = await SharedPreferences.getInstance();
+  // await prefs.clear();
   runApp(MyApp());
   await AwesomeNotifications().initialize(null, [
     NotificationChannel(

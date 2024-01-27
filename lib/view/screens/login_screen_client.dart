@@ -9,6 +9,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../model/login_model.dart';
 import '../../model/textinputformatter.dart';
+import '../Forgetpassword.dart';
 import '../widgets/bottomsheet.dart';
 import '../components/page_title_bar.dart';
 import '../components/under_part.dart';
@@ -397,14 +398,16 @@ class _LoginScreenclientState extends State<LoginScreenclient> {
                               const SizedBox(
                                 height: 20,
                               ),
-                              Text(
+                              TextButton(
+                                onPressed: (){Get.to(ForgotPasswordScreen());},
+                                child: Text(
                                 'Forgot password?',
                                 style: TextStyle(
                                     color: HexColor("#4D8D6E"),
                                     fontFamily: 'OpenSans',
                                     fontWeight: FontWeight.w600,
                                     fontSize: 13),
-                              ),
+                              ),),
                               const SizedBox(
                                 height: 40,
                               )

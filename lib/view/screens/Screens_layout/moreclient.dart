@@ -8,6 +8,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Edit address.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
@@ -219,7 +220,10 @@ class _MoreclientState extends State<Moreclient> {
                     width: 9,
                   ),
                   TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+
+                        Get.to(editAddressClient());
+                      },
                       child: Text(
                         'Address',
                         style: GoogleFonts.encodeSans(

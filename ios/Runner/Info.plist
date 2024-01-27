@@ -10,6 +10,8 @@
     <string>Reason for using the camera.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Reason for using the microphone.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Allow access to photo library to pick videos.</string>
 	<key>CFBundleDisplayName</key>
 	<string>Workdone</string>
 	<key>CFBundleExecutable</key>

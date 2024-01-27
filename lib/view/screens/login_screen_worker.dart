@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/view/Forgetpassword.dart';
 import '../../model/login_model.dart';
 import '../../model/textinputformatter.dart';
 import '../widgets/bottomsheet.dart';
@@ -388,14 +389,16 @@ class _LoginScreenworkerState extends State<LoginScreenworker> {
                               const SizedBox(
                                 height: 20,
                               ),
-                              Text(
-                                'Forgot password?',
-                                style: TextStyle(
-                                    color: HexColor("#4D8D6E"),
-                                    fontFamily: 'OpenSans',
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13),
-                              ),
+                              TextButton(
+                                onPressed: (){Get.to(ForgotPasswordScreen());},
+                                child: Text(
+                                  'Forgot password?',
+                                  style: TextStyle(
+                                      color: HexColor("#4D8D6E"),
+                                      fontFamily: 'OpenSans',
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13),
+                                ),),
                               const SizedBox(
                                 height: 40,
                               )

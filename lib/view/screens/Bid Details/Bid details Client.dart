@@ -24,6 +24,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
 import '../InboxwithChat/ChatClient.dart';
+import '../Screens_layout/layoutclient.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../check out client/checkout.dart';
@@ -47,7 +48,18 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
   bool showprojectcomplete = false;
   bool accessprojectcomplete = false;
   bool disableverfication = false;
+  List<File> _imageFiles = []; // Use File directly
 
+  Future<void> _pickImages() async {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile>? images = await picker.pickMultiImage();
+
+    if (images?.isNotEmpty ?? false) {
+      setState(() {
+        _imageFiles = images!.map((xfile) => File(xfile.path)).toList(); // Convert to File
+      });
+    }
+  }
   List<XFile>? _videos = [];
   List<File?> _images = [];
   final picker = ImagePicker();
@@ -68,8 +80,97 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     userToken = prefs.getString('user_token') ?? '';
   }
+  bool _isUploading = false;
 
   late String userToken;
+  void _toggleUploadingState(bool isUploading) {
+    setState(() => _isUploading = isUploading);
+  }
+
+  Future<void> completeproject() async {
+    print('Fetching user token from SharedPreferences...');
+
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String userToken = prefs.getString('user_token') ?? '';
+
+    print('Creating request...');
+    // Define headers in a map
+    final headers = <String, String>{
+      'Authorization': 'Bearer $userToken',
+      // 'Content-Type': 'multipart/form-data', This is added automatically when adding files to the MultipartRequest.
+    };
+
+    var request = http.MultipartRequest('POST', Uri.parse('https://www.workdonecorp.com/api/complete_project'))
+      ..headers.addAll(headers)
+      ..fields['project_id'] = widget.projectId.toString()
+      ..fields['review'] = reviewcontroller.text
+      ..fields['rating'] = rating.toString();
+
+
+    print('Checking for files...');
+    // Check if any files are null or empty before proceeding
+    if ((_imageFiles?.isEmpty ?? true) ) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please pick at least one image and a video.")));
+      return;
+    }else{     setState(() {
+      _toggleUploadingState(false);
+    }); // Start loading
+    }
+
+    // Add video if not null
+
+
+    // Add images if any
+    if (_imageFiles != null && _imageFiles!.isNotEmpty) {
+      print('Adding images to the request...');
+      for (var imageFile in _imageFiles!) {
+        request.files.add(http.MultipartFile(
+          'images[]',
+          imageFile.readAsBytes().asStream(),
+          imageFile.lengthSync(),
+          filename: imageFile.path,
+        ));
+      }
+    }
+    print('Request fields: ${request.fields}');
+    print('Request files: ${request.files.length}');
+    print('Sending request...');
+    try {
+      _toggleUploadingState(true); // Start loading
+
+      print('Request fields: ${request.fields}');
+      print('Request files: ${request.files.length}');
+      var streamedResponse = await request.send();
+
+      print('Request sent. Status code: ${streamedResponse.statusCode}');
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        print('Success: ${response.body}');
+        setState(() {
+          _toggleUploadingState(false);
+        });
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => layoutclient(),
+          ),
+        );
+
+        // Handle success
+      } else {
+        print('Failed with status code: ${response.statusCode}');
+        _toggleUploadingState(false); // Stop loading regardless of the outcome
+
+        // Handle failure
+      }
+    } catch (e) {
+      print('An exception occurred: $e');
+      // Handle exception
+    }
+  }
+
 
   void projectcomplete() async {
     // Make sure to fill in the values from your text controllers or other sources
@@ -804,780 +905,1066 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                   ProjectData projectData = snapshot.data!;
 
                                   if (projectData.status ==
-                                      'bid_accepted' )  {
-                                    if (projectData.pageContent.currentUserRole ==
-                                        'client'){
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12.0),
-                                        child: Column(
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Container(
-                                                  width: 120.0,
+                                      'bid_accepted' ) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12.0),
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Container(
+                                                width: 120.0,
+                                                height: 50,
+                                                // Set the desired width
+                                                child: ElevatedButton(
+                                                  onPressed: () {
+                                                    showModalBottomSheet(
+                                                      context: context,
+                                                      isScrollControlled:
+                                                      true,
+                                                      builder: (BuildContext
+                                                      context) {
+                                                        return StatefulBuilder(
+                                                          builder: (BuildContext
+                                                          context,
+                                                              StateSetter
+                                                              setState) {
+                                                            return Container(
+                                                              padding:
+                                                              EdgeInsets
+                                                                  .all(
+                                                                  16.0),
+                                                              child: Column(
+                                                                crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                                mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                                children: [
+                                                                  Row(
+                                                                    mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .center,
+                                                                    children: [
+                                                                      Text(
+                                                                        'Schedule',
+                                                                        style: GoogleFonts
+                                                                            .roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: Colors
+                                                                                .grey [900],
+                                                                            fontSize: 22,
+                                                                            fontWeight:
+                                                                            FontWeight
+                                                                                .bold,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  SizedBox(
+                                                                      height: MediaQuery
+                                                                          .of(
+                                                                          context)
+                                                                          .size
+                                                                          .height *
+                                                                          0.03),
+
+                                                                  Row(
+                                                                    mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .spaceBetween,
+                                                                    children: [
+                                                                      Text(
+                                                                        'Choose a day',
+                                                                        style: GoogleFonts
+                                                                            .roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: Colors
+                                                                                .black,
+                                                                            fontSize: 20,
+                                                                            fontWeight:
+                                                                            FontWeight
+                                                                                .bold,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+
+                                                                      IconButton(
+                                                                        onPressed:
+                                                                            () {
+                                                                          Navigator
+                                                                              .pop(
+                                                                              context);
+                                                                        },
+                                                                        icon:
+                                                                        Icon(
+                                                                          Icons
+                                                                              .cancel,
+                                                                          size:
+                                                                          25,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  SizedBox(
+                                                                      height: MediaQuery
+                                                                          .of(
+                                                                          context)
+                                                                          .size
+                                                                          .height *
+                                                                          0.02),
+
+                                                                  EasyDateTimeLine(
+                                                                    initialDate:
+                                                                    _selectedDate,
+                                                                    onDateChange:
+                                                                        (
+                                                                        selectedDate) {
+                                                                      setState(
+                                                                              () {
+                                                                            _selectedDate =
+                                                                                selectedDate;
+                                                                          });
+                                                                    },
+                                                                    activeColor:
+                                                                    HexColor(
+                                                                        '4D8D6E'),
+                                                                    headerProps:
+                                                                    const EasyHeaderProps(
+                                                                      showSelectedDate:
+                                                                      true,
+                                                                      monthPickerType:
+                                                                      MonthPickerType
+                                                                          .dropDown,
+                                                                      selectedDateFormat:
+                                                                      SelectedDateFormat
+                                                                          .fullDateDMY,
+                                                                    ),
+                                                                    dayProps:
+                                                                    const EasyDayProps(
+                                                                      activeDayStyle:
+                                                                      DayStyle(
+                                                                        borderRadius:
+                                                                        32.0,
+                                                                      ),
+                                                                      inactiveDayStyle:
+                                                                      DayStyle(
+                                                                        borderRadius:
+                                                                        32.0,
+                                                                      ),
+                                                                    ),
+                                                                    timeLineProps:
+                                                                    const EasyTimeLineProps(
+                                                                      hPadding:
+                                                                      16.0,
+                                                                      // padding from left and right
+                                                                      separatorPadding:
+                                                                      16.0, // padding between days
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(
+                                                                      height: MediaQuery
+                                                                          .of(
+                                                                          context)
+                                                                          .size
+                                                                          .height *
+                                                                          0.03),
+
+                                                                  Text(
+                                                                    'Choose Time',
+                                                                    style: GoogleFonts
+                                                                        .roboto(
+                                                                      textStyle: TextStyle(
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontSize: 20,
+                                                                        fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(
+                                                                      height: MediaQuery
+                                                                          .of(
+                                                                          context)
+                                                                          .size
+                                                                          .height *
+                                                                          0.02),
+
+                                                                  Center(
+                                                                    child:
+                                                                    SfRangeSlider(
+                                                                      activeColor: HexColor(
+                                                                          '4D8D6E'),
+                                                                      min: DateTime(
+                                                                          2000,
+                                                                          01,
+                                                                          01, 6,
+                                                                          00,
+                                                                          00),
+                                                                      // Set min to 6 AM
+                                                                      max: DateTime(
+                                                                          2000,
+                                                                          01,
+                                                                          01,
+                                                                          22,
+                                                                          00,
+                                                                          00),
+                                                                      // Set max to 10 PM
+                                                                      values: _values,
+                                                                      interval: 4,
+                                                                      showLabels: true,
+                                                                      showTicks: true,
+                                                                      dateFormat: DateFormat(
+                                                                          'h a'),
+                                                                      // Display hours in AM/PM format
+                                                                      dateIntervalType: DateIntervalType
+                                                                          .hours,
+                                                                      onChanged: (
+                                                                          SfRangeValues newValues) {
+                                                                        if (newValues
+                                                                            .end
+                                                                            .difference(
+                                                                            newValues
+                                                                                .start)
+                                                                            .inHours <
+                                                                            4) {
+                                                                          // Prevent range smaller than 4 hours
+                                                                          return;
+                                                                        }
+                                                                        setState(() {
+                                                                          _values =
+                                                                              newValues;
+                                                                        });
+                                                                      },
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(
+                                                                      height: MediaQuery
+                                                                          .of(
+                                                                          context)
+                                                                          .size
+                                                                          .height *
+                                                                          0.04),
+
+                                                                  Row(
+                                                                    children: [
+                                                                      Text(
+                                                                        'Selected Time Range:',
+                                                                        style: GoogleFonts
+                                                                            .roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: Colors
+                                                                                .grey [800],
+                                                                            fontSize: 16,
+                                                                            fontWeight:
+                                                                            FontWeight
+                                                                                .bold,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Text(
+                                                                        ' ${formatTime(
+                                                                            _values
+                                                                                .start)} - ${formatTime(
+                                                                            _values
+                                                                                .end)}',
+                                                                        style: GoogleFonts
+                                                                            .roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: HexColor(
+                                                                                '4D8D6E'),
+                                                                            fontSize: 16,
+                                                                            fontWeight:
+                                                                            FontWeight
+                                                                                .normal,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  SizedBox(
+                                                                      height: MediaQuery
+                                                                          .of(
+                                                                          context)
+                                                                          .size
+                                                                          .height *
+                                                                          0.03),
+
+                                                                  Row(
+                                                                    children: [
+                                                                      Text(
+                                                                        'Selected Date:',
+                                                                        style: GoogleFonts
+                                                                            .roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: Colors
+                                                                                .grey [800],
+                                                                            fontSize: 16,
+                                                                            fontWeight:
+                                                                            FontWeight
+                                                                                .bold,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Text(
+                                                                        ' ${DateFormat(
+                                                                            'EEEE,  d, MM, yyyy')
+                                                                            .format(
+                                                                            _selectedDate
+                                                                                .toLocal())}',
+                                                                        style: GoogleFonts
+                                                                            .roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: HexColor(
+                                                                                '4D8D6E'),
+                                                                            fontSize: 16,
+                                                                            fontWeight:
+                                                                            FontWeight
+                                                                                .normal,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+
+
+                                                                    ],
+                                                                  ),
+                                                                  SizedBox(
+                                                                      height: MediaQuery
+                                                                          .of(
+                                                                          context)
+                                                                          .size
+                                                                          .height *
+                                                                          0.06),
+                                                                  Padding(
+                                                                    padding: const EdgeInsets
+                                                                        .symmetric(
+                                                                        horizontal:
+                                                                        20.0),
+                                                                    child:
+                                                                    Row(
+                                                                      mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
+                                                                      children: [
+                                                                        Container(
+                                                                          height: 50,
+                                                                          // Set the desired height
+                                                                          width: 120,
+                                                                          // Set the desired width
+                                                                          child: ElevatedButton(
+                                                                            onPressed:
+                                                                                () {
+                                                                              Navigator
+                                                                                  .pop(
+                                                                                  context);
+                                                                            },
+                                                                            style:
+                                                                            ElevatedButton
+                                                                                .styleFrom(
+                                                                              primary: HexColor(
+                                                                                  'B6212A'),
+                                                                              onPrimary: Colors
+                                                                                  .white,
+                                                                              elevation: 5,
+                                                                              shape: RoundedRectangleBorder(
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    12),
+                                                                              ),
+                                                                            ),
+                                                                            child:
+                                                                            Text(
+                                                                                'Cancel',
+                                                                                style: TextStyle(
+                                                                                    fontSize: 18)),
+                                                                          ),
+                                                                        ),
+                                                                        Container(
+                                                                          height: 50,
+                                                                          // Set the desired height
+                                                                          width: 120,
+                                                                          // Set the desired width
+                                                                          child: ElevatedButton(
+                                                                            onPressed: () {
+                                                                              setState(() async {
+                                                                                await scheduleProject(
+                                                                                    widget
+                                                                                        .projectId,
+                                                                                    DateFormat(
+                                                                                        'EEEE,  d, MM, yyyy')
+                                                                                        .format(
+                                                                                        _selectedDate
+                                                                                            .toLocal())
+                                                                                        .toString(),
+                                                                                    "${formatTime(
+                                                                                        _values
+                                                                                            .start)
+                                                                                        .toString() +
+                                                                                        ' - ' +
+                                                                                        formatTime(
+                                                                                            _values
+                                                                                                .end)
+                                                                                            .toString()}");
+                                                                              });
+                                                                            },
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              primary: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              onPrimary: Colors
+                                                                                  .white,
+                                                                              elevation: 5,
+                                                                              shape: RoundedRectangleBorder(
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    12),
+                                                                              ),
+                                                                            ),
+                                                                            child: Text(
+                                                                              'Apply',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 18), // Adjust the fontSize as needed
+                                                                            ),
+                                                                          ),
+                                                                        ),
+
+                                                                      ],
+                                                                    ),
+                                                                  )
+                                                                ],
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                    );
+                                                  },
+                                                  style: ElevatedButton
+                                                      .styleFrom(
+                                                    primary:
+                                                    HexColor('34446F'),
+                                                    onPrimary: Colors.white,
+                                                    elevation: 5,
+                                                    shape:
+                                                    RoundedRectangleBorder(
+                                                      borderRadius:
+                                                      BorderRadius
+                                                          .circular(12),
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    'Schedule',
+                                                    style: GoogleFonts.roboto(
+                                                      textStyle: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                        FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(width: 10,),
+                                              Expanded(
+                                                child: Container(
+                                                  width: 220.0,
                                                   height: 50,
                                                   // Set the desired width
                                                   child: ElevatedButton(
                                                     onPressed: () {
+                                                      Get.to(ChatScreen(
+                                                        seconduserimage: projectData.selectworkerbid.worker_profile_pic,
 
-                                                      showModalBottomSheet(
-                                                        context: context,
-                                                        isScrollControlled:
-                                                            true,
-                                                        builder: (BuildContext
-                                                            context) {
-                                                          return StatefulBuilder(
-                                                            builder: (BuildContext
-                                                                    context,
-                                                                StateSetter
-                                                                    setState) {
-                                                              return Container(
-                                                                padding:
-                                                                    EdgeInsets
-                                                                        .all(
-                                                                            16.0),
-                                                                child: Column(
-                                                                  crossAxisAlignment:
-                                                                      CrossAxisAlignment
-                                                                          .start,
-                                                                  mainAxisSize:
-                                                                      MainAxisSize
-                                                                          .min,
-                                                                  children: [
-                                                                    Row(
-                                                                      mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .center,
-                                                                      children: [
-                                                                        Text(
-                                                                            'Schedule',
-                                                                          style: GoogleFonts.roboto(
-                                                                            textStyle: TextStyle(
-                                                                              color: Colors.grey [900],
-                                                                              fontSize: 22,
-                                                                              fontWeight:
-                                                                              FontWeight.bold,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ],
-                                                                    ),
-                                                                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-
-                                                                    Row(
-                                                                      mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .spaceBetween,
-                                                                      children: [
-                                                                        Text(
-                                                                            'Choose a day',
-                                                                          style: GoogleFonts.roboto(
-                                                                            textStyle: TextStyle(
-                                                                              color: Colors.black,
-                                                                              fontSize: 20,
-                                                                              fontWeight:
-                                                                              FontWeight.bold,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-
-                                                                        IconButton(
-                                                                          onPressed:
-                                                                              () {
-                                                                            Navigator.pop(context);
-                                                                          },
-                                                                          icon:
-                                                                              Icon(
-                                                                            Icons.cancel,
-                                                                            size:
-                                                                                25,
-                                                                          ),
-                                                                        ),
-                                                                      ],
-                                                                    ),
-                                                                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-
-                                                                    EasyDateTimeLine(
-                                                                      initialDate:
-                                                                      _selectedDate,
-                                                                      onDateChange:
-                                                                          (selectedDate) {
-                                                                        setState(
-                                                                            () {
-                                                                          _selectedDate =
-                                                                              selectedDate;
-                                                                        });
-                                                                      },
-                                                                      activeColor:
-                                                                          HexColor(
-                                                                              '4D8D6E'),
-                                                                      headerProps:
-                                                                          const EasyHeaderProps(
-                                                                        showSelectedDate:
-                                                                            true,
-                                                                        monthPickerType:
-                                                                            MonthPickerType.dropDown,
-                                                                        selectedDateFormat:
-                                                                            SelectedDateFormat.fullDateDMY,
-                                                                      ),
-                                                                      dayProps:
-                                                                          const EasyDayProps(
-                                                                        activeDayStyle:
-                                                                            DayStyle(
-                                                                          borderRadius:
-                                                                              32.0,
-                                                                        ),
-                                                                        inactiveDayStyle:
-                                                                            DayStyle(
-                                                                          borderRadius:
-                                                                              32.0,
-                                                                        ),
-                                                                      ),
-                                                                      timeLineProps:
-                                                                          const EasyTimeLineProps(
-                                                                        hPadding:
-                                                                            16.0,
-                                                                        // padding from left and right
-                                                                        separatorPadding:
-                                                                            16.0, // padding between days
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-
-                                                                    Text(
-                                                                        'Choose Time',
-                                                                      style: GoogleFonts.roboto(
-                                                                        textStyle: TextStyle(
-                                                                          color: Colors.black,
-                                                                          fontSize: 20,
-                                                                          fontWeight:
-                                                                          FontWeight.bold,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-
-                                                                    Center(
-                                                                      child:
-                                                                      SfRangeSlider(
-                                                                        activeColor: HexColor('4D8D6E'),
-                                                                        min: DateTime(2000, 01, 01, 6, 00, 00), // Set min to 6 AM
-                                                                        max: DateTime(2000, 01, 01, 22, 00, 00), // Set max to 10 PM
-                                                                        values: _values,
-                                                                        interval: 4,
-                                                                        showLabels: true,
-                                                                        showTicks: true,
-                                                                        dateFormat: DateFormat('h a'), // Display hours in AM/PM format
-                                                                        dateIntervalType: DateIntervalType.hours,
-                                                                        onChanged: (SfRangeValues newValues) {
-                                                                          if (newValues.end.difference(newValues.start).inHours < 4) {
-                                                                            // Prevent range smaller than 4 hours
-                                                                            return;
-                                                                          }
-                                                                          setState(() {
-                                                                            _values = newValues;
-                                                                          });
-                                                                        },
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(height: MediaQuery.of(context).size.height * 0.04),
-
-                                                                    Row(
-                                                                      children: [
-                                                                        Text(
-                                                                            'Selected Time Range:',
-                                                                          style: GoogleFonts.roboto(
-                                                                            textStyle: TextStyle(
-                                                                              color: Colors.grey [800],
-                                                                              fontSize: 16,
-                                                                              fontWeight:
-                                                                              FontWeight.bold,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                        Text(
-                                                                          ' ${formatTime(_values.start)} - ${formatTime(_values.end)}',
-                                                                          style: GoogleFonts.roboto(
-                                                                            textStyle: TextStyle(
-                                                                              color: HexColor('4D8D6E'),
-                                                                              fontSize: 16,
-                                                                              fontWeight:
-                                                                              FontWeight.normal,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ],
-                                                                    ),
-                                                                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-
-                                                                    Row(
-                                                                      children: [
-                                                                        Text(
-                                                                          'Selected Date:',
-                                                                          style: GoogleFonts.roboto(
-                                                                            textStyle: TextStyle(
-                                                                              color: Colors.grey [800],
-                                                                              fontSize: 16,
-                                                                              fontWeight:
-                                                                              FontWeight.bold,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                        Text(
-                                                                          ' ${DateFormat('EEEE,  d, MM, yyyy').format(_selectedDate.toLocal())}',
-                                                                          style: GoogleFonts.roboto(
-                                                                            textStyle: TextStyle(
-                                                                              color: HexColor('4D8D6E'),
-                                                                              fontSize: 16,
-                                                                              fontWeight:
-                                                                              FontWeight.normal,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-
-
-                                                                      ],
-                                                                    ),
-                                                                    SizedBox(
-                                                                        height: MediaQuery.of(context).size.height *
-                                                                            0.06),
-                                                                    Padding(
-                                                                      padding: const EdgeInsets
-                                                                          .symmetric(
-                                                                          horizontal:
-                                                                              20.0),
-                                                                      child:
-                                                                          Row(
-                                                                        mainAxisAlignment:
-                                                                            MainAxisAlignment.spaceBetween,
-                                                                        children: [
-                                                                          Container(
-                                                                            height: 50, // Set the desired height
-                                                                            width: 120, // Set the desired width
-                                                                            child: ElevatedButton(
-                                                                              onPressed:
-                                                                                  () {
-                                                                                Navigator.pop(context);
-                                                                              },
-                                                                              style:
-                                                                                  ElevatedButton.styleFrom(
-                                                                                primary: HexColor('B6212A'),
-                                                                                onPrimary: Colors.white,
-                                                                                elevation: 5,
-                                                                                shape: RoundedRectangleBorder(
-                                                                                  borderRadius: BorderRadius.circular(12),
-                                                                                ),
-                                                                              ),
-                                                                              child:
-                                                                                  Text('Cancel',
-                                                                                    style: TextStyle(fontSize: 18)),
-                                                                                  ),
-                                                                          ),
-                                                                          Container(
-                                                                            height: 50, // Set the desired height
-                                                                            width: 120, // Set the desired width
-                                                                            child: ElevatedButton(
-                                                                              onPressed: () {
-                                                                                setState(() async {
-                                                                                  await scheduleProject(widget.projectId,
-                                                                                      DateFormat('EEEE,  d, MM, yyyy').format(_selectedDate.toLocal()).toString(),
-                                                                                      "${formatTime(_values.start).toString() +' - ' + formatTime(_values.end).toString()}");
-                                                                                });
-
-                                                                              },
-                                                                              style: ElevatedButton.styleFrom(
-                                                                                primary: HexColor('4D8D6E'),
-                                                                                onPrimary: Colors.white,
-                                                                                elevation: 5,
-                                                                                shape: RoundedRectangleBorder(
-                                                                                  borderRadius: BorderRadius.circular(12),
-                                                                                ),
-                                                                              ),
-                                                                              child: Text(
-                                                                                'Apply',
-                                                                                style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
-                                                                              ),
-                                                                            ),
-                                                                          ),
-
-                                                                        ],
-                                                                      ),
-                                                                    )
-                                                                  ],
-                                                                ),
-                                                              );
-                                                            },
-                                                          );
-                                                        },
-                                                      );
+                                                        chatId: projectData
+                                                            .pageaccessdata!.chat_ID,
+                                                        currentUser:
+                                                        projectData
+                                                            .clientData!
+                                                            .firstname,
+                                                        secondUserName:
+                                                        projectData
+                                                            .selectworkerbid.worker_firstname,
+                                                        userId: projectData
+                                                            .clientData!
+                                                            .clientId
+                                                            .toString(),
+                                                      ));
                                                     },
                                                     style: ElevatedButton
                                                         .styleFrom(
                                                       primary:
-                                                          HexColor('34446F'),
+                                                      HexColor('ED6F53'),
+                                                      // Background color
                                                       onPrimary: Colors.white,
-                                                      elevation: 5,
+                                                      // Text color
+                                                      elevation: 8,
+                                                      // Elevation
                                                       shape:
-                                                          RoundedRectangleBorder(
+                                                      RoundedRectangleBorder(
                                                         borderRadius:
-                                                            BorderRadius
-                                                                .circular(12),
-                                                      ),
-                                                    ),
-                                                    child: Text(
-                                                      'Schedule',
-                                                      style: GoogleFonts.roboto(
-                                                        textStyle: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                SizedBox(
-                                                  width: 10,
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: ElevatedButton(
-                                                        onPressed: projectData.pageContent. project_complete_button == "maftoo7"
-                                                            ? () {
-                                                          showModalBottomSheet(
-                                                            elevation: 5,
-
-                                                            context: context,
-                                                            isScrollControlled: true, //Add this for full screen modal
-                                                            backgroundColor: Colors.white,
-                                                            builder: (context) {
-                                                              // Here, you can include your custom slider content
-                                                              return Container(
-                                                                margin: EdgeInsets.symmetric(horizontal: 15.0),
-                                                                decoration: ShapeDecoration(
-                                                                  color: Colors.white,
-                                                                  shadows: [
-                                                                    BoxShadow(
-                                                                        blurRadius: 5.0,
-                                                                        spreadRadius: 2.0,
-                                                                        color: const Color(0x11000000))
-                                                                  ],
-                                                                  shape: RoundedRectangleBorder(
-                                                                    borderRadius: BorderRadius.only(
-                                                                      topLeft: Radius.circular(10.0),
-                                                                      topRight: Radius.circular(10.0),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                child: Column(
-                                                                  mainAxisSize: MainAxisSize.min,
-                                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                                  children: [
-                                                                    SizedBox(
-                                                                      height: screenheight * 0.02,
-                                                                    ),
-                                                                    Row(
-                                                                      children: [
-                                                                        IconButton(
-                                                                            onPressed: () {
-                                                                              Navigator.pop(context);
-                                                                            },
-                                                                            icon: Icon(
-                                                                              Icons.expand_circle_down,
-                                                                              color: Colors.grey[700],
-                                                                            )),
-                                                                        Text(
-                                                                          'End Project',
-                                                                          style: GoogleFonts.roboto(
-                                                                            textStyle: TextStyle(
-                                                                              color: Colors.grey[900],
-                                                                              fontSize: 23,
-                                                                              fontWeight: FontWeight.bold,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ],
-                                                                    ),
-                                                                    ListTile(
-                                                                      title: Text(
-                                                                        'Upload Photo ',
-                                                                        style: GoogleFonts.roboto(
-                                                                          textStyle: TextStyle(
-                                                                            color: HexColor('424347'),
-                                                                            fontSize: 18,
-                                                                            fontWeight: FontWeight.bold,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    Padding(
-                                                                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                                                      child: Container(
-                                                                        height: 90, // Set the desired height
-                                                                        width: double.infinity, // Take the full width
-                                                                        decoration: BoxDecoration(
-                                                                          border: Border.all(
-                                                                            color: Colors.grey, // Set the desired border color
-                                                                            width: 1.0, // Set the desired border width
-                                                                          ),
-                                                                          borderRadius: BorderRadius.circular(
-                                                                              10), // Set the desired border radius
-                                                                        ),
-                                                                        child: ListTile(
-                                                                          title: Column(
-                                                                            mainAxisAlignment: MainAxisAlignment.center,
-                                                                            children: [
-                                                                              Icon(
-                                                                                Icons.image,
-                                                                                color: HexColor('4D8D6E'),
-                                                                              ),
-                                                                              // Replace with the appropriate icon
-                                                                              SizedBox(height: 8),
-                                                                              Text(
-                                                                                'Upload here',
-                                                                                style: TextStyle(color: Colors.grey),
-                                                                              ),
-                                                                            ],
-                                                                          ),
-                                                                          onTap: () {
-                                                                            // Handle image or video selection
-                                                                          },
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    ListTile(
-                                                                      title: Text(
-                                                                        'Upload Video ',
-                                                                        style: GoogleFonts.roboto(
-                                                                          textStyle: TextStyle(
-                                                                            color: HexColor('424347'),
-                                                                            fontSize: 18,
-                                                                            fontWeight: FontWeight.bold,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    Padding(
-                                                                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                                                      child: Container(
-                                                                        height: 90, // Set the desired height
-                                                                        width: double.infinity, // Take the full width
-                                                                        decoration: BoxDecoration(
-                                                                          border: Border.all(
-                                                                            color: Colors.grey, // Set the desired border color
-                                                                            width: 1.0, // Set the desired border width
-                                                                          ),
-                                                                          borderRadius: BorderRadius.circular(
-                                                                              10), // Set the desired border radius
-                                                                        ),
-                                                                        child: ListTile(
-                                                                          title: Column(
-                                                                            mainAxisAlignment: MainAxisAlignment.center,
-                                                                            children: [
-                                                                              Icon(
-                                                                                Icons.video_camera_back,
-                                                                                color: HexColor('4D8D6E'),
-                                                                              ),
-                                                                              // Replace with the appropriate icon
-                                                                              SizedBox(height: 8),
-                                                                              Text(
-                                                                                'Upload here',
-                                                                                style: TextStyle(color: Colors.grey),
-                                                                              ),
-                                                                            ],
-                                                                          ),
-                                                                          onTap: () {
-                                                                            // Handle image or video selection
-                                                                          },
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(
-                                                                      height: screenheight * 0.02,
-                                                                    ),
-                                                                    ListTile(
-                                                                      title: Text(
-                                                                        'Rating',
-                                                                        style: GoogleFonts.roboto(
-                                                                          textStyle: TextStyle(
-                                                                            color: HexColor('424347'),
-                                                                            fontSize: 18,
-                                                                            fontWeight: FontWeight.bold,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    ListTile(
-                                                                      title: Column(
-                                                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                                                        children: [
-                                                                          Row(
-                                                                            mainAxisAlignment: MainAxisAlignment.center,
-                                                                            children: [
-                                                                              Container(
-                                                                                height: 56,
-                                                                                width: 56,
-                                                                                decoration: BoxDecoration(
-                                                                                  shape: BoxShape.circle,
-                                                                                  image: DecorationImage(
-                                                                                    fit: BoxFit.cover,
-                                                                                    image: NetworkImage(
-                                                                                      selectedworkerimage != null &&
-                                                                                          selectedworkerimage.isNotEmpty
-                                                                                          ? selectedworkerimage
-                                                                                          : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                              ),
-                                                                              SizedBox(width: 10,),
-                                                                              Column(
-                                                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                                                children: [
-                                                                                  Text('${selectedworkername}',
-                                                                                    style: GoogleFonts.roboto(
-                                                                                      textStyle: TextStyle(
-                                                                                        color: HexColor('706F6F'),
-                                                                                        fontSize: 17,
-                                                                                        fontWeight: FontWeight.bold,
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                  SizedBox(width: 8),
-                                                                                  // Replace the following with a RatingBar widget
-                                                                                  RatingBar.builder(
-                                                                                    initialRating: 3,
-                                                                                    minRating: 1,
-                                                                                    direction: Axis.horizontal,
-                                                                                    allowHalfRating: true,
-                                                                                    itemCount: 5,
-                                                                                    itemPadding: EdgeInsets.symmetric(horizontal: 2.0), // Adjust padding as needed
-                                                                                    itemBuilder: (context, _) => Icon(
-                                                                                      Icons.star,
-                                                                                      color: HexColor('4D8D6E'),
-                                                                                      size: 14, // Adjust the size of the star icon
-                                                                                    ),
-                                                                                    onRatingUpdate: (rating) {
-                                                                                      print(rating);
-                                                                                    },
-                                                                                  )
-
-                                                                                ],
-                                                                              ),
-                                                                            ],
-                                                                          )
-                                                                        ],
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(
-                                                                      height: screenheight * 0.02,
-                                                                    ),
-                                                                    Padding(
-                                                                      padding: const EdgeInsets.symmetric(
-                                                                        horizontal: 12.0,
-                                                                      ),
-                                                                      child: Container(
-                                                                        decoration: BoxDecoration(
-                                                                          borderRadius: BorderRadius.circular(15),
-                                                                          color: Colors.grey[100],
-                                                                        ),
-                                                                        child: Padding(
-                                                                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                                                                          child: TextFormField(
-                                                                            controller: reviewcontroller,
-                                                                            decoration: InputDecoration(
-
-                                                                              hintText: 'Write a Review ...',
-                                                                              hintStyle: TextStyle(color: Colors.grey[500]),
-                                                                              border: InputBorder.none,
-                                                                            ),
-                                                                            maxLines: 4,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    Padding(
-                                                                      padding:
-                                                                      const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
-                                                                      child: Center(
-                                                                        child: ActionSlider.standard(
-                                                                          sliderBehavior: SliderBehavior.stretch,
-                                                                          rolling: false,
-                                                                          width: double.infinity,
-                                                                          backgroundColor: Colors.white,
-                                                                          toggleColor: HexColor('4D8D6E'),
-                                                                          iconAlignment: Alignment.centerRight,
-                                                                          loadingIcon: SizedBox(
-                                                                              width: 55,
-                                                                              child: Center(
-                                                                                  child: SizedBox(
-                                                                                    width: 24.0,
-                                                                                    height: 24.0,
-                                                                                    child: CircularProgressIndicator(
-                                                                                        strokeWidth: 2.0, color: Colors.white),
-                                                                                  ))),
-                                                                          successIcon: const SizedBox(
-                                                                              width: 55,
-                                                                              child: Center(
-                                                                                  child: Icon(
-                                                                                    Icons.check_rounded,
-                                                                                    color: Colors.white,
-                                                                                  ))),
-                                                                          icon: const SizedBox(
-                                                                              width: 55,
-                                                                              child: Center(
-                                                                                  child: Icon(
-                                                                                    Icons.keyboard_double_arrow_right,
-                                                                                    color: Colors.white,
-                                                                                  ))),
-                                                                          action: (controller) async {
-                                                                            controller.loading(); //starts loading animation
-                                                                            await Future.delayed(const Duration(seconds: 3));
-                                                                            controller.success(); //starts success animation
-                                                                            await Future.delayed(const Duration(seconds: 1));
-                                                                            controller.reset(); //resets the slider
-                                                                          },
-                                                                          child: const Text('Swipe To Confirm'),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(
-                                                                      height: screenheight * 0.01,
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              );
-                                                            },
-                                                          );
-                                                        }
-                                                            : null, // Set onPressed to null if the condition is not met
-                                                        style: ElevatedButton.styleFrom(
-                                                          primary: HexColor(('66C020')),
-                                                          onPrimary: Colors.white,
-                                                          elevation: 8,
-                                                          shape: RoundedRectangleBorder(
-                                                            borderRadius: BorderRadius.circular(8),
-                                                          ),
-                                                          fixedSize: Size(double.infinity, 50), // Set the desired height
-                                                        ),
-                                                        child: Padding(
-                                                          padding: const EdgeInsets.symmetric(vertical: 8.0), // Adjust padding as needed
-                                                          child: Text(
-                                                            'Project Completed',
-                                                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(
-                                              height: 12,
-                                            ),
-                                            Row(
-                                              children: [
-                                                Container(
-                                                  width: 195.0,
-                                                  height: 50,
-                                                  child: ElevatedButton(
-                                                    onPressed: () {
-                                                      showDialog(
-                                                        context: context,
-                                                        builder: (context) => ModernPopup(
-                                                          text: 'Choose Schedule first then generate a Code to access Project complete',
-                                                        ),
-                                                      );
-                                                    },
-                                                    style: ElevatedButton.styleFrom(
-                                                      primary: HexColor('1AA251').withOpacity(0.5), // Adjust opacity here
-                                                      onPrimary: Colors.white,
-                                                      elevation: 3,
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(8),
+                                                        BorderRadius.circular(
+                                                            12), // Rounded corners
                                                       ),
                                                     ),
                                                     child: Padding(
-                                                      padding: const EdgeInsets.all(12.0),
-                                                      child: Row(
-                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                        children: [
-                                                          Text(
-                                                            'Project Completed',
-                                                            style: GoogleFonts.roboto(
-                                                              textStyle: TextStyle(
-                                                                color: Colors.white,
-                                                                fontSize: 12,
-                                                                fontWeight: FontWeight.bold,
+                                                      padding:
+                                                      const EdgeInsets
+                                                          .all(12.0),
+                                                      child: Text(
+                                                        'Chat',
+                                                        style: GoogleFonts
+                                                            .roboto(
+                                                          textStyle:
+                                                          TextStyle(
+                                                            color:
+                                                            Colors.white,
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                            FontWeight
+                                                                .bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          Row(
+                                            children: [
+                                              Container(
+                                                width: 195.0,
+                                                height: 50,
+                                                child: ElevatedButton(
+                                                  onPressed: projectData
+                                                      .pageContent
+                                                      .project_complete_button ==
+                                                      "maftoo7"
+                                                      ? () {
+                                                    showModalBottomSheet(
+                                                      elevation: 5,
+
+                                                      context: context,
+                                                      isScrollControlled: true,
+                                                      //Add this for full screen modal
+                                                      backgroundColor: Colors
+                                                          .white,
+                                                      builder: (context) {
+                                                        // Here, you can include your custom slider content
+                                                        return Container(
+                                                          margin: EdgeInsets
+                                                              .symmetric(
+                                                              horizontal: 15.0),
+                                                          decoration: ShapeDecoration(
+                                                            color: Colors
+                                                                .white,
+                                                            shadows: [
+                                                              BoxShadow(
+                                                                  blurRadius: 5.0,
+                                                                  spreadRadius: 2.0,
+                                                                  color: const Color(
+                                                                      0x11000000))
+                                                            ],
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius
+                                                                  .only(
+                                                                topLeft: Radius
+                                                                    .circular(
+                                                                    10.0),
+                                                                topRight: Radius
+                                                                    .circular(
+                                                                    10.0),
                                                               ),
                                                             ),
                                                           ),
-                                                          Icon(
-                                                            AntDesign.infocirlceo, // Replace with your preferred (i) icon
-                                                            color: Colors.white,
-                                                            size: 14,
+                                                          child: Column(
+                                                            mainAxisSize: MainAxisSize
+                                                                .min,
+                                                            crossAxisAlignment: CrossAxisAlignment
+                                                                .start,
+                                                            children: [
+                                                              SizedBox(
+                                                                height: screenheight *
+                                                                    0.02,
+                                                              ),
+                                                              Row(
+                                                                children: [
+                                                                  IconButton(
+                                                                      onPressed: () {
+                                                                        Navigator
+                                                                            .pop(
+                                                                            context);
+                                                                      },
+                                                                      icon: Icon(
+                                                                        Icons
+                                                                            .expand_circle_down,
+                                                                        color: Colors
+                                                                            .grey[700],
+                                                                      )),
+                                                                  Text(
+                                                                    'End Project',
+                                                                    style: GoogleFonts
+                                                                        .roboto(
+                                                                      textStyle: TextStyle(
+                                                                        color: Colors
+                                                                            .grey[900],
+                                                                        fontSize: 23,
+                                                                        fontWeight: FontWeight
+                                                                            .bold,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              ListTile(
+                                                                title: Text(
+                                                                  'Upload Photo ',
+                                                                  style: GoogleFonts
+                                                                      .roboto(
+                                                                    textStyle: TextStyle(
+                                                                      color: HexColor(
+                                                                          '424347'),
+                                                                      fontSize: 18,
+                                                                      fontWeight: FontWeight
+                                                                          .bold,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              Padding(
+                                                                padding: const EdgeInsets
+                                                                    .symmetric(
+                                                                    horizontal: 10.0),
+                                                                child: Container(
+                                                                  height: 90,
+                                                                  // Set the desired height
+                                                                  width: double
+                                                                      .infinity,
+                                                                  // Take the full width
+                                                                  decoration: BoxDecoration(
+                                                                    border: Border
+                                                                        .all(
+                                                                      color: Colors
+                                                                          .grey,
+                                                                      // Set the desired border color
+                                                                      width: 1.0, // Set the desired border width
+                                                                    ),
+                                                                    borderRadius: BorderRadius
+                                                                        .circular(
+                                                                        10), // Set the desired border radius
+                                                                  ),
+                                                                  child: ListTile(
+                                                                    title: Column(
+                                                                      mainAxisAlignment: MainAxisAlignment
+                                                                          .center,
+                                                                      children: [
+                                                                        Icon(
+                                                                          Icons
+                                                                              .image,
+                                                                          color: HexColor(
+                                                                              '4D8D6E'),
+                                                                        ),
+                                                                        // Replace with the appropriate icon
+                                                                        SizedBox(
+                                                                            height: 8),
+                                                                        Text(
+                                                                          'Upload here',
+                                                                          style: TextStyle(
+                                                                              color: Colors
+                                                                                  .grey),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                    onTap: () {
+                                                                      // Handle image or video selection
+                                                                    },
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              ListTile(
+                                                                title: Text(
+                                                                  'Upload Video ',
+                                                                  style: GoogleFonts
+                                                                      .roboto(
+                                                                    textStyle: TextStyle(
+                                                                      color: HexColor(
+                                                                          '424347'),
+                                                                      fontSize: 18,
+                                                                      fontWeight: FontWeight
+                                                                          .bold,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              Padding(
+                                                                padding: const EdgeInsets
+                                                                    .symmetric(
+                                                                    horizontal: 10.0),
+                                                                child: Container(
+                                                                  height: 90,
+                                                                  // Set the desired height
+                                                                  width: double
+                                                                      .infinity,
+                                                                  // Take the full width
+                                                                  decoration: BoxDecoration(
+                                                                    border: Border
+                                                                        .all(
+                                                                      color: Colors
+                                                                          .grey,
+                                                                      // Set the desired border color
+                                                                      width: 1.0, // Set the desired border width
+                                                                    ),
+                                                                    borderRadius: BorderRadius
+                                                                        .circular(
+                                                                        10), // Set the desired border radius
+                                                                  ),
+                                                                  child: ListTile(
+                                                                    title: Column(
+                                                                      mainAxisAlignment: MainAxisAlignment
+                                                                          .center,
+                                                                      children: [
+                                                                        Icon(
+                                                                          Icons
+                                                                              .video_camera_back,
+                                                                          color: HexColor(
+                                                                              '4D8D6E'),
+                                                                        ),
+                                                                        // Replace with the appropriate icon
+                                                                        SizedBox(
+                                                                            height: 8),
+                                                                        Text(
+                                                                          'Upload here',
+                                                                          style: TextStyle(
+                                                                              color: Colors
+                                                                                  .grey),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                    onTap: () {
+                                                                      // Handle image or video selection
+                                                                    },
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: screenheight *
+                                                                    0.02,
+                                                              ),
+                                                              ListTile(
+                                                                title: Text(
+                                                                  'Rating',
+                                                                  style: GoogleFonts
+                                                                      .roboto(
+                                                                    textStyle: TextStyle(
+                                                                      color: HexColor(
+                                                                          '424347'),
+                                                                      fontSize: 18,
+                                                                      fontWeight: FontWeight
+                                                                          .bold,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              ListTile(
+                                                                title: Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment
+                                                                      .center,
+                                                                  children: [
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment
+                                                                          .center,
+                                                                      children: [
+                                                                        Container(
+                                                                          height: 56,
+                                                                          width: 56,
+                                                                          decoration: BoxDecoration(
+                                                                            shape: BoxShape
+                                                                                .circle,
+                                                                            image: DecorationImage(
+                                                                              fit: BoxFit
+                                                                                  .cover,
+                                                                              image: NetworkImage(
+                                                                                selectedworkerimage !=
+                                                                                    null &&
+                                                                                    selectedworkerimage
+                                                                                        .isNotEmpty
+                                                                                    ? selectedworkerimage
+                                                                                    : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                        SizedBox(
+                                                                          width: 10,),
+                                                                        Column(
+                                                                          crossAxisAlignment: CrossAxisAlignment
+                                                                              .center,
+                                                                          children: [
+                                                                            Text(
+                                                                              '${selectedworkername}',
+                                                                              style: GoogleFonts
+                                                                                  .roboto(
+                                                                                textStyle: TextStyle(
+                                                                                  color: HexColor(
+                                                                                      '706F6F'),
+                                                                                  fontSize: 17,
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold,
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            SizedBox(
+                                                                                width: 8),
+                                                                            // Replace the following with a RatingBar widget
+                                                                            RatingBar
+                                                                                .builder(
+                                                                              initialRating: 3,
+                                                                              minRating: 1,
+                                                                              direction: Axis
+                                                                                  .horizontal,
+                                                                              allowHalfRating: true,
+                                                                              itemCount: 5,
+                                                                              itemPadding: EdgeInsets
+                                                                                  .symmetric(
+                                                                                  horizontal: 2.0),
+                                                                              // Adjust padding as needed
+                                                                              itemBuilder: (
+                                                                                  context,
+                                                                                  _) =>
+                                                                                  Icon(
+                                                                                    Icons
+                                                                                        .star,
+                                                                                    color: HexColor(
+                                                                                        '4D8D6E'),
+                                                                                    size: 14, // Adjust the size of the star icon
+                                                                                  ),
+                                                                              onRatingUpdate: (
+                                                                                  rating) {
+                                                                                print(
+                                                                                    rating);
+                                                                              },
+                                                                            )
+
+                                                                          ],
+                                                                        ),
+                                                                      ],
+                                                                    )
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: screenheight *
+                                                                    0.02,
+                                                              ),
+                                                              Padding(
+                                                                padding: const EdgeInsets
+                                                                    .symmetric(
+                                                                  horizontal: 12.0,
+                                                                ),
+                                                                child: Container(
+                                                                  decoration: BoxDecoration(
+                                                                    borderRadius: BorderRadius
+                                                                        .circular(
+                                                                        15),
+                                                                    color: Colors
+                                                                        .grey[100],
+                                                                  ),
+                                                                  child: Padding(
+                                                                    padding: const EdgeInsets
+                                                                        .symmetric(
+                                                                        horizontal: 16),
+                                                                    child: TextFormField(
+                                                                      controller: reviewcontroller,
+                                                                      decoration: InputDecoration(
+
+                                                                        hintText: 'Write a Review ...',
+                                                                        hintStyle: TextStyle(
+                                                                            color: Colors
+                                                                                .grey[500]),
+                                                                        border: InputBorder
+                                                                            .none,
+                                                                      ),
+                                                                      maxLines: 4,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              Padding(
+                                                                padding:
+                                                                const EdgeInsets
+                                                                    .symmetric(
+                                                                    horizontal: 12.0,
+                                                                    vertical: 20),
+                                                                child: Center(
+                                                                  child: ActionSlider
+                                                                      .standard(
+                                                                    sliderBehavior: SliderBehavior
+                                                                        .stretch,
+                                                                    rolling: false,
+                                                                    width: double
+                                                                        .infinity,
+                                                                    backgroundColor: Colors
+                                                                        .white,
+                                                                    toggleColor: HexColor(
+                                                                        '4D8D6E'),
+                                                                    iconAlignment: Alignment
+                                                                        .centerRight,
+                                                                    loadingIcon: SizedBox(
+                                                                        width: 55,
+                                                                        child: Center(
+                                                                            child: SizedBox(
+                                                                              width: 24.0,
+                                                                              height: 24.0,
+                                                                              child: CircularProgressIndicator(
+                                                                                  strokeWidth: 2.0,
+                                                                                  color: Colors
+                                                                                      .white),
+                                                                            ))),
+                                                                    successIcon: const SizedBox(
+                                                                        width: 55,
+                                                                        child: Center(
+                                                                            child: Icon(
+                                                                              Icons
+                                                                                  .check_rounded,
+                                                                              color: Colors
+                                                                                  .white,
+                                                                            ))),
+                                                                    icon: const SizedBox(
+                                                                        width: 55,
+                                                                        child: Center(
+                                                                            child: Icon(
+                                                                              Icons
+                                                                                  .keyboard_double_arrow_right,
+                                                                              color: Colors
+                                                                                  .white,
+                                                                            ))),
+                                                                    action: (
+                                                                        controller) async {
+                                                                      controller
+                                                                          .loading(); //starts loading animation
+                                                                      await Future
+                                                                          .delayed(
+                                                                          const Duration(
+                                                                              seconds: 3));
+                                                                      controller
+                                                                          .success(); //starts success animation
+                                                                      await Future
+                                                                          .delayed(
+                                                                          const Duration(
+                                                                              seconds: 1));
+                                                                      controller
+                                                                          .reset(); //resets the slider
+                                                                    },
+                                                                    child: const Text(
+                                                                        'Swipe To Confirm'),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: screenheight *
+                                                                    0.01,
+                                                              ),
+                                                            ],
                                                           ),
-                                                        ],
+                                                        );
+                                                      },
+                                                    );
+                                                  }
+                                                      : null,
+                                                  // Set onPressed to null if the condition is not met
+                                                  style: ElevatedButton
+                                                      .styleFrom(
+                                                    primary: HexColor(
+                                                        ('66C020')),
+                                                    onPrimary: Colors.white,
+                                                    elevation: 8,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius
+                                                          .circular(8),
+                                                    ),
+                                                    fixedSize: Size(
+                                                        double.infinity,
+                                                        50), // Set the desired height
+                                                  ),
+                                                  child: Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        vertical: 8.0),
+                                                    // Adjust padding as needed
+                                                    child: Text(
+                                                      'Project Completed',
+                                                      style: TextStyle(
+                                                          fontSize: 12.5,
+                                                          fontWeight: FontWeight
+                                                              .bold),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+
+                                              SizedBox(width: 10),
+                                              Expanded(
+                                                child: Hero(
+                                                  tag: 'workdone_${unique}',
+                                                  child: Container(
+                                                    height: 50,
+                                                    child: ElevatedButton(
+                                                      onPressed: () {
+                                                        _navigateToNextPage(
+                                                            context);
+                                                      },
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        primary: HexColor(
+                                                            '777031'),
+                                                        onPrimary:
+                                                        Colors.white,
+                                                        elevation: 8,
+                                                        shape:
+                                                        RoundedRectangleBorder(
+                                                          borderRadius:
+                                                          BorderRadius
+                                                              .circular(
+                                                              21),
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        'Support',
+                                                        style: GoogleFonts
+                                                            .roboto(
+                                                          textStyle:
+                                                          TextStyle(
+                                                            color:
+                                                            Colors.white,
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                            FontWeight
+                                                                .bold,
+                                                          ),
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
                                                 ),
-                                                SizedBox(width: 10),
-                                                Expanded(
-                                                  child: Hero(
-                                                    tag: 'workdone_${unique}',
-                                                    child: Container(
-                                                      height: 50,
-                                                      child: ElevatedButton(
-                                                        onPressed: () {
-                                                          _navigateToNextPage(
-                                                              context);
-                                                        },
-                                                        style: ElevatedButton
-                                                            .styleFrom(
-                                                          primary: HexColor(
-                                                              '777031'),
-                                                          onPrimary:
-                                                              Colors.white,
-                                                          elevation: 8,
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        21),
-                                                          ),
-                                                        ),
-                                                        child: Text(
-                                                          'Support',
-                                                          style: GoogleFonts
-                                                              .roboto(
-                                                            textStyle:
-                                                                TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 14,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    );
                                   }
+
 
 
                                   else if ( projectData.status ==
@@ -1980,6 +2367,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                 child: ElevatedButton(
                                                   onPressed: () {
                                                     Get.to(ChatScreen(
+                                                      seconduserimage: projectData.selectworkerbid.worker_profile_pic,
+
                                                       chatId: projectData
                                                           .pageaccessdata!.chat_ID,
                                                       currentUser:
@@ -1987,7 +2376,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                           .clientData!
                                                           .firstname,
                                                       secondUserName:
-                                                      'worker',
+                                                      projectData
+                                                          .selectworkerbid.worker_firstname,
                                                       userId: projectData
                                                           .clientData!
                                                           .clientId
@@ -2450,100 +2840,184 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                                 ),
                                                               ],
                                                             ),
-                                                            ListTile(
-                                                              title: Text(
-                                                                'Upload Photo ',
-                                                                style: GoogleFonts.roboto(
-                                                                  textStyle: TextStyle(
-                                                                    color: HexColor('424347'),
-                                                                    fontSize: 18,
-                                                                    fontWeight: FontWeight.bold,
+                                                            Row(
+                                                              children: [
+                                                                Text(
+                                                                  _imageFiles == null ? 'Upload Photo' : 'Selected Photo',
+                                                                  style: GoogleFonts.poppins(
+                                                                    textStyle: TextStyle(
+                                                                      color: HexColor('1A1D1E'),
+                                                                      fontSize: 17,
+                                                                      fontWeight: FontWeight.w500,
+                                                                    ),
                                                                   ),
                                                                 ),
-                                                              ),
-                                                            ),
-                                                            Padding(
-                                                              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                                              child: Container(
-                                                                height: 90, // Set the desired height
-                                                                width: double.infinity, // Take the full width
-                                                                decoration: BoxDecoration(
-                                                                  border: Border.all(
-                                                                    color: Colors.grey, // Set the desired border color
-                                                                    width: 1.0, // Set the desired border width
-                                                                  ),
-                                                                  borderRadius: BorderRadius.circular(
-                                                                      10), // Set the desired border radius
+                                                                SizedBox(
+                                                                  width: 6,
                                                                 ),
-                                                                child: ListTile(
-                                                                  title: Column(
-                                                                    mainAxisAlignment: MainAxisAlignment.center,
-                                                                    children: [
-                                                                      Icon(
-                                                                        Icons.image,
-                                                                        color: HexColor('4D8D6E'),
-                                                                      ),
-                                                                      // Replace with the appropriate icon
-                                                                      SizedBox(height: 8),
-                                                                      Text(
-                                                                        'Upload here',
-                                                                        style: TextStyle(color: Colors.grey),
-                                                                      ),
-                                                                    ],
+                                                                IconButton(
+                                                                  icon: Icon(
+                                                                    Icons.info_outline, // "i" icon
+                                                                    color: Colors.grey,
+                                                                    size: 22, // Red color
                                                                   ),
-                                                                  onTap: () {
-                                                                    // Handle image or video selection
+                                                                  onPressed: () {
+                                                                    // Show a Snackbar with the required text
+                                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                                      SnackBar(
+                                                                        backgroundColor: Colors.red,
+                                                                        content: Text(
+                                                                          _imageFiles == null
+                                                                              ? 'Upload photo is Required'
+                                                                              : 'Selected photo information',
+                                                                          style:
+                                                                          TextStyle(color: Colors.white), // Red text color
+                                                                        ),
+                                                                      ),
+                                                                    );
                                                                   },
                                                                 ),
-                                                              ),
+                                                              ],
                                                             ),
-                                                            ListTile(
-                                                              title: Text(
-                                                                'Upload Video ',
-                                                                style: GoogleFonts.roboto(
-                                                                  textStyle: TextStyle(
-                                                                    color: HexColor('424347'),
-                                                                    fontSize: 18,
-                                                                    fontWeight: FontWeight.bold,
+                                                            SizedBox(
+                                                              height: 7,
+                                                            ),
+                                                            GestureDetector(
+                                                              onTap: () {
+                                                                _pickImages(); // Call the function when tapped
+                                                              },
+                                                              child: Center(
+                                                                child: Container(
+                                                                  height: 150, // Fixed height for the container
+                                                                  width: 350,
+                                                                  decoration: BoxDecoration(
+                                                                    borderRadius: BorderRadius.circular(15),
+                                                                    color: Colors.white,
+                                                                  ),
+                                                                  child: _imageFiles.isEmpty
+                                                                      ? Center(
+                                                                    // Show instructions if no images are selected
+                                                                    child: Column(
+                                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                                      children: [
+                                                                        Icon(
+                                                                          Icons.file_upload,
+                                                                          color: HexColor('4D8D6E'),
+                                                                          size: 30,
+                                                                        ),
+                                                                        SizedBox(height: 8),
+                                                                        Text(
+                                                                          'Upload Here',
+                                                                          style: TextStyle(
+                                                                            color: HexColor('4D8D6E'),
+                                                                            fontSize: 16,
+                                                                            fontWeight: FontWeight.bold,
+                                                                          ),
+                                                                        ),
+                                                                        SizedBox(height: 8),
+                                                                        Padding(
+                                                                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                                                          child: Text(
+                                                                            'Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!',
+                                                                            textAlign: TextAlign.center,
+                                                                            style: TextStyle(
+                                                                              color: Colors.grey[600],
+                                                                              fontSize: 12,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  )
+                                                                      : Scrollbar(
+                                                                    controller: ScrollController(),
+                                                                    child: ListView.builder(
+                                                                      scrollDirection: Axis.horizontal,
+                                                                      itemCount: _imageFiles!.length,
+                                                                      itemBuilder: (BuildContext context, int index) {
+                                                                        return GestureDetector(
+                                                                          onTap: () {
+                                                                            showDialog(
+                                                                              context: context,
+                                                                              builder: (BuildContext context) {
+                                                                                return Dialog(
+                                                                                  child: InteractiveViewer(
+                                                                                    panEnabled: true, // Set it to false to prevent panning.
+                                                                                    boundaryMargin: EdgeInsets.all(20),
+                                                                                    minScale: 0.5,
+                                                                                    maxScale: 2,
+                                                                                    child: Image.file(_images[index]!),
+                                                                                  ),
+                                                                                );
+                                                                              },
+                                                                            );
+                                                                          },
+                                                                          child: Padding(
+                                                                            padding: EdgeInsets.only(
+                                                                              left: 8.0,
+                                                                              right: index == _imageFiles!.length - 1 ? 8.0 : 0,
+                                                                            ),
+                                                                            child: Image.file(
+                                                                              _imageFiles[index]!,
+                                                                              height: 150,
+                                                                              width: 150,
+                                                                              fit: BoxFit.cover,
+                                                                            ),
+                                                                          ),
+                                                                        );
+                                                                      },
+                                                                    ),
                                                                   ),
                                                                 ),
                                                               ),
                                                             ),
-                                                            Padding(
-                                                              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                                              child: Container(
-                                                                height: 90, // Set the desired height
-                                                                width: double.infinity, // Take the full width
-                                                                decoration: BoxDecoration(
-                                                                  border: Border.all(
-                                                                    color: Colors.grey, // Set the desired border color
-                                                                    width: 1.0, // Set the desired border width
-                                                                  ),
-                                                                  borderRadius: BorderRadius.circular(
-                                                                      10), // Set the desired border radius
-                                                                ),
-                                                                child: ListTile(
-                                                                  title: Column(
-                                                                    mainAxisAlignment: MainAxisAlignment.center,
-                                                                    children: [
-                                                                      Icon(
-                                                                        Icons.video_camera_back,
-                                                                        color: HexColor('4D8D6E'),
-                                                                      ),
-                                                                      // Replace with the appropriate icon
-                                                                      SizedBox(height: 8),
-                                                                      Text(
-                                                                        'Upload here',
-                                                                        style: TextStyle(color: Colors.grey),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                  onTap: () {
-                                                                    // Handle image or video selection
-                                                                  },
-                                                                ),
-                                                              ),
-                                                            ),
+                                                            // ListTile(
+                                                            //   title: Text(
+                                                            //     'Upload Video ',
+                                                            //     style: GoogleFonts.roboto(
+                                                            //       textStyle: TextStyle(
+                                                            //         color: HexColor('424347'),
+                                                            //         fontSize: 18,
+                                                            //         fontWeight: FontWeight.bold,
+                                                            //       ),
+                                                            //     ),
+                                                            //   ),
+                                                            // ),
+                                                            // Padding(
+                                                            //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                                                            //   child: Container(
+                                                            //     height: 90, // Set the desired height
+                                                            //     width: double.infinity, // Take the full width
+                                                            //     decoration: BoxDecoration(
+                                                            //       border: Border.all(
+                                                            //         color: Colors.grey, // Set the desired border color
+                                                            //         width: 1.0, // Set the desired border width
+                                                            //       ),
+                                                            //       borderRadius: BorderRadius.circular(
+                                                            //           10), // Set the desired border radius
+                                                            //     ),
+                                                            //     child: ListTile(
+                                                            //       title: Column(
+                                                            //         mainAxisAlignment: MainAxisAlignment.center,
+                                                            //         children: [
+                                                            //           Icon(
+                                                            //             Icons.video_camera_back,
+                                                            //             color: HexColor('4D8D6E'),
+                                                            //           ),
+                                                            //           // Replace with the appropriate icon
+                                                            //           SizedBox(height: 8),
+                                                            //           Text(
+                                                            //             'Upload here',
+                                                            //             style: TextStyle(color: Colors.grey),
+                                                            //           ),
+                                                            //         ],
+                                                            //       ),
+                                                            //       onTap: () {
+                                                            //         // Handle image or video selection
+                                                            //       },
+                                                            //     ),
+                                                            //   ),
+                                                            // ),
                                                             SizedBox(
                                                               height: screenheight * 0.02,
                                                             ),
@@ -3135,6 +3609,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                 child: ElevatedButton(
                                                   onPressed: () {
                                                     Get.to(ChatScreen(
+                                                      seconduserimage: projectData.selectworkerbid.worker_profile_pic,
+
                                                       chatId: projectData
                                                           .pageaccessdata!.chat_ID,
                                                       currentUser:
@@ -3142,7 +3618,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                           .clientData!
                                                           .firstname,
                                                       secondUserName:
-                                                      'worker',
+                                                      projectData
+                                                          .selectworkerbid.worker_firstname,
                                                       userId: projectData
                                                           .clientData!
                                                           .clientId
@@ -4289,6 +4766,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                 child: ElevatedButton(
                                                   onPressed: () {
                                                     Get.to(ChatScreen(
+                                                      seconduserimage: projectData.selectworkerbid.worker_profile_pic,
+
                                                       chatId: projectData
                                                           .pageaccessdata!.chat_ID,
                                                       currentUser:
@@ -4296,7 +4775,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                           .clientData!
                                                           .firstname,
                                                       secondUserName:
-                                                      'worker',
+                                                      projectData
+                                                          .selectworkerbid.worker_firstname,
                                                       userId: projectData
                                                           .clientData!
                                                           .clientId
@@ -4784,104 +5264,136 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                               SizedBox(height: 8,),
                                                               Padding(
                                                                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                                                child: Text(
-                                                                  _images == null ? 'Upload Photo' : 'Selected Photo',
-                                                                  style: GoogleFonts.roboto(
-                                                                    textStyle: TextStyle(
-                                                                      color: HexColor('424347'),
-                                                                      fontSize: 18,
-                                                                      fontWeight: FontWeight.bold,
+                                                                child: Row(
+                                                                  children: [
+                                                                    Text(
+                                                                      _imageFiles == null ? 'Upload Photo' : 'Selected Photo',
+                                                                      style: GoogleFonts.poppins(
+                                                                        textStyle: TextStyle(
+                                                                          color: HexColor('1A1D1E'),
+                                                                          fontSize: 17,
+                                                                          fontWeight: FontWeight.w500,
+                                                                        ),
+                                                                      ),
                                                                     ),
-                                                                  ),
+                                                                    SizedBox(
+                                                                      width: 6,
+                                                                    ),
+                                                                    IconButton(
+                                                                      icon: Icon(
+                                                                        Icons.info_outline, // "i" icon
+                                                                        color: Colors.grey,
+                                                                        size: 22, // Red color
+                                                                      ),
+                                                                      onPressed: () {
+                                                                        // Show a Snackbar with the required text
+                                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                                          SnackBar(
+                                                                            backgroundColor: Colors.red,
+                                                                            content: Text(
+                                                                              _imageFiles == null
+                                                                                  ? 'Upload photo is Required'
+                                                                                  : 'Selected photo information',
+                                                                              style:
+                                                                              TextStyle(color: Colors.white), // Red text color
+                                                                            ),
+                                                                          ),
+                                                                        );
+                                                                      },
+                                                                    ),
+                                                                  ],
                                                                 ),
                                                               ),
                                                               SizedBox(
                                                                 height: 7,
                                                               ),
-                                                              GestureDetector(
-                                                                onTap: () {
-                                                                  _getImageFromGallery(); // Call the function when tapped
-                                                                },
-                                                                child: Center(
-                                                                  child: Container(
-                                                                    height: 150, // Fixed height for the container
-                                                                    width: 350,
-                                                                    decoration: BoxDecoration(
-                                                                      borderRadius: BorderRadius.circular(15),
-                                                                      color: Colors.white,
-                                                                    ),
-                                                                    child: _images.isEmpty
-                                                                        ? Center(
-                                                                      // Show instructions if no images are selected
-                                                                      child: Column(
-                                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                                        children: [
-                                                                          Icon(
-                                                                            Icons.file_upload,
-                                                                            color: Theme.of(context).primaryColor,
-                                                                            size: 30,
-                                                                          ),
-                                                                          SizedBox(height: 8),
-                                                                          Text(
-                                                                            'Upload Here',
-                                                                            style: TextStyle(
-                                                                              color: Theme.of(context).primaryColor,
-                                                                              fontSize: 16,
-                                                                              fontWeight: FontWeight.bold,
-                                                                            ),
-                                                                          ),
-                                                                          SizedBox(height: 8),
-                                                                          Padding(
-                                                                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                                                            child: Text(
-                                                                              'Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!',
-                                                                              textAlign: TextAlign.center,
-                                                                              style: TextStyle(
-                                                                                color: Colors.grey[600],
-                                                                                fontSize: 12,
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        ],
+                                                              Padding(
+                                                                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                                                                child: GestureDetector(
+                                                                  onTap: () {
+                                                                    _pickImages(); // Call the function when tapped
+                                                                  },
+                                                                  child: Center(
+                                                                    child: Container(
+                                                                      height: 150, // Fixed height for the container
+                                                                      width: 350,
+                                                                      decoration: BoxDecoration(
+                                                                        borderRadius: BorderRadius.circular(15),
+                                                                        color: Colors.white,
                                                                       ),
-                                                                    )
-                                                                        : Scrollbar(
-                                                                      controller: ScrollController(),
-                                                                      child: ListView.builder(
-                                                                        scrollDirection: Axis.horizontal,
-                                                                        itemCount: _images.length,
-                                                                        itemBuilder: (BuildContext context, int index) {
-                                                                          return GestureDetector(
-                                                                            onTap: () {
-                                                                              showDialog(
-                                                                                context: context,
-                                                                                builder: (BuildContext context) {
-                                                                                  return Dialog(
-                                                                                    child: InteractiveViewer(
-                                                                                      panEnabled: true, // Set it to false to prevent panning.
-                                                                                      boundaryMargin: EdgeInsets.all(20),
-                                                                                      minScale: 0.5,
-                                                                                      maxScale: 2,
-                                                                                      child: Image.file(_images[index]!),
-                                                                                    ),
-                                                                                  );
-                                                                                },
-                                                                              );
-                                                                            },
-                                                                            child: Padding(
-                                                                              padding: EdgeInsets.only(
-                                                                                left: 8.0,
-                                                                                right: index == _images.length - 1 ? 8.0 : 0,
-                                                                              ),
-                                                                              child: Image.file(
-                                                                                _images[index]!,
-                                                                                height: 150,
-                                                                                width: 150,
-                                                                                fit: BoxFit.cover,
+                                                                      child: _imageFiles.isEmpty
+                                                                          ? Center(
+                                                                        // Show instructions if no images are selected
+                                                                        child: Column(
+                                                                          mainAxisAlignment: MainAxisAlignment.center,
+                                                                          children: [
+                                                                            Icon(
+                                                                              Icons.file_upload,
+                                                                              color: HexColor('4D8D6E'),
+                                                                              size: 30,
+                                                                            ),
+                                                                            SizedBox(height: 8),
+                                                                            Text(
+                                                                              'Upload Here',
+                                                                              style: TextStyle(
+                                                                                color: HexColor('4D8D6E'),
+                                                                                fontSize: 16,
+                                                                                fontWeight: FontWeight.bold,
                                                                               ),
                                                                             ),
-                                                                          );
-                                                                        },
+                                                                            SizedBox(height: 8),
+                                                                            Padding(
+                                                                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                                                              child: Text(
+                                                                                'Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!',
+                                                                                textAlign: TextAlign.center,
+                                                                                style: TextStyle(
+                                                                                  color: Colors.grey[600],
+                                                                                  fontSize: 12,
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                      )
+                                                                          : Scrollbar(
+                                                                        controller: ScrollController(),
+                                                                        child: ListView.builder(
+                                                                          scrollDirection: Axis.horizontal,
+                                                                          itemCount: _imageFiles!.length,
+                                                                          itemBuilder: (BuildContext context, int index) {
+                                                                            return GestureDetector(
+                                                                              onTap: () {
+                                                                                showDialog(
+                                                                                  context: context,
+                                                                                  builder: (BuildContext context) {
+                                                                                    return Dialog(
+                                                                                      child: InteractiveViewer(
+                                                                                        panEnabled: true, // Set it to false to prevent panning.
+                                                                                        boundaryMargin: EdgeInsets.all(20),
+                                                                                        minScale: 0.5,
+                                                                                        maxScale: 2,
+                                                                                        child: Image.file(_images[index]!),
+                                                                                      ),
+                                                                                    );
+                                                                                  },
+                                                                                );
+                                                                              },
+                                                                              child: Padding(
+                                                                                padding: EdgeInsets.only(
+                                                                                  left: 8.0,
+                                                                                  right: index == _imageFiles!.length - 1 ? 8.0 : 0,
+                                                                                ),
+                                                                                child: Image.file(
+                                                                                  _imageFiles[index]!,
+                                                                                  height: 150,
+                                                                                  width: 150,
+                                                                                  fit: BoxFit.cover,
+                                                                                ),
+                                                                              ),
+                                                                            );
+                                                                          },
+                                                                        ),
                                                                       ),
                                                                     ),
                                                                   ),
@@ -4890,53 +5402,53 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                               SizedBox(
                                                                 height: 14,
                                                               ),
-                                                              ListTile(
-                                                                title: Text(
-                                                                  'Upload Video ',
-                                                                  style: GoogleFonts.roboto(
-                                                                    textStyle: TextStyle(
-                                                                      color: HexColor('424347'),
-                                                                      fontSize: 18,
-                                                                      fontWeight: FontWeight.bold,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              Padding(
-                                                                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                                                child: Container(
-                                                                  height: 90, // Set the desired height
-                                                                  width: double.infinity, // Take the full width
-                                                                  decoration: BoxDecoration(
-                                                                    border: Border.all(
-                                                                      color: Colors.grey, // Set the desired border color
-                                                                      width: 1.0, // Set the desired border width
-                                                                    ),
-                                                                    borderRadius: BorderRadius.circular(
-                                                                        10), // Set the desired border radius
-                                                                  ),
-                                                                  child: ListTile(
-                                                                    title: Column(
-                                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                                      children: [
-                                                                        Icon(
-                                                                          Icons.video_camera_back,
-                                                                          color: HexColor('4D8D6E'),
-                                                                        ),
-                                                                        // Replace with the appropriate icon
-                                                                        SizedBox(height: 8),
-                                                                        Text(
-                                                                          'Upload here',
-                                                                          style: TextStyle(color: Colors.grey),
-                                                                        ),
-                                                                      ],
-                                                                    ),
-                                                                    onTap: () {
-                                                                      // Handle image or video selection
-                                                                    },
-                                                                  ),
-                                                                ),
-                                                              ),
+                                                              // ListTile(
+                                                              //   title: Text(
+                                                              //     'Upload Video ',
+                                                              //     style: GoogleFonts.roboto(
+                                                              //       textStyle: TextStyle(
+                                                              //         color: HexColor('424347'),
+                                                              //         fontSize: 18,
+                                                              //         fontWeight: FontWeight.bold,
+                                                              //       ),
+                                                              //     ),
+                                                              //   ),
+                                                              // ),
+                                                              // Padding(
+                                                              //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                                                              //   child: Container(
+                                                              //     height: 90, // Set the desired height
+                                                              //     width: double.infinity, // Take the full width
+                                                              //     decoration: BoxDecoration(
+                                                              //       border: Border.all(
+                                                              //         color: Colors.grey, // Set the desired border color
+                                                              //         width: 1.0, // Set the desired border width
+                                                              //       ),
+                                                              //       borderRadius: BorderRadius.circular(
+                                                              //           10), // Set the desired border radius
+                                                              //     ),
+                                                              //     child: ListTile(
+                                                              //       title: Column(
+                                                              //         mainAxisAlignment: MainAxisAlignment.center,
+                                                              //         children: [
+                                                              //           Icon(
+                                                              //             Icons.video_camera_back,
+                                                              //             color: HexColor('4D8D6E'),
+                                                              //           ),
+                                                              //           // Replace with the appropriate icon
+                                                              //           SizedBox(height: 8),
+                                                              //           Text(
+                                                              //             'Upload here',
+                                                              //             style: TextStyle(color: Colors.grey),
+                                                              //           ),
+                                                              //         ],
+                                                              //       ),
+                                                              //       onTap: () {
+                                                              //         // Handle image or video selection
+                                                              //       },
+                                                              //     ),
+                                                              //   ),
+                                                              // ),
                                                               SizedBox(
                                                                 height: screenheight * 0.02,
                                                               ),
@@ -5005,7 +5517,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                                               onRatingUpdate: (rating2) {
                                                                                 rating=rating2.toString();
                                                                                 print(rating);
-                                                                              },
+                                                                          },
                                                                             )
                                                         
                                                                           ],
@@ -5030,9 +5542,10 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                                   child: Padding(
                                                                     padding: const EdgeInsets.symmetric(horizontal: 16),
                                                                     child: TextFormField(
+                                                                      controller: reviewcontroller,
                                                                       decoration: InputDecoration(
                                                                         hintText: 'Write a Review ...',
-                                                                        hintStyle: TextStyle(color: Colors.grey[500]),
+                                                                      hintStyle: TextStyle(color: Colors.grey[500]),
                                                                         border: InputBorder.none,
                                                                       ),
                                                                       maxLines: 4,
@@ -5078,7 +5591,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                                       controller.loading(); //starts loading animation
                                                                       await Future.delayed(const Duration(seconds: 3));
                                                                       controller.success();
-                                                                      projectcomplete(); // Call your function here
+                                                                      completeproject(); // Call your function here
                                                                       await Future.delayed(const Duration(seconds: 1));
                                                                       controller.reset(); //resets the slider
                                                                     },

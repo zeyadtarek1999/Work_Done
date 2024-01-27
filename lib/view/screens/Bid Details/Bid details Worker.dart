@@ -19,6 +19,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
+import 'package:workdone/view/screens/Screens_layout/layoutWorker.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
 import '../InboxwithChat/ChatClient.dart';
 import '../Support Screen/Helper.dart';
@@ -45,6 +46,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
   bool showprojectcomplete = false;
   bool accessprojectcomplete = false;
   bool disableverfication = false;
+  String rating = '';
+  final reviewcontroller = TextEditingController();
 
   SfRangeValues _values = SfRangeValues(
       DateTime(2000, 01, 01, 07, 00, 00), DateTime(2000, 01, 01, 17, 00, 00));
@@ -115,8 +118,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
               FadeInImage.assetNetwork(
                 placeholder: 'assets/loading.gif', // Local asset image as placeholder
                 image: isSuccess
-                    ? 'https://i.imgur.com/TFjXjCI.gif'
-                    : 'https://i.imgur.com/Oj1rM5f.gif',
+                    ? 'https://cdn.pixabay.com/photo/2012/04/23/16/14/correct-38751_1280.png'
+                    : 'https://cdn.pixabay.com/photo/2017/02/12/21/29/false-2061131_1280.png',
                 width: 150, // Preferred width for the image
                 height: 150, // Preferred height for the image
               ),
@@ -190,6 +193,69 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
     }
   }
 
+  Future<void> Reviewproject() async {
+    print('Fetching user token from SharedPreferences...');
+
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String userToken = prefs.getString('user_token') ?? '';
+
+    print('Creating request...');
+    // Define headers in a map
+    final headers = <String, String>{
+      'Authorization': 'Bearer $userToken',
+      // 'Content-Type': 'multipart/form-data', This is added automatically when adding files to the MultipartRequest.
+    };
+
+    var request = http.MultipartRequest('POST', Uri.parse('https://www.workdonecorp.com/api/worker_make_review_on_client'))
+      ..headers.addAll(headers)
+      ..fields['project_id'] = widget.projectId.toString()
+      ..fields['review'] = reviewcontroller.text
+      ..fields['rating'] = rating.toString();
+
+
+    print('Checking for files...');
+    // Check if any files are null or empty before proceeding
+
+
+    // Add video if not null
+
+
+    // Add images if any
+    print('Request fields: ${request.fields}');
+    print('Request files: ${request.files.length}');
+    print('Sending request...');
+    try {
+
+      print('Request fields: ${request.fields}');
+      print('Request files: ${request.files.length}');
+      var streamedResponse = await request.send();
+
+      print('Request sent. Status code: ${streamedResponse.statusCode}');
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        print('Success: ${response.body}');
+        setState(() {
+        });
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => layoutworker(),
+          ),
+        );
+
+        // Handle success
+      } else {
+        print('Failed with status code: ${response.statusCode}');
+
+        // Handle failure
+      }
+    } catch (e) {
+      print('An exception occurred: $e');
+      // Handle exception
+    }
+  }
 
   Future<void> verify_Project_complete(int projectId, int vc) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -1060,6 +1126,174 @@ setState(() {
                                       );
                                     });
                                   }
+                                  if (projectData.pageaccessdata.force_review == "true") {
+                                    WidgetsBinding.instance?.addPostFrameCallback((_) {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isDismissible: false, // User must tap a button to dismiss
+                                        enableDrag: false, // The bottom sheet cannot be dragged down
+                                        builder: (BuildContext context) {
+                                          return SafeArea(
+                                            child: Column(
+
+                                              mainAxisSize: MainAxisSize.min, // Use minimum space necessary
+                                              children: [
+                                                ListTile(
+                                                  title: Text(
+                                                    'Rating',
+                                                    style: GoogleFonts.roboto(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('424347'),
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                ListTile(
+                                                  title: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                    children: [
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: [
+                                                          Container(
+                                                            height: 56,
+                                                            width: 56,
+                                                            decoration: BoxDecoration(
+                                                              shape: BoxShape.circle,
+                                                              image: DecorationImage(
+                                                                fit: BoxFit.cover,
+                                                                image: NetworkImage(
+                                                                  projectData.clientData.profileImage != null &&
+                                                                      projectData.clientData.profileImage.isNotEmpty
+                                                                      ?  projectData.clientData.profileImage
+                                                                      : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          SizedBox(width: 10,),
+                                                          Column(
+                                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                                            children: [
+                                                              Text('${ projectData.clientData.firstname}',
+                                                                style: GoogleFonts.roboto(
+                                                                  textStyle: TextStyle(
+                                                                    color: HexColor('706F6F'),
+                                                                    fontSize: 17,
+                                                                    fontWeight: FontWeight.bold,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(width: 8),
+                                                              // Replace the following with a RatingBar widget
+                                                              RatingBar.builder(
+                                                                initialRating: 3,
+                                                                minRating: 1,
+                                                                direction: Axis.horizontal,
+                                                                allowHalfRating: true,
+                                                                itemCount: 5,
+                                                                itemPadding: EdgeInsets.symmetric(horizontal: 2.0), // Adjust padding as needed
+                                                                itemBuilder: (context, _) => Icon(
+                                                                  Icons.star,
+                                                                  color: HexColor('4D8D6E'),
+                                                                  size: 14, // Adjust the size of the star icon
+                                                                ),
+                                                                onRatingUpdate: (rating2) {
+                                                                  rating=rating2.toString();
+                                                                  print(rating);
+                                                                },
+                                                              )
+
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: screenheight * 0.02,
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 12.0,
+                                                  ),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      borderRadius: BorderRadius.circular(15),
+                                                      color: Colors.grey[100],
+                                                    ),
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                                      child: TextFormField(
+                                                       controller: reviewcontroller,
+                                                        decoration: InputDecoration(
+                                                          hintText: 'Write a Review ...',
+                                                          hintStyle: TextStyle(color: Colors.grey[500]),
+                                                          border: InputBorder.none,
+                                                        ),
+                                                        maxLines: 4,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
+                                                  child: Center(
+                                                    child: ActionSlider.standard(
+                                                      sliderBehavior: SliderBehavior.stretch,
+                                                      rolling: false,
+                                                      width: double.infinity,
+                                                      backgroundColor: Colors.white,
+                                                      toggleColor: HexColor('4D8D6E'),
+                                                      iconAlignment: Alignment.centerRight,
+                                                      loadingIcon: SizedBox(
+                                                          width: 55,
+                                                          child: Center(
+                                                              child: SizedBox(
+                                                                width: 24.0,
+                                                                height: 24.0,
+                                                                child: CircularProgressIndicator(
+                                                                    strokeWidth: 2.0, color: Colors.white),
+                                                              ))),
+                                                      successIcon: const SizedBox(
+                                                          width: 55,
+                                                          child: Center(
+                                                              child: Icon(
+                                                                Icons.check_rounded,
+                                                                color: Colors.white,
+                                                              ))),
+                                                      icon: const SizedBox(
+                                                          width: 55,
+                                                          child: Center(
+                                                              child: Icon(
+                                                                Icons.keyboard_double_arrow_right,
+                                                                color: Colors.white,
+                                                              ))),
+                                                      action: (controller) async {
+                                                        controller.loading(); //starts loading animation
+                                                        await Future.delayed(const Duration(seconds: 3));
+                                                        controller.success();
+                                                        Reviewproject(); // Call your function here
+                                                        await Future.delayed(const Duration(seconds: 1));
+                                                        controller.reset(); //resets the slider
+                                                      },
+                                                      child: const Text('Swipe To Confirm'),
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(height: 20,)
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    });
+                                  }
+
                                   if (projectData.pageContent.currentUserRole ==
                                           'worker' &&
                                       (projectData.status == 'bid_accepted'
@@ -1072,10 +1306,11 @@ setState(() {
                                             ElevatedButton(
                                               onPressed: () {
                                                 Get.to(ChatScreen(
+                                                  seconduserimage: projectData.selectworkerbid.worker_profile_pic,
                                                   chatId: projectData.pageaccessdata!.chat_ID,
-                                                  currentUser: projectData.clientData!.firstname,
-                                                  secondUserName: projectData.selectworkerbid.worker_firstname,
-                                                  userId: projectData.clientData!.clientId.toString(),
+                                                  currentUser: projectData.selectworkerbid.worker_firstname,
+                                                  secondUserName: projectData.clientData!.firstname,
+                                                  userId: projectData.selectworkerbid.worker_id.toString()
                                                 ));
                                               },
                                               style: ElevatedButton.styleFrom(
@@ -1248,27 +1483,128 @@ setState(() {
                                         Row(
                                           children: [
                                             Expanded(
-                                              child: ElevatedButton(
-                                                onPressed: () {},
-                                                style: ElevatedButton.styleFrom(
-                                                  primary: HexColor('317773'),
-                                                  onPrimary: Colors.white,
-                                                  elevation: 8,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(8),
+                                              child: Opacity(
+                                                // Change the opacity based on the condition for the second button
+                                                opacity: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                child: ElevatedButton(
+                                                  onPressed: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? () {
+                                                    showModalBottomSheet(
+                                                      context: context,
+                                                      isScrollControlled: true,
+                                                      builder: (BuildContext context) {
+                                                        int otpaccessprojectcomplete = int.tryParse(otpControlleraccessproject.text) ?? 0;
+                                                        return StatefulBuilder(
+                                                          builder: (BuildContext context, StateSetter setState) {
+                                                            return SingleChildScrollView(
+                                                              padding: EdgeInsets.only(
+                                                                bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
+                                                              ),
+                                                              child: Container(
+                                                                padding: EdgeInsets.all(16.0),
+                                                                child: Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  children: [
+
+                                                                    Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+                                                                    Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+
+                                                                    SizedBox(height: 12,),
+
+                                                                    Center(
+                                                                      child: Text(
+                                                                        'Take verification code from client\nTo Start Work',
+                                                                        style: TextStyle(
+                                                                          fontSize: 16,
+                                                                          color: HexColor('706F6F'),
+                                                                          fontWeight: FontWeight.normal,
+                                                                        ),
+                                                                        textAlign: TextAlign.center,
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(height: 25),
+                                                                    Pinput(
+                                                                      length: 4, // The total length of the OTP
+                                                                      controller: otpControlleraccessproject, // The single controller for the OTP
+                                                                      focusNode: focusNode1, // Current focus node
+                                                                      pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
+                                                                      onCompleted: (pin) {
+                                                                        // You can use the entered OTP for verification when the user has completed entering it.
+                                                                        print('Completed: $pin');
+                                                                      },
+                                                                      // This function will be called when the input operation is submitted (usually on the keyboard).
+                                                                      onSubmitted: (pin) {
+                                                                        // Don't forget to validate OTP and then send to API or whatever is required next.
+                                                                      },
+                                                                      pinAnimationType: PinAnimationType.rotation,
+                                                                      defaultPinTheme: PinTheme(
+                                                                        width: 60, // Example width of the field, adjust accordingly
+                                                                        height: 70, // Example height of the field, adjust accordingly
+                                                                        textStyle: TextStyle(
+                                                                            fontSize: 24,
+                                                                            color: Colors.black,
+                                                                            fontWeight: FontWeight.bold // Text is bold
+                                                                        ),
+                                                                        decoration: BoxDecoration(
+                                                                          border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
+                                                                          borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
+                                                                        ),
+                                                                      ),),
+
+                                                                    SizedBox(height: 30),
+                                                                    Center(
+                                                                      child: ElevatedButton(
+                                                                        onPressed:
+                                                                            () {
+
+                                                                          verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
+                                                                        },
+                                                                        style: ElevatedButton.styleFrom(
+                                                                          primary: HexColor('4D8D6E'),
+                                                                          onPrimary: Colors.white,
+                                                                          elevation: 5,
+                                                                          shape: RoundedRectangleBorder(
+                                                                            borderRadius: BorderRadius.circular(20),
+                                                                          ),
+                                                                        ),
+                                                                        child: Text(
+                                                                          'Confirm',
+                                                                          style: TextStyle(fontSize: 18),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                    );
+                                                  } : null, // The button will be disabled if the condition is false
+                                                  style: ElevatedButton.styleFrom(
+                                                    primary: HexColor('317773'),
+                                                    onPrimary: Colors.white,
+                                                    elevation: 8,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    fixedSize: Size(double.infinity, 50),
                                                   ),
-                                                  fixedSize: Size(double.infinity, 50), // Set the desired height
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                    'Generate the Verification Code to access project complete',
-                                                    style: TextStyle(fontSize: 10.5 , fontWeight: FontWeight.bold),
+                                                  child: Center(
+                                                    child: Text(
+                                                      'Generate the Verification Code to access project complete',
+                                                      style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
+                                                    ),
                                                   ),
                                                 ),
                                               ),
                                             ),
                                           ],
                                         ),
+
+
+
                                         SizedBox(
                                           height: 9,
                                         ),
@@ -1316,7 +1652,7 @@ SizedBox(height: 20,),
                                     );
                                   }
 
-                                  else if (  projectData.status == 'scheduled' || projectData.pageContent.scheduleStatus == 'accepted'){
+                                  else if (  projectData.status == 'scheduled' && projectData.pageContent.scheduleStatus == 'accepted'){
 
 
                                   return  Column(
@@ -1398,10 +1734,12 @@ SizedBox(height: 20,),
                                               child: ElevatedButton(
                                                 onPressed: () {
                                                   Get.to(ChatScreen(
-                                                    chatId: projectData.pageaccessdata!.chat_ID,
-                                                    currentUser: projectData.clientData!.firstname,
-                                                    secondUserName: projectData.selectworkerbid.worker_firstname,
-                                                    userId: projectData.clientData!.clientId.toString(),
+                                                      seconduserimage: projectData.selectworkerbid.worker_profile_pic,
+
+                                                      chatId: projectData.pageaccessdata!.chat_ID,
+                                                      currentUser: projectData.selectworkerbid.worker_firstname,
+                                                      secondUserName: projectData.clientData!.firstname,
+                                                      userId: projectData.selectworkerbid.worker_id.toString()
                                                   ));
                                                 },
                                                 style: ElevatedButton.styleFrom(
@@ -1590,27 +1928,127 @@ SizedBox(height: 20,),
                                         Row(
                                           children: [
                                             Expanded(
-                                              child: ElevatedButton(
-                                                onPressed: () {},
-                                                style: ElevatedButton.styleFrom(
-                                                  primary: HexColor('317773'),
-                                                  onPrimary: Colors.white,
-                                                  elevation: 8,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(8),
+                                              child: Opacity(
+                                                // Change the opacity based on the condition for the second button
+                                                opacity: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                child: ElevatedButton(
+                                                  onPressed: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? () {
+                                                    showModalBottomSheet(
+                                                      context: context,
+                                                      isScrollControlled: true,
+                                                      builder: (BuildContext context) {
+                                                        int otpaccessprojectcomplete = int.tryParse(otpControlleraccessproject.text) ?? 0;
+                                                        return StatefulBuilder(
+                                                          builder: (BuildContext context, StateSetter setState) {
+                                                            return SingleChildScrollView(
+                                                              padding: EdgeInsets.only(
+                                                                bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
+                                                              ),
+                                                              child: Container(
+                                                                padding: EdgeInsets.all(16.0),
+                                                                child: Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  children: [
+
+                                                                    Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+                                                                    Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+
+                                                                    SizedBox(height: 12,),
+
+                                                                    Center(
+                                                                      child: Text(
+                                                                        'Take verification code from client\nTo Start Work',
+                                                                        style: TextStyle(
+                                                                          fontSize: 16,
+                                                                          color: HexColor('706F6F'),
+                                                                          fontWeight: FontWeight.normal,
+                                                                        ),
+                                                                        textAlign: TextAlign.center,
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(height: 25),
+                                                                    Pinput(
+                                                                      length: 4, // The total length of the OTP
+                                                                      controller: otpControlleraccessproject, // The single controller for the OTP
+                                                                      focusNode: focusNode1, // Current focus node
+                                                                      pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
+                                                                      onCompleted: (pin) {
+                                                                        // You can use the entered OTP for verification when the user has completed entering it.
+                                                                        print('Completed: $pin');
+                                                                      },
+                                                                      // This function will be called when the input operation is submitted (usually on the keyboard).
+                                                                      onSubmitted: (pin) {
+                                                                        // Don't forget to validate OTP and then send to API or whatever is required next.
+                                                                      },
+                                                                      pinAnimationType: PinAnimationType.rotation,
+                                                                      defaultPinTheme: PinTheme(
+                                                                        width: 60, // Example width of the field, adjust accordingly
+                                                                        height: 70, // Example height of the field, adjust accordingly
+                                                                        textStyle: TextStyle(
+                                                                            fontSize: 24,
+                                                                            color: Colors.black,
+                                                                            fontWeight: FontWeight.bold // Text is bold
+                                                                        ),
+                                                                        decoration: BoxDecoration(
+                                                                          border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
+                                                                          borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
+                                                                        ),
+                                                                      ),),
+
+                                                                    SizedBox(height: 30),
+                                                                    Center(
+                                                                      child: ElevatedButton(
+                                                                        onPressed:
+                                                                            () {
+
+                                                                          verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
+                                                                        },
+                                                                        style: ElevatedButton.styleFrom(
+                                                                          primary: HexColor('4D8D6E'),
+                                                                          onPrimary: Colors.white,
+                                                                          elevation: 5,
+                                                                          shape: RoundedRectangleBorder(
+                                                                            borderRadius: BorderRadius.circular(20),
+                                                                          ),
+                                                                        ),
+                                                                        child: Text(
+                                                                          'Confirm',
+                                                                          style: TextStyle(fontSize: 18),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                    );
+                                                  } : null, // The button will be disabled if the condition is false
+                                                  style: ElevatedButton.styleFrom(
+                                                    primary: HexColor('317773'),
+                                                    onPrimary: Colors.white,
+                                                    elevation: 8,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    fixedSize: Size(double.infinity, 50),
                                                   ),
-                                                  fixedSize: Size(double.infinity, 50), // Set the desired height
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                    'Generate the Verification Code to access project complete',
-                                                    style: TextStyle(fontSize: 10.5 , fontWeight: FontWeight.bold),
+                                                  child: Center(
+                                                    child: Text(
+                                                      'Generate the Verification Code to access project complete',
+                                                      style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
+                                                    ),
                                                   ),
                                                 ),
                                               ),
                                             ),
                                           ],
                                         ),
+
+
                                         SizedBox(
                                           height: 9,
                                         ),
@@ -1742,10 +2180,12 @@ SizedBox(height: 20,),
                                               child: ElevatedButton(
                                                 onPressed: () {
                                                   Get.to(ChatScreen(
-                                                    chatId: projectData.pageaccessdata!.chat_ID,
-                                                    currentUser: projectData.clientData!.firstname,
-                                                    secondUserName: projectData.selectworkerbid.worker_firstname,
-                                                    userId: projectData.clientData!.clientId.toString(),
+                                                      seconduserimage: projectData.selectworkerbid.worker_profile_pic,
+
+                                                      chatId: projectData.pageaccessdata!.chat_ID,
+                                                      currentUser: projectData.selectworkerbid.worker_firstname,
+                                                      secondUserName: projectData.clientData!.firstname,
+                                                      userId: projectData.selectworkerbid.worker_id.toString()
                                                   ));
                                                 },
                                                 style: ElevatedButton.styleFrom(
@@ -2055,35 +2495,61 @@ SizedBox(height: 20,),
                                         SizedBox(
                                           height: 9,
                                         ),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: ElevatedButton(
-                                                onPressed: projectData.pageContent. project_complete_button == "maftoo7"
-                                                    ? () {
-                                                  panelController.expand();
-                                                }
-                                                    : null, // Set onPressed to null if the condition is not met
-                                                style: ElevatedButton.styleFrom(
-                                                  primary: HexColor(('66C020')),
-                                                  onPrimary: Colors.white,
-                                                  elevation: 8,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(8),
+                                        Visibility(
+                                          visible: projectData.pageContent. project_complete_button == "maftoo7",
+                                          child: Card(
+                                            elevation: 8,
+                                            margin: EdgeInsets.all(16),
+                                            child: Padding(
+                                              padding: EdgeInsets.all(16),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.hourglass_empty,
+                                                    size: 64,
+                                                    color: Colors.orange,
                                                   ),
-                                                  fixedSize: Size(double.infinity, 50), // Set the desired height
-                                                ),
-                                                child: Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 8.0), // Adjust padding as needed
-                                                  child: Text(
-                                                    'Project Completed',
-                                                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                                  SizedBox(height: 16),
+                                                  Text(
+                                                    'Please wait for the client \n to end the project.',
+                                                    style: TextStyle(fontSize: 18),
+                                                    textAlign: TextAlign.center,
                                                   ),
-                                                ),
+                                                ],
                                               ),
                                             ),
-                                          ],
+                                          ),
                                         ),
+                                        // Row(
+                                        //   children: [
+                                        //     Expanded(
+                                        //       child: ElevatedButton(
+                                        //         onPressed: projectData.pageContent. project_complete_button == "maftoo7"
+                                        //             ? () {
+                                        //           panelController.expand();
+                                        //         }
+                                        //             : null, // Set onPressed to null if the condition is not met
+                                        //         style: ElevatedButton.styleFrom(
+                                        //           primary: HexColor(('66C020')),
+                                        //           onPrimary: Colors.white,
+                                        //           elevation: 8,
+                                        //           shape: RoundedRectangleBorder(
+                                        //             borderRadius: BorderRadius.circular(8),
+                                        //           ),
+                                        //           fixedSize: Size(double.infinity, 50), // Set the desired height
+                                        //         ),
+                                        //         child: Padding(
+                                        //           padding: const EdgeInsets.symmetric(vertical: 8.0), // Adjust padding as needed
+                                        //           child: Text(
+                                        //             'Project Completed',
+                                        //             style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                        //           ),
+                                        //         ),
+                                        //       ),
+                                        //     ),
+                                        //   ],
+                                        // ),
                                         SizedBox(height: 20,),
 
                                         ListView.builder(
@@ -2171,8 +2637,13 @@ SizedBox(height: 20,),
             ],
           ),
         ),
-      )
-      ,
+      ),
+
+      SizedBox(
+      height: 9,
+      ),
+
+
       SizedBox(
         height: 9,
       ),
@@ -2183,10 +2654,12 @@ SizedBox(height: 20,),
             child: ElevatedButton(
               onPressed: () {
                 Get.to(ChatScreen(
-                  chatId: projectData.pageaccessdata!.chat_ID,
-                  currentUser: projectData.clientData!.firstname,
-                  secondUserName: projectData.selectworkerbid.worker_firstname,
-                  userId: projectData.clientData!.clientId.toString(),
+                    seconduserimage: projectData.selectworkerbid.worker_profile_pic,
+
+                    chatId: projectData.pageaccessdata!.chat_ID,
+                    currentUser: projectData.selectworkerbid.worker_firstname,
+                    secondUserName: projectData.clientData!.firstname,
+                    userId: projectData.selectworkerbid.worker_id.toString()
                 ));
               },
               style: ElevatedButton.styleFrom(
@@ -3513,22 +3986,36 @@ class PageContent {
   final String project_complete_button;
   final String support;
   final String client_rating;
+  final String reviewOnWorker;
+  final String ratingOnWorker;
+  final String? reviewOnClient; // 'null' signifies that this field may not be present
+  final String ratingOnClient;
+  final List<String> imagesAfter;
 
   PageContent(
       {required this.currentUserRole,
       required this.buttons,
       required this.selectedDate,
       required this.selectedInterval,
+      required this.enter_complete_project_verification_code_button,
       required this.scheduleStatus,
       required this.change,
       required this.chat,
+      required this.reviewOnWorker,
+        required this.ratingOnWorker,
+        this.reviewOnClient,
+        required this.ratingOnClient,
+        required this.imagesAfter,
       required this.enter_verification_code_button,
-      required this.enter_complete_project_verification_code_button,
       required this.project_complete_button,
       required this.client_rating,
       required this.support});
 
   factory PageContent.fromJson(Map<String, dynamic> json) {
+    List<String> imagesList = [];
+    if (json['images_after'] != null) {
+      imagesList = List<String>.from(json['images_after'] as List<dynamic>);
+    }
     return PageContent(
       currentUserRole: json['current_user_role'] ?? '',
       buttons: json['buttons'] ?? '',
@@ -3542,6 +4029,11 @@ class PageContent {
           json['enter_complete_project_verification_code_button'] ?? '',
       project_complete_button: json['project_complete_button'] ?? '',
       support: json['support'] ?? '',
+      reviewOnWorker: json['review_on_worker'] ?? 'No Review', // Providing default value if null
+      ratingOnWorker: json['rating_on_worker'] ?? '0.00',
+      reviewOnClient: json['review_on_client'], // nullable field
+      ratingOnClient: json['rating_on_client'] ?? '0.00',
+      imagesAfter: imagesList,
       client_rating: json['client_rating'] ?? '',
     );
   }
@@ -3551,16 +4043,19 @@ class page_access_data {
   final String chat_ID;
   final dynamic schedule_vc;
   final dynamic complete_vc;
+  final dynamic force_review;
 
   page_access_data(
       {required this.chat_ID,
       required this.schedule_vc,
+      required this.force_review,
       required this.complete_vc});
 
   factory page_access_data.fromJson(Map<String, dynamic> json) {
     return page_access_data(
       chat_ID: json['chat_ID'] ?? '',
       schedule_vc: json['schedule_vc'] ?? '',
+      force_review: json['force_review'] ?? '',
       complete_vc: json['complete_vc'] ?? '',
     );
   }

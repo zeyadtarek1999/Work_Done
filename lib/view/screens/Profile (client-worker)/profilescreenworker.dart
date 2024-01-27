@@ -28,6 +28,7 @@ class ProfileScreenworker extends StatefulWidget {
 class _ProfileScreenworkerState extends State<ProfileScreenworker> {
   String phonenumber = '';
   String email = '';
+  int? clientId;
   bool isAddressDetailsVisible =
   false; // Initially, address details are not visible
 
@@ -45,12 +46,8 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
     super.initState();
     _getUserProfile();
     getaddressuser();
-    _getUserToken();
   }String addressline1 = '';
-  void _getUserToken() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    userToken = prefs.getString('user_token') ?? '';
-  }
+
   String addressline2 = '';
 
   String city = '';
@@ -61,17 +58,17 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
   Future<void> getaddressuser() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final user_token = prefs.getString('user_token') ?? '';
-      print(user_token);
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
 
-      if (user_token.isNotEmpty) {
+      if (userToken.isNotEmpty) {
         // Replace the API endpoint with your actual endpoint
         final String apiUrl = 'https://workdonecorp.com/api/get_address';
-        print(user_token);
+        print(userToken);
 
         final response = await http.post(
           Uri.parse(apiUrl),
-          headers: {'Authorization': 'Bearer $user_token'},
+          headers: {'Authorization': 'Bearer $userToken'},
         );
 
         if (response.statusCode == 200) {
@@ -157,9 +154,13 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
     }
   }
 
+
+
   final ScreenshotController screenshotController = ScreenshotController();
 
-  String unique= 'profilescreenworker' ;
+
+
+  String unique= 'profilescreenclient' ;
   void _navigateToNextPage(BuildContext context) async {
     Uint8List? imageBytes = await screenshotController.capture();
 
@@ -170,9 +171,6 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
       ),
     );
   }
-
-
-
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   double buttonscreenwidth = ScreenUtil.screenWidth! * 0.75;
@@ -210,9 +208,14 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
             children: [
               CircleAvatar(
                 radius: 35,
-                backgroundImage:
-                AssetImage('assets/images/profileimage.png'),
+                backgroundImage: profile_pic != null && profile_pic.isNotEmpty
+                    ? (profile_pic == "https://workdonecorp.com/images/"
+                    ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
+                    : NetworkImage(profile_pic))
+                    : AssetImage('assets/images/profileimage.png') as ImageProvider,
+
               ),
+
               SizedBox(
                 height: 12,
               ),
@@ -392,7 +395,7 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
         ),
         key: _scaffoldKey,
         backgroundColor: HexColor('F5F5F5'),
-        body : Screenshot(
+        body :Screenshot(
           controller:screenshotController ,
           child: SafeArea(
               child: SingleChildScrollView(
@@ -453,7 +456,7 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(17),
                                 // Set the border radius here
-          
+
                                 color: Colors.white24.withAlpha(80),
                               ),
                             ),
@@ -468,7 +471,7 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(17),
                                 // Set the border radius here
-          
+
                                 color: Colors.white24.withAlpha(50),
                               ),
                             ),
@@ -505,7 +508,7 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                                         children: [
                                           Text(
                                             'Worker',
-          
+
                                             style: GoogleFonts.poppins(
                                               textStyle: TextStyle(
                                                   color: HexColor('C9C227'),
@@ -542,13 +545,15 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                                   width: 5,
                                 ),
                               ),
-                              child: ClipOval(
-                                child: Image.asset(
-                                  'assets/images/profileimage.png',
-                                  // Replace with the image URL
-                                  fit: BoxFit.cover,
-                                ),
+                              child: CircleAvatar(
+                                radius: 35,
+                                backgroundImage: (profile_pic != null && profile_pic.isNotEmpty)
+                                    ? (profile_pic == "https://workdonecorp.com/images/"
+                                    ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
+                                    : NetworkImage(profile_pic ,))
+                                    : AssetImage('assets/images/profileimage.png') as ImageProvider,
                               ),
+
                             ),
                           ),
                         ),
@@ -625,7 +630,6 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     Padding(
                                       padding: EdgeInsets.symmetric(horizontal: 12),
@@ -690,27 +694,30 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                                   ),
                                 ),
                               ),
-                              child: Row(
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 12),
-                                    child: Text(
-                                      'Address:',
-                                      style: TextStyle(
-                                          color: HexColor('#4D8D6E'),
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 17),
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 12),
+                                      child: Text(
+                                        'Address:',
+                                        style: TextStyle(
+                                            color: HexColor('#4D8D6E'),
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 17),
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(
-                                    width: ScreenUtil.sizeboxwidth3,
-                                  ),
-                                  Text(
-                                    '$addressline1 , $addressline2 , $city , $state  ',
-                                    style: TextStyle(
-                                        color: HexColor('#404040'), fontSize: 15),
-                                  )
-                                ],
+                                    SizedBox(
+                                      width: ScreenUtil.sizeboxwidth3,
+                                    ),
+                                    Text(
+                                      '$addressline1 , $addressline2 , $city , $state  ',
+                                      style: TextStyle(
+                                          color: HexColor('#404040'), fontSize: 15),
+                                    )
+                                  ],
+                                ),
                               ),
                             ),
                             Container(
@@ -746,7 +753,7 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                                 ],
                               ),
                             ),
-          
+
                           ],
                         ),
                       ),

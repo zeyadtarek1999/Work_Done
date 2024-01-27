@@ -12,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:workdone/view/screens/Explore/Explore%20Worker.dart';
 import '../Bid Details/Bid details Worker.dart';
 import '../Explore/Explore Client.dart';
@@ -237,14 +238,69 @@ class _HomescreenworkerState extends State<Homescreenworker> {
   }
 
   final advancedDrawerController = AdvancedDrawerController();
-
+  String profile_pic ='' ;
+  String firstname ='' ;
+  String secondname ='' ;
+  String email ='' ;
   Map<int, bool> likedProjectsMap = {};
+  Future<void> _getUserProfile() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_profile_info';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('data')) {
+            Map<String, dynamic> profileData = responseData['data'];
+
+            setState(() {
+              firstname = profileData['firstname'] ?? '';
+              secondname = profileData['lastname'] ?? '';
+              email = profileData['email'] ?? '';
+              profile_pic = profileData['profile_pic'] ?? '';
+            });
+
+            print('Response: $profileData');
+            print('profile pic: $profile_pic');
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+      setState(() {
+        isLoading = false;
+      });
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
 
 
   @override
   void initState() {
     super.initState();
     initializeProjects();
+    _getUserProfile();
+
     likedProjectsMap= {};
   }
 
@@ -446,25 +502,50 @@ class _HomescreenworkerState extends State<Homescreenworker> {
               children: [
                 CircleAvatar(
                   radius: 35,
-                  backgroundImage: AssetImage('assets/images/profileimage.png'),
+                  backgroundImage: profile_pic != null && profile_pic.isNotEmpty
+                      ? (profile_pic == "https://workdonecorp.com/images/"
+                      ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
+                      : NetworkImage(profile_pic))
+                      : AssetImage('assets/images/profileimage.png') as ImageProvider,
+
                 ),
                 SizedBox(
                   height: 12,
                 ),
-                Text(
-                  'Zeyad Tarek',
+                isLoading
+                    ? Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    height: 24,
+                    width: 200,
+                    color: Colors.white,
+                  ),
+                )
+                    : Text(
+                  '$firstname $secondname',
                   style: GoogleFonts.poppins(
                     textStyle: TextStyle(
-                        color: HexColor('1A1D1E'),
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
+                      color: HexColor('1A1D1E'),
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),),
                 SizedBox(
                   height: 9,
                 ),
-                Text(
-                  'zzeyadtarek11@gmail.com',
+                isLoading
+                    ? Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    height: 24,
+                    width: 200,
+                    color: Colors.white,
+                  ),
+                )
+                    : Text(
+                  '$email',
                   style: GoogleFonts.poppins(
                     textStyle: TextStyle(
                         color: HexColor('6A6A6A'),
@@ -644,8 +725,13 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                               child: CircleAvatar(
                                 radius: 27,
                                 backgroundColor: Colors.transparent,
-                                backgroundImage:
-                                    AssetImage('assets/images/profileimage.png'),
+                                backgroundImage: profile_pic != null && profile_pic.isNotEmpty
+                                    ? (profile_pic == "https://workdonecorp.com/images/"
+                                    ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
+                                    : NetworkImage(profile_pic))
+                                    : AssetImage('assets/images/profileimage.png') as ImageProvider,
+
+
                               ),
                             ),
                           ],

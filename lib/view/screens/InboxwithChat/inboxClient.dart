@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:intl/intl.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
@@ -24,8 +26,54 @@ class InboxClient extends StatefulWidget {
 }
 late Future<List<Item>> futurechatusers;
 
+Future<void> fetchLastMessageAndTime(Item chatItem) async {
+  String chatId = chatItem.chat_id; // Assuming chat_id corresponds to Firebase chat document ID
 
+  // Query Firebase for the last message in this chat
+  var lastMessageSnapshot = await FirebaseFirestore.instance
+      .collection('chats')
+      .doc(chatId)
+      .collection('messages')
+      .orderBy('timestamp', descending: true)
+      .limit(1)
+      .get();
+
+  if (lastMessageSnapshot.docs.isNotEmpty) {
+    var lastMessage = lastMessageSnapshot.docs.first;
+    chatItem.updateLastMessage(
+      lastMessage['content'],
+      (lastMessage['timestamp'] as Timestamp).toString(),
+    );
+  }
+}
+Future<void> updateItemsWithLastMessage(List<Item> items) async {
+  for (var item in items) {
+    var lastMessageSnapshot = await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(item.chat_id)
+        .collection('messages')
+        .orderBy('timestamp', descending: true)
+        .limit(1)
+        .get();
+
+    if (lastMessageSnapshot.docs.isNotEmpty) {
+      var lastMessageDoc = lastMessageSnapshot.docs.first;
+      item.lastMessage = lastMessageDoc['content'];
+
+      // Convert the Timestamp to a DateTime and then format as a string
+      DateTime date = (lastMessageDoc['timestamp'] as Timestamp).toDate();
+      String formattedTime = DateFormat('h:mm a').format(date); // Formats to a string like "4:30 PM"
+
+      item.lastMessageTime = formattedTime; // Save the formatted time
+    }
+  }
+}// After fetching user details from the API and initializing Item objects,
+// call fetchLastMessageAndTime for each item to get the latest message and time from Firebase
+
+
+// Now 'items' contains the merged data and can be used in the ListView.builder
 List<Item> items = [];
+
 
 
 Future<List<Item>> fetchchatusers() async {
@@ -67,7 +115,9 @@ Future<List<Item>> fetchchatusers() async {
             chat_id: json['chat_id'],
           );
         }).toList();
-
+        for (Item chatItem in items) {
+          await fetchLastMessageAndTime(chatItem);
+        }
         print(ChatsJson);
         print(Item);
         print(Chats);
@@ -81,45 +131,80 @@ Future<List<Item>> fetchchatusers() async {
   } catch (e) {
     throw Exception('Error: $e');
   }
-}class _InboxClientState extends State<InboxClient> {
+}
 
+class _InboxClientState extends State<InboxClient> {
+
+  @override
   void initState() {
     super.initState();
-    futurechatusers = fetchchatusers();
+    _getUserProfile();
 
-
-
-
+    // Call the fetchchatusers() function and set the futurechatusers with the result
+    futurechatusers = fetchchatusers().then((chats) async {
+      await updateItemsWithLastMessage(chats); // this becomes an async closure
+      if (mounted) setState(() {}); // Check if the widget is still in the tree
+      return chats; // Returning the updated chats list
+    });
   }
 
+  String profile_pic ='' ;
+  String firstname ='' ;
+  String secondname ='' ;
+  String email ='' ;
+  Future<void> _getUserProfile() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_profile_info';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('data')) {
+            Map<String, dynamic> profileData = responseData['data'];
+
+            setState(() {
+              firstname = profileData['firstname'] ?? '';
+              secondname = profileData['lastname'] ?? '';
+              email = profileData['email'] ?? '';
+              profile_pic = profileData['profile_pic'] ?? '';
+            });
+
+            print('Response: $profileData');
+            print('profile pic: $profile_pic');
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+      setState(() {
+        isLoading = false;
+      });
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
   bool search = false;
 
-// var queryResultSet =[];
-// var tempSearchStore =  [];
-//
-// initiateSearch (value){
-//   if (value.length == 0 ){
-//     setState(() {
-//       queryResultSet= [];
-//       tempSearchStore = [];
-//     });
-//
-//   }
-//   setState(() {
-//     search =true;
-//   });
-//   var capitalizedValue =value.substring (0,1).toUpperCase () + value.substring (1);
-//   if(queryResultSet.isEmpty && value.length ==1 ){
-//
-//
-//   }
-//
-// }
-//
-// getChatroomIdbyusername( String a ,String b){
-//
-//   if (a.substring(0,1))
-// }
+
 
   final ScreenshotController screenshotController = ScreenshotController();
 
@@ -140,7 +225,7 @@ Future<List<Item>> fetchchatusers() async {
       statusBarColor: HexColor('4D8D6E'),
       // Change this color to the desired one
       statusBarIconBrightness:
-          Brightness.dark, // Change the status bar icons' color (dark or light)
+      Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
     return Scaffold(
       floatingActionButton:
@@ -219,7 +304,7 @@ Future<List<Item>> fetchchatusers() async {
                       );
                     } else {
                       // Update the items list
-                       items = snapshot.data!;
+                      items = snapshot.data!;
 
                       return ListView.builder(
                         physics: NeverScrollableScrollPhysics(),
@@ -230,7 +315,7 @@ Future<List<Item>> fetchchatusers() async {
                         },
                       );
 
-                  }
+                    }
                   },
                 ),
               ),
@@ -249,10 +334,11 @@ Future<List<Item>> fetchchatusers() async {
         GestureDetector(
           onTap:(){
             Get.to(ChatScreen(
+              seconduserimage: item.other_side_image,
               chatId: item.chat_id,
-              currentUser: 'worker',
-              secondUserName: "zeyad",
-              userId: "23",
+              currentUser: '${firstname}',
+              secondUserName: "${item.other_side_firstname}",
+              userId: '${item.chat_id}',
             ));
 
           },
@@ -285,7 +371,7 @@ Future<List<Item>> fetchchatusers() async {
                         fontWeight: FontWeight.w500),
                   ),
                   Text(
-                    'Hello ',
+                    '${item.lastMessage} ',
                     style: TextStyle(
                         color: Colors.black45,
                         fontSize: 15,
@@ -296,7 +382,7 @@ Future<List<Item>> fetchchatusers() async {
               ),
               Spacer(),
               Text(
-                '04:30 pm',
+                '${item.lastMessageTime}',
                 style: TextStyle(
                     color: Colors.black,
                     fontSize: 15,
@@ -321,6 +407,8 @@ class Item {
   final  String other_side_firstname;
   final String other_side_lastname;
   final String chat_id;
+  String? lastMessage; // Make optional
+  String? lastMessageTime;
 
 
   Item({
@@ -328,6 +416,13 @@ class Item {
     required this.other_side_firstname,
     required this.other_side_lastname,
     required this.chat_id,
+    this.lastMessage ='',
+    this.lastMessageTime ,
 
   }) ;
+  void updateLastMessage(String message, String time) {
+    lastMessage = message;
+    lastMessageTime = time;
+  }
+
 }

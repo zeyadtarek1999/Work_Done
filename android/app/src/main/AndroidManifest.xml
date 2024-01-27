@@ -24,6 +24,7 @@
     <application
         android:label="WorkDone"
         android:icon="@mipmap/ic_launcher"
+        android:requestLegacyExternalStorage="true"
         android:enableOnBackInvokedCallback="true">
 
 

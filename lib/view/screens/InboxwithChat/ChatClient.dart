@@ -9,6 +9,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 import '../Support Screen/Helper.dart';
 import '../homescreen/home screenClient.dart';
@@ -19,8 +20,15 @@ class ChatScreen extends StatelessWidget {
   final String currentUser; // Identify whether the current user is client or worker
   final String secondUserName; // Add this line
   final String userId; // Add this line
+  final String seconduserimage; // Add this line
   ChatScreen(
-      {required this.chatId, required this.currentUser, required this.secondUserName,required this.userId});
+      {required this.chatId, required this.currentUser, required this.secondUserName,
+        
+        required this.userId,
+        required this.seconduserimage
+      
+      
+      });
 
   final TextEditingController _messageController = TextEditingController();
 
@@ -49,8 +57,18 @@ class ChatScreen extends StatelessWidget {
         },
       ),
       SizedBox(
-        width: 85,
+        width: 50,
       ),
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.transparent,
+              backgroundImage: NetworkImage(
+                seconduserimage != null &&
+                    seconduserimage.isNotEmpty
+                    ? seconduserimage
+                    : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+              ),
+            ),
       Center(
         child: TextButton(onPressed: () {
           Get.to(ProfilePageClient(
@@ -61,7 +79,7 @@ class ChatScreen extends StatelessWidget {
             style: TextStyle(
                 color: Colors.white,
                 fontSize: 22,
-                fontWeight: FontWeight.w500),
+                fontWeight: FontWeight.bold),
           ),
         ),
       )],
@@ -123,12 +141,15 @@ print(chatId);
     var messageContent = messages[index]['content'];
     var messageSender = messages[index]['sender'];
     var imageUrl = messages[index]['image']; // Add this line
+    var messageTime = (messages[index]['timestamp'] as Timestamp).toDate(); // Get the DateTime from Timestamp
 
     return ChatBubble(
     currentuser: messageSender,
     message: messageContent,
     isSentByMe: messageSender == currentUser,
-    imageUrl: imageUrl, // Add this line
+    imageUrl: imageUrl,
+      time: messageTime, // Pass the DateTime object
+// Add this line
     );
     },
     );
@@ -216,6 +237,7 @@ class ChatBubble extends StatelessWidget {
   final bool isSentByMe;
   final String? imageUrl;
   final bool? seen;
+  final DateTime time; // Add this line
 
   ChatBubble({
     required this.currentuser,
@@ -223,8 +245,19 @@ class ChatBubble extends StatelessWidget {
     required this.isSentByMe,
     this.imageUrl,
     this.seen,
-  });
+    required this.time, // Add this line
 
+  });
+  Widget _buildTimeStamp() {
+    String hourMinute = DateFormat('hh:mm a').format(time); // Format the time
+    return Text(
+      hourMinute,
+      style: TextStyle(
+        fontSize: 12,
+        color: Colors.grey[600],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -271,6 +304,8 @@ class ChatBubble extends StatelessWidget {
                   message,
                   style: TextStyle(fontSize: 16, color: Colors.black),
                 ),
+              _buildTimeStamp(), // Display formatted time
+
             ],
           ),
         ),

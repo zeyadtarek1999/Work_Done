@@ -1,9 +1,10 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 class PostProjectApi {
-  static Future<void> postNewProject({
+  static Future<http.Response> postNewProject({
     required String token,
     required String projectTypeId,
     required String title,
@@ -11,51 +12,43 @@ class PostProjectApi {
     required String timeframeStart,
     required String timeframeEnd,
     required List<String> imagesPaths,
-    required List<String> videosPaths, // Add this parameter to take video paths
+    required List<String> videosPaths, // Assuming you have a list of video paths
   }) async {
-    final String url = 'https://www.workdonecorp.com/api/insert_project';
-    final Uri uri = Uri.parse(url);
-
-    final Map<String, String> headers = {
-      'Authorization': 'Bearer $token',
-    };
-
-    final Map<String, String> body = {
-      'project_type_id': projectTypeId,
-      'title': title,
-      'desc': description,
-      'timeframe_start': timeframeStart,
-      'timeframe_end': timeframeEnd,
-    };
+    var uri = Uri.parse('https://your-api-endpoint.com/projects'); // Replace with your API endpoint
 
     var request = http.MultipartRequest('POST', uri)
-      ..headers.addAll(headers)
-      ..fields.addAll(body);
+      ..headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'multipart/form-data',
+      })
+      ..fields['project_type_id'] = projectTypeId
+      ..fields['title'] = title
+      ..fields['description'] = description
+      ..fields['timeframe_start'] = timeframeStart
+      ..fields['timeframe_end'] = timeframeEnd;
 
     // Add images to the request
     for (var imagePath in imagesPaths) {
       request.files.add(await http.MultipartFile.fromPath('images[]', imagePath));
     }
-     for (var videoPath in videosPaths) {
-      request.files.add(await http.MultipartFile.fromPath('video', videoPath));
-    }
 
     // Add videos to the request
-    // for (var videoPath in videosPaths) {
-    //   request.files.add(await http.MultipartFile.fromPath('videos[]', videoPath));
-    // }
-
-    try {
-      final http.StreamedResponse streamedResponse = await request.send();
-      final http.Response response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Failed to post a project. Status Code: ${response.statusCode}');
-      }
-    } catch (error) {
-      throw Exception('Error during post a project: $error');
+    for (var videoPath in videosPaths) {
+      request.files.add(await http.MultipartFile.fromPath('videos[]', videoPath));
     }
+
+    // Send the request
+    var streamedResponse = await request.send();
+
+    // Get the response from the stream
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      print('Upload successful');
+    } else {
+      print('Upload failed');
+    }
+
+    return response;
   }
 }

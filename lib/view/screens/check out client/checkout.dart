@@ -407,8 +407,7 @@ class _checkOutClientState extends State<checkOutClient> {
                                 children: [
 
                                   Text(
-                                    widget.projecttitle.toString().substring(0, 20),
-                                    style: GoogleFonts.roboto(
+                                    widget.projecttitle.toString().length > 20 ? widget.projecttitle.toString().substring(0, 20) + '...' : widget.projecttitle.toString(),                                    style: GoogleFonts.roboto(
                                       textStyle: TextStyle(
                                         color: HexColor('030302'),
                                         fontSize: 18,
