@@ -25,6 +25,7 @@ import '../Reviews/reviews.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../editProfile/editProfile.dart';
+import '../editProfile/editprofileworker.dart';
 import '../view profile screens/Client profile view.dart';
 import 'home screenClient.dart';
 
@@ -568,7 +569,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Get.to(editProfile());
+                        Get.to(editProfileworker());
                       },
                       child: Text(
                         'Edit Profile',

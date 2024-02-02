@@ -161,6 +161,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
 
   final TextEditingController phoneNumberController = TextEditingController();
+  final TextEditingController paypalcontroller = TextEditingController();
   final firstnameController = TextEditingController();
   final lastnameController = TextEditingController();
   final licenseController = TextEditingController();
@@ -267,6 +268,8 @@ late String user_token='';
     emailController2.dispose();
     passwordController.dispose();
     expyearcontroller.dispose();
+    paypalcontroller.dispose();
+
     super.dispose();
   }
 
@@ -395,8 +398,27 @@ late String user_token='';
       }
     }
   }
+  bool _validateForm() {
+    if (firstnameController.text.isEmpty ||
+        lastnameController.text.isEmpty ||
+        emailController2.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        phoneNumberController.text.isEmpty ||
+        selectedLanguage.isEmpty ||
+        expyearcontroller.text.isEmpty ||
+        paypalcontroller.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please fill in all fields'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
+    }
+    return true;
+  }
   RegisterWorkerApiClient registerworkerapi = RegisterWorkerApiClient(baseUrl: 'https://workdonecorp.com');
-
+bool _isLoading = false;
   void _registerWorker() async {
     // Make sure to fill in the values from your text controllers or other sources
     String firstName = firstnameController.text;
@@ -413,7 +435,7 @@ late String user_token='';
     String city = capturedCity;
     String state = capturedState;
     String address_zip = zipcodeController.text;
-    String imagePath = _image!.path;
+    String paypal = paypalcontroller.text;
 
     if (_image == null) {
       // Show a toast message and return early
@@ -429,6 +451,11 @@ late String user_token='';
       return;
     }
 
+    // Show the circular progress indicator
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       // Call the registerworker method from your registerworkerapi
       final registrationResponse = await registerworkerapi.registerworker(
@@ -443,8 +470,11 @@ late String user_token='';
         state: state,
         city: city,
         street2: street2,
+        paypal: paypal,
         street1: street1,
-        language: language, addressZip: address_zip, licensePic: imagePath,
+        language: language,
+        addressZip: address_zip,
+        licensePic: _image!.path,
       );
 
       print('Registration Response: $registrationResponse');
@@ -475,9 +505,13 @@ late String user_token='';
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      // Hide the circular progress indicator
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
-
   @override
   Widget build(BuildContext context) {
     double buttonscreenwidth = ScreenUtil.screenWidth! * 0.75;
@@ -1170,11 +1204,63 @@ late String user_token='';
                                 ),
                               ),
                             ),
-                            Text(
-                              formattedPhoneNumber, // Display the formatted phone number
-                              style: TextStyle(fontSize: 20.0),
+
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20.0 ,vertical: 10),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                                height: size.height * 0.103,
+                                width: size.width * 0.93,
+                                decoration: BoxDecoration(
+
+                                  color: Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(29),
+                                ),
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/icons/paypal.svg', // Replace with your SVG path
+                                      width: 33.0,
+                                      height: 33.0,
+                                    ),
+                                    SizedBox(width: 20.0),
+                                    Expanded(
+                                      child: Row(
+                                        children: [
+                                          SizedBox(width: 8), // Add some spacing between the dropdown and the text field
+                                          Expanded(
+                                            child: TextFormField(
+
+                                              controller: paypalcontroller,
+                                              decoration: InputDecoration(
+                                                hintText: 'Bank number or paypal',
+                                                border: InputBorder.none,
+                                                contentPadding: EdgeInsets.all(0), // Remove content padding
+
+                                              ),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  print(paypalcontroller.text);
+                                                  // Validate the phone number
+                                                });
+                                              },
+                                              validator: (value) {
+                                                if (value == null || value.isEmpty) {
+                                                  return 'Please enter a bank account or paypal';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
 
+SizedBox(height: 8,),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 20, ),
@@ -1431,23 +1517,27 @@ late String user_token='';
                             SizedBox(
                               height: ScreenUtil.sizeboxheight,
                             ),
-                            Container(
-                                width: 200,
-                                height: 50,
-                              child:ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                primary: Color(0xFF4D8D6E), // Set the color to 4D8D6E
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15.0), // Set the border radius to make it circular
-                                ),
+                      Stack(
+                        children: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              primary: Color(0xFF4D8D6E),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25.0),
                               ),
-                              onPressed: () async {
-                                _registerWorker();
-                              },
-                              child: Text('Register' ,style: TextStyle(color: Colors.white, fontSize: 16 ),),
-                            ),)
+                            ),
+                            onPressed: _isLoading ? null : _registerWorker,
+                            child: Text('Register', style: TextStyle(color: Colors.white, fontSize: 16)),
+                          ),
+                          if (_isLoading)
+                            Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            ),
+                        ],
+                      ),
 
-                            ,
                             const SizedBox(
                               height: 10,
                             ),
@@ -1663,6 +1753,9 @@ class _AddressPickerPopupState extends State<AddressPickerPopup> {
               ElevatedButton(
                 onPressed: () {
                   if (formKey.currentState!.validate()) {
+                    setState(() {
+
+                    });
                     String addressLine = addressLineController.text;
                     String addressLine2 = addressst2Controller.text;
                     String city = cityController.text;
@@ -1672,6 +1765,7 @@ class _AddressPickerPopupState extends State<AddressPickerPopup> {
                     widget.onDonePressed(addressLine, addressLine2, city, state);
                     setState(() {
                       _isFormFilled = true;
+
                     });
                     Navigator.pop(context);
                   }

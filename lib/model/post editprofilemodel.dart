@@ -12,7 +12,7 @@ class UpdateClientProfileApi {
     required String profile_pic,
     required String language,
   }) async {
-    final String url = '$baseUrl/update_client_profile';
+    final String url = 'https://workdonecorp.com/api/update_client_profile';
 
     final Map<String, String> headers = {
       'Authorization': 'Bearer $token',

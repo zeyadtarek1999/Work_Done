@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:action_slider/action_slider.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:chewie/chewie.dart';
 import 'package:easy_date_timeline/easy_date_timeline.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -174,6 +175,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
     }
   }
 
+  late ChewieController _chewieController;
 
   void projectcomplete() async {
     // Make sure to fill in the values from your text controllers or other sources
@@ -343,6 +345,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
       throw Exception('Failed to load project details. Status code: ${response.statusCode}, Message: $message');
     }
   }
+  String video ='';
+  bool _videoInitialized = false;
 
   String? buttonsValue;
   Future<void> fetchData() async {
@@ -353,9 +357,35 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
      buttonsValue = projectData.pageContent.buttons;
     print('Buttons Value: $buttonsValue');
   }
+  bool _controllerInitialized = false;
 
+  Future<void> fetchvideo() async {
+    // Assuming you have a function to fetch project details
+    final ProjectData projectData = await fetchProjectDetails(widget.projectId);
+
+  video = projectData.video;
+
+    print('this is url'+video);
+
+    _controller = VideoPlayerController.networkUrl(Uri.parse(
+        '${video}'))      ..initialize().then((_) {
+        setState(() {
+          _controllerInitialized = true;
+          _chewieController = ChewieController(
+            videoPlayerController: _controller,
+            aspectRatio: 16 / 9, // Adjust as needed
+            autoPlay: false, // Set to true if you want the video to play automatically
+            looping: false, // Set to true if you want the video to loop
+            // ... Other ChewieController configurations
+          );
+        });
+      }).catchError((error) {
+        print(video);
+        print(error);
+      });
+    print(video);
+  }
   late VideoPlayerController _controller;
-String video ='';
   @override
   void initState() {
     super.initState();
@@ -386,18 +416,18 @@ String video ='';
       } else {}
     });
 
-    _controller = VideoPlayerController.networkUrl(Uri.parse(
-        'https://workdonecorp.com/images/1706773953.mp4'))
-      ..initialize().then((_) {
-        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-        setState(() {});
-      });
+    fetchvideo();
+
+
+
     fetchData();
   }
   @override
   void dispose() {
     super.dispose();
     _controller.dispose();
+    _chewieController.dispose();
+
   }
   String currentbid = '24';
   final ScreenshotController screenshotController = ScreenshotController();
@@ -477,6 +507,7 @@ String video ='';
                       projectimage = projectData.images;
                       selectedworkername=projectData.selectworkerbid.worker_firstname;
                       selectedworkerimage=projectData.selectworkerbid.worker_profile_pic;
+
                       print(projectimage)
                       ;
                       projecttitle = projectData.title.toString();
@@ -489,113 +520,104 @@ String video ='';
                       return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                      CarouselSlider(
-                      options: CarouselOptions(
-                      pageSnapping: true,
-                        height: 210,
-                        viewportFraction: 1.0,
-                        initialPage: 0,
-                        enableInfiniteScroll: true,
-                        reverse: false,
-                        autoPlay: false,
-                        autoPlayInterval: Duration(seconds: 3),
-                        autoPlayAnimationDuration: Duration(milliseconds: 800),
-                        autoPlayCurve: Curves.fastOutSlowIn,
-                        scrollDirection: Axis.horizontal,
-                      ),
-                    items: [
-                      if (projectData.video != '')
-                        Builder(
-                          builder: (BuildContext context) {
-                            return Stack(
-                              children: [
-                                Center(
-                                  child: InkWell(
-                                    onTap: () {
-                                      _controller!.value.isPlaying
-                                          ? _controller!.pause() // Pause if already playing
-                                          : _controller!.initialize().then((_) => _controller!.play()); // Start from beginning
+                            CarouselSlider(
+                              options: CarouselOptions(
+                                pageSnapping: true,
+                                height: 210,
+                                viewportFraction: 1.0,
+                                initialPage: 0,
+                                enableInfiniteScroll: true,
+                                reverse: false,
+                                autoPlay: false,
+                                autoPlayInterval: Duration(seconds: 3),
+                                autoPlayAnimationDuration: Duration(milliseconds: 800),
+                                autoPlayCurve: Curves.fastOutSlowIn,
+                                scrollDirection: Axis.horizontal,
+                              ),
+                              items: [
+                                if (video != '')
+                                  Builder(
+                                    builder: (BuildContext context) {
+                                      return Stack(
+                                        children: [
+                                          Center(
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                if (_controllerInitialized) {
+                                                  if (_controller.value.isPlaying) {
+                                                    _controller.pause();
+                                                    _chewieController!.pause();
+                                                  } else {
+                                                    _controller.play();
+                                                    _chewieController!.play();
+                                                  }
+                                                }
+                                              },
+                                              child: Icon(
+                                                _controllerInitialized
+                                                    ? _controller.value.isPlaying
+                                                    ? Icons.pause
+                                                    : Icons.play_arrow
+                                                    : Icons.play_arrow, // Show play icon while initializing
+                                                size: 30,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            width: MediaQuery.of(context).size.width,
+                                            height: 210,
+                                            child: _controllerInitialized
+                                                ? Chewie(controller: _chewieController!)
+                                                : Center(child: CircularProgressIndicator()),
+                                          ),
+                                        ],
+                                      );
                                     },
-                                    child: Icon(
-                                      _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                                      size: 30,
-                                      color: Colors.black,
-                                    ),
                                   ),
-                                ),
-                                Container(
-                                  width: MediaQuery.of(context).size.width,
-                                  height: 210,
-                                  child: VideoPlayer(_controller!),
-                                ),
-                                Positioned(
-                                  bottom: 16.0,
-                                  right: 16.0,
-                                  child: InkWell(
-                                    onTap: () {
-                                      _controller!.value.isPlaying
-                                          ? _controller!.pause()
-                                          : _controller!.initialize().then((_) => _controller!.play());
+                                if (projectData.video.isEmpty)
+                                  Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                ...projectData.images.map((image) {
+                                  return Builder(
+                                    builder: (BuildContext context) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          Navigator.of(context).push(MaterialPageRoute(
+                                            builder: (_) => Scaffold(
+                                              backgroundColor: Colors.black,
+                                              appBar: AppBar(
+                                                backgroundColor: Colors.black,
+                                                elevation: 0,
+                                              ),
+                                              body: Center(
+                                                child: InteractiveViewer(
+                                                  child: Image.network(
+                                                    image,
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ));
+                                        },
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(30),
+                                          child: Image.network(
+                                            image,
+                                            fit: BoxFit.cover,
+                                            width: MediaQuery.of(context).size.width,
+                                            height: double.infinity,
+                                          ),
+                                        ),
+                                      );
                                     },
-                                    child: Container(
-                                      padding: EdgeInsets.all(8.0),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.black,
-                                      ),
-                                      child: Icon(
-                                        _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                  );
+                                }).toList(),
                               ],
-                            );
-                          },
-                        ),
+                            ),
 
-                      ...projectData.images.map((image) {
-                    return Builder(
-                    builder: (BuildContext context) {
-                    // Wrap Image in a GestureDetector to handle taps
-                    return GestureDetector(
-                    onTap: () {
-                    // When image is tapped, push a new view onto the stack with the full image
-                    Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => Scaffold(
-                    backgroundColor: Colors.black,
-                    appBar: AppBar(
-                    backgroundColor: Colors.black,
-                    elevation: 0,
-                    ),
-                    body: Center(
-                    child: InteractiveViewer(
-                    child: Image.network(
-                    image,
-                    fit: BoxFit.contain,
-                    ),
-                    ),
-                    ),
-                    ),
-                    ));
-                    },
-                    child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
-                    child: Image.network(
-                    image,
-                    fit: BoxFit.cover,
-                    width: MediaQuery.of(context).size.width,
-                    height: double.infinity,
-                    ),
-                    ),
-                    );
-                    },
-                    );
-                    }),
-
-                    ].toList(),
-                    ),
                             SizedBox(
                               height: 12,
                             ),
@@ -6664,7 +6686,6 @@ class ProjectData {
   });
 
   factory ProjectData.fromJson(Map<String, dynamic> jsonData) {
-
     var baseData = jsonData['base_data'] as Map<String, dynamic>? ?? {};
     var clientInfo = baseData['client_info'] as Map<String, dynamic>? ?? {};
     var pageContent = jsonData['page_content'] as Map<String, dynamic>? ?? {};
@@ -6800,7 +6821,7 @@ class page_access_data {
       return page_access_data(
         chat_ID: json['chat_ID'] ?? '',
         schedule_vc: json['schedule_vc'].toString() ?? '',
-        finalizing_vc: json['finalizing_vc'] ?? '',
+        finalizing_vc: json['finalizing_vc'].toString() ?? '',
       );
     } else if (json is List && json.isEmpty) {
       // Empty list, use empty constructor

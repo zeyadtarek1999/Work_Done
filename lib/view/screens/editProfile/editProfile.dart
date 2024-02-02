@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,6 +11,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/view/screens/Screens_layout/layoutclient.dart';
 import 'package:workdone/view/widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
 
@@ -28,10 +30,74 @@ class editProfile extends StatefulWidget {
 }
 
 class _editProfileState extends State<editProfile> {
-  final TextEditingController firstNameController = TextEditingController();
-  final TextEditingController lastNameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
+  List<String> americanPhoneCodes = ['+1', '+20', '+30', '+40']; // Add more if needed
+
+  TextEditingController firstNameController = TextEditingController();
+   TextEditingController lastNameController = TextEditingController();
+   TextEditingController emailController = TextEditingController();
+   TextEditingController paypalcontroller = TextEditingController();
+   TextEditingController phoneController = TextEditingController();
+   bool isPhoneNumberValid = true; // Add a flag to track phone number validation
+   bool validatePhoneNumber(String phoneNumber) {
+     final formattedPhoneNumber = phoneNumber.replaceAll(RegExp(r'\D'), ''); // Remove non-digit characters
+     return formattedPhoneNumber.length == 10;
+   }
+  TextEditingController formattedPhoneNumberController = TextEditingController();
+
+  String formattedPhoneNumber = ''; // Store the formatted phone number
+  String formattedPhoneNumber2 = ''; // Formatted phone number to display
+  String _formatPhoneNumber(String phoneNumber) {
+    if (phoneNumber.length == 12) {
+      // Format the phone number as "(XXX) XXX-XXXX"
+      return '(${phoneNumber.substring(2, 5)}) ${phoneNumber.substring(5, 8)}-${phoneNumber.substring(8, 12)}';
+    }
+    return phoneNumber;
+  }
+
+  String formatPhoneNumber(String input) {
+    if (input.isEmpty) return '';
+
+    input = input.replaceAll(RegExp(r'\D'), ''); // Remove non-digit characters
+    final formattedText = StringBuffer();
+    int index = 0;
+
+    // Add the country code, if present
+    if (input.startsWith('+')) {
+      formattedText.write(input[0]);
+      index++;
+    }
+
+    // Add the opening parenthesis, if needed
+    if (input.length >= 4) {
+      formattedText.write('(${input.substring(index, index + 3)}) ');
+      index += 3;
+    } else if (input.length > 3) {
+      formattedText.write('(' + input.substring(index));
+      return formattedText.toString();
+    } else {
+      formattedText.write('(' + input.substring(index));
+      return formattedText.toString();
+    }
+
+    // Add the middle part, if needed
+    if (input.length >= 7) {
+      formattedText.write('${input.substring(index, index + 3)}-');
+      index += 3;
+    } else if (input.length > index) {
+      formattedText.write(input.substring(index));
+      return formattedText.toString();
+    } else {
+      return formattedText.toString();
+    }
+
+    // Add the remaining part
+    if (input.length > index) {
+      formattedText.write(input.substring(index));
+    }
+
+    return formattedText.toString();
+  }
+
 
   File? _image;
   final picker = ImagePicker();
@@ -58,7 +124,12 @@ class _editProfileState extends State<editProfile> {
   void initState() {
     super.initState();
     _getUserToken();
-
+// setState(() {
+//   firstNameController.text = firstname;
+//   lastNameController.text=  secondname;
+//   emailController.text= email;
+//   phoneController.text = phonenumber;
+// });
     // Fetch user profile information when the screen initializes
     _getUserProfile();
   }
@@ -66,49 +137,94 @@ class _editProfileState extends State<editProfile> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     userToken = prefs.getString('user_token') ?? '';
   }
-  void _updateClientProfile() async {
-    // Make sure to fill in the values from your text controllers or other sources
-    String firstName = firstNameController.text;
-    String lastName = lastNameController.text;
-    String phone = phoneController.text;
-    String imagePath = _image!.path;
-    String language = "English";
-    if (_image == null) {
-      // Show a toast message and return early
-      Fluttertoast.showToast(
-        msg: "Please select an image",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
-      return;
-    }
-    // Call the API to update the client's profile
+  Future<void> sendprofile() async {
+    final url = Uri.parse('https://workdonecorp.com/api/update_client_profile');
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final userToken = prefs.getString('user_token') ?? '';
-      print(userToken);
+      final String userToken = prefs.getString('user_token') ?? '';
+      print (userToken);
+      // Make the API request
+      final request = http.MultipartRequest('POST', url)
+        ..headers['Authorization'] = 'Bearer $userToken'
+        ..fields['language'] = 'english';
 
-      await UpdateClientProfileApi.updateClientProfile(
-        token: userToken,
-        firstName: firstName,
-        lastName: lastName,
-        phone: phone,
-        profile_pic: imagePath,
-        language: language,
-      );
-print(_image!.path);
-      // Handle success (you can show a success message or navigate to another screen)
-    } catch (error) {
-      // Handle error (you can show an error message)
-      print('Error updating client profile: $error');
+      if (_image != null) {
+        request.files.add(await http.MultipartFile.fromPath('profile_pic', _image!.path));
+      }
+      if (firstNameController.text.isNotEmpty) {
+        request.fields['firstname'] = firstNameController.text;
+      } else {
+        request.fields['firstname'] = firstname;
+      }
+      if (lastNameController.text.isNotEmpty) {
+        request.fields['lastname'] = lastNameController.text;
+      } else {
+        request.fields['lastname'] = secondname;
+      }
+      if (phoneController.text.isNotEmpty) {
+        request.fields['phone'] = phoneController.text;
+      } else {
+        request.fields['phone'] = phonenumber;
+      }
+
+      final response = await request.send();
+
+      // Check the response status
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseBody = json.decode(await response.stream.transform(utf8.decoder).join());
+
+        // Check the status in the response
+        if (responseBody['status'] == 'success') {
+          print(responseBody);
+          // Show a toast message
+          Fluttertoast.showToast(
+            msg: "Profile updated successfully",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          // Navigate to the layout screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => layoutclient()),
+          );
+        } else if (responseBody['status'] == 'success') {
+          // Check the specific error message
+          String errorMsg = responseBody['msg'];
+
+          if (errorMsg == ' Bid Submitted') {
+            // Show a Snackbar with the error message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(errorMsg),
+              ),
+            );
+
+          } else {
+            // Handle other error cases as needed
+            print('Error: $errorMsg');
+          }
+        }
+      }
+      else {
+
+        print('Failed to insert bid. Status code: ${response.statusCode}');
+
+        // Print the response body for more details
+        print('Response body: ${await response.stream.transform(utf8.decoder).join()}');
+
+      }
+    } catch (e) {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String userToken = prefs.getString('user_token') ?? '';
+
+      print('Error inserting bid: $e');
+      // Handle errors as needed
     }
   }
-  // Function to fetch user profile information
-
   Future<void> _getUserProfile() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -139,7 +255,12 @@ print(_image!.path);
               phonenumber = profileData['phone'] ?? '';
               language = profileData['language'] ?? '';
             });
-
+            // setState(() {
+            //   firstNameController.text = firstname;
+            //   lastNameController.text=  secondname;
+            //   emailController.text= email;
+            //   phoneController.text = phonenumber;
+            // });
             print('Response: $profileData');
             print('prifole pic: $profile_pic');
           } else {
@@ -185,11 +306,16 @@ print(_image!.path);
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-
+    String selectedPhoneCode = americanPhoneCodes[0]; // Initialize with the first code
+    bool isPhoneNumberValid = true; // Add a flag to track phone number validation
+    bool validatePhoneNumber(String phoneNumber) {
+      final formattedPhoneNumber = phoneNumber.replaceAll(RegExp(r'\D'), ''); // Remove non-digit characters
+      return formattedPhoneNumber.length == 10;
+    }
     return Scaffold( floatingActionButton:
     FloatingActionButton(    heroTag: 'workdone_${unique}',
 
@@ -371,13 +497,13 @@ print(_image!.path);
                               ),
                               child: Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
+                                const EdgeInsets.symmetric(horizontal: 20),
                                 child: TextField(
                                   controller: emailController,
                                   decoration: InputDecoration(
                                     hintText: email,
                                     border:
-                                        InputBorder.none, // Remove default border
+                                    InputBorder.none, // Remove default border
                                   ),
                                 ),
                               ))
@@ -387,39 +513,98 @@ print(_image!.path);
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10.0, vertical: 10),
+                  child: Text('Phone Number'),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                  height: size.height * 0.103,
+                  width: size.width * 0.93,
+                  decoration: BoxDecoration(
+
+                    color: Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(29),
+                  ),
                   child: Row(
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10),
-                            child: Text('Phone Number'),
-                          ),
-                          Container(
-                              width: size.width * 0.90,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200], // Background color
-                                borderRadius: BorderRadius.circular(
-                                    20), // Circular border radius
-                              ),
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                child: TextField(
-                                  controller: phoneController,
-                                  decoration: InputDecoration(
-                                    hintText: phonenumber,
-                                    border:
-                                        InputBorder.none, // Remove default border
-                                  ),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            DropdownButton<String>(
+                              value: selectedPhoneCode,
+                              onChanged: (newValue) {
+                                setState(() {
+                                  // Update the selected phone code
+                                  selectedPhoneCode = newValue!;
+                                });
+                              },
+                              items: americanPhoneCodes.map((code) {
+                                return DropdownMenuItem<String>(
+                                  value: code,
+                                  child: Text(code),
+                                );
+                              }).toList(),
+                            ),
+                            SizedBox(width: 8), // Add some spacing between the dropdown and the text field
+                            Expanded(
+                              child: TextFormField(
+
+                                controller: phoneController,
+                                decoration: InputDecoration(
+                                  hintText: phonenumber,
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.all(0), // Remove content padding
+
                                 ),
-                              ))
-                        ],
-                      )
+                                keyboardType: TextInputType.phone,
+                                onChanged: (value) {
+                                  setState(() {
+                                    // Format the phone number using the formatPhoneNumber function
+                                    final formattedPhoneNumber = formatPhoneNumber(value);
+                                    phoneController.value = TextEditingValue(
+                                      text: formattedPhoneNumber,
+                                      selection: TextSelection.collapsed(offset: formattedPhoneNumber.length),
+
+                                    );
+                // Add +1 prefix to the formatted phone number
+                                    phoneController.text = '$formattedPhoneNumber';
+
+                                    // Ensure the cursor position is at the end
+                                    phoneController.selection = TextSelection.fromPosition(
+                                      TextPosition(offset: phoneController.text.length),
+                                    );
+                                    print(phoneController.text);
+                                    // Validate the phone number
+                                    isPhoneNumberValid = validatePhoneNumber(formattedPhoneNumber);
+                                  });
+                                },
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(10), // Limit the input length to 10 digits
+                                ],
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter a phone number';
+                                  }
+
+                                  // Basic validation: Check if the formatted phone number has 10 digits
+                                  final formattedPhoneNumber = formatPhoneNumber(value);
+                                  if (formattedPhoneNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
+                                    return 'Invalid phone number';
+                                  }
+
+                                  return null; // Return null if the input is valid
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ), if (!isPhoneNumberValid)
+                        Text(
+                          'Please enter a valid phone number.',
+                          style: TextStyle(color: Colors.red),
+                        ),
                     ],
                   ),
                 ),
@@ -437,7 +622,7 @@ print(_image!.path);
                       final SharedPreferences prefs = await SharedPreferences.getInstance();
                       final userToken = prefs.getString('user_token') ?? '';
                       print(userToken);
-        
+
                       // Check if userToken is not empty before navigating
                       if (userToken.isNotEmpty) {
                         Get.to(changePasswordscreen(userToken: userToken));
@@ -460,7 +645,7 @@ print(_image!.path);
                       ),
                     ),
                   ),
-        
+
                 ),
                 SizedBox(height: 20,),
                 Container(
@@ -476,7 +661,7 @@ print(_image!.path);
                       final SharedPreferences prefs = await SharedPreferences.getInstance();
                       final userToken = prefs.getString('user_token') ?? '';
                       print(userToken);
-        
+
                       // Check if userToken is not empty before navigating
                       if (userToken.isNotEmpty) {
                         Get.to(editAddressClient());
@@ -499,9 +684,9 @@ print(_image!.path);
                       ),
                     ),
                   ),
-        
+
                 ),
-        
+
                 SizedBox(
                   height: 12,
                 ),
@@ -511,10 +696,10 @@ print(_image!.path);
                     text: 'Done',
                     press: () {
                       // Call the method to update the client profile
-                      _updateClientProfile();
+                      sendprofile();
                     },
                   )
-        
+
                 )
               ],
             ),

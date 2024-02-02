@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -73,6 +74,95 @@ class _editAddressClientState extends State<editAddressClient> {
     } catch (error) {
       // Handle error (you can show an error message)
       print('Error updating address: $error');
+    }
+  }
+  Future<void> editaddress() async {
+    final url = Uri.parse('https://www.workdonecorp.com/api/update_address');
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String userToken = prefs.getString('user_token') ?? '';
+      print (userToken);
+      // Make the API request
+      final request = http.MultipartRequest('POST', url)
+        ..headers['Authorization'] = 'Bearer $userToken' ;
+      if (addressline1Controller .text.isNotEmpty) {
+        request.fields['street1'] = addressline1Controller .text;
+      } else {
+        request.fields['street1'] = addressline1 ;
+      }
+      if (addressline2Controller  .text.isNotEmpty) {
+        request.fields['street2'] = addressline2Controller  .text;
+      } else {
+        request.fields['street2'] = addressline2 ;
+      }
+      if (cityController  .text.isNotEmpty) {
+        request.fields['city'] = cityController  .text;
+      } else {
+        request.fields['city'] = city ;
+      }
+      if (stateController    .text.isNotEmpty) {
+        request.fields['state'] = stateController    .text;
+      } else {
+        request.fields['state'] = state  ;
+      }
+      if (addressZipController  .text.isNotEmpty) {
+        request.fields['address_zip'] = addressZipController      .text;
+      } else {
+        request.fields['address_zip'] = addressZip   ;
+      }
+      final response = await request.send();
+
+      // Check the response status
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseBody = json.decode(await response.stream.transform(utf8.decoder).join());
+
+        // Check the status in the response
+        if (responseBody['status'] == 'success') {
+          print(responseBody);
+          // Show a toast message
+          Fluttertoast.showToast(
+            msg: "Address updated successfully",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          // Navigate to the layout screen
+          Navigator.pop(context);
+        } else if (responseBody['status'] == 'success') {
+          // Check the specific error message
+          String errorMsg = responseBody['msg'];
+
+          if (errorMsg == ' Bid Submitted') {
+            // Show a Snackbar with the error message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(errorMsg),
+              ),
+            );
+
+          } else {
+            // Handle other error cases as needed
+            print('Error: $errorMsg');
+          }
+        }
+      }
+      else {
+
+        print('Failed to insert bid. Status code: ${response.statusCode}');
+
+        // Print the response body for more details
+        print('Response body: ${await response.stream.transform(utf8.decoder).join()}');
+
+      }
+    } catch (e) {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String userToken = prefs.getString('user_token') ?? '';
+
+      print('Error inserting bid: $e');
+      // Handle errors as needed
     }
   }
 
@@ -336,7 +426,7 @@ class _editAddressClientState extends State<editAddressClient> {
       RoundedButton(
         text: 'Confirm',
         press: () async {
-          await _updateAddress();
+          await editaddress();
 
           showDialog(
             context: context,

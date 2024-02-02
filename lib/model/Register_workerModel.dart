@@ -22,6 +22,7 @@ class RegisterWorkerApiClient {
     required String street2,
     required String city,
     required String state,
+    required String paypal,
     required String addressZip,
     required String licensePic,
   }) async {
@@ -38,6 +39,7 @@ class RegisterWorkerApiClient {
           'language': language,
           'experience': experience,
           'job_type': jobType,
+          'paypal': paypal,
           'license_number': licenseNumber,
           'street1': street1,
           'street2': street2,

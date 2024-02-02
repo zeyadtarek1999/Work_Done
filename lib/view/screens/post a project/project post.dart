@@ -42,7 +42,6 @@ class _projectPostState extends State<projectPost> {
   VideoPlayerController? _videoController;
   XFile? _videoFile;
   // Removed the '?' to avoid null checks
-  List<File> _images = []; // Changed from File? to File to avoid null checks
 
 
   List<File> _imageFiles = []; // Use File directly
@@ -54,23 +53,11 @@ class _projectPostState extends State<projectPost> {
 
     if (images?.isNotEmpty ?? false) {
       setState(() {
-        _imageFiles = images!.map((xfile) => File(xfile.path)).toList(); // Convert to File
+        _imageFiles = images!.map((xfile) => File(xfile.path)).toList();
       });
     }
   }
-  final picker = ImagePicker();
-  Future<void> _getImageFromGallery() async {
-    final List<XFile>? pickedFiles = await picker.pickMultiImage();
 
-    setState(() {
-      if (pickedFiles != null && pickedFiles.isNotEmpty) {
-        for (var pickedFile in pickedFiles) {
-          _images.add(File(pickedFile.path));
-        }
-      }
-
-    });
-  }
 
   Future<void> _pickVideo() async {
     final ImagePicker picker = ImagePicker();
@@ -179,9 +166,11 @@ class _projectPostState extends State<projectPost> {
     }
 
     // Add images if any
-    if (_imageFiles != null && _imageFiles!.isNotEmpty) {
+    // Add images if any
+    if (_imageFiles != [] && _imageFiles.isNotEmpty) {
       print('Adding images to the request...');
-      for (var imageFile in _imageFiles!) {
+      print(_imageFiles);
+      for (var imageFile in _imageFiles) {
         request.files.add(http.MultipartFile(
           'images[]',
           imageFile.readAsBytes().asStream(),
@@ -190,6 +179,7 @@ class _projectPostState extends State<projectPost> {
         ));
       }
     }
+
     print('Request fields: ${request.fields}');
     print('Request files: ${request.files.length}');
     print('Sending request...');
@@ -207,7 +197,7 @@ class _projectPostState extends State<projectPost> {
         print('Success: ${response.body}');
 setState(() {
   _toggleUploadingState(false);
-});        String notificationImagePath = _imageFiles.isNotEmpty
+});       String notificationImagePath = _imageFiles.isNotEmpty
             ? _imageFiles.first.path // Using the first image as the notification image
             : ''; // Provide a default or a placeholder image path if no image is available
         String title = titleController.text;
@@ -431,7 +421,7 @@ setState(() {
               Row(
                 children: [
                   Text(
-                    _imageFiles == null ? 'Upload Photo' : 'Selected Photo',
+                    _imageFiles.isEmpty ? 'Upload Photo' : 'Selected Photo',
                     style: GoogleFonts.poppins(
                       textStyle: TextStyle(
                         color: HexColor('1A1D1E'),
@@ -455,7 +445,7 @@ setState(() {
                         SnackBar(
                           backgroundColor: Colors.red,
                           content: Text(
-                            _imageFiles == null
+                            _imageFiles.isEmpty
                                 ? 'Upload photo is Required'
                                 : 'Selected photo information',
                             style:
@@ -530,11 +520,12 @@ setState(() {
                                     builder: (BuildContext context) {
                                       return Dialog(
                                         child: InteractiveViewer(
+
                                           panEnabled: true, // Set it to false to prevent panning.
                                           boundaryMargin: EdgeInsets.all(20),
                                           minScale: 0.5,
                                           maxScale: 2,
-                                          child: Image.file(_images[index]!),
+                                          child: Image.file(_imageFiles[index]!),
                                         ),
                                       );
                                     },

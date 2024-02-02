@@ -253,6 +253,7 @@ bool isSearchBarVisible =false;
 
 
   final RegisterClientApiClient apiClient = RegisterClientApiClient(); // Create an instance of the API client
+  bool _isLoading = false;
 
   Future<void> _register() async {
     try {
@@ -276,6 +277,9 @@ bool isSearchBarVisible =false;
        print (capturedState);
        print (selectedLanguage);
        print (phoneNumberController);
+      setState(() {
+        _isLoading = true;
+      });
       // Print the complete registration response for debugging
       print('Registration Response: $registrationResponse');
 
@@ -301,7 +305,12 @@ bool isSearchBarVisible =false;
         content: Text('Registration failed: $error'),
         backgroundColor: Colors.red,
       ));
-    }
+    }  finally {
+  // Hide the circular progress indicator
+  setState(() {
+  _isLoading = false;
+  });
+  }
   }
   // Function to save the token in shared preferences
   Future<void> _saveToken(String token) async {
@@ -622,102 +631,108 @@ bool isSearchBarVisible =false;
                             SizedBox(
                               height: ScreenUtil.sizeboxheight,
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          isLanguageListVisible = !isLanguageListVisible;
-                                          isSearchBarVisible = isLanguageListVisible; // Show the search bar only when the list is visible
-                                        });
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                          vertical: 5,
-                                        ),
-                                        height: size.height * 0.09,
-                                        width: size.width * 0.93,
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey[200],
-                                          borderRadius: BorderRadius.circular(29),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.language),
-                                            SizedBox(width: 10),
-                                            Text(
-                                              'Select Language',
-                                              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                                            ),
-                                            Spacer(),
-                                            Icon(
-                                              isLanguageListVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                                              size: 18,
-                                            ),
-                                          ],
-                                        ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    isLanguageListVisible = !isLanguageListVisible;
+                                    isSearchBarVisible = isLanguageListVisible;
+                                    // Remove the condition to update filteredLanguages regardless of the search bar visibility
+                                    filteredLanguages = languages;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 5,
+                                  ),
+                                  height: size.height * 0.09,
+                                  width: size.width * 0.93,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(29),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.language),
+                                      SizedBox(width: 10),
+                                      Text(
+                                        'Select Language',
+                                        style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                                       ),
-                                    ),
-                                    // Search bar
-                                    Visibility(
-                                      visible: isSearchBarVisible,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                        child: TextField(
-                                          onChanged: (query) {
-                                            setState(() {
-                                              filteredLanguages = languages
-                                                  .where((language) => language['lang']
-                                                  .toLowerCase()
-                                                  .contains(query.toLowerCase()))
-                                                  .toList();
-                                            });
-                                          },
-                                          decoration: InputDecoration(
-                                            hintText: 'Search languages...',
-                                            prefixIcon: Icon(Icons.search),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                        ),
+                                      Spacer(),
+                                      Icon(
+                                        isLanguageListVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                                        size: 18,
                                       ),
-                                    ),
-
-                                    // List of filtered languages
-                                    Visibility(
-                                      visible: isLanguageListVisible,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: filteredLanguages.map((language) {
-                                          final langName = language['lang'];
-
-                                          return ListTile(
-                                            title: Text(langName),
-                                            leading: Radio(
-                                              value: langName,
-                                              groupValue: selectedLanguage,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  selectedLanguage = value as String;
-                                                  isLanguageListVisible = false; // Hide the list after selecting a language
-                                                  isSearchBarVisible = false; // Hide the search bar after selecting a language
-                                                });
-                                              },
-                                            ),
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            )
+
+                              // Search bar
+                              Visibility(
+                                visible: isSearchBarVisible,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: TextField(
+                                    onChanged: (query) {
+                                      setState(() {
+                                        filteredLanguages = languages
+                                            .where((language) => language['lang']
+                                            .toLowerCase()
+                                            .contains(query.toLowerCase()))
+                                            .toList();
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText: 'Search languages...',
+                                      prefixIcon: Icon(Icons.search),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // List of filtered languages
+                              Visibility(
+                                visible: isLanguageListVisible,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: filteredLanguages.map((language) {
+                                    final langName = language['lang'];
+
+                                    return ListTile(
+                                      title: Text(langName),
+
+                                      leading: Radio(
+                                        activeColor: HexColor('#4D8D6E'), // Set the color when the radio button is selected
+                                        value: langName,
+                                        groupValue: selectedLanguage, // Provide a proper group value here
+                                        onChanged: (value) {
+                                          setState(() {
+
+                                            selectedLanguage = value as String;
+                                            isLanguageListVisible = true; // Hide the list after selecting a language
+                                            isSearchBarVisible = true;
+                                            print (selectedLanguage);// Hide the search bar after selecting a language
+                                          });
+                                        },
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),)
                       ,SizedBox(
                       height: ScreenUtil.sizeboxheight,
                     ),
@@ -1027,6 +1042,8 @@ bool isSearchBarVisible =false;
                             SizedBox(
                               height: ScreenUtil.sizeboxheight,
                             ),
+
+
                             RoundedButton(
                               loading: isLoading,
                               text: 'REGISTER',

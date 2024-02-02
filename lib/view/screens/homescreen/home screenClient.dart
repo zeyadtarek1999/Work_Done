@@ -800,7 +800,8 @@ class _HomeclientState extends State<Homeclient> {
                             if (snapshot.connectionState == ConnectionState.waiting) {
                               return Column(
                                 children: [
-                         SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
+                         SizedBox(height: 80,),       Center(child: CircularProgressIndicator())
+                                  ,SizedBox(height: 80,)
                                 ],
                               );
                             } else if (snapshot.hasError) {
