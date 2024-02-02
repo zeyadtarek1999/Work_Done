@@ -18,10 +18,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
+import 'package:video_player/video_player.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
 import '../InboxwithChat/ChatClient.dart';
 import '../Screens_layout/layoutclient.dart';
@@ -54,12 +56,13 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
     final ImagePicker picker = ImagePicker();
     final List<XFile>? images = await picker.pickMultiImage();
 
-    if (images?.isNotEmpty ?? false) {
+    if (images != null && images.isNotEmpty) {
       setState(() {
-        _imageFiles = images!.map((xfile) => File(xfile.path)).toList(); // Convert to File
+        _imageFiles = images.map((xfile) => File(xfile.path)).toList(); // Convert to File
       });
     }
   }
+
   List<XFile>? _videos = [];
   List<File?> _images = [];
   final picker = ImagePicker();
@@ -189,18 +192,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
       );
       return;
     }
-    // if (_videos!.isEmpty) {
-    //   Fluttertoast.showToast(
-    //     msg: "Please select a video",
-    //     toastLength: Toast.LENGTH_SHORT,
-    //     gravity: ToastGravity.BOTTOM,
-    //     timeInSecForIosWeb: 1,
-    //     backgroundColor: Colors.red,
-    //     textColor: Colors.white,
-    //     fontSize: 16.0,
-    //   );
-    //   return;
-    // }
+
 
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -362,7 +354,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
     print('Buttons Value: $buttonsValue');
   }
 
-
+  late VideoPlayerController _controller;
+String video ='';
   @override
   void initState() {
     super.initState();
@@ -392,9 +385,20 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
         panelController2.anchor();
       } else {}
     });
+
+    _controller = VideoPlayerController.networkUrl(Uri.parse(
+        'https://workdonecorp.com/images/1706773953.mp4'))
+      ..initialize().then((_) {
+        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+        setState(() {});
+      });
     fetchData();
   }
-
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
   String currentbid = '24';
   final ScreenshotController screenshotController = ScreenshotController();
 
@@ -477,65 +481,121 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                       ;
                       projecttitle = projectData.title.toString();
                       ;
-                      projectdesc = projectData.desc.toString();
+                      projectdesc = projectData.desc.toString();;
+                      video = projectData.video;
                       ;
                       owner = projectData.clientData!.firstname.toString();
+                      print(projectData.video);
                       return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CarouselSlider(
-                              options: CarouselOptions(
-                                pageSnapping: true,
-                                height: 210,
-                                aspectRatio: 16 / 9,
-                                viewportFraction: 1.0,
-                                initialPage: 0,
-                                enableInfiniteScroll: true,
-                                reverse: false,
-                                autoPlay: false,
-                                autoPlayInterval: Duration(seconds: 3),
-                                autoPlayAnimationDuration: Duration(milliseconds: 800),
-                                autoPlayCurve: Curves.fastOutSlowIn,
-                                scrollDirection: Axis.horizontal,
-                              ),
-                              items: projectData.images.map((images) {
-                                return Builder(
-                                  builder: (BuildContext context) {
-                                    // Wrap Image in a GestureDetector to handle taps
-                                    return GestureDetector(
-                                      onTap: () {
-                                        // When image is tapped, push a new view onto the stack with the full image
-                                        Navigator.of(context).push(MaterialPageRoute(
-                                          builder: (_) => Scaffold(
-                                            backgroundColor: Colors.black,
-                                            appBar: AppBar(
-                                              backgroundColor: Colors.black,
-                                              elevation: 0,
-                                            ),
-                                            body: Center(
-                                              child: InteractiveViewer(
-                                                child: Image.network(
-                                                  images,
-                                                  fit: BoxFit.contain,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ));
-                                      },
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(30),
-                                        child: Image.network(
-                                          images,
-                                          fit: BoxFit.cover,
-                                          width: MediaQuery.of(context).size.width,
-                                          height: double.infinity,
-                                        ),
+                      CarouselSlider(
+                      options: CarouselOptions(
+                      pageSnapping: true,
+                        height: 210,
+                        viewportFraction: 1.0,
+                        initialPage: 0,
+                        enableInfiniteScroll: true,
+                        reverse: false,
+                        autoPlay: false,
+                        autoPlayInterval: Duration(seconds: 3),
+                        autoPlayAnimationDuration: Duration(milliseconds: 800),
+                        autoPlayCurve: Curves.fastOutSlowIn,
+                        scrollDirection: Axis.horizontal,
+                      ),
+                    items: [
+                      if (projectData.video != '')
+                        Builder(
+                          builder: (BuildContext context) {
+                            return Stack(
+                              children: [
+                                Center(
+                                  child: InkWell(
+                                    onTap: () {
+                                      _controller!.value.isPlaying
+                                          ? _controller!.pause() // Pause if already playing
+                                          : _controller!.initialize().then((_) => _controller!.play()); // Start from beginning
+                                    },
+                                    child: Icon(
+                                      _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                                      size: 30,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  height: 210,
+                                  child: VideoPlayer(_controller!),
+                                ),
+                                Positioned(
+                                  bottom: 16.0,
+                                  right: 16.0,
+                                  child: InkWell(
+                                    onTap: () {
+                                      _controller!.value.isPlaying
+                                          ? _controller!.pause()
+                                          : _controller!.initialize().then((_) => _controller!.play());
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.all(8.0),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.black,
                                       ),
-                                    );
-                                  },
-                                );
-                              }).toList(),),
+                                      child: Icon(
+                                        _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+
+                      ...projectData.images.map((image) {
+                    return Builder(
+                    builder: (BuildContext context) {
+                    // Wrap Image in a GestureDetector to handle taps
+                    return GestureDetector(
+                    onTap: () {
+                    // When image is tapped, push a new view onto the stack with the full image
+                    Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => Scaffold(
+                    backgroundColor: Colors.black,
+                    appBar: AppBar(
+                    backgroundColor: Colors.black,
+                    elevation: 0,
+                    ),
+                    body: Center(
+                    child: InteractiveViewer(
+                    child: Image.network(
+                    image,
+                    fit: BoxFit.contain,
+                    ),
+                    ),
+                    ),
+                    ),
+                    ));
+                    },
+                    child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: Image.network(
+                    image,
+                    fit: BoxFit.cover,
+                    width: MediaQuery.of(context).size.width,
+                    height: double.infinity,
+                    ),
+                    ),
+                    );
+                    },
+                    );
+                    }),
+
+                    ].toList(),
+                    ),
                             SizedBox(
                               height: 12,
                             ),
@@ -756,12 +816,14 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                               height: 16,
                             ),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 6.0),
+                              padding: const EdgeInsets.symmetric(horizontal: 6.0),
                               child: Row(
                                 children: [
+
                                   Text(
-                                    'Workers Bids',
+                                    projectData.selectworkerbid.worker_firstname != ''
+                                        ? 'Selected Worker'
+                                        : 'Workers Bids',
                                     style: GoogleFonts.openSans(
                                       textStyle: TextStyle(
                                         color: HexColor('454545'),
@@ -774,8 +836,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                 ],
                               ),
                             ),
-
-
+SizedBox(height: 8,),
                             //accepted worker
                             Visibility(
                               visible: projectData.selectworkerbid.worker_firstname != '', // Check if select_worker_bid exists
@@ -812,15 +873,32 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                     // Navigate to worker profile page
                                                     // You can replace this with your navigation logic
                                                   },
-                                                  child: Text(
-                                                    projectData.selectworkerbid.worker_firstname,
-                                                    style: GoogleFonts.openSans(
-                                                      textStyle: TextStyle(
-                                                        color: HexColor('4A4949'),
-                                                        fontSize: 17,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
+                                                  child: LayoutBuilder( // Use LayoutBuilder to determine available width
+                                                    builder: (context, constraints) {
+                                                      return TextButton(
+                                                        onPressed: () {
+                                                          Get.to(ProfilePageClient(
+                                                              userId: projectData
+                                                                  .selectworkerbid!.worker_id
+                                                                  .toString()));
+                                                        },
+                                                        style: TextButton.styleFrom(
+                                                          padding: EdgeInsets.zero, // Remove fixed size
+                                                        ),
+                                                        child: FittedBox( // Fit text within available space
+                                                          child: Text(
+                                                            projectData.selectworkerbid.worker_firstname,
+                                                            style: GoogleFonts.openSans(
+                                                              textStyle: TextStyle(
+                                                                fontSize: 17,
+                                                                color: HexColor('454545'),
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
                                                   ),
                                                 ),
                                                 SizedBox(
@@ -834,12 +912,9 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                 SizedBox(
                                                   width: 2,
                                                 ),
-                                                Text('7'),
-                                              ],
+                                                Text('7'),                                              ],
                                             ),
-                                            SizedBox(
-                                              height: 4,
-                                            ),
+
                                             Row(
                                               children: [
                                                 Text(
@@ -903,12 +978,13 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                   );
                                 } else {
                                   ProjectData projectData = snapshot.data!;
-
+                                  double ratingonclient = double.tryParse(projectData.pageContent.ratingOnClient ?? "0") ?? 0;
+                                  double ratingonWorker = double.tryParse(projectData.pageContent.ratingOnWorker ?? "0") ?? 0;
                                   if (projectData.status ==
                                       'bid_accepted' ) {
                                     return Padding(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 12.0),
+                                          horizontal: 6.0),
                                       child: Column(
                                         children: [
                                           Row(
@@ -1959,6 +2035,34 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                 ),
                                               ),
                                             ],
+                                          ),
+                                          SizedBox(height: 15,),
+
+                                          Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Workers Bids',
+                                                style: GoogleFonts.openSans(
+                                                  textStyle: TextStyle(
+                                                    color: HexColor('454545'),
+                                                    fontSize: 22,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(height: 12,),
+                                          ListView.builder(
+                                            physics: NeverScrollableScrollPhysics(),
+                                            shrinkWrap: true,
+                                            itemCount: projectData.bids.length,
+                                            itemBuilder: (context, index) {
+                                              Bid bid = projectData.bids[index];
+                                              return buildListItem(bid);
+                                            },
                                           ),
                                         ],
                                       ),
@@ -3196,6 +3300,20 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                           ],
                                         ),
                                         SizedBox(height: 17,),
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Workers Bids',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 12,),
                                         ListView.builder(
                                           physics: NeverScrollableScrollPhysics(),
                                           shrinkWrap: true,
@@ -4354,6 +4472,20 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                           ],
                                         ),
                                         SizedBox(height: 17,),
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Workers Bids',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 12,),
                                         ListView.builder(
                                           physics: NeverScrollableScrollPhysics(),
                                           shrinkWrap: true,
@@ -5266,8 +5398,11 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                                                                 child: Row(
                                                                   children: [
+
+
+
                                                                     Text(
-                                                                      _imageFiles == null ? 'Upload Photo' : 'Selected Photo',
+                                                                      _imageFiles.isEmpty ? 'Upload Photo' : 'Selected Photo',
                                                                       style: GoogleFonts.poppins(
                                                                         textStyle: TextStyle(
                                                                           color: HexColor('1A1D1E'),
@@ -5369,11 +5504,11 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                                                   builder: (BuildContext context) {
                                                                                     return Dialog(
                                                                                       child: InteractiveViewer(
-                                                                                        panEnabled: true, // Set it to false to prevent panning.
+                                                                                        panEnabled: true,
                                                                                         boundaryMargin: EdgeInsets.all(20),
                                                                                         minScale: 0.5,
                                                                                         maxScale: 2,
-                                                                                        child: Image.file(_images[index]!),
+                                                                                        child: Image.file(_imageFiles[index]!),
                                                                                       ),
                                                                                     );
                                                                                   },
@@ -5385,7 +5520,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                                                   right: index == _imageFiles!.length - 1 ? 8.0 : 0,
                                                                                 ),
                                                                                 child: Image.file(
-                                                                                  _imageFiles[index]!,
+                                                                                  _imageFiles[index]!, // Use _imageFiles instead of _images
                                                                                   height: 150,
                                                                                   width: 150,
                                                                                   fit: BoxFit.cover,
@@ -5395,6 +5530,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                                           },
                                                                         ),
                                                                       ),
+
                                                                     ),
                                                                   ),
                                                                 ),
@@ -5515,8 +5651,10 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                                                                 size: 14, // Adjust the size of the star icon
                                                                               ),
                                                                               onRatingUpdate: (rating2) {
-                                                                                rating=rating2.toString();
-                                                                                print(rating);
+                                                                               setState(() {
+                                                                                 rating=rating2.toString();
+                                                                                 print(rating);
+                                                                               });
                                                                           },
                                                                             )
                                                         
@@ -5631,6 +5769,20 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                           ],
                                         ),
                                         SizedBox(height: 17,),
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Workers Bids',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 12,),
                                         ListView.builder(
                                           physics: NeverScrollableScrollPhysics(),
                                           shrinkWrap: true,
@@ -5640,6 +5792,212 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                             return buildListItem(bid);
                                           },
                                         ),
+                                      ],
+                                    );
+                                  }
+                                  else if ( projectData.status ==
+                                      'completed') {
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+
+                                      children: [
+
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Reviews',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 17,),
+                                        projectData.pageContent.ratingOnWorker != '' || projectData.pageContent.reviewOnWorker != ''
+
+                                      ?  Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Client Review :',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('34446F'),
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ):Container(),
+                                        SizedBox(height: 10,),
+                                        projectData.pageContent.ratingOnWorker != '' || projectData.pageContent.reviewOnWorker != ''
+                                            ? Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 23,
+                                              backgroundImage: NetworkImage(
+                                                projectData.clientData?.profileImage ==
+                                                    'https://workdonecorp.com/images/'
+                                                    ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
+                                                    : projectData
+                                                    .clientData?.profileImage ??
+                                                    'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+                                              ),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              "${projectData.clientData.firstname}",
+                                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                            ),
+                                            Spacer(),
+                                            RatingDisplay(rating: ratingonWorker),
+                                          ],
+                                        )
+                                            : Container(),
+                                        SizedBox(height: 8),
+                                        projectData.pageContent.reviewOnWorker != ''
+                                            ? Padding(
+                                          padding: const EdgeInsets.all(16.0), // Consistent padding
+                                          child: Text(
+                                            '${projectData.pageContent.reviewOnWorker}',
+                                            style: GoogleFonts.roboto( // Same font for consistency
+                                              textStyle: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 16, // Readable size
+                                                fontWeight: FontWeight.w400, // Slightly emphasized weight
+                                                height: 1.5, // Increased line height for better spacing
+                                              ),
+                                            ),
+                                            textAlign: TextAlign.left,
+                                          ),
+                                        )
+                                            : SizedBox(height: 1),
+                                        SizedBox(height: 8),
+                                        Container(
+                                          height: 140,
+                                          child: ListView.builder(
+                                            scrollDirection: Axis.horizontal,
+                                            itemCount: projectData.pageContent.imagesAfter.length,
+                                            itemBuilder: (context, index) {
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) => PhotoView(
+                                                        imageProvider: NetworkImage(
+                                                          projectData.pageContent.imagesAfter[index],
+                                                        ),
+                                                        heroAttributes: PhotoViewHeroAttributes(
+                                                          tag: projectData.pageContent.imagesAfter[index],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                                child: Hero(
+                                                  tag: projectData.pageContent.imagesAfter[index],
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                    child: AspectRatio(
+                                                      aspectRatio: 1,
+                                                      child: Image.network(
+                                                        projectData.pageContent.imagesAfter[index],
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        SizedBox(height: 17,),
+                                        projectData.pageContent.ratingOnClient != '' || projectData.pageContent.reviewOnClient != ''
+
+                                       ? Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Worker Review :',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('34446F'),
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ): Container(),
+                                        SizedBox(height: 10,),
+                                        projectData.pageContent.ratingOnClient != '' || projectData.pageContent.reviewOnClient != ''
+                                            ? Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 23,
+                                              backgroundImage: NetworkImage(
+                                                projectData.selectworkerbid.worker_profile_pic != '' && projectData.selectworkerbid.worker_profile_pic.isNotEmpty
+                                                    ? projectData.selectworkerbid.worker_profile_pic
+                                                    : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // Use default if empty
+                                              ),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              "${projectData.selectworkerbid.worker_firstname}",
+                                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                            ),
+                                            Spacer(),
+                                            RatingDisplay(rating: ratingonclient),
+                                          ],
+                                        )
+                                            : Container(),
+                                        SizedBox(height: 5),
+                                        projectData.pageContent.reviewOnClient != ''
+                                            ? Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12.0), // Add padding around the text
+                                          child: Text(
+                                            '${projectData.pageContent.reviewOnClient}',
+                                            style: GoogleFonts.roboto( // Use Roboto for a more readable font
+                                              textStyle: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 16, // Increased font size for better readability
+                                                fontWeight: FontWeight.w400, // Slightly heavier weight for emphasis
+                                              ),
+
+                                            ),
+                                          ),
+                                        )
+                                            : Container(),
+
+
+
+
+
+                                        SizedBox(height: 15,),
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Workers Bids',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        ListView.builder(
+                                          physics: NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true,
+                                          itemCount: projectData.bids.length,
+                                          itemBuilder: (context, index) {
+                                            Bid bid = projectData.bids[index];
+                                            return buildListItem(bid);
+                                          },
+                                        ),
+
                                       ],
                                     );
                                   }
@@ -5996,7 +6354,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
     // Check if Money is less than currentbid, and update currentbid if needed
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
       child: Row(
         children: [
           CircleAvatar(
@@ -6273,6 +6631,7 @@ class ProjectData {
   final String postedFrom;
   final String status;
   final String desc;
+  final String video;
   final bool liked; // Assuming the 'liked' field should be a boolean
   final int numberOfLikes;
   final dynamic? lowestBid; // Assuming lowest bid could be null
@@ -6294,6 +6653,7 @@ class ProjectData {
     required this.selectworkerbid,
     required this.liked,
     required this.clientData,
+    required this.video,
     required this.numberOfLikes,
     required this.pageaccessdata,
     this.lowestBid,
@@ -6308,9 +6668,12 @@ class ProjectData {
     var baseData = jsonData['base_data'] as Map<String, dynamic>? ?? {};
     var clientInfo = baseData['client_info'] as Map<String, dynamic>? ?? {};
     var pageContent = jsonData['page_content'] as Map<String, dynamic>? ?? {};
-    var pageAccessData = jsonData['page_access_data'] as Map<String, dynamic>? ?? {};
+    page_access_data accessData = page_access_data.fromJson(jsonData['page_access_data']);
     var selectWorkerBid = jsonData['select_worker_bid'] as Map<String, dynamic>? ?? {};
-
+    // Bids can be handled inside the call using a cascade operator
+    List<Bid> bidsList = (baseData['bids'] as List<dynamic>? ?? [])
+        .map((x) => Bid.fromJson(x as Map<String, dynamic>))
+        .toList();
     return ProjectData(
       title: baseData['title'] ?? 'No Title',
       images: List<String>.from(baseData['images'] ?? []),
@@ -6320,13 +6683,14 @@ class ProjectData {
       desc: baseData['desc'] ?? 'No Description',
       liked: baseData['liked'] == 'true',
       numberOfLikes: baseData['number_of_likes'] ?? 0,
+      video: baseData['video'] ?? '',
       lowestBid: baseData['lowest_bid'] ?? 'No Bids',
       timeframeStart: baseData['timeframe_start'] ?? 'No Start Time',
       timeframeEnd: baseData['timeframe_end'] ?? 'No End Time',
-      bids: (baseData['bids'] as List<dynamic>? ?? []).map((x) => Bid.fromJson(x as Map<String, dynamic>)).toList(),
+      bids: bidsList,
       clientData: ClientData.fromJson(clientInfo),
       pageContent: PageContent.fromJson(pageContent),
-      pageaccessdata: page_access_data.fromJson(pageAccessData),
+      pageaccessdata: accessData,
       selectworkerbid: select_worker_bid.fromJson(selectWorkerBid),
     );
   }}
@@ -6365,29 +6729,41 @@ class PageContent {
   final String complete_vc_generate_button;
   final String project_complete_button;
   final String support;
+  final String reviewOnWorker;
+  final String ratingOnWorker;
+  final String reviewOnClient;
+  final String ratingOnClient;
+  final List<String> imagesAfter;
 
-
-
-  PageContent({required this.currentUserRole
-    , required this.buttons
-    , required this.selectedDate
-    , required this.selectedInterval
-    , required this.scheduleStatus
-    , required this.change
-    , required this.chat
-    , required this.schedule_vc_generate_button
-    , required this.complete_vc_generate_button
-    , required this.project_complete_button
-    , required this.support
-
-
-
+  PageContent({
+    required this.currentUserRole,
+    required this.buttons,
+    required this.selectedDate,
+    required this.selectedInterval,
+    required this.scheduleStatus,
+    required this.change,
+    required this.chat,
+    required this.schedule_vc_generate_button,
+    required this.complete_vc_generate_button,
+    required this.project_complete_button,
+    required this.support,
+    required this.reviewOnWorker,
+    required this.ratingOnWorker,
+    required this.reviewOnClient,
+    required this.ratingOnClient,
+    required this.imagesAfter,
   });
 
   factory PageContent.fromJson(Map<String, dynamic> json) {
+    List<String> imagesAfter = [];
+    if (json.containsKey('images_after') && json['images_after'] is List) {
+      imagesAfter = List<String>.from(json['images_after'].map((x) => x as String));
+    }
+
+    // Other fields can be default to empty strings/lists if they're missing
     return PageContent(
-      currentUserRole: json['current_user_role']?? '',
-      buttons: json['buttons']?? '',
+      currentUserRole: json['current_user_role'] ?? '',
+      buttons: json['buttons'] ?? '',
       selectedDate: json['selected_date'] ?? '',
       selectedInterval: json['selected_interval'] ?? '',
       scheduleStatus: json['schedule_status'] ?? '',
@@ -6397,27 +6773,45 @@ class PageContent {
       complete_vc_generate_button: json['complete_vc_generate_button'] ?? '',
       project_complete_button: json['project_complete_button'] ?? '',
       support: json['support'] ?? '',
+      reviewOnWorker: json['review_on_worker'] ?? '',
+      ratingOnWorker: json['rating_on_worker'] ?? '',
+      reviewOnClient: json['review_on_client'] ?? '',
+      ratingOnClient: json['rating_on_client'] ?? '',
+      imagesAfter: imagesAfter,
     );
-
   }
 }
 class page_access_data {
   final String chat_ID;
-  final dynamic schedule_vc;
-  final dynamic finalizing_vc;
+  final String schedule_vc;
+  final String finalizing_vc;
 
-  page_access_data({required this.chat_ID
-    ,required this.schedule_vc
-    ,required this.finalizing_vc
+  page_access_data({required this.chat_ID, required this.schedule_vc, required this.finalizing_vc});
 
-  });
+  // Named constructor for the empty case
+  page_access_data.empty()
+      : chat_ID = '',
+        schedule_vc = '',
+        finalizing_vc = '';
 
-  factory page_access_data.fromJson(Map<String, dynamic> json) {
-    return page_access_data(
-      chat_ID: json['chat_ID']?? '',
-      schedule_vc: json['schedule_vc']?? '',
-      finalizing_vc: json['finalizing_vc']?? '',
-    );
+  factory page_access_data.fromJson(dynamic json) {
+    if (json is Map<String, dynamic>) {
+      // Data is a Map, process it
+      return page_access_data(
+        chat_ID: json['chat_ID'] ?? '',
+        schedule_vc: json['schedule_vc'].toString() ?? '',
+        finalizing_vc: json['finalizing_vc'] ?? '',
+      );
+    } else if (json is List && json.isEmpty) {
+      // Empty list, use empty constructor
+      return page_access_data.empty();
+    } else if (json == null) {
+      // Handle null case
+      return page_access_data.empty();
+    } else {
+      // Other invalid formats, throw exception
+      throw Exception('Invalid format for page_access_data');
+    }
   }
 }
 class select_worker_bid {
@@ -6599,6 +6993,38 @@ class ModernPopup extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class RatingDisplay extends StatelessWidget {
+  final double rating;
+
+  const RatingDisplay({  required this.rating}) ;
+
+  @override
+  Widget build(BuildContext context) {
+    final int ratingInt = rating.clamp(0.0, 5.0).toInt();
+    final double ratingFrac = rating - ratingInt;
+    return Row(
+      children: List.generate(5, (index) {
+        if (index < ratingInt) {
+          return Icon(
+            Icons.star,
+            color: Colors.yellow,
+          );
+        } else if (index == ratingInt && ratingFrac > 0) {
+          return Icon(
+            Icons.star_half , color: Colors.yellow,
+
+          );
+        } else {
+          return Icon(
+            Icons.star_border,
+            color: Colors.yellow,
+          );
+        }
+      }),
     );
   }
 }

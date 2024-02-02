@@ -14,11 +14,13 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:intl/intl.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:pinput/pinput.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
+import 'package:video_player/video_player.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutWorker.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
 import '../InboxwithChat/ChatClient.dart';
@@ -376,7 +378,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
           'Failed to load project details. Status code: ${response.statusCode}, Message: $message');
     }
   }
-
+  late VideoPlayerController _controller;
+  String video ='';
   @override
   void initState() {
     super.initState();
@@ -406,6 +409,12 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
           !scrollController2.position.outOfRange) {
         panelController2.anchor();
       } else {}
+      _controller = VideoPlayerController.networkUrl(Uri.parse(
+          'https://workdonecorp.com/images/1706773953.mp4'))
+        ..initialize().then((_) {
+          // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+          setState(() {});
+        });
     });
   }
 
@@ -425,7 +434,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
       ),
     );
   }
-
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -450,8 +463,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
         focusNode?.requestFocus();
       }
     }
+    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
     return Stack(children: <Widget>[
       Scaffold(
+        key: _scaffoldKey,
         resizeToAvoidBottomInset: true, // This line should be present
 
         backgroundColor: HexColor('FFFFFF'),
@@ -511,59 +527,113 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                       return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                      CarouselSlider(
-                      options: CarouselOptions(
-                      pageSnapping: true,
-                        height: 210,
-                        aspectRatio: 16 / 9,
-                        viewportFraction: 1.0,
-                        initialPage: 0,
-                        enableInfiniteScroll: true,
-                        reverse: false,
-                        autoPlay: false,
-                        autoPlayInterval: Duration(seconds: 3),
-                        autoPlayAnimationDuration: Duration(milliseconds: 800),
-                        autoPlayCurve: Curves.fastOutSlowIn,
-                        scrollDirection: Axis.horizontal,
-                      ),
-                    items: projectData.images.map((images) {
-                    return Builder(
-                    builder: (BuildContext context) {
-                    // Wrap Image in a GestureDetector to handle taps
-                    return GestureDetector(
-                    onTap: () {
-                    // When image is tapped, push a new view onto the stack with the full image
-                    Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => Scaffold(
-                    backgroundColor: Colors.black,
-                    appBar: AppBar(
-                    backgroundColor: Colors.black,
-                    elevation: 0,
-                    ),
-                    body: Center(
-                    child: InteractiveViewer(
-                    child: Image.network(
-                    images,
-                    fit: BoxFit.contain,
-                    ),
-                    ),
-                    ),
-                    ),
-                    ));
-                    },
-                    child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
-                    child: Image.network(
-                    images,
-                    fit: BoxFit.cover,
-                    width: MediaQuery.of(context).size.width,
-                    height: double.infinity,
-                    ),
-                    ),
-                    );
-                    },
-                    );
-                    }).toList(),),
+                            CarouselSlider(
+                              options: CarouselOptions(
+                                pageSnapping: true,
+                                height: 210,
+                                viewportFraction: 1.0,
+                                initialPage: 0,
+                                enableInfiniteScroll: true,
+                                reverse: false,
+                                autoPlay: false,
+                                autoPlayInterval: Duration(seconds: 3),
+                                autoPlayAnimationDuration: Duration(milliseconds: 800),
+                                autoPlayCurve: Curves.fastOutSlowIn,
+                                scrollDirection: Axis.horizontal,
+                              ),
+                              items: [
+                                if (projectData.video != '')
+                                  Builder(
+                                    builder: (BuildContext context) {
+                                      return Stack(
+                                        children: [
+                                          Center(
+                                            child: InkWell(
+                                              onTap: () {
+                                                _controller!.value.isPlaying
+                                                    ? _controller!.pause() // Pause if already playing
+                                                    : _controller!.initialize().then((_) => _controller!.play()); // Start from beginning
+                                              },
+                                              child: Icon(
+                                                _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                                                size: 30,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            width: MediaQuery.of(context).size.width,
+                                            height: 210,
+                                            child: VideoPlayer(_controller!),
+                                          ),
+                                          Positioned(
+                                            bottom: 16.0,
+                                            right: 16.0,
+                                            child: InkWell(
+                                              onTap: () {
+                                                _controller!.value.isPlaying
+                                                    ? _controller!.pause()
+                                                    : _controller!.initialize().then((_) => _controller!.play());
+                                              },
+                                              child: Container(
+                                                padding: EdgeInsets.all(8.0),
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: Colors.black,
+                                                ),
+                                                child: Icon(
+                                                  _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+
+                                ...projectData.images.map((image) {
+                                  return Builder(
+                                    builder: (BuildContext context) {
+                                      // Wrap Image in a GestureDetector to handle taps
+                                      return GestureDetector(
+                                        onTap: () {
+                                          // When image is tapped, push a new view onto the stack with the full image
+                                          Navigator.of(context).push(MaterialPageRoute(
+                                            builder: (_) => Scaffold(
+                                              backgroundColor: Colors.black,
+                                              appBar: AppBar(
+                                                backgroundColor: Colors.black,
+                                                elevation: 0,
+                                              ),
+                                              body: Center(
+                                                child: InteractiveViewer(
+                                                  child: Image.network(
+                                                    image,
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ));
+                                        },
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(30),
+                                          child: Image.network(
+                                            image,
+                                            fit: BoxFit.cover,
+                                            width: MediaQuery.of(context).size.width,
+                                            height: double.infinity,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }),
+
+                              ].toList(),
+                            ),
                             SizedBox(
                               height: 12,
                             ),
@@ -784,12 +854,15 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                               height: 16,
                             ),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 6.0),
+                              padding: const EdgeInsets.symmetric(horizontal: 6.0),
                               child: Row(
+                                mainAxisAlignment:
+                                MainAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Workers Bids',
+                                    projectData.selectworkerbid.worker_firstname != ''
+                                        ? 'Selected Worker'
+                                        : 'Workers Bids',
                                     style: GoogleFonts.openSans(
                                       textStyle: TextStyle(
                                         color: HexColor('454545'),
@@ -808,8 +881,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
 
                             //accepted worker
                             Visibility(
-                              visible: projectData.pageContent.currentUserRole == 'worker' &&
-                                  (projectData.status == 'bid_accepted' || projectData.status == 'processing' || projectData.status == 'scheduled'|| projectData.status == 'finalizing'),
+                              visible: projectData.selectworkerbid.worker_firstname != '', // Check if select_worker_bid exists
+
                               child: Visibility(
                                 visible: projectData.selectworkerbid.worker_firstname.isNotEmpty,
                                 // Check if select_worker_bid exists and has a non-empty worker_firstname
@@ -1018,6 +1091,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker> {
                                   );
                                 } else {
                                   ProjectData projectData = snapshot.data!;
+
+                                  double ratingonclient = double.tryParse(projectData.pageContent.ratingOnClient ?? "0") ?? 0;
+                                  double ratingonworker = double.tryParse(projectData.pageContent.ratingOnWorker ?? "0") ?? 0;
+
                                   if (projectData.pageContent.scheduleStatus == "pending") {
                                     WidgetsBinding.instance?.addPostFrameCallback((_) {
                                       showModalBottomSheet(
@@ -1126,173 +1203,9 @@ setState(() {
                                       );
                                     });
                                   }
-                                  if (projectData.pageaccessdata.force_review == "true") {
-                                    WidgetsBinding.instance?.addPostFrameCallback((_) {
-                                      showModalBottomSheet(
-                                        context: context,
-                                        isDismissible: false, // User must tap a button to dismiss
-                                        enableDrag: false, // The bottom sheet cannot be dragged down
-                                        builder: (BuildContext context) {
-                                          return SafeArea(
-                                            child: Column(
 
-                                              mainAxisSize: MainAxisSize.min, // Use minimum space necessary
-                                              children: [
-                                                ListTile(
-                                                  title: Text(
-                                                    'Rating',
-                                                    style: GoogleFonts.roboto(
-                                                      textStyle: TextStyle(
-                                                        color: HexColor('424347'),
-                                                        fontSize: 18,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                ListTile(
-                                                  title: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                                    children: [
-                                                      Row(
-                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                        children: [
-                                                          Container(
-                                                            height: 56,
-                                                            width: 56,
-                                                            decoration: BoxDecoration(
-                                                              shape: BoxShape.circle,
-                                                              image: DecorationImage(
-                                                                fit: BoxFit.cover,
-                                                                image: NetworkImage(
-                                                                  projectData.clientData.profileImage != null &&
-                                                                      projectData.clientData.profileImage.isNotEmpty
-                                                                      ?  projectData.clientData.profileImage
-                                                                      : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          SizedBox(width: 10,),
-                                                          Column(
-                                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                                            children: [
-                                                              Text('${ projectData.clientData.firstname}',
-                                                                style: GoogleFonts.roboto(
-                                                                  textStyle: TextStyle(
-                                                                    color: HexColor('706F6F'),
-                                                                    fontSize: 17,
-                                                                    fontWeight: FontWeight.bold,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              SizedBox(width: 8),
-                                                              // Replace the following with a RatingBar widget
-                                                              RatingBar.builder(
-                                                                initialRating: 3,
-                                                                minRating: 1,
-                                                                direction: Axis.horizontal,
-                                                                allowHalfRating: true,
-                                                                itemCount: 5,
-                                                                itemPadding: EdgeInsets.symmetric(horizontal: 2.0), // Adjust padding as needed
-                                                                itemBuilder: (context, _) => Icon(
-                                                                  Icons.star,
-                                                                  color: HexColor('4D8D6E'),
-                                                                  size: 14, // Adjust the size of the star icon
-                                                                ),
-                                                                onRatingUpdate: (rating2) {
-                                                                  rating=rating2.toString();
-                                                                  print(rating);
-                                                                },
-                                                              )
 
-                                                            ],
-                                                          ),
-                                                        ],
-                                                      )
-                                                    ],
-                                                  ),
-                                                ),
-                                                SizedBox(
-                                                  height: screenheight * 0.02,
-                                                ),
-                                                Padding(
-                                                  padding: const EdgeInsets.symmetric(
-                                                    horizontal: 12.0,
-                                                  ),
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                      borderRadius: BorderRadius.circular(15),
-                                                      color: Colors.grey[100],
-                                                    ),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                                                      child: TextFormField(
-                                                       controller: reviewcontroller,
-                                                        decoration: InputDecoration(
-                                                          hintText: 'Write a Review ...',
-                                                          hintStyle: TextStyle(color: Colors.grey[500]),
-                                                          border: InputBorder.none,
-                                                        ),
-                                                        maxLines: 4,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
-                                                  child: Center(
-                                                    child: ActionSlider.standard(
-                                                      sliderBehavior: SliderBehavior.stretch,
-                                                      rolling: false,
-                                                      width: double.infinity,
-                                                      backgroundColor: Colors.white,
-                                                      toggleColor: HexColor('4D8D6E'),
-                                                      iconAlignment: Alignment.centerRight,
-                                                      loadingIcon: SizedBox(
-                                                          width: 55,
-                                                          child: Center(
-                                                              child: SizedBox(
-                                                                width: 24.0,
-                                                                height: 24.0,
-                                                                child: CircularProgressIndicator(
-                                                                    strokeWidth: 2.0, color: Colors.white),
-                                                              ))),
-                                                      successIcon: const SizedBox(
-                                                          width: 55,
-                                                          child: Center(
-                                                              child: Icon(
-                                                                Icons.check_rounded,
-                                                                color: Colors.white,
-                                                              ))),
-                                                      icon: const SizedBox(
-                                                          width: 55,
-                                                          child: Center(
-                                                              child: Icon(
-                                                                Icons.keyboard_double_arrow_right,
-                                                                color: Colors.white,
-                                                              ))),
-                                                      action: (controller) async {
-                                                        controller.loading(); //starts loading animation
-                                                        await Future.delayed(const Duration(seconds: 3));
-                                                        controller.success();
-                                                        Reviewproject(); // Call your function here
-                                                        await Future.delayed(const Duration(seconds: 1));
-                                                        controller.reset(); //resets the slider
-                                                      },
-                                                      child: const Text('Swipe To Confirm'),
-                                                    ),
-                                                  ),
-                                                ),
-                                                SizedBox(height: 20,)
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    });
-                                  }
+
 
                                   if (projectData.pageContent.currentUserRole ==
                                           'worker' &&
@@ -1638,7 +1551,26 @@ setState(() {
                                           ],
                                         ),
 SizedBox(height: 20,),
-
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Workers Bids',
+                                                style: GoogleFonts.openSans(
+                                                  textStyle: TextStyle(
+                                                    color: HexColor('454545'),
+                                                    fontSize: 22,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        SizedBox(height: 12,),
                                               ListView.builder(
                                 physics: NeverScrollableScrollPhysics(),
                                 shrinkWrap: true,
@@ -2082,7 +2014,46 @@ SizedBox(height: 20,),
                                           ],
                                         ),
                                         SizedBox(height: 20,),
-
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Workers Bids',
+                                                style: GoogleFonts.openSans(
+                                                  textStyle: TextStyle(
+                                                    color: HexColor('454545'),
+                                                    fontSize: 22,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        SizedBox(height: 12,),
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Workers Bids',
+                                                style: GoogleFonts.openSans(
+                                                  textStyle: TextStyle(
+                                                    color: HexColor('454545'),
+                                                    fontSize: 22,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        SizedBox(height: 12,),
                                         ListView.builder(
                                           physics: NeverScrollableScrollPhysics(),
                                           shrinkWrap: true,
@@ -2551,7 +2522,26 @@ SizedBox(height: 20,),
                                         //   ],
                                         // ),
                                         SizedBox(height: 20,),
-
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Workers Bids',
+                                                style: GoogleFonts.openSans(
+                                                  textStyle: TextStyle(
+                                                    color: HexColor('454545'),
+                                                    fontSize: 22,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        SizedBox(height: 12,),
                                         ListView.builder(
                                           physics: NeverScrollableScrollPhysics(),
                                           shrinkWrap: true,
@@ -2571,7 +2561,6 @@ SizedBox(height: 20,),
                                   else if (  projectData.status == 'finalizing' || projectData.pageContent.scheduleStatus == 'accepted')
 {
   return  Column(
-
 
     children: [
 
@@ -3303,6 +3292,26 @@ Navigator.pop(context);
 
       SizedBox(height: 20,),
 
+      Padding(
+        padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+        child: Row(
+          mainAxisAlignment:
+          MainAxisAlignment.start,
+          children: [
+            Text(
+              'Workers Bids',
+              style: GoogleFonts.openSans(
+                textStyle: TextStyle(
+                  color: HexColor('454545'),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      SizedBox(height: 12,),
       ListView.builder(
         physics: NeverScrollableScrollPhysics(),
         shrinkWrap: true,
@@ -3319,6 +3328,449 @@ Navigator.pop(context);
 
 
 }
+
+                                  else if ( projectData.status ==
+                                      'completed') {
+                                    return
+
+                                      Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+
+                                      children: [
+
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Reviews',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 17,),
+                                        projectData.pageContent.ratingOnWorker != '' || projectData.pageContent.reviewOnWorker != ''
+
+                                            ?  Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Client Review :',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('34446F'),
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ):Container(),
+                                        SizedBox(height: 10,),
+                                        projectData.pageContent.ratingOnWorker != '' || projectData.pageContent.reviewOnWorker != ''
+                                            ? Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 23,
+                                              backgroundImage: NetworkImage(
+                                                projectData.clientData?.profileImage ==
+                                                    'https://workdonecorp.com/images/'
+                                                    ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
+                                                    : projectData
+                                                    .clientData?.profileImage ??
+                                                    'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+                                              ),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              "${projectData.clientData.firstname}",
+                                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                            ),
+                                            Spacer(),
+                                            RatingDisplay(rating: ratingonclient),
+                                          ],
+                                        )
+                                            : Container(),
+                                        SizedBox(height: 8),
+                                        projectData.pageContent.reviewOnWorker != ''
+                                            ? Padding(
+                                          padding: const EdgeInsets.all(16.0), // Consistent padding
+                                          child: Text(
+                                            '${projectData.pageContent.reviewOnWorker}',
+                                            style: GoogleFonts.roboto( // Same font for consistency
+                                              textStyle: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 16, // Readable size
+                                                fontWeight: FontWeight.w400, // Slightly emphasized weight
+                                                height: 1.5, // Increased line height for better spacing
+                                              ),
+                                            ),
+                                            textAlign: TextAlign.left,
+                                          ),
+                                        )
+                                            : SizedBox(height: 1),
+                                        SizedBox(height: 8),
+                                        Container(
+                                          height: 140,
+                                          child: ListView.builder(
+                                            scrollDirection: Axis.horizontal,
+                                            itemCount: projectData.pageContent.imagesAfter.length,
+                                            itemBuilder: (context, index) {
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) => PhotoView(
+                                                        imageProvider: NetworkImage(
+                                                          projectData.pageContent.imagesAfter[index],
+                                                        ),
+                                                        heroAttributes: PhotoViewHeroAttributes(
+                                                          tag: projectData.pageContent.imagesAfter[index],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                                child: Hero(
+                                                  tag: projectData.pageContent.imagesAfter[index],
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                    child: AspectRatio(
+                                                      aspectRatio: 1,
+                                                      child: Image.network(
+                                                        projectData.pageContent.imagesAfter[index],
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        SizedBox(height: 17,),
+                                        projectData.pageContent.ratingOnClient != '' || projectData.pageContent.reviewOnClient != ''
+
+                                            ? Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Worker Review :',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('34446F'),
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ):
+                                        Row(
+                                children: [
+
+                                Expanded(
+                                child: Container(
+                                width: 220.0,
+                                height: 50,
+                                // Set the desired width
+                                child: ElevatedButton(
+                                onPressed: () {
+                                  showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      builder: (context) {
+                                        return SafeArea(
+                                          child: SingleChildScrollView(
+                                            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                ListTile(
+                                                  title: Text(
+                                                    'The Project is Completed, make feedback about Client!',
+                                                    style: GoogleFonts.roboto(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('4D8D6E'),
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ),
+                                                ListTile(
+                                                  title: Text(
+                                                    'Rating',
+                                                    style: GoogleFonts.roboto(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('424347'),
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                ListTile(
+                                                  title: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                    children: [
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: [
+                                                          Container(
+                                                            height: 56,
+                                                            width: 56,
+                                                            decoration: BoxDecoration(
+                                                              shape: BoxShape.circle,
+                                                              image: DecorationImage(
+                                                                fit: BoxFit.cover,
+                                                                image: NetworkImage(
+                                                                  projectData.clientData.profileImage != 'https://workdonecorp.com/images/' &&
+                                                                      projectData.clientData.profileImage.isNotEmpty
+                                                                      ? projectData.clientData.profileImage
+                                                                      : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          SizedBox(width: 10,),
+                                                          Column(
+                                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                                            children: [
+                                                              Text(
+                                                                '${projectData.clientData.firstname}',
+                                                                style: GoogleFonts.roboto(
+                                                                  textStyle: TextStyle(
+                                                                    color: HexColor('706F6F'),
+                                                                    fontSize: 17,
+                                                                    fontWeight: FontWeight.bold,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(width: 8),
+                                                              RatingBar.builder(
+                                                                initialRating: 3,
+                                                                minRating: 1,
+                                                                direction: Axis.horizontal,
+                                                                allowHalfRating: true,
+                                                                itemCount: 5,
+                                                                itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                                itemBuilder: (context, _) => Icon(
+                                                                  Icons.star,
+                                                                  color: HexColor('4D8D6E'),
+                                                                  size: 14,
+                                                                ),
+                                                                onRatingUpdate: (rating2) {
+                                                                  rating = rating2.toString();
+                                                                  print(rating);
+                                                                },
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: screenheight * 0.02,
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      borderRadius: BorderRadius.circular(15),
+                                                      color: Colors.grey[100],
+                                                    ),
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                                      child: TextFormField(
+                                                        controller: reviewcontroller,
+                                                        decoration: InputDecoration(
+                                                          hintText: 'Write a Review ...',
+                                                          hintStyle: TextStyle(color: Colors.grey[500]),
+                                                          border: InputBorder.none,
+                                                        ),
+                                                        maxLines: 4,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
+                                                  child: Center(
+                                                    child: ActionSlider.standard(
+                                                      sliderBehavior: SliderBehavior.stretch,
+                                                      rolling: false,
+                                                      width: double.infinity,
+                                                      backgroundColor: Colors.white,
+                                                      toggleColor: HexColor('4D8D6E'),
+                                                      iconAlignment: Alignment.centerRight,
+                                                      loadingIcon: SizedBox(
+                                                        width: 55,
+                                                        child: Center(
+                                                          child: SizedBox(
+                                                            width: 24.0,
+                                                            height: 24.0,
+                                                            child: CircularProgressIndicator(
+                                                              strokeWidth: 2.0,
+                                                              color: Colors.white,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      successIcon: const SizedBox(
+                                                        width: 55,
+                                                        child: Center(
+                                                          child: Icon(
+                                                            Icons.check_rounded,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      icon: const SizedBox(
+                                                        width: 55,
+                                                        child: Center(
+                                                          child: Icon(
+                                                            Icons.keyboard_double_arrow_right,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      action: (controller) async {
+                                                        controller.loading();
+                                                        await Future.delayed(const Duration(seconds: 3));
+                                                        controller.success();
+                                                        Reviewproject();
+                                                        await Future.delayed(const Duration(seconds: 1));
+                                                        controller.reset();
+                                                      },
+                                                      child: const Text('Swipe To Confirm'),
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(height: 20,)
+                                              ],
+                                            ),
+                                          ),
+                                        );
+
+                                      });
+                                },
+                                style: ElevatedButton
+                                    .styleFrom(
+                                primary:
+                                HexColor('ED6F53'),
+                                // Background color
+                                onPrimary: Colors.white,
+                                // Text color
+                                elevation: 8,
+                                // Elevation
+                                shape:
+                                RoundedRectangleBorder(
+                                borderRadius:
+                                BorderRadius.circular(
+                                12), // Rounded corners
+                                ),
+                                ),
+                                child: Padding(
+                                padding:
+                                const EdgeInsets
+                                    .all(12.0),
+                                child: Text(
+                                'Rate your Client',
+                                style: GoogleFonts
+                                    .roboto(
+                                textStyle:
+                                TextStyle(
+                                color:
+                                Colors.white,
+                                fontSize: 14,
+                                fontWeight:
+                                FontWeight
+                                    .bold,
+                                ),
+                                ),
+                                ),
+                                ),
+                                ),
+                                ),
+                                ),
+                                ],
+                                ) ,
+                                        SizedBox(height: 10,),
+                                        projectData.pageContent.ratingOnClient != '' || projectData.pageContent.reviewOnClient != ''
+                                            ? Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 23,
+                                              backgroundImage: NetworkImage(
+                                                projectData.selectworkerbid.worker_profile_pic != '' && projectData.selectworkerbid.worker_profile_pic.isNotEmpty
+                                                    ? projectData.selectworkerbid.worker_profile_pic
+                                                    : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // Use default if empty
+                                              ),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              "${projectData.selectworkerbid.worker_firstname}",
+                                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                            ),
+                                            Spacer(),
+                                            RatingDisplay(rating: ratingonclient),
+                                          ],
+                                        )
+                                            : Container(),
+                                        SizedBox(height: 5),
+                                        projectData.pageContent.reviewOnClient != ''
+                                            ? Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12.0), // Add padding around the text
+                                          child: Text(
+                                            '${projectData.pageContent.reviewOnClient}',
+                                            style: GoogleFonts.roboto( // Use Roboto for a more readable font
+                                              textStyle: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 16, // Increased font size for better readability
+                                                fontWeight: FontWeight.w400, // Slightly heavier weight for emphasis
+                                              ),
+
+                                            ),
+                                          ),
+                                        )
+                                            : Container(),
+
+
+
+
+
+                                        SizedBox(height: 15,),
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Workers Bids',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        ListView.builder(
+                                          physics: NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true,
+                                          itemCount: projectData.bids.length,
+                                          itemBuilder: (context, index) {
+                                            Bid bid = projectData.bids[index];
+                                            return buildListItem(bid);
+                                          },
+                                        ),
+
+                                      ],
+                                    );
+                                  }
+
                                   else if (projectData.bids.isNotEmpty) {
                                     // Render a ListView with bids
                                     return ListView.builder(
@@ -3889,6 +4341,7 @@ class ProjectData {
   final String desc;
   final bool liked; // Assuming the 'liked' field should be a boolean
   final int numberOfLikes;
+  final String video;
   final dynamic? lowestBid; // Assuming lowest bid could be null
   final String timeframeStart;
   final String timeframeEnd;
@@ -3906,6 +4359,7 @@ class ProjectData {
     required this.postedFrom,
     required this.desc,
     required this.selectworkerbid,
+    required this.video,
     required this.liked,
     required this.clientData,
     required this.numberOfLikes,
@@ -3921,8 +4375,8 @@ class ProjectData {
     var baseData = jsonData['base_data'] as Map<String, dynamic>? ?? {};
     var clientInfo = baseData['client_info'] as Map<String, dynamic>? ?? {};
     var pageContent = jsonData['page_content'] as Map<String, dynamic>? ?? {};
-    var pageAccessData =
-        jsonData['page_access_data'] as Map<String, dynamic>? ?? {};
+    page_access_data accessData = page_access_data.fromJson(jsonData['page_access_data']);
+
     var selectWorkerBid =
         jsonData['select_worker_bid'] as Map<String, dynamic>? ?? {};
 
@@ -3933,6 +4387,7 @@ class ProjectData {
       postedFrom: baseData['posted_from'] ?? 'No Post Date',
       status: baseData['status'] ?? 'No Status',
       desc: baseData['desc'] ?? 'No Description',
+      video: baseData['video'] ?? '',
       liked: baseData['liked'] == 'true',
       numberOfLikes: baseData['number_of_likes'] ?? 0,
       lowestBid: baseData['lowest_bid'] ?? 'No Bids',
@@ -3943,7 +4398,7 @@ class ProjectData {
           .toList(),
       clientData: ClientData.fromJson(clientInfo),
       pageContent: PageContent.fromJson(pageContent),
-      pageaccessdata: page_access_data.fromJson(pageAccessData),
+      pageaccessdata: accessData,
       selectworkerbid: select_worker_bid.fromJson(selectWorkerBid),
     );
   }
@@ -4029,10 +4484,10 @@ class PageContent {
           json['enter_complete_project_verification_code_button'] ?? '',
       project_complete_button: json['project_complete_button'] ?? '',
       support: json['support'] ?? '',
-      reviewOnWorker: json['review_on_worker'] ?? 'No Review', // Providing default value if null
-      ratingOnWorker: json['rating_on_worker'] ?? '0.00',
-      reviewOnClient: json['review_on_client'], // nullable field
-      ratingOnClient: json['rating_on_client'] ?? '0.00',
+      reviewOnWorker: json['review_on_worker'] ?? '', // Providing default value if null
+      ratingOnWorker: json['rating_on_worker'] ?? '',
+      reviewOnClient: json['review_on_client']?? '',
+      ratingOnClient: json['rating_on_client'] ?? '',
       imagesAfter: imagesList,
       client_rating: json['client_rating'] ?? '',
     );
@@ -4051,14 +4506,34 @@ class page_access_data {
       required this.force_review,
       required this.complete_vc});
 
-  factory page_access_data.fromJson(Map<String, dynamic> json) {
-    return page_access_data(
-      chat_ID: json['chat_ID'] ?? '',
-      schedule_vc: json['schedule_vc'] ?? '',
-      force_review: json['force_review'] ?? '',
-      complete_vc: json['complete_vc'] ?? '',
-    );
+  page_access_data.empty()
+      : chat_ID = '',
+        schedule_vc = '',
+        force_review = '',
+        complete_vc = '';
+
+  factory page_access_data.fromJson(dynamic json) {
+
+    if (json is Map<String, dynamic>) {
+      // Data is a Map, process it
+      return page_access_data(
+        chat_ID: json['chat_ID'] ?? '',
+        schedule_vc: json['schedule_vc'].toString() ?? '',
+        force_review: json['force_review'] ?? '',
+        complete_vc: json['complete_vc'] ?? '',
+      );
+    } else if (json is List && json.isEmpty) {
+      // Empty list, use empty constructor
+      return page_access_data.empty();
+    } else if (json == null) {
+      // Handle null case
+      return page_access_data.empty();
+    } else {
+      // Other invalid formats, throw exception
+      throw Exception('Invalid format for page_access_data');
+    }
   }
+
 }
 
 class select_worker_bid {
@@ -4230,6 +4705,37 @@ class ModernPopup extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+class RatingDisplay extends StatelessWidget {
+  final double rating;
+
+  const RatingDisplay({  required this.rating}) ;
+
+  @override
+  Widget build(BuildContext context) {
+    final int ratingInt = rating.clamp(0.0, 5.0).toInt();
+    final double ratingFrac = rating - ratingInt;
+    return Row(
+      children: List.generate(5, (index) {
+        if (index < ratingInt) {
+          return Icon(
+            Icons.star,
+            color: Colors.yellow,
+          );
+        } else if (index == ratingInt && ratingFrac > 0) {
+          return Icon(
+            Icons.star_half , color: Colors.yellow,
+
+          );
+        } else {
+          return Icon(
+            Icons.star_border,
+            color: Colors.yellow,
+          );
+        }
+      }),
     );
   }
 }

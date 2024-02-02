@@ -100,7 +100,7 @@ double total =0;
 
   void updateTotal() {
     double value1 = double.tryParse(receive.text) ?? 0.0;
-    double value2 = 10.0; // You can change this value as needed
+    double value2 = 0.0; // You can change this value as needed
     setState(() {
       total = value1 + value2;
     });
@@ -118,6 +118,7 @@ double total =0;
       final String userToken = prefs.getString('user_token') ?? '';
       print (userToken);
       // Prepare the request body
+      String commentText = commentController.text.isEmpty ? 'No comment' : commentController.text;
 
 
       // Make the API request
@@ -129,7 +130,7 @@ double total =0;
         body: {
           'project_id': widget.projectId.toString(),
           'amount': total.toString(),
-          'comment': commentController.text,
+          'comment': commentText ?? 'no comment',
 
         },
       );

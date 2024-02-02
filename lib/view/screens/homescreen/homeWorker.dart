@@ -585,30 +585,30 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                 SizedBox(
                   height: 12,
                 ),
-                Row(
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/time.svg',
-                      width: 35.0,
-                      height: 35.0,
-                    ),
-                    SizedBox(
-                      width: 8,
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        'Projects',
-                        style: GoogleFonts.poppins(
-                          textStyle: TextStyle(
-                              color: HexColor('1A1D1E'),
-                              fontSize: 15,
-                              fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
+                // Row(
+                //   children: [
+                //     SvgPicture.asset(
+                //       'assets/icons/time.svg',
+                //       width: 35.0,
+                //       height: 35.0,
+                //     ),
+                //     SizedBox(
+                //       width: 8,
+                //     ),
+                //     // TextButton(
+                //     //   onPressed: () {},
+                //     //   child: Text(
+                //     //     'Projects',
+                //     //     style: GoogleFonts.poppins(
+                //     //       textStyle: TextStyle(
+                //     //           color: HexColor('1A1D1E'),
+                //     //           fontSize: 15,
+                //     //           fontWeight: FontWeight.normal),
+                //     //     ),
+                //     //   ),
+                //     // )
+                //   ],
+                // ),
                 SizedBox(
                   height: 12,
                 ),
@@ -639,34 +639,63 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                 SizedBox(
                   height: 12,
                 ),
-            Row(
-              children: [
-                SvgPicture.asset(
-                  'assets/icons/portfolioicon.svg',
-                  width: 35.0,
-                  height: 35.0,
-                ),
-                SizedBox(
-                  width: 8,
-                ),
-                TextButton(
+            // Row(
+            //   children: [
+            //     SvgPicture.asset(
+            //       'assets/icons/portfolioicon.svg',
+            //       width: 35.0,
+            //       height: 35.0,
+            //     ),
+            //     SizedBox(
+            //       width: 8,
+            //     ),
+            //     TextButton(
+            //
+            //
+            //       onPressed: () {Get.to(Reviews());},
+            //       child: Text(
+            //         'Review',
+            //         style: GoogleFonts.poppins(
+            //           textStyle: TextStyle(
+            //               color: HexColor('1A1D1E'),
+            //               fontSize: 15,
+            //               fontWeight: FontWeight.normal),
+            //         ),
+            //       ),
+            //     )
+            //   ],
+            // ),
+                Spacer(),
 
-
-                  onPressed: () {Get.to(Reviews());},
-                  child: Text(
-                    'Review',
-                    style: GoogleFonts.poppins(
-                      textStyle: TextStyle(
-                          color: HexColor('1A1D1E'),
-                          fontSize: 15,
-                          fontWeight: FontWeight.normal),
-                    ),
+                Text('Powered by :',
+                  style: GoogleFonts.poppins(
+                    textStyle: TextStyle(
+                        color: HexColor('6A4141'),
+                        fontSize: 15,
+                        fontWeight: FontWeight.normal),
                   ),
-                )
-              ],
-            ),
-            SizedBox(
-              height: 60,)
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/Logo.svg',
+                      width: 50.0,
+                      height: 64.0,
+                    ),
+                    Text('Workdone corp.',
+                      style: GoogleFonts.poppins(
+                        textStyle: TextStyle(
+                            color: HexColor('595B5B'),
+                            fontSize: 13,
+                            fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12,),
+
+
               ],
             ),
           ),

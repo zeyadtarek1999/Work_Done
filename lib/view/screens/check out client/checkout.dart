@@ -18,6 +18,7 @@ import 'package:workdone/view/screens/check%20out%20client/paypal%20checkout.dar
 import 'package:workdone/view/widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
 
+import '../Bid Details/Bid details Client.dart';
 import '../Edit address.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
@@ -64,18 +65,20 @@ class _checkOutClientState extends State<checkOutClient> {
   String addressZip = '';
   String chat = '';
   late List<String> projectImages;
-
+  double total=0.0;
+  double fee=0.0;
+  double currentBidAmount=0.0;
 // Define a function to handle item selection
   Future<int> acceptproject() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final userToken = prefs.getString('user_token') ?? '';
       print(userToken);
-      double fee = 3.0; // Replace this with your actual fee
-      double currentBidAmount = double.parse(widget.currentbid);
+       fee = 3.0; // Replace this with your actual fee
+       currentBidAmount = double.parse(widget.currentbid);
 
 // Calculate the total by adding the current bid and fee
-      double total = currentBidAmount + fee;
+       total= currentBidAmount + fee;
       final response = await http.post(
         Uri.parse('https://workdonecorp.com/api/accept_worker_bid'),
         headers: {
@@ -218,7 +221,7 @@ class _checkOutClientState extends State<checkOutClient> {
     double currentBidAmount = double.parse(widget.currentbid);
 
 // Calculate the total by adding the current bid and fee
-    double total = currentBidAmount + fee;
+     total = currentBidAmount + fee;
     return Scaffold(
       floatingActionButton:
       FloatingActionButton(    heroTag: 'workdone_${unique}',
@@ -710,25 +713,24 @@ class _checkOutClientState extends State<checkOutClient> {
                   child: RoundedButton(
                       text: 'Pay Now',
                       press: () async {
-                        acceptproject();
-        
+print(total);
+int projectIdAsInt = int.parse(widget.project_id);
+
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (BuildContext context) => PaypalCheckout(
                               sandboxMode: true,
-                              clientId:
-                                  "AbL0i4Sq6zpEJnQHt6hes-TH3qp6MWCPYYFToB1CCtlaIuKOnQBRr_4oWKxvkBFoSib0jFIYN3P1kHac",
-                              secretKey:
-                                  "ELHtrs_24GdOJakv0DGWufiSSsefkv6j6SU3ri5rmFfUjLg4qk13hQqVWs3lxDmy1ZRkgj_TH8988cQV",
+                              clientId: "ARmLFvTeapAnQ3eKmmtR4A34yXqTKSvh9assM9YlXzgVoB07MaLpRkNQkBTNZBD131HhTWkDQlIIU6qg",
+                              secretKey: "EB__UVRnUJQxfOhfUEIQsbhIZCtH7DBouIOER_bDOWfcsEEuiWhXhwgfNwYT7DGfxhVEzaRCpK7Etz-c",
                               returnURL: "success.snippetcoder.com",
                               cancelURL: "cancel.snippetcoder.com",
-                              transactions: const [
+                              transactions:  [
                                 {
                                   "amount": {
-                                    "total": '70',
+                                    "total": '${total.toString()}',
                                     "currency": "USD",
                                     "details": {
-                                      "subtotal": '70',
+                                      "subtotal": '${total.toString()}',
                                       "shipping": '0',
                                       "shipping_discount": 0
                                     }
@@ -742,17 +744,12 @@ class _checkOutClientState extends State<checkOutClient> {
                                   "item_list": {
                                     "items": [
                                       {
-                                        "name": "Apple",
-                                        "quantity": 4,
-                                        "price": '5',
+                                        "name": "${widget.projecttitle}",
+                                        "quantity": 1,
+                                        "price": '${total.toString()}',
                                         "currency": "USD"
                                       },
-                                      {
-                                        "name": "Pineapple",
-                                        "quantity": 5,
-                                        "price": '10',
-                                        "currency": "USD"
-                                      }
+
                                     ],
         
                                     // shipping address is not required though
@@ -771,13 +768,70 @@ class _checkOutClientState extends State<checkOutClient> {
                               ],
                               note: "Contact us for any questions on your order.",
                               onSuccess: (Map params) async {
+                                acceptproject();
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text('Payment Successful'),
+                                      content: Text('Thank you for your payment!'),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () {
+                                            // Close the dialog
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                                Get.to(bidDetailsClient(projectId: projectIdAsInt));
                                 print("onSuccess: $params");
+
                               },
                               onError: (error) {
                                 print("onError: $error");
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text('Payment failed'),
+                                      content: Text('try again!'),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () {
+                                            // Close the dialog
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
                                 Navigator.pop(context);
                               },
                               onCancel: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text('Payment canceled'),
+
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () {
+                                            // Close the dialog
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
                                 print('cancelled:');
                               },
                             ),
@@ -822,6 +876,7 @@ class SuccessPopup extends StatelessWidget {
       ),
     );
   }
+
 }
 class AcceptProject {
 

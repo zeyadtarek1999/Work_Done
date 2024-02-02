@@ -264,55 +264,55 @@ class _MoreclientState extends State<Moreclient> {
               SizedBox(
                 height: 8,
               ),
-              Row(
-                children: [
-                  Icon(
-                    Ionicons.help_circle_outline,
-                    color: Colors.grey[800],
-                    size: 27,
-                  ),
-                  SizedBox(
-                    width: 9,
-                  ),
-                  TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        'Help',
-                        style: GoogleFonts.encodeSans(
-                          textStyle: TextStyle(
-                              color: HexColor('454545'),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      )),
-                ],
-              ),
+              // Row(
+              //   children: [
+              //     Icon(
+              //       Ionicons.help_circle_outline,
+              //       color: Colors.grey[800],
+              //       size: 27,
+              //     ),
+              //     SizedBox(
+              //       width: 9,
+              //     ),
+              //     TextButton(
+              //         onPressed: () {},
+              //         child: Text(
+              //           'Help',
+              //           style: GoogleFonts.encodeSans(
+              //             textStyle: TextStyle(
+              //                 color: HexColor('454545'),
+              //                 fontSize: 14,
+              //                 fontWeight: FontWeight.w600),
+              //           ),
+              //         )),
+              //   ],
+              // ),
               SizedBox(
                 height: 8,
               ),
-              Row(
-                children: [
-                  Icon(
-                    Ionicons.settings_outline,
-                    color: Colors.grey[800],
-                    size: 27,
-                  ),
-                  SizedBox(
-                    width: 9,
-                  ),
-                  TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        'Setting',
-                        style: GoogleFonts.encodeSans(
-                          textStyle: TextStyle(
-                              color: HexColor('454545'),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      )),
-                ],
-              ),
+              // Row(
+              //   children: [
+              //     Icon(
+              //       Ionicons.settings_outline,
+              //       color: Colors.grey[800],
+              //       size: 27,
+              //     ),
+              //     SizedBox(
+              //       width: 9,
+              //     ),
+              //     TextButton(
+              //         onPressed: () {},
+              //         child: Text(
+              //           'Setting',
+              //           style: GoogleFonts.encodeSans(
+              //             textStyle: TextStyle(
+              //                 color: HexColor('454545'),
+              //                 fontSize: 14,
+              //                 fontWeight: FontWeight.w600),
+              //           ),
+              //         )),
+              //   ],
+              // ),
               SizedBox(
                 height: 8, 
               ),

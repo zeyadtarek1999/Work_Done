@@ -29,6 +29,8 @@ class _projectsClientState extends State<projectsClient> {
     // Add your condition to check if the next page is not empty here
     return nextPageData != null && nextPageData.isNotEmpty;
   }
+  int currentTabIndex = 0; // Assuming the default tab is Under Bid
+
   List<String> filteredItems = [];
   late Future<List<Item>> futureProjects;
   List<Item> items = [];
@@ -37,21 +39,28 @@ class _projectsClientState extends State<projectsClient> {
     futureProjects = fetchProjects();
   }
 
-
   Future<List<Item>> fetchProjects() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String userToken = prefs.getString('user_token') ?? '';
+      String filter;
 
+      if (currentTabIndex == 0) {
+        filter = 'under_bidding';
+      } else if (currentTabIndex == 1) {
+        filter = 'accepted';
+      } else {
+        filter = 'completed';
+      }
       final response = await http.post(
-        Uri.parse('https://workdonecorp.com/api/get_my_profile_projects'),
+        Uri.parse('https://www.workdonecorp.com/api/get_my_profile_projects'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $userToken',
         },
         body: json.encode({
-          'filter': 'current',
-          // Include other parameters as needed
+          'filter': filter,
+
         }),
       );
 
@@ -65,6 +74,7 @@ class _projectsClientState extends State<projectsClient> {
             client_id = json['client_id'];
             print(client_id);
             return Item(
+              lowest_bids: json['lowest_bid'] ?? 'No Bids', // Assign "No Bids" if null
               projectId: json['project_id'],
               client_id: json['client_id'],
               title: json['title'],
@@ -162,8 +172,12 @@ class _projectsClientState extends State<projectsClient> {
           Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
     return DefaultTabController(
+
       length: 3, // Number of tabs
+      initialIndex: currentTabIndex, // Set the initial tab index
+
       child: Scaffold(
+
         floatingActionButton:
         FloatingActionButton(    heroTag: 'workdone_${unique}',
 
@@ -236,6 +250,13 @@ class _projectsClientState extends State<projectsClient> {
                     borderRadius: BorderRadius.all(Radius.circular(30)),
                   ),
                   child: TabBar(
+
+                    onTap: (index) {
+                      setState(() {
+                        currentTabIndex = index;
+                        refreshProjects();
+                      });
+                    },
                     tabs: [
                       Tab(
                         text: 'Under Bid',
@@ -278,265 +299,18 @@ class _projectsClientState extends State<projectsClient> {
         body: Screenshot(
           controller:screenshotController ,
           child: TabBarView(
+            physics: NeverScrollableScrollPhysics(),
+
             children: [
 
-              SingleChildScrollView(
-                child: Column(
-                  children: [
-                    FutureBuilder<List<Item>>(
-                      future: futureProjects,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Column(
-                            children: [
-                              SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
-                            ],
-                          );
-                        } else if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        } else if (snapshot.data != null && snapshot.data!.isEmpty) {
-                          // If projects list is empty, reset current page to 0 and refresh
-                          currentPage = 0;
-                          refreshProjects();
-                          return               Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 20.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                  child: SvgPicture.asset(
-                                    'assets/images/nothing.svg',
-                                    width: 100.0, // Set the width you want
-                                    height: 100.0, // Set the height you want
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 20,
-                                ),
-                                Text(
-                                  'No Projects yet',
-                                  style: GoogleFonts.encodeSans(
-                                    textStyle: TextStyle(
-                                        color: HexColor('BBC3CE'),
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.normal),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 80.0),
-                                  child: Container(
-                                    width: ScreenUtil.buttonscreenwidth,
-                                    height: 45,
-                                    margin:
-                                    EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
-                                    child: ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: HexColor('#4D8D6E'),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(30.0),
-                                          // Adjust the value to change the corner radius
-                                          side: BorderSide(
-                                              width:
-                                              130 // Adjust the value to change the width of the narrow edge
-                                          ),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'Find a Project',
-                                        style: TextStyle(fontSize: 16.0, color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
+              // Under Bid
+              buildTabContent('under_bidding'),
 
-                        } else {
-                          return ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: snapshot.data!.length,
-                            itemBuilder: (context, index) {
-                              return buildListItem(snapshot.data![index]);
-                            },
-                          );
-                        }
-                      },
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        if (currentPage > 0)
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                currentPage--;
-                                refreshProjects(); // Use refreshProjects instead of fetchProjects
-                              });
-                            },
-                            style: TextButton.styleFrom(
+              // Accepted
+              buildTabContent('accepted'),
 
-                              primary: Colors.redAccent,
-
-                            ),
-                            child: Text(
-                              'Previous Page',
-                              style: TextStyle(fontSize: 16, ),
-                            ),
-                          ),
-                        TextButton(
-                          onPressed: () async {
-                            setState(() {
-                              currentPage++;
-                              refreshProjects();
-                            });
-
-                            // Fetch the projects for the next page
-                            List<Item>? nextPageProjects = await fetchProjects();
-
-                            // Check if the next page is empty or no data and hide the button accordingly
-                            if (!shouldShowNextButton(nextPageProjects)) {
-                              setState(() {
-                                currentPage = 0;
-                                refreshProjects();
-                              });
-                            } else {
-                              // Update the futureProjects with the fetched projects
-                              futureProjects = Future.value(nextPageProjects);
-                            }
-                          },
-                          style: TextButton.styleFrom(
-
-                            primary: Colors.black45,
-
-                          ),
-                          child: Text(
-                            'Next Page',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 50,),
-                  ],
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                      child: SvgPicture.asset(
-                        'assets/images/nothing.svg',
-                        width: 100.0, // Set the width you want
-                        height: 100.0, // Set the height you want
-                      ),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Text(
-                      'No Projects yet',
-                      style: GoogleFonts.encodeSans(
-                        textStyle: TextStyle(
-                            color: HexColor('BBC3CE'),
-                            fontSize: 18,
-                            fontWeight: FontWeight.normal),
-                      ),
-                    ),
-                    Spacer(),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40.0),
-                      child: Container(
-                        width: ScreenUtil.buttonscreenwidth,
-                        height: 45,
-                        margin:
-                            EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: HexColor('#4D8D6E'),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.0),
-                              // Adjust the value to change the corner radius
-                              side: BorderSide(
-                                  width:
-                                      130 // Adjust the value to change the width of the narrow edge
-                                  ),
-                            ),
-                          ),
-                          child: Text(
-                            'Find a Project',
-                            style: TextStyle(fontSize: 16.0, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                      child: SvgPicture.asset(
-                        'assets/images/nothing.svg',
-                        width: 100.0, // Set the width you want
-                        height: 100.0, // Set the height you want
-                      ),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Text(
-                      'No Projects yet',
-                      style: GoogleFonts.encodeSans(
-                        textStyle: TextStyle(
-                            color: HexColor('BBC3CE'),
-                            fontSize: 18,
-                            fontWeight: FontWeight.normal),
-                      ),
-                    ),
-                    Spacer(),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40.0),
-                      child: Container(
-                        width: ScreenUtil.buttonscreenwidth,
-                        height: 45,
-                        margin:
-                        EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: HexColor('#4D8D6E'),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.0),
-                              // Adjust the value to change the corner radius
-                              side: BorderSide(
-                                  width:
-                                  130 // Adjust the value to change the width of the narrow edge
-                              ),
-                            ),
-                          ),
-                          child: Text(
-                            'Find a Project',
-                            style: TextStyle(fontSize: 16.0, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Completed
+              buildTabContent('completed'),
 
             ],
           ),
@@ -544,14 +318,160 @@ class _projectsClientState extends State<projectsClient> {
       ),
     );
   }
+  Widget buildTabContent(String filter) {
+    return               SingleChildScrollView(
+      child: Column(
+        children: [
+          FutureBuilder<List<Item>>(
+            future: futureProjects,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Column(
+                  children: [
+                    SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
+                  ],
+                );
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else if (snapshot.data != null && snapshot.data!.isEmpty) {
+                // If projects list is empty, reset current page to 0 and refresh
+                currentPage = 0;
+                refreshProjects();
+                return               Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        child: SvgPicture.asset(
+                          'assets/images/nothing.svg',
+                          width: 100.0, // Set the width you want
+                          height: 100.0, // Set the height you want
+                        ),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Text(
+                        'No Projects yet',
+                        style: GoogleFonts.encodeSans(
+                          textStyle: TextStyle(
+                              color: HexColor('BBC3CE'),
+                              fontSize: 18,
+                              fontWeight: FontWeight.normal),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 80.0),
+                        child: Container(
+                          width: ScreenUtil.buttonscreenwidth,
+                          height: 45,
+                          margin:
+                          EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: HexColor('#4D8D6E'),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                                // Adjust the value to change the corner radius
+                                side: BorderSide(
+                                    width:
+                                    130 // Adjust the value to change the width of the narrow edge
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              'Find a Project',
+                              style: TextStyle(fontSize: 16.0, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
 
+              } else {
+                return ListView.builder(
+                  physics: NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    return buildListItem(snapshot.data![index]);
+                  },
+                );
+              }
+            },
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              if (currentPage > 0)
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      currentPage--;
+                      refreshProjects(); // Use refreshProjects instead of fetchProjects
+                    });
+                  },
+                  style: TextButton.styleFrom(
+
+                    primary: Colors.redAccent,
+
+                  ),
+                  child: Text(
+                    'Previous Page',
+                    style: TextStyle(fontSize: 16, ),
+                  ),
+                ),
+              TextButton(
+                onPressed: () async {
+                  setState(() {
+                    currentPage++;
+                    refreshProjects();
+                  });
+
+                  // Fetch the projects for the next page
+                  List<Item>? nextPageProjects = await fetchProjects();
+
+                  // Check if the next page is empty or no data and hide the button accordingly
+                  if (!shouldShowNextButton(nextPageProjects)) {
+                    setState(() {
+                      currentPage = 0;
+                      refreshProjects();
+                    });
+                  } else {
+                    // Update the futureProjects with the fetched projects
+                    futureProjects = Future.value(nextPageProjects);
+                  }
+                },
+                style: TextButton.styleFrom(
+
+                  primary: Colors.black45,
+
+                ),
+                child: Text(
+                  'Next Page',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 50,),
+        ],
+      ),
+    );
+
+  }
   Widget buildListItem(Item item) {
     return GestureDetector(
       onTap: () {
-        Get.to(bidDetailsClient(projectId: item.projectId,));
-      },
+        Get.to(
+              () => bidDetailsClient(projectId: item.projectId),  );    },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 4),
+        margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
         padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
@@ -567,45 +487,132 @@ class _projectsClientState extends State<projectsClient> {
         ),
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              height: 170.0,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20.0),
-                child: PageView.builder(
-                  pageSnapping: true
-                  ,
+            Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 170.0,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20.0),
+                    child: PageView.builder(
+                      pageSnapping: true
+                      ,
 
-                  itemCount: item.imageUrl.length, // The count of total images
-                  controller: PageController(viewportFraction: 1), // PageController for full-page scrolling
-                  itemBuilder: (_, index) {
-                    return Image.network(
-                      item.imageUrl[index], // Access each image by index
-                      fit: BoxFit.cover, // Cover the entire area of the container
-                    );
-                  },
+                      itemCount: item.imageUrl.length, // The count of total images
+                      controller: PageController(viewportFraction: 1), // PageController for full-page scrolling
+                      itemBuilder: (_, index) {
+                        return Image.network(
+                          item.imageUrl[index], // Access each image by index
+                          fit: BoxFit.cover, // Cover the entire area of the container
+                        );
+                      },
+                    ),
+                  ),
                 ),
-              ),
-            ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Spacer(), // Pushes the container to the right
+                      Container(
+                        height: 50,
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0, left: 5),
+                              child: Text(
+                                "${item.numbers_of_likes}",
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            IconButton(
+                              iconSize: 22,
+                              icon: Icon(
+                                likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                    ? Colors.red
+                                    : Colors.grey,
+                              ),
+                              onPressed: () async {
+                                try {
+                                  if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
+                                    // If liked, remove like
+                                    final response = await removeProjectFromLikes(item.projectId.toString());
 
+                                    if (response['status'] == 'success') {
+                                      // If successfully removed from likes
+                                      setState(() {
+                                        likedProjectsMap[item.projectId] = false;
+                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) - 1;
+                                      });
+                                      print('Project removed from likes');
+                                    } else {
+                                      // Handle the case where the project is not removed from likes
+                                      print('Error: ${response['msg']}');
+                                    }
+                                  } else {
+                                    // If not liked, add like
+                                    final response = await addProjectToLikes(item.projectId.toString());
+
+                                    if (response['status'] == 'success') {
+                                      // If successfully added to likes
+                                      setState(() {
+                                        likedProjectsMap[item.projectId] = true;
+                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) + 1;
+                                      });
+                                      print('Project added to likes');
+                                    } else if (response['msg'] == 'This Project is Already in Likes !') {
+                                      // If the project is already liked, switch to Icons.favorite_border
+                                      setState(() {
+                                        likedProjectsMap[item.projectId] = false;
+                                      });
+                                      print('Project is already liked');
+                                    } else {
+                                      // Handle the case where the project is not added to likes
+                                      print('Error: ${response['msg']}');
+                                    }
+                                  }
+                                } catch (e) {
+                                  print('Error: $e');
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+
+                      ),
+                    ],
+                  ),
+                ),
+
+              ],
+            ),
             SizedBox(height: 10.0),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 7.0),
+              padding: const EdgeInsets.symmetric(horizontal: 2.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text.rich(
-                        TextSpan(
-                          children: _buildTextSpans(
-                            item.title.length > 17
-                                ? '${item.title.substring(0, 16)}...' // Truncate to 14 characters and add ellipsis
-                                : item.title,
-                            searchController.text,
-                          ),
-                        ),
+                      Text(
+                        item.title.length > 16
+                            ? item.title.substring(0, 16) + '...' // Display first 14 letters and add ellipsis
+                            : item.title,
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('131330'),
@@ -614,6 +621,7 @@ class _projectsClientState extends State<projectsClient> {
                           ),
                         ),
                       ),
+
                       Spacer(),
                       Text(
                         'By',
@@ -627,7 +635,7 @@ class _projectsClientState extends State<projectsClient> {
                       ),
                       SizedBox(width: 4,),
                       Container(
-                        height: 30,
+                        height: 33,
                         width: 60,
                         padding: EdgeInsets.zero,
                         decoration: BoxDecoration(
@@ -635,7 +643,7 @@ class _projectsClientState extends State<projectsClient> {
                         ),
                         child: TextButton(
                           onPressed: () {
-                            Get.to(ProfilePageClient(userId: item.client_id.toString()));
+                            Get.to(ProfilePageClient(userId:item.client_id.toString()));
                           },
                           style: TextButton.styleFrom(
                             fixedSize: Size(50, 30), // Adjust the size as needed
@@ -658,20 +666,62 @@ class _projectsClientState extends State<projectsClient> {
                     ],
                   ),
                   SizedBox(height: 6),
-                  Text.rich(
-                    TextSpan(
-                      children: _buildTextSpans(item.description, searchController.text),
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.openSans(
-                      textStyle: TextStyle(
-                        color: HexColor('393B3E'),
-                        fontSize: 15,
-                        fontWeight: FontWeight.normal,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            children: _buildTextSpans(item.description, searchController.text),
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.openSans(
+                            textStyle: TextStyle(
+                              color: HexColor('393B3E'),
+                              fontSize: 15,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                      SizedBox(width: 7,),
+                      Column(
+                        children: [
+                          Text(
+                            'lowest bid',
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: HexColor('393B3E'), // Adjust color as needed
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 6,),
+                          item.lowest_bids != 'No Bids'
+                              ? Text('\$ '+
+                              item.lowest_bids.toString() , // Use 'N/A' or any preferred default text
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: HexColor('393B3E'),
+                                fontSize: 15,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          )
+                              : Text(
+                            'No Bids Yet',
+                            style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                  ,
                   SizedBox(height: 9),
                   Row(
                     children: [
@@ -694,7 +744,7 @@ class _projectsClientState extends State<projectsClient> {
                       SizedBox(width: 2),
                       Spacer(),
                       Container(
-                        width: 85,
+                        width: 93,
                         height: 36,
                         decoration: BoxDecoration(
                           color: HexColor('4D8D6E'),
@@ -702,9 +752,11 @@ class _projectsClientState extends State<projectsClient> {
                         ),
                         child: ElevatedButton(
                           onPressed: () {
-                            Get.to(bidDetailsClient(projectId: item.projectId,));
+                            Get.to(
+                                  () => bidDetailsClient(projectId: item.projectId),  );
+                            // Handle button press
                           },
-                          child: Text('Details',style: TextStyle(color: Colors.white,fontSize: 12),),
+                          child: Text('Details',style: TextStyle(color: Colors.white),),
                           style: ElevatedButton.styleFrom(
                             primary: Colors.transparent,
                             elevation: 0,
@@ -717,32 +769,37 @@ class _projectsClientState extends State<projectsClient> {
                 ],
               ),
             ),
+
           ],
         ),
       ),
     );
+
   }
 
 
 }
 
+
 class Item {
   final int projectId;
+  final int client_id;
   final String title;
   final String client_firstname;
-  final int client_id;
-
-  final String liked;
+  late  String liked;
   final String description;
   final List<String> imageUrl;
-  final int numbers_of_likes;
+  int numbers_of_likes;
   final String postedFrom;
   String isLiked;
+  dynamic? lowest_bids;
+
 
   Item({
     required this.projectId,
-    required this.title,
     required this.client_id,
+    required this.lowest_bids,
+    required this.title,
     required this.client_firstname,
     required this.description,
     required this.liked,
@@ -750,5 +807,5 @@ class Item {
     required this.imageUrl,
     required this.postedFrom,
     required this. isLiked,
-  }) ;
+  }): assert(lowest_bids != null);
 }
