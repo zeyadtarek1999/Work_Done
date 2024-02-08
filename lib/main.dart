@@ -22,6 +22,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(false);
+  // await FireBaseApi().initNotification();
+  // FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+
 
   // SharedPreferences prefs = await SharedPreferences.getInstance();
   // await prefs.clear();
@@ -30,6 +34,11 @@ Future<void> main() async {
     NotificationChannel(
         channelGroupKey: 'basick group channel',
         channelKey: 'postProject',
+        channelName: 'basic notification',
+        channelDescription: 'hello test only test'),
+    NotificationChannel(
+        channelGroupKey: 'basick group channel',
+        channelKey: 'support',
         channelName: 'basic notification',
         channelDescription: 'hello test only test')
   ],

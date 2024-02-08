@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
@@ -223,10 +224,10 @@ Future<Map<String, dynamic>> removeProjectFromLikes(String projectId) async {
   }
 }
 
-class _HomescreenworkerState extends State<Homescreenworker> {
+class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   final CarouselController _carouselController = CarouselController();
-
+  late AnimationController ciruclaranimation;
   String truncateText(String text, int numberOfWords) {
     List<String> words = text.split(' ');
 
@@ -301,8 +302,18 @@ class _HomescreenworkerState extends State<Homescreenworker> {
     super.initState();
     initializeProjects();
     _getUserProfile();
+    ciruclaranimation = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    ciruclaranimation.repeat(reverse: false);
 
     likedProjectsMap= {};
+  }
+  @override
+  void dispose() {
+    ciruclaranimation.dispose();
+    super.dispose();
   }
 
   List<Item> items = [];
@@ -487,7 +498,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
           Brightness.dark, //Change the status bar ico ns' color (dark or light)
     ));
     return AdvancedDrawer(
-        openRatio: 0.5,
+        openRatio: 0.6,
         backdropColor: HexColor('ECEDED'),
         controller: advancedDrawerController,
         rtlOpening: false,
@@ -501,14 +512,13 @@ class _HomescreenworkerState extends State<Homescreenworker> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
+                    CircleAvatar(
                   radius: 35,
+                  backgroundColor: Colors.transparent,
                   backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                      ? (profile_pic == "https://workdonecorp.com/images/"
-                      ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
-                      : NetworkImage(profile_pic))
-                      : AssetImage('assets/images/profileimage.png') as ImageProvider,
-
+                      && profile_pic == "https://workdonecorp.com/images/"
+                      ? AssetImage('assets/images/default.png') as ImageProvider
+                      : NetworkImage(profile_pic?? 'assets/images/default.png'),
                 ),
                 SizedBox(
                   height: 12,
@@ -672,23 +682,23 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                   style: GoogleFonts.poppins(
                     textStyle: TextStyle(
                         color: HexColor('6A4141'),
-                        fontSize: 15,
+                        fontSize: 12,
                         fontWeight: FontWeight.normal),
                   ),
                 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     SvgPicture.asset(
                       'assets/images/Logo.svg',
-                      width: 50.0,
-                      height: 64.0,
+                      fit: BoxFit.cover,
+                      width: 60.0,
+                      height: 75.0,
                     ),
-                    Text('Workdone corp.',
+                    Text('Workdone Corp.',
                       style: GoogleFonts.poppins(
                         textStyle: TextStyle(
                             color: HexColor('595B5B'),
-                            fontSize: 13,
+                            fontSize: 14,
                             fontWeight: FontWeight.normal),
                       ),
                     ),
@@ -708,7 +718,7 @@ class _HomescreenworkerState extends State<Homescreenworker> {
               _navigateToNextPage(context);
               },
             backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-            child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+            child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
             shape: CircleBorder(), // Make the button circular
           ),
           backgroundColor: HexColor('F0EEEE'),
@@ -730,12 +740,22 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                               onTap: () {
                                 drawerControl();
                               },
-                              child: SvgPicture.asset(
-                                'assets/icons/menuicon.svg',
-                                width: 57.0,
-                                height: 57.0,
+                              child: Container(
+                                height: 55,
+                                width: 55,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  color:HexColor('4d8d6e'),
+                                ),
+                                child:
+                                   Icon(
+                                    Ionicons.menu_outline,size: 30,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
-                            ),
+
+
                             Spacer(),
                             Text(
                               'Home',
@@ -752,18 +772,14 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                                 Get.to(ProfileScreenworker());
                                 // Handle the tap event here
                               },
-                              child: CircleAvatar(
+                         child:     CircleAvatar(
                                 radius: 27,
                                 backgroundColor: Colors.transparent,
                                 backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                                    ? (profile_pic == "https://workdonecorp.com/images/"
-                                    ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
-                                    : NetworkImage(profile_pic))
-                                    : AssetImage('assets/images/profileimage.png') as ImageProvider,
-
-
-                              ),
-                            ),
+                                    && profile_pic == "https://workdonecorp.com/images/"
+                                    ? AssetImage('assets/images/default.png') as ImageProvider
+                                    : NetworkImage(profile_pic?? 'assets/images/default.png'),
+                         )     ),
                           ],
                         ),
                       ),
@@ -816,7 +832,16 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                                   SizedBox(
                                     height: 80,
                                   ),
-                                  Center(child: CircularProgressIndicator()),
+                                  Center(child: RotationTransition(
+                                    turns: ciruclaranimation,
+                                    child: SvgPicture.asset(
+                                      'assets/images/Logo.svg',
+                                      semanticsLabel: 'Your SVG Image',
+                                      width: 100,
+                                      height: 130,
+                                    ),
+                                  ))
+                                  ,
                                   SizedBox(
                                     height: 80,
                                   )
@@ -890,7 +915,16 @@ class _HomescreenworkerState extends State<Homescreenworker> {
                                 SizedBox(
                                   height: 80,
                                 ),
-                                Center(child: CircularProgressIndicator()),
+                                Center(child: RotationTransition(
+                                  turns: ciruclaranimation,
+                                  child: SvgPicture.asset(
+                                    'assets/images/Logo.svg',
+                                    semanticsLabel: 'Your SVG Image',
+                                    width: 100,
+                                    height: 130,
+                                  ),
+                                ))
+                                ,
                                 SizedBox(
                                   height: 80,
                                 )

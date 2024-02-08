@@ -36,6 +36,11 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
 
 
   String firstname = '';
+  String paypal = '';
+  String license_number = '';
+  String license_pic = 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png';
+  String job_type = '';
+  int experience = 1;
   String secondname = '';
   String password = '';
   String profile_pic = '';
@@ -132,6 +137,11 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
               email = profileData['email'] ?? '';
               profile_pic = profileData['profile_pic'] ?? '';
               phonenumber = profileData['phone'] ?? '';
+              paypal = profileData['paypal'] ?? 'no paypal number';
+              license_number = profileData['license_number'] ?? 'No license number';
+              license_pic = profileData['license_pic'] ?? 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png';
+              experience = profileData['experience'] ?? '';
+              job_type = profileData['job_type'] ?? '';
               language = profileData['language'] ?? '';
             });
 
@@ -189,197 +199,7 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
       statusBarIconBrightness:
       Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
-    return AdvancedDrawer(
-      openRatio: 0.5,
-
-      backdropColor: HexColor('ECEDED'),
-      controller: advancedDrawerController,
-      rtlOpening: false,
-      openScale: 0.89,
-      childDecoration:
-      BoxDecoration(borderRadius: BorderRadius.circular(20)),
-      animationCurve: Curves.easeInOut,
-      animationDuration: Duration(milliseconds: 1000),
-      drawer: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 50, left: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 35,
-                backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                    ? (profile_pic == "https://workdonecorp.com/images/"
-                    ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
-                    : NetworkImage(profile_pic))
-                    : AssetImage('assets/images/profileimage.png') as ImageProvider,
-
-              ),
-
-              SizedBox(
-                height: 12,
-              ),
-              Text(
-                "$firstname $secondname" ,
-                style: GoogleFonts.poppins(
-                  textStyle: TextStyle(
-                      color: HexColor('1A1D1E'),
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold),
-                ),
-              ),
-              SizedBox(
-                height: 9,
-              ),
-              Text(
-                'zzeyadtarek11@gmail.com',
-                style: GoogleFonts.poppins(
-                  textStyle: TextStyle(
-                      color: HexColor('6A6A6A'),
-                      fontSize: 13,
-                      fontWeight: FontWeight.normal),
-                ),
-              ),
-              SizedBox(
-                height: 30,
-              ),
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    'assets/icons/user.svg',
-                    width: 35.0,
-                    height: 35.0,
-                  ),
-                  SizedBox(
-                    width: 8,
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Edit Profile',
-                      style: GoogleFonts.poppins(
-                        textStyle: TextStyle(
-                            color: HexColor('1A1D1E'),
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: 12,
-              ),
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    'assets/icons/time.svg',
-                    width: 35.0,
-                    height: 35.0,
-                  ),
-                  SizedBox(
-                    width: 8,
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Projects',
-                      style: GoogleFonts.poppins(
-                        textStyle: TextStyle(
-                            color: HexColor('1A1D1E'),
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: 12,
-              ),
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    'assets/icons/notification.svg',
-                    width: 35.0,
-                    height: 35.0,
-                  ),
-                  SizedBox(
-                    width: 8,
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Notifications',
-                      style: GoogleFonts.poppins(
-                        textStyle: TextStyle(
-                            color: HexColor('1A1D1E'),
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: 12,
-              ),
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    'assets/icons/portfolioicon.svg',
-                    width: 35.0,
-                    height: 35.0,
-                  ),
-                  SizedBox(
-                    width: 8,
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Portfolio',
-                      style: GoogleFonts.poppins(
-                        textStyle: TextStyle(
-                            color: HexColor('1A1D1E'),
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: 60,
-              ),
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    'assets/icons/logout.svg',
-                    width: 35.0,
-                    height: 35.0,
-                  ),
-                  SizedBox(
-                    width: 8,
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Log Out',
-                      style: GoogleFonts.poppins(
-                        textStyle: TextStyle(
-                            color: HexColor('1A1D1E'),
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal),
-                      ),
-                    ),
-                  )
-                ],
-              )
-            ],
-          ),
-        ),
-      ),
-      child: Scaffold(
+    return Scaffold(
         floatingActionButton:
         FloatingActionButton(    heroTag: 'workdone_${unique}',
 
@@ -561,12 +381,68 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 19, horizontal: 20),
-                      child: Text(
-                        'Personal Info'.toUpperCase(),
-                        style: TextStyle(
-                            color: HexColor('#022C43'),
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Personal Info'.toUpperCase(),
+                            style: TextStyle(
+                                color: HexColor('#022C43'),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Spacer(),
+                          ElevatedButton(
+                          child: Text('license'),
+
+                          onPressed: () {
+                            // Show the license popup
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('License'),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children:
+
+                                [
+
+                                  Container(
+                                    width: 200, // Set your preferred width
+                                    height: 200, // Set your preferred height
+                                    child: (license_pic != null && license_pic.isNotEmpty && license_pic != "https://workdonecorp.com/images/")
+                                        ? Image.network(license_pic, fit: BoxFit.contain)
+                                        : Image.network('https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png', fit: BoxFit.contain),
+                                  ),
+
+                                  SizedBox(height: 10),
+                                      Text(
+                                        'Your license Number',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    '${license_number}',
+                                    style: TextStyle(fontSize: 16 ,color: HexColor('4D8D6E')),
+                                  ),
+                                    ]
+                                  ),
+
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context)
+                                            .pop(); // Close the dialog
+                                      },
+                                      child: Text('Close'),
+                                    ),
+                                  ],
+                                );
+                              },
+
+                            );
+                          })
+    ],
                       ),
                     ),
                     Center(
@@ -753,11 +629,111 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                                 ],
                               ),
                             ),
+                            Container(
+                              height: 50,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: HexColor('#707070').withOpacity(0.1),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    child: Text(
+                                      'Experience:',
+                                      style: TextStyle(
+                                          color: HexColor('#4D8D6E'),
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 17),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: ScreenUtil.sizeboxwidth3,
+                                  ),
+                                  Text(
+                                    '${experience.toString()}    ',
+                                    style: TextStyle(
+                                        color: HexColor('#404040'), fontSize: 15),
+                                  )
+                                ],
+                              ),
+                            ),
+                            Container(
+                              height: 50,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: HexColor('#707070').withOpacity(0.1),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    child: Text(
+                                      'Bank Number:',
+                                      style: TextStyle(
+                                          color: HexColor('#4D8D6E'),
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 17),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: ScreenUtil.sizeboxwidth3,
+                                  ),
+                                  Text(
+                                    '$paypal    ',
+                                    style: TextStyle(
+                                        color: HexColor('#404040'), fontSize: 15),
+                                  )
+                                ],
+                              ),
+                            ),
 
                           ],
                         ),
                       ),
                     ),
+                    // Container(
+                    //   height: 50,
+                    //   decoration: BoxDecoration(
+                    //     border: Border(
+                    //       bottom: BorderSide(
+                    //         color: HexColor('#707070').withOpacity(0.1),
+                    //         width: 1,
+                    //       ),
+                    //     ),
+                    //   ),
+                    //   child: Row(
+                    //     children: [
+                    //       Padding(
+                    //         padding: EdgeInsets.symmetric(horizontal: 12),
+                    //         child: Text(
+                    //           'experience:',
+                    //           style: TextStyle(
+                    //               color: HexColor('#4D8D6E'),
+                    //               fontWeight: FontWeight.w400,
+                    //               fontSize: 17),
+                    //         ),
+                    //       ),
+                    //       SizedBox(
+                    //         width: ScreenUtil.sizeboxwidth3,
+                    //       ),
+                    //       Text(
+                    //         '${experience.toString()}    ',
+                    //         style: TextStyle(
+                    //             color: HexColor('#404040'), fontSize: 15),
+                    //       )
+                    //     ],
+                    //   ),
+                    // ),
+
                     SizedBox(
                       height: 17,
                     ),
@@ -793,9 +769,7 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                 ),
               )),
         ),
-      ),
-
-    );
+      );
 
   }void drawerControl() {
     advancedDrawerController.showDrawer();

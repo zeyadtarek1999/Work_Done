@@ -6,6 +6,8 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:chewie/chewie.dart';
 import 'package:easy_date_timeline/easy_date_timeline.dart';
+import 'package:easy_stepper/easy_stepper.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_neat_and_clean_calendar/flutter_neat_and_clean_calendar.dart';
@@ -46,7 +48,7 @@ class bidDetailsClient extends StatefulWidget {
   State<bidDetailsClient> createState() => _bidDetailsClientState();
 }
 
-class _bidDetailsClientState extends State<bidDetailsClient> {
+class _bidDetailsClientState extends State<bidDetailsClient>  with SingleTickerProviderStateMixin {
   bool showAdditionalContent = false;
   bool showprojectcomplete = false;
   bool accessprojectcomplete = false;
@@ -54,12 +56,12 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
   List<File> _imageFiles = []; // Use File directly
 
   Future<void> _pickImages() async {
-    final ImagePicker picker = ImagePicker();
+    final picker = ImagePicker();
     final List<XFile>? images = await picker.pickMultiImage();
 
     if (images != null && images.isNotEmpty) {
       setState(() {
-        _imageFiles = images.map((xfile) => File(xfile.path)).toList(); // Convert to File
+        _imageFiles = images.map((xfile) => File(xfile.path)).toList();
       });
     }
   }
@@ -85,6 +87,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
     userToken = prefs.getString('user_token') ?? '';
   }
   bool _isUploading = false;
+  List<int> selectedIndices = [];
+  int activeStep = 0;
 
   late String userToken;
   void _toggleUploadingState(bool isUploading) {
@@ -158,7 +162,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => layoutclient(),
+            builder: (context) => bidDetailsClient(projectId: widget.projectId),
           ),
         );
 
@@ -213,11 +217,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
 
 
       print(userToken);
-      // AwesomeNotifications().createNotification(
-      //   content:
-      //   NotificationContent(id: 1, channelKey: 'postProject',title: 'hello test',body:'its only test '),
-      //
-      // );
+
       // Display a success toast message
       Fluttertoast.showToast(
         msg:             'Your project is successfully completed. Please allow 48 hours until the bidding process is finalized. Then, the ball is in your court! Select your best worker – please use reviews to finalize your consideration process.',
@@ -266,7 +266,19 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
   String selectedworkername = '';
   String selectedworkerimage = '';
 
+  int currentStep = 0;
+  List<EasyStep> steps = [
+    EasyStep(
+      title: 'Step 1',
+      icon: Icon(Icons.circle, color: Colors.grey),
 
+    ),
+    EasyStep(
+      title: 'Step 2',
+      icon: Icon(Icons.circle, color: Colors.grey),
+    ),
+    // Add more steps as needed
+  ];
   late ScrollController scrollController;
   late ScrollController scrollController2;
 
@@ -300,7 +312,15 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
       // Handle successful response
       await fetchProjectDetails(projectId); // Call fetchProjectDetails here
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => bidDetailsClient(projectId: projectId)));
-
+      Fluttertoast.showToast(
+        msg: 'Schedule sent successfully!\n selected day: ${selectedDay.toString()} , Selected interval: ${selectedInterval.toString()}',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
       print('Schedule sent successfully!');
     } else {
       // Handle error
@@ -386,6 +406,8 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
     print(video);
   }
   late VideoPlayerController _controller;
+  late AnimationController ciruclaranimation;
+
   @override
   void initState() {
     super.initState();
@@ -415,11 +437,13 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
         panelController2.anchor();
       } else {}
     });
+    ciruclaranimation = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    ciruclaranimation.repeat(reverse: false);
 
     fetchvideo();
-
-
-
     fetchData();
   }
   @override
@@ -427,7 +451,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
     super.dispose();
     _controller.dispose();
     _chewieController.dispose();
-
+    ciruclaranimation.dispose();
   }
   String currentbid = '24';
   final ScreenshotController screenshotController = ScreenshotController();
@@ -495,7 +519,15 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                   future: projectDetailsFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
+                      return  Center(child: RotationTransition(
+                        turns: ciruclaranimation,
+                        child: SvgPicture.asset(
+                          'assets/images/Logo.svg',
+                          semanticsLabel: 'Your SVG Image',
+                          width: 100,
+                          height: 130,
+                        ),
+                      ));
                     } else if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
                     } else if (!snapshot.hasData) {
@@ -569,16 +601,30 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                             height: 210,
                                             child: _controllerInitialized
                                                 ? Chewie(controller: _chewieController!)
-                                                : Center(child: CircularProgressIndicator()),
+                                                :  Center(child: RotationTransition(
+                                      turns: ciruclaranimation,
+                                      child: SvgPicture.asset(
+                                      'assets/images/Logo.svg',
+                                      semanticsLabel: 'Your SVG Image',
+                                      width: 100,
+                                      height: 130,
+                                      ),
+                                      )),
                                           ),
                                         ],
                                       );
                                     },
                                   ),
                                 if (projectData.video.isEmpty)
-                                  Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
+                    Center(child: RotationTransition(
+                    turns: ciruclaranimation,
+                    child: SvgPicture.asset(
+                    'assets/images/Logo.svg',
+                    semanticsLabel: 'Your SVG Image',
+                    width: 100,
+                    height: 130,
+                    ),
+                    )),
                                 ...projectData.images.map((image) {
                                   return Builder(
                                     builder: (BuildContext context) {
@@ -625,17 +671,17 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                               children: [
                                 Container(
                                   height: 40,
-                                  width: 70,
                                   decoration: BoxDecoration(
                                     color: HexColor('4D8D6E'),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Center(
-                                    child: Text(
-                                      '${projectData.projectType}',
-                                      style: GoogleFonts.roboto(
-                                        textStyle: TextStyle(
-                                          color: HexColor('FFFFFF'),
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 10),
+                                      child: Text(
+                                        projectData.projectType,
+                                        style: GoogleFonts.roboto(
+                                          color: Colors.white,
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -643,32 +689,62 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                     ),
                                   ),
                                 ),
-                                Spacer(),
-                                Icon(
-                                  Icons.access_time_rounded,
-                                  color: HexColor('777778'),
-                                  size: 18,
-                                ),
-                                SizedBox(width: 5),
-                                Text(
-                                  '${projectData.postedFrom}',
-                                  style: GoogleFonts.openSans(
-                                    textStyle: TextStyle(
-                                      color: HexColor('777778'),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.normal,
+                                SizedBox(width: 8),
+                                Container(
+                                  height: 35,
+                                  decoration: BoxDecoration(
+                                    color: HexColor('A37A29'),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 10),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.badge,
+                                          color: Colors.white,
+                                          size: 16,
+                                        ),
+                                        SizedBox(width: 5),
+                                        Text(
+                                          projectData.status,
+                                          style: GoogleFonts.roboto(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                                SizedBox(width: 2),
+                                Spacer(),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Icon(
+                                      Icons.access_time_rounded,
+                                      color: HexColor('777778'),
+                                      size: 18,
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      '${projectData.postedFrom}',
+                                      style: GoogleFonts.openSans(
+                                        color: HexColor('777778'),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ],
-                            ),
-                            SizedBox(
+                            ),                            SizedBox(
                               height: 12,
                             ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 6.0),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6.0),
                               child: Text(
                                 projectData.title,
                                 style: GoogleFonts.openSans(
@@ -688,15 +764,11 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                 CircleAvatar(
                                   radius: 23,
                                   backgroundColor: Colors.transparent,
-                                  backgroundImage: NetworkImage(
-                                    projectData.clientData?.profileImage ==
-                                            'https://workdonecorp.com/images/'
-                                        ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
-                                        : projectData
-                                                .clientData?.profileImage ??
-                                            'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                  ),
+                                  backgroundImage: projectData.clientData.profileImage == 'https://workdonecorp.com/images/'
+                                      ? AssetImage('assets/images/default.png') as ImageProvider
+                                      : NetworkImage(projectData.clientData.profileImage ?? 'assets/images/default.png'),
                                 ),
+
                                 SizedBox(
                                   width: 13,
                                 ),
@@ -724,7 +796,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                       //client first name
                                       style: TextStyle(
                                         color: HexColor('4D8D6E'),
-                                        fontSize: 18,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -835,7 +907,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                               ),
                             ),
                             SizedBox(
-                              height: 16,
+                              height: 8,
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 6.0),
@@ -845,7 +917,7 @@ class _bidDetailsClientState extends State<bidDetailsClient> {
                                   Text(
                                     projectData.selectworkerbid.worker_firstname != ''
                                         ? 'Selected Worker'
-                                        : 'Workers Bids',
+                                        : '',
                                     style: GoogleFonts.openSans(
                                       textStyle: TextStyle(
                                         color: HexColor('454545'),
@@ -863,111 +935,179 @@ SizedBox(height: 8,),
                             Visibility(
                               visible: projectData.selectworkerbid.worker_firstname != '', // Check if select_worker_bid exists
 
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withOpacity(0.5), // Set the desired opacity and color
-                                  borderRadius: BorderRadius.circular(12), // Optional: Set border radius
-                                ),
-                                child: Container(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 12),
-                                    child: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 28,
-                                          backgroundColor: Colors.transparent,
-                                          backgroundImage:    NetworkImage(
-                                            projectData.selectworkerbid.worker_profile_pic != null && projectData.selectworkerbid.worker_profile_pic.isNotEmpty
-                                                ? projectData.selectworkerbid.worker_profile_pic
-                                                : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // Use default if empty
-                                          ),
+                              child: Visibility(
+                                visible: projectData.selectworkerbid.worker_firstname.isNotEmpty,
+                                // Check if select_worker_bid exists and has a non-empty worker_firstname
 
-                                        ),
-                                        SizedBox(width: 15,),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.start,
-                                              children: [
-                                                GestureDetector(
-                                                  onTap: () {
-                                                    // Navigate to worker profile page
-                                                    // You can replace this with your navigation logic
-                                                  },
-                                                  child: LayoutBuilder( // Use LayoutBuilder to determine available width
-                                                    builder: (context, constraints) {
-                                                      return TextButton(
-                                                        onPressed: () {
-                                                          Get.to(ProfilePageClient(
-                                                              userId: projectData
-                                                                  .selectworkerbid!.worker_id
-                                                                  .toString()));
-                                                        },
-                                                        style: TextButton.styleFrom(
-                                                          padding: EdgeInsets.zero, // Remove fixed size
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Container(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 12),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 28,
+                                            backgroundColor: Colors.transparent,
+                                            backgroundImage: projectData.selectworkerbid.worker_profile_pic == 'https://workdonecorp.com/images/' ||projectData.selectworkerbid.worker_profile_pic == ''
+                                                ? AssetImage('assets/images/default.png') as ImageProvider
+                                                : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
+                                          ),
+                                          SizedBox(
+                                            width: 15,
+                                          ),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.start,
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      Get.to(ProfilePageClient(
+                                                          userId: projectData
+                                                              .selectworkerbid!.worker_id
+                                                              .toString()));
+                                                    },
+                                                    child: Text(
+                                                      projectData.selectworkerbid.worker_firstname,
+                                                      style: GoogleFonts.openSans(
+                                                        textStyle: TextStyle(
+                                                          color: HexColor('4D8D6E'),
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.bold,
                                                         ),
-                                                        child: FittedBox( // Fit text within available space
-                                                          child: Text(
-                                                            projectData.selectworkerbid.worker_firstname,
-                                                            style: GoogleFonts.openSans(
-                                                              textStyle: TextStyle(
-                                                                fontSize: 17,
-                                                                color: HexColor('454545'),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  Icon(
+                                                    Icons.star,
+                                                    color: HexColor('F3ED51'),
+                                                    size: 20,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 2,
+                                                  ),
+                                                  Text('0'),
+                                                ],
+                                              ),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
+                                                children: [
+
+                                                  Text(
+                                                    '\$  ' + projectData.selectworkerbid.amount.toString(),
+                                                    style: GoogleFonts.openSans(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('353B3B'),
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ),
+
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                          Spacer(),
+                                          Padding(
+                                            padding: const EdgeInsets.only(right: 8.0),
+                                            child: ElevatedButton(
+                                              onPressed: () {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      backgroundColor: Colors.white,
+                                                      title:    Center(
+                                                        child: Column(
+                                                          children: [
+                                                            Text(
+                                                              'Comment',
+                                                              style: TextStyle(
+                                                                fontSize: 20,
                                                                 fontWeight: FontWeight.bold,
                                                               ),
                                                             ),
-                                                          ),
+                                                            Divider(
+                                                              color: Colors.black, // Adjust the color of the underline
+                                                              thickness: 1.0, // Adjust the thickness of the underline
+                                                            ),
+                                                          ],
                                                         ),
-                                                      );
-                                                    },
-                                                  ),
-                                                ),
-                                                SizedBox(
-                                                  width: 10,
-                                                ),
-                                                Icon(
-                                                  Icons.star,
-                                                  color: HexColor('F3ED51'),
-                                                  size: 20,
-                                                ),
-                                                SizedBox(
-                                                  width: 2,
-                                                ),
-                                                Text('7'),                                              ],
-                                            ),
+                                                      ),
+                                                      content: SingleChildScrollView( // Allows the dialog content to be scrollable
+                                                        child: ListBody( // Use ListBody for better handling of the space inside scroll view
+                                                          // Refrain from using MainAxisSize if you have dynamic content and wrap it with SingleChildScrollView
+                                                          children: [
+                                                            Center(
+                                                              child: Text(
+                                                                projectData.selectworkerbid.comment,
+                                                                style: GoogleFonts.openSans(
+                                                                  textStyle: TextStyle(
+                                                                    color: HexColor('4D8D6E'),
+                                                                    fontSize: 20,
+                                                                    fontWeight: FontWeight.w500,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            SizedBox(height: 23,),
+                                                            ElevatedButton(
+                                                              onPressed: () {
+                                                                Navigator.pop(context); // Close the dialog
+                                                              },
+                                                              child: Text('Close',style: TextStyle(fontSize: 15, color: Colors.white), // Adjust the font size
+                                                              ),
+                                                              style: ElevatedButton.styleFrom(
+                                                                primary: Colors.transparent,
+                                                                backgroundColor: HexColor('4D8D6E'),
+                                                                elevation: 0,
+                                                                textStyle: TextStyle(color: Colors.white),
+                                                                padding: EdgeInsets.symmetric(vertical:12, horizontal: 12), // Adjust padding
+                                                              ),
+                                                            ),
 
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  '\$',
-                                                  style: GoogleFonts.openSans(
-                                                    textStyle: TextStyle(
-                                                      color: HexColor('353B3B'),
-                                                      fontSize: 18,
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(30.0), // Adjust the border radius
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                primary: HexColor('4D8D6E'), // Set the button color to 4D8D6E
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(30.0), // Adjust the border radius
+                                                ),
+                                                minimumSize: Size(30, 20), // Set the minimum size
+                                                padding: EdgeInsets.all(8), // Set the padding
+                                              ),
+                                              child: Text(
+                                                'Comment',
+                                                style: GoogleFonts.openSans(
+                                                  textStyle: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
                                                   ),
                                                 ),
-                                                SizedBox(
-                                                  width: 3,
-                                                ),
-                                                Text(
-                                                  projectData.selectworkerbid.amount.toString(),
-                                                  style: GoogleFonts.openSans(
-                                                    textStyle: TextStyle(
-                                                      color: HexColor('353B3B'),
-                                                      fontSize: 18,
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
+                                              ),
                                             ),
-                                          ],
-                                        ),
-                                        Spacer(),
-                                      ],
+                                          )
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -980,8 +1120,15 @@ SizedBox(height: 8,),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
-                                  return Center(
-                                      child: CircularProgressIndicator());
+                                  return    Center(child: RotationTransition(
+                                    turns: ciruclaranimation,
+                                    child: SvgPicture.asset(
+                                      'assets/images/Logo.svg',
+                                      semanticsLabel: 'Your SVG Image',
+                                      width: 100,
+                                      height: 130,
+                                    ),
+                                  ));
                                 } else if (snapshot.hasError) {
                                   return Center(
                                       child: Text('Error: ${snapshot.error}'));
@@ -1003,12 +1150,134 @@ SizedBox(height: 8,),
                                   double ratingonclient = double.tryParse(projectData.pageContent.ratingOnClient ?? "0") ?? 0;
                                   double ratingonWorker = double.tryParse(projectData.pageContent.ratingOnWorker ?? "0") ?? 0;
                                   if (projectData.status ==
-                                      'bid_accepted' ) {
+                                      'bid_accepted' && projectData.pageContent.schedule ==
+                                'mftoo7' )   {
+                                    activeStep=1;
                                     return Padding(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 6.0),
                                       child: Column(
                                         children: [
+                                          Padding(
+                                            padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                            child: Text(
+                                              'Progress',
+                                              style: GoogleFonts.openSans(
+                                                textStyle: TextStyle(
+                                                  color: HexColor('454545'),
+                                                  fontSize: 22,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(height: 17,),
+
+                                          Container(
+                                            height:150,
+                                            child: Center(
+                                              child: Container(
+                                                padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                                child: EasyStepper(
+                                                  activeStepBackgroundColor:HexColor('4D8D6E') ,
+                                                  activeStepIconColor: Colors.white,
+                                                  activeStepBorderColor:HexColor('4D8D6E')  ,
+                                                  activeStepTextColor: HexColor('4D8D6E'),
+
+                                                  showScrollbar: true,
+                                                  enableStepTapping: false,
+                                                  maxReachedStep: 6,
+                                                  activeStep: activeStep,
+                                                  stepShape: StepShape.circle,
+                                                  stepBorderRadius: 15,
+                                                  borderThickness: 1,
+                                                  internalPadding: 15,
+                                                  stepRadius: 32,
+                                                  finishedStepBorderColor: HexColor('8d4d6c'),
+                                                  finishedStepTextColor: HexColor('8d4d6c'),
+                                                  finishedStepBackgroundColor: HexColor('8d4d6c'),
+                                                  finishedStepIconColor: Colors.white,
+                                                  finishedStepBorderType: BorderType.normal,
+                                                  showLoadingAnimation: false,
+                                                  showStepBorder: true,
+                                                  lineStyle: LineStyle(
+                                                    lineLength: 45,
+                                                    lineType: LineType.dashed,
+
+                                                    activeLineColor: HexColor('#8d4d6c'),
+                                                    defaultLineColor: HexColor('#8d4d6c'),
+                                                    unreachedLineColor: HexColor('#172a21'),
+                                                    lineThickness: 3,
+                                                    lineSpace: 2,
+                                                    lineWidth: 10,
+
+                                                    unreachedLineType: LineType.dashed,
+
+                                                  ),
+
+                                                  steps: [
+                                                    EasyStep(
+
+
+                                                      icon: Icon(
+                                                        FluentIcons.money_16_regular,
+                                                      ),
+                                                      title: 'Under Bidding',
+
+                                                    ),
+                                                    EasyStep(
+
+
+                                                      icon: Icon(
+                                                        Icons.check_circle,
+                                                      ),
+                                                      title: 'Accepted',
+
+                                                    ),
+                                                    EasyStep(
+
+
+                                                      icon: Icon(
+                                                        FluentIcons.calendar_12_filled ,
+                                                      ),
+                                                      title: 'Schedule',
+
+                                                    ),
+                                                    EasyStep(
+
+
+                                                      icon: Icon(
+                                                        FluentIcons.spinner_ios_16_filled ,
+                                                      ),
+                                                      title: 'Processing',
+
+                                                    ),
+                                                    EasyStep(
+
+
+                                                      icon: Icon(
+                                                        FluentIcons.checkmark_circle_square_16_filled ,
+                                                      ),
+                                                      title: 'Finilizing',
+
+                                                    ),
+                                                    EasyStep(
+
+
+                                                      icon: Icon(
+                                                        FluentIcons.flag_16_filled  ,
+                                                      ),
+                                                      title: 'Completed',
+
+                                                    ),
+
+                                                  ],
+                                                  onStepReached: (index) => setState(() => activeStep = index),
+                                                ),
+                                              ),
+
+                                            ),
+                                          ),
                                           Row(
                                             children: [
                                               Container(
@@ -1539,6 +1808,7 @@ SizedBox(height: 8,),
                                           SizedBox(
                                             height: 10,
                                           ),
+
                                           Row(
                                             children: [
                                               Container(
@@ -2091,14 +2361,133 @@ SizedBox(height: 8,),
                                     );
                                   }
 
-
-
                                   else if ( projectData.status ==
-                                      'scheduled') {
+                                      'scheduled'&& projectData.pageContent.schedule_vc_generate_button ==
+                                      'mftoo7' ) {
+                                    activeStep =2;
                                     return Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Progress',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 17,),
 
+                                        Container(
+                                          height:150,
+                                          child: Center(
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                              child: EasyStepper(
+                                                activeStepBackgroundColor:HexColor('4D8D6E') ,
+                                                activeStepIconColor: Colors.white,
+                                                activeStepBorderColor:HexColor('4D8D6E')  ,
+                                                activeStepTextColor: HexColor('4D8D6E'),
+
+                                                showScrollbar: true,
+                                                enableStepTapping: false,
+                                                maxReachedStep: 6,
+                                                activeStep: activeStep,
+                                                stepShape: StepShape.circle,
+                                                stepBorderRadius: 15,
+                                                borderThickness: 1,
+                                                internalPadding: 15,
+                                                stepRadius: 32,
+                                                finishedStepBorderColor: HexColor('8d4d6c'),
+                                                finishedStepTextColor: HexColor('8d4d6c'),
+                                                finishedStepBackgroundColor: HexColor('8d4d6c'),
+                                                finishedStepIconColor: Colors.white,
+                                                finishedStepBorderType: BorderType.normal,
+                                                showLoadingAnimation: false,
+                                                showStepBorder: true,
+                                                lineStyle: LineStyle(
+                                                  lineLength: 45,
+                                                  lineType: LineType.dashed,
+
+                                                  activeLineColor: HexColor('#8d4d6c'),
+                                                  defaultLineColor: HexColor('#8d4d6c'),
+                                                  unreachedLineColor: HexColor('#172a21'),
+                                                  lineThickness: 3,
+                                                  lineSpace: 2,
+                                                  lineWidth: 10,
+
+                                                  unreachedLineType: LineType.dashed,
+
+                                                ),
+
+                                                steps: [
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.money_16_regular,
+                                                    ),
+                                                    title: 'Under Bidding',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      Icons.check_circle,
+                                                    ),
+                                                    title: 'Accepted',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.calendar_12_filled ,
+                                                    ),
+                                                    title: 'Schedule',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.spinner_ios_16_filled ,
+                                                    ),
+                                                    title: 'Processing',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.checkmark_circle_square_16_filled ,
+                                                    ),
+                                                    title: 'Finilizing',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.flag_16_filled  ,
+                                                    ),
+                                                    title: 'Completed',
+
+                                                  ),
+
+                                                ],
+                                                onStepReached: (index) => setState(() => activeStep = index),
+                                              ),
+                                            ),
+
+                                          ),
+                                        ),
                                         Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
@@ -2106,6 +2495,20 @@ SizedBox(height: 8,),
                                             Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
+                                                Padding(
+                                                  padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                  child: Text(
+                                                    'Details',
+                                                    style: GoogleFonts.openSans(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('454545'),
+                                                        fontSize: 22,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(height: 8,),
                                                 Row(
                                                   mainAxisAlignment: MainAxisAlignment.start,
 
@@ -3097,53 +3500,7 @@ SizedBox(height: 8,),
                                                                 ),
                                                               ),
                                                             ),
-                                                            // ListTile(
-                                                            //   title: Text(
-                                                            //     'Upload Video ',
-                                                            //     style: GoogleFonts.roboto(
-                                                            //       textStyle: TextStyle(
-                                                            //         color: HexColor('424347'),
-                                                            //         fontSize: 18,
-                                                            //         fontWeight: FontWeight.bold,
-                                                            //       ),
-                                                            //     ),
-                                                            //   ),
-                                                            // ),
-                                                            // Padding(
-                                                            //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                                            //   child: Container(
-                                                            //     height: 90, // Set the desired height
-                                                            //     width: double.infinity, // Take the full width
-                                                            //     decoration: BoxDecoration(
-                                                            //       border: Border.all(
-                                                            //         color: Colors.grey, // Set the desired border color
-                                                            //         width: 1.0, // Set the desired border width
-                                                            //       ),
-                                                            //       borderRadius: BorderRadius.circular(
-                                                            //           10), // Set the desired border radius
-                                                            //     ),
-                                                            //     child: ListTile(
-                                                            //       title: Column(
-                                                            //         mainAxisAlignment: MainAxisAlignment.center,
-                                                            //         children: [
-                                                            //           Icon(
-                                                            //             Icons.video_camera_back,
-                                                            //             color: HexColor('4D8D6E'),
-                                                            //           ),
-                                                            //           // Replace with the appropriate icon
-                                                            //           SizedBox(height: 8),
-                                                            //           Text(
-                                                            //             'Upload here',
-                                                            //             style: TextStyle(color: Colors.grey),
-                                                            //           ),
-                                                            //         ],
-                                                            //       ),
-                                                            //       onTap: () {
-                                                            //         // Handle image or video selection
-                                                            //       },
-                                                            //     ),
-                                                            //   ),
-                                                            // ),
+
                                                             SizedBox(
                                                               height: screenheight * 0.02,
                                                             ),
@@ -3350,11 +3707,132 @@ SizedBox(height: 8,),
                                   }
 
                                   else if ( projectData.status ==
-                                      'processing') {
+                                      'processing'&& projectData.pageContent.complete_vc_generate_button ==
+                                      'mftoo7' ) {
+                                    activeStep=3;
                                     return Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Progress',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 17,),
 
+                                        Container(
+                                          height:150,
+                                          child: Center(
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                              child: EasyStepper(
+                                                activeStepBackgroundColor:HexColor('4D8D6E') ,
+                                                activeStepIconColor: Colors.white,
+                                                activeStepBorderColor:HexColor('4D8D6E')  ,
+                                                activeStepTextColor: HexColor('4D8D6E'),
+
+                                                showScrollbar: true,
+                                                enableStepTapping: false,
+                                                maxReachedStep: 6,
+                                                activeStep: activeStep,
+                                                stepShape: StepShape.circle,
+                                                stepBorderRadius: 15,
+                                                borderThickness: 1,
+                                                internalPadding: 15,
+                                                stepRadius: 32,
+                                                finishedStepBorderColor: HexColor('8d4d6c'),
+                                                finishedStepTextColor: HexColor('8d4d6c'),
+                                                finishedStepBackgroundColor: HexColor('8d4d6c'),
+                                                finishedStepIconColor: Colors.white,
+                                                finishedStepBorderType: BorderType.normal,
+                                                showLoadingAnimation: false,
+                                                showStepBorder: true,
+                                                lineStyle: LineStyle(
+                                                  lineLength: 45,
+                                                  lineType: LineType.dashed,
+
+                                                  activeLineColor: HexColor('#8d4d6c'),
+                                                  defaultLineColor: HexColor('#8d4d6c'),
+                                                  unreachedLineColor: HexColor('#172a21'),
+                                                  lineThickness: 3,
+                                                  lineSpace: 2,
+                                                  lineWidth: 10,
+
+                                                  unreachedLineType: LineType.dashed,
+
+                                                ),
+
+                                                steps: [
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.money_16_regular,
+                                                    ),
+                                                    title: 'Under Bidding',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      Icons.check_circle,
+                                                    ),
+                                                    title: 'Accepted',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.calendar_12_filled ,
+                                                    ),
+                                                    title: 'Schedule',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.spinner_ios_16_filled ,
+                                                    ),
+                                                    title: 'Processing',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.checkmark_circle_square_16_filled ,
+                                                    ),
+                                                    title: 'Finilizing',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.flag_16_filled  ,
+                                                    ),
+                                                    title: 'Completed',
+
+                                                  ),
+
+                                                ],
+                                                onStepReached: (index) => setState(() => activeStep = index),
+                                              ),
+                                            ),
+
+                                          ),
+                                        ),
                                         Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
@@ -3362,6 +3840,20 @@ SizedBox(height: 8,),
                                             Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
+                                                Padding(
+                                                  padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                  child: Text(
+                                                    'Details',
+                                                    style: GoogleFonts.openSans(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('454545'),
+                                                        fontSize: 22,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(height: 8,),
                                                 Row(
                                                   mainAxisAlignment: MainAxisAlignment.start,
 
@@ -4521,11 +5013,132 @@ SizedBox(height: 8,),
                                     );
                                   }
                                   else if ( projectData.status ==
-                                      'finalizing') {
+                                      'finalizing'&& projectData.pageContent.project_complete_button ==
+                                      'maftoo7' ) {
+                                    activeStep=4;
                                     return Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Progress',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 17,),
 
+                                        Container(
+                                          height:150,
+                                          child: Center(
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                              child: EasyStepper(
+                                                activeStepBackgroundColor:HexColor('4D8D6E') ,
+                                                activeStepIconColor: Colors.white,
+                                                activeStepBorderColor:HexColor('4D8D6E')  ,
+                                                activeStepTextColor: HexColor('4D8D6E'),
+
+                                                showScrollbar: true,
+                                                enableStepTapping: false,
+                                                maxReachedStep: 6,
+                                                activeStep: activeStep,
+                                                stepShape: StepShape.circle,
+                                                stepBorderRadius: 15,
+                                                borderThickness: 1,
+                                                internalPadding: 15,
+                                                stepRadius: 32,
+                                                finishedStepBorderColor: HexColor('8d4d6c'),
+                                                finishedStepTextColor: HexColor('8d4d6c'),
+                                                finishedStepBackgroundColor: HexColor('8d4d6c'),
+                                                finishedStepIconColor: Colors.white,
+                                                finishedStepBorderType: BorderType.normal,
+                                                showLoadingAnimation: false,
+                                                showStepBorder: true,
+                                                lineStyle: LineStyle(
+                                                  lineLength: 45,
+                                                  lineType: LineType.dashed,
+
+                                                  activeLineColor: HexColor('#8d4d6c'),
+                                                  defaultLineColor: HexColor('#8d4d6c'),
+                                                  unreachedLineColor: HexColor('#172a21'),
+                                                  lineThickness: 3,
+                                                  lineSpace: 2,
+                                                  lineWidth: 10,
+
+                                                  unreachedLineType: LineType.dashed,
+
+                                                ),
+
+                                                steps: [
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.money_16_regular,
+                                                    ),
+                                                    title: 'Under Bidding',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      Icons.check_circle,
+                                                    ),
+                                                    title: 'Accepted',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.calendar_12_filled ,
+                                                    ),
+                                                    title: 'Schedule',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.spinner_ios_16_filled ,
+                                                    ),
+                                                    title: 'Processing',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.checkmark_circle_square_16_filled ,
+                                                    ),
+                                                    title: 'Finilizing',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.flag_16_filled  ,
+                                                    ),
+                                                    title: 'Completed',
+
+                                                  ),
+
+                                                ],
+                                                onStepReached: (index) => setState(() => activeStep = index),
+                                              ),
+                                            ),
+
+                                          ),
+                                        ),
                                         Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
@@ -4533,6 +5146,20 @@ SizedBox(height: 8,),
                                             Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
+                                                Padding(
+                                                  padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                  child: Text(
+                                                    'Details',
+                                                    style: GoogleFonts.openSans(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('454545'),
+                                                        fontSize: 22,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(height: 8,),
                                                 Row(
                                                   mainAxisAlignment: MainAxisAlignment.start,
 
@@ -5415,6 +6042,39 @@ SizedBox(height: 8,),
 
                                                                 ],
                                                               ),
+                                                              ListTile(
+                                                                title: Text(
+                                                                  'Review',
+                                                                  style: GoogleFonts.roboto(
+                                                                    textStyle: TextStyle(
+                                                                      color: HexColor('424347'),
+                                                                      fontSize: 18,
+                                                                      fontWeight: FontWeight.bold,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              ListTile(
+                                                                title: Container(
+                                                                  decoration: BoxDecoration(
+                                                                    borderRadius: BorderRadius.circular(15),
+                                                                    color: Colors.grey[100],
+                                                                  ),
+                                                                  child: Padding(
+                                                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                                                    child: TextFormField(
+                                                                      controller: reviewcontroller,
+                                                                      decoration: InputDecoration(
+                                                                        hintText: 'Write a Review ...',
+                                                                        hintStyle: TextStyle(color: Colors.grey[500]),
+                                                                        border: InputBorder.none,
+                                                                      ),
+                                                                      maxLines: 4,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+
                                                               SizedBox(height: 8,),
                                                               Padding(
                                                                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -5425,11 +6085,11 @@ SizedBox(height: 8,),
 
                                                                     Text(
                                                                       _imageFiles.isEmpty ? 'Upload Photo' : 'Selected Photo',
-                                                                      style: GoogleFonts.poppins(
+                                                                      style: GoogleFonts.roboto(
                                                                         textStyle: TextStyle(
-                                                                          color: HexColor('1A1D1E'),
-                                                                          fontSize: 17,
-                                                                          fontWeight: FontWeight.w500,
+                                                                          color: HexColor('424347'),
+                                                                          fontSize: 18,
+                                                                          fontWeight: FontWeight.bold,
                                                                         ),
                                                                       ),
                                                                     ),
@@ -5484,6 +6144,7 @@ SizedBox(height: 8,),
                                                                         child: Column(
                                                                           mainAxisAlignment: MainAxisAlignment.center,
                                                                           children: [
+
                                                                             Icon(
                                                                               Icons.file_upload,
                                                                               color: HexColor('4D8D6E'),
@@ -5560,53 +6221,6 @@ SizedBox(height: 8,),
                                                               SizedBox(
                                                                 height: 14,
                                                               ),
-                                                              // ListTile(
-                                                              //   title: Text(
-                                                              //     'Upload Video ',
-                                                              //     style: GoogleFonts.roboto(
-                                                              //       textStyle: TextStyle(
-                                                              //         color: HexColor('424347'),
-                                                              //         fontSize: 18,
-                                                              //         fontWeight: FontWeight.bold,
-                                                              //       ),
-                                                              //     ),
-                                                              //   ),
-                                                              // ),
-                                                              // Padding(
-                                                              //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                                              //   child: Container(
-                                                              //     height: 90, // Set the desired height
-                                                              //     width: double.infinity, // Take the full width
-                                                              //     decoration: BoxDecoration(
-                                                              //       border: Border.all(
-                                                              //         color: Colors.grey, // Set the desired border color
-                                                              //         width: 1.0, // Set the desired border width
-                                                              //       ),
-                                                              //       borderRadius: BorderRadius.circular(
-                                                              //           10), // Set the desired border radius
-                                                              //     ),
-                                                              //     child: ListTile(
-                                                              //       title: Column(
-                                                              //         mainAxisAlignment: MainAxisAlignment.center,
-                                                              //         children: [
-                                                              //           Icon(
-                                                              //             Icons.video_camera_back,
-                                                              //             color: HexColor('4D8D6E'),
-                                                              //           ),
-                                                              //           // Replace with the appropriate icon
-                                                              //           SizedBox(height: 8),
-                                                              //           Text(
-                                                              //             'Upload here',
-                                                              //             style: TextStyle(color: Colors.grey),
-                                                              //           ),
-                                                              //         ],
-                                                              //       ),
-                                                              //       onTap: () {
-                                                              //         // Handle image or video selection
-                                                              //       },
-                                                              //     ),
-                                                              //   ),
-                                                              // ),
                                                               SizedBox(
                                                                 height: screenheight * 0.02,
                                                               ),
@@ -5629,22 +6243,14 @@ SizedBox(height: 8,),
                                                                     Row(
                                                                       mainAxisAlignment: MainAxisAlignment.center,
                                                                       children: [
-                                                                        Container(
-                                                                          height: 56,
-                                                                          width: 56,
-                                                                          decoration: BoxDecoration(
-                                                                            shape: BoxShape.circle,
-                                                                            image: DecorationImage(
-                                                                              fit: BoxFit.cover,
-                                                                              image: NetworkImage(
-                                                                                selectedworkerimage != null &&
-                                                                                    selectedworkerimage.isNotEmpty
-                                                                                    ? selectedworkerimage
-                                                                                    : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                                                              ),
-                                                                            ),
-                                                                          ),
+                                                                        CircleAvatar(
+                                                                          radius: 30,
+                                                                          backgroundColor: Colors.transparent,
+                                                                          backgroundImage: projectData.selectworkerbid.worker_profile_pic == 'https://workdonecorp.com/images/' ||projectData.selectworkerbid.worker_profile_pic == ''
+                                                                              ? AssetImage('assets/images/default.png') as ImageProvider
+                                                                              : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
                                                                         ),
+
                                                                         SizedBox(width: 10,),
                                                                         Column(
                                                                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -5664,7 +6270,7 @@ SizedBox(height: 8,),
                                                                               initialRating: 3,
                                                                               minRating: 1,
                                                                               direction: Axis.horizontal,
-                                                                              allowHalfRating: true,
+                                                                              allowHalfRating: false,
                                                                               itemCount: 5,
                                                                               itemPadding: EdgeInsets.symmetric(horizontal: 2.0), // Adjust padding as needed
                                                                               itemBuilder: (context, _) => Icon(
@@ -5690,29 +6296,7 @@ SizedBox(height: 8,),
                                                               SizedBox(
                                                                 height: screenheight * 0.02,
                                                               ),
-                                                              Padding(
-                                                                padding: const EdgeInsets.symmetric(
-                                                                  horizontal: 12.0,
-                                                                ),
-                                                                child: Container(
-                                                                  decoration: BoxDecoration(
-                                                                    borderRadius: BorderRadius.circular(15),
-                                                                    color: Colors.grey[100],
-                                                                  ),
-                                                                  child: Padding(
-                                                                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                                                                    child: TextFormField(
-                                                                      controller: reviewcontroller,
-                                                                      decoration: InputDecoration(
-                                                                        hintText: 'Write a Review ...',
-                                                                      hintStyle: TextStyle(color: Colors.grey[500]),
-                                                                        border: InputBorder.none,
-                                                                      ),
-                                                                      maxLines: 4,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ),
+
                                                               Padding(
                                                                 padding:
                                                                 const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
@@ -5819,10 +6403,131 @@ SizedBox(height: 8,),
                                   }
                                   else if ( projectData.status ==
                                       'completed') {
+
+                                      activeStep=5;
+
                                     return Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
 
                                       children: [
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Progress',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 17,),
+
+                                        Container(
+                                          height:150,
+                                          child: Center(
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                              child: EasyStepper(
+                                                activeStepBackgroundColor:HexColor('4D8D6E') ,
+                                                activeStepIconColor: Colors.white,
+                                                activeStepBorderColor:HexColor('4D8D6E')  ,
+                                                activeStepTextColor: HexColor('4D8D6E'),
+
+                                                showScrollbar: true,
+                                                enableStepTapping: false,
+                                                maxReachedStep: 6,
+                                                activeStep: activeStep,
+                                                stepShape: StepShape.circle,
+                                                stepBorderRadius: 15,
+                                                borderThickness: 1,
+                                                internalPadding: 15,
+                                                stepRadius: 32,
+                                                finishedStepBorderColor: HexColor('8d4d6c'),
+                                                finishedStepTextColor: HexColor('8d4d6c'),
+                                                finishedStepBackgroundColor: HexColor('8d4d6c'),
+                                                finishedStepIconColor: Colors.white,
+                                                finishedStepBorderType: BorderType.normal,
+                                                showLoadingAnimation: false,
+                                                showStepBorder: true,
+                                                lineStyle: LineStyle(
+                                                  lineLength: 45,
+                                                  lineType: LineType.dashed,
+
+                                                  activeLineColor: HexColor('#8d4d6c'),
+                                                  defaultLineColor: HexColor('#8d4d6c'),
+                                                  unreachedLineColor: HexColor('#172a21'),
+                                                  lineThickness: 3,
+                                                  lineSpace: 2,
+                                                  lineWidth: 10,
+
+                                                  unreachedLineType: LineType.dashed,
+
+                                                ),
+
+                                                steps: [
+                                                  EasyStep(
+                                                    icon: Icon(
+                                                      FluentIcons.money_16_regular,
+                                                    ),
+                                                    title: 'Under Bidding',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      Icons.check_circle,
+                                                    ),
+                                                    title: 'Accepted',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.calendar_12_filled ,
+                                                    ),
+                                                    title: 'Schedule',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.spinner_ios_16_filled ,
+                                                    ),
+                                                    title: 'Processing',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.checkmark_circle_square_16_filled ,
+                                                    ),
+                                                    title: 'Finilizing',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.flag_16_filled  ,
+                                                    ),
+                                                    title: 'Completed',
+
+                                                  ),
+
+                                                ],
+                                                onStepReached: (index) => setState(() => activeStep = index),
+                                              ),
+                                            ),
+
+                                          ),
+                                        ),
 
                                         Padding(
                                           padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
@@ -5868,10 +6573,28 @@ SizedBox(height: 8,),
                                                     'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
                                               ),
                                             ),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              "${projectData.clientData.firstname}",
-                                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                            SizedBox(width: 11),
+                                            TextButton(
+                                              onPressed: () {
+                                                Get.to(ProfilePageClient(
+                                                    userId: projectData
+                                                        .clientData!.clientId
+                                                        .toString()));
+                                              },
+                                              style: TextButton.styleFrom(
+                                                fixedSize: Size(50, 30),
+                                                // Adjust the size as needed
+                                                padding: EdgeInsets.zero,
+                                              ),
+                                              child: Text(
+                                                projectData.clientData!.firstname,
+                                                //client first name
+                                                style: TextStyle(
+                                                  color: HexColor('4D8D6E'),
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
                                             ),
                                             Spacer(),
                                             RatingDisplay(rating: ratingonWorker),
@@ -5958,17 +6681,36 @@ SizedBox(height: 8,),
                                           children: [
                                             CircleAvatar(
                                               radius: 23,
-                                              backgroundImage: NetworkImage(
-                                                projectData.selectworkerbid.worker_profile_pic != '' && projectData.selectworkerbid.worker_profile_pic.isNotEmpty
-                                                    ? projectData.selectworkerbid.worker_profile_pic
-                                                    : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // Use default if empty
+                                              backgroundColor: Colors.transparent,
+                                              backgroundImage: projectData.selectworkerbid.worker_profile_pic == 'https://workdonecorp.com/images/' ||projectData.selectworkerbid.worker_profile_pic == ''
+                                                  ? AssetImage('assets/images/default.png') as ImageProvider
+                                                  : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
+                                            ),
+                                            SizedBox(width: 11),
+                                            TextButton(
+                                              onPressed: () {
+                                                Get.to(ProfilePageClient(
+                                                    userId: projectData
+                                                        .selectworkerbid.worker_id
+                                                        .toString()));
+                                              },
+                                              style: TextButton.styleFrom(
+                                                fixedSize: Size(50, 30),
+                                                // Adjust the size as needed
+                                                padding: EdgeInsets.zero,
+                                              ),
+                                              child: Text(
+                                                projectData.selectworkerbid.worker_firstname,
+                                                //client first name
+                                                style: TextStyle(
+                                                  color: HexColor('4D8D6E'),
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
                                             ),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              "${projectData.selectworkerbid.worker_firstname}",
-                                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                            ),
+
+
                                             Spacer(),
                                             RatingDisplay(rating: ratingonclient),
                                           ],
@@ -6025,22 +6767,186 @@ SizedBox(height: 8,),
                                   }
 
                                   else if (projectData.bids.isNotEmpty) {
+activeStep=0;
                                     // Render a ListView with bids
-                                    return ListView.builder(
-                                      physics: NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
-                                      itemCount: projectData.bids.length,
-                                      itemBuilder: (context, index) {
-                                        Bid bid = projectData.bids[index];
-                                        return buildListItem(bid);
-                                      },
+                                    return Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                          child: Text(
+                                            'Progress',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 8,),
+
+                                        Container(
+                                          height:150,
+                                          child: Center(
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                              child: EasyStepper(
+                                                activeStepBackgroundColor:HexColor('4D8D6E') ,
+                                                activeStepIconColor: Colors.white,
+                                                activeStepBorderColor:HexColor('4D8D6E')  ,
+                                                activeStepTextColor: HexColor('4D8D6E'),
+
+                                                showScrollbar: true,
+                                                enableStepTapping: false,
+                                                maxReachedStep: 6,
+                                                activeStep: activeStep,
+                                                stepShape: StepShape.circle,
+                                                stepBorderRadius: 15,
+                                                borderThickness: 1,
+                                                internalPadding: 15,
+                                                stepRadius: 32,
+                                                finishedStepBorderColor: HexColor('8d4d6c'),
+                                                finishedStepTextColor: HexColor('8d4d6c'),
+                                                finishedStepBackgroundColor: HexColor('8d4d6c'),
+                                                finishedStepIconColor: Colors.white,
+                                                finishedStepBorderType: BorderType.normal,
+                                                showLoadingAnimation: false,
+                                                showStepBorder: true,
+                                                lineStyle: LineStyle(
+                                                  lineLength: 45,
+                                                  lineType: LineType.dashed,
+
+                                                  activeLineColor: HexColor('#8d4d6c'),
+                                                  defaultLineColor: HexColor('#8d4d6c'),
+                                                  unreachedLineColor: HexColor('#172a21'),
+                                                  lineThickness: 3,
+                                                  lineSpace: 2,
+                                                  lineWidth: 10,
+
+                                                  unreachedLineType: LineType.dashed,
+
+                                                ),
+
+                                                steps: [
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.money_16_regular,
+                                                    ),
+                                                    title: 'Under Bidding',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      Icons.check_circle,
+                                                    ),
+                                                    title: 'Accepted',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.calendar_12_filled ,
+                                                    ),
+                                                    title: 'Schedule',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.spinner_ios_16_filled ,
+                                                    ),
+                                                    title: 'Processing',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.checkmark_circle_square_16_filled ,
+                                                    ),
+                                                    title: 'Finilizing',
+
+                                                  ),
+                                                  EasyStep(
+
+
+                                                    icon: Icon(
+                                                      FluentIcons.flag_16_filled  ,
+                                                    ),
+                                                    title: 'Completed',
+
+                                                  ),
+
+                                                ],
+                                                onStepReached: (index) => setState(() => activeStep = index),
+                                              ),
+                                            ),
+
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Workers Bids',
+                                              style: GoogleFonts.openSans(
+                                                textStyle: TextStyle(
+                                                  color: HexColor('454545'),
+                                                  fontSize: 22,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 8,),
+                                        ListView.builder(
+                                          physics: NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true,
+                                          itemCount: projectData.bids.length,
+                                          itemBuilder: (context, index) {
+                                            Bid bid = projectData.bids[index];
+                                            return buildListItem(bid);
+                                          },
+                                        ),
+                                      ],
                                     );
                                   } else {
                                     // Render a message when there are no bids
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 14.0),
-                                      child: Center(child: Text('No bids yet')),
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                          child: Text(
+
+                                            'Workers Bids'
+                                                                              ,
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                color: HexColor('454545'),
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 14.0),
+                                          child: Center(child: Text('No bids yet')),
+                                        ),
+                                      ],
                                     );
                                   }
                                 }
@@ -6065,306 +6971,6 @@ SizedBox(height: 8,),
           ),
         ),
       ),
-      SlidingUpPanelWidget(
-        child: Container(
-          margin: EdgeInsets.symmetric(horizontal: 15.0),
-          decoration: ShapeDecoration(
-            color: Colors.white,
-            shadows: [
-              BoxShadow(
-                  blurRadius: 5.0,
-                  spreadRadius: 2.0,
-                  color: const Color(0x11000000))
-            ],
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(10.0),
-                topRight: Radius.circular(10.0),
-              ),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: screenheight * 0.02,
-              ),
-              Row(
-                children: [
-                  IconButton(
-                      onPressed: () {
-                        panelController.collapse();
-                      },
-                      icon: Icon(
-                        Icons.expand_circle_down,
-                        color: Colors.grey[700],
-                      )),
-                  Text(
-                    'End Project',
-                    style: GoogleFonts.roboto(
-                      textStyle: TextStyle(
-                        color: Colors.grey[900],
-                        fontSize: 23,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Spacer(),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Close the current screen
-                    },
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.red, // Set the button color to red
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0), // Set circular border
-                      ),
-                    ),
-                    child: Text(
-                      'Close',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-
-                ],
-              ),
-              ListTile(
-                title: Text(
-                  'Upload Photo ',
-                  style: GoogleFonts.roboto(
-                    textStyle: TextStyle(
-                      color: HexColor('424347'),
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Container(
-                  height: 90, // Set the desired height
-                  width: double.infinity, // Take the full width
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.grey, // Set the desired border color
-                      width: 1.0, // Set the desired border width
-                    ),
-                    borderRadius: BorderRadius.circular(
-                        10), // Set the desired border radius
-                  ),
-                  child: ListTile(
-                    title: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.image,
-                          color: HexColor('4D8D6E'),
-                        ),
-                        // Replace with the appropriate icon
-                        SizedBox(height: 8),
-                        Text(
-                          'Upload here',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                    onTap: () {
-                      // Handle image or video selection
-                    },
-                  ),
-                ),
-              ),
-              ListTile(
-                title: Text(
-                  'Upload Video ',
-                  style: GoogleFonts.roboto(
-                    textStyle: TextStyle(
-                      color: HexColor('424347'),
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Container(
-                  height: 90, // Set the desired height
-                  width: double.infinity, // Take the full width
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.grey, // Set the desired border color
-                      width: 1.0, // Set the desired border width
-                    ),
-                    borderRadius: BorderRadius.circular(
-                        10), // Set the desired border radius
-                  ),
-                  child: ListTile(
-                    title: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.video_camera_back,
-                          color: HexColor('4D8D6E'),
-                        ),
-                        // Replace with the appropriate icon
-                        SizedBox(height: 8),
-                        Text(
-                          'Upload here',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                    onTap: () {
-                      // Handle image or video selection
-                    },
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: screenheight * 0.02,
-              ),
-              ListTile(
-                title: Text(
-                  'Rating',
-                  style: GoogleFonts.roboto(
-                    textStyle: TextStyle(
-                      color: HexColor('424347'),
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              ListTile(
-                title: Column(
-                  children: [
-                    Text('Zeyad'),
-                    SizedBox(width: 8),
-                    // Replace the following with a RatingBar widget
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.star, color: Colors.yellow),
-                        Icon(Icons.star, color: Colors.yellow),
-                        Icon(Icons.star, color: Colors.yellow),
-                        Icon(Icons.star, color: Colors.yellow),
-                        Icon(Icons.star_border, color: Colors.yellow),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: screenheight * 0.02,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12.0,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    color: Colors.grey[100],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        hintText: 'Write a Review ...',
-                        hintStyle: TextStyle(color: Colors.grey[500]),
-                        border: InputBorder.none,
-                      ),
-                      maxLines: 4,
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
-                child: Center(
-                  child: ActionSlider.standard(
-                    sliderBehavior: SliderBehavior.stretch,
-                    rolling: false,
-                    width: double.infinity,
-                    backgroundColor: Colors.white,
-                    toggleColor: HexColor('4D8D6E'),
-                    iconAlignment: Alignment.centerRight,
-                    loadingIcon: SizedBox(
-                        width: 55,
-                        child: Center(
-                            child: SizedBox(
-                          width: 24.0,
-                          height: 24.0,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2.0, color: Colors.white),
-                        ))),
-                    successIcon: const SizedBox(
-                        width: 55,
-                        child: Center(
-                            child: Icon(
-                          Icons.check_rounded,
-                          color: Colors.white,
-                        ))),
-                    icon: const SizedBox(
-                        width: 55,
-                        child: Center(
-                            child: Icon(
-                          Icons.keyboard_double_arrow_right,
-                          color: Colors.white,
-                        ))),
-                    action: (controller) async {
-                      controller.loading(); //starts loading animation
-                      await Future.delayed(const Duration(seconds: 3));
-                      controller.success(); //starts success animation
-                      await Future.delayed(const Duration(seconds: 1));
-                      controller.reset(); //resets the slider
-                    },
-                    child: const Text('Swipe To Confirm'),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: screenheight * 0.01,
-              ),
-            ],
-          ),
-        ),
-        controlHeight: 0.0,
-        anchor: 0.0,
-        minimumBound: minBound,
-        upperBound: upperBound,
-        panelController: panelController,
-        onTap: () {
-          ///Customize the processing logic
-          if (SlidingUpPanelStatus.expanded == panelController.status) {
-            panelController.collapse();
-          } else {
-            panelController.expand();
-          }
-        },
-        enableOnTap: false,
-        //Enable the onTap callback for control bar.
-        dragDown: (details) {
-          print('dragDown');
-        },
-        dragStart: (details) {
-          print('dragStart');
-        },
-        dragCancel: () {
-          print('dragCancel');
-        },
-        dragUpdate: (details) {
-          print(
-              'dragUpdate,${panelController.status == SlidingUpPanelStatus.dragging ? 'dragging' : ''}');
-        },
-        dragEnd: (details) {
-          print('dragEnd');
-        },
-      ),
     ]);
   }
 
@@ -6382,10 +6988,11 @@ SizedBox(height: 8,),
           CircleAvatar(
             radius: 28,
             backgroundColor: Colors.transparent,
-            backgroundImage: NetworkImage(item.workerProfilePic == ''
-                ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
-                : item.workerProfilePic),
+            backgroundImage: item.workerProfilePic== 'https://workdonecorp.com/images/' ||item.workerProfilePic == ''
+                ? AssetImage('assets/images/default.png') as ImageProvider
+                : NetworkImage(item.workerProfilePic?? 'assets/images/default.png'),
           ),
+
           SizedBox(
             width: 12,
           ),
@@ -6408,7 +7015,7 @@ SizedBox(height: 8,),
                           : item.workerFirstname,
                       style: GoogleFonts.openSans(
                         textStyle: TextStyle(
-                          color: HexColor('9DA2A3'),
+                          color: HexColor('4D8D6E'),
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
                         ),
@@ -6426,7 +7033,7 @@ SizedBox(height: 8,),
                   SizedBox(
                     width: 2,
                   ),
-                  Text('7'),
+                  Text('0'),
                 ],
               ),
 
@@ -6753,12 +7360,14 @@ class PageContent {
   final String reviewOnWorker;
   final String ratingOnWorker;
   final String reviewOnClient;
+  final String schedule;
   final String ratingOnClient;
   final List<String> imagesAfter;
 
   PageContent({
     required this.currentUserRole,
     required this.buttons,
+    required this.schedule,
     required this.selectedDate,
     required this.selectedInterval,
     required this.scheduleStatus,
@@ -6788,6 +7397,7 @@ class PageContent {
       selectedDate: json['selected_date'] ?? '',
       selectedInterval: json['selected_interval'] ?? '',
       scheduleStatus: json['schedule_status'] ?? '',
+      schedule: json['schedule'] ?? '',
       change: json['change'] ?? '',
       chat: json['chat'] ?? '',
       schedule_vc_generate_button: json['schedule_vc_generate_button'] ?? '',

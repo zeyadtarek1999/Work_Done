@@ -28,7 +28,7 @@ late Future<List<Item>> futurechatusers;
 
 Future<void> fetchLastMessageAndTime(Item chatItem) async {
   String chatId = chatItem.chat_id; // Assuming chat_id corresponds to Firebase chat document ID
-
+  late AnimationController ciruclaranimation;
   // Query Firebase for the last message in this chat
   var lastMessageSnapshot = await FirebaseFirestore.instance
       .collection('chats')
@@ -133,12 +133,17 @@ Future<List<Item>> fetchchatusers() async {
   }
 }
 
-class _InboxClientState extends State<InboxClient> {
+class _InboxClientState extends State<InboxClient> with SingleTickerProviderStateMixin {
 
   @override
   void initState() {
     super.initState();
     _getUserProfile();
+    ciruclaranimation = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    ciruclaranimation.repeat(reverse: false);
 
     // Call the fetchchatusers() function and set the futurechatusers with the result
     futurechatusers = fetchchatusers().then((chats) async {
@@ -146,6 +151,11 @@ class _InboxClientState extends State<InboxClient> {
       if (mounted) setState(() {}); // Check if the widget is still in the tree
       return chats; // Returning the updated chats list
     });
+  }
+  @override
+  void dispose() {
+    ciruclaranimation.dispose();
+    super.dispose();
   }
 
   String profile_pic ='' ;
@@ -276,12 +286,16 @@ class _InboxClientState extends State<InboxClient> {
                   future: futurechatusers,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      // Replace CircularProgressIndicator with Shimmer.fromColors
-                      return Shimmer.fromColors(
-                        baseColor: Colors.grey[300]!,
-                        highlightColor: Colors.grey[100]!,
-                        child: YourShimmerWidget(), // Your custom shimmer widget
-                      );
+                      return Center(child: RotationTransition(
+                        turns: ciruclaranimation,
+                        child: SvgPicture.asset(
+                          'assets/images/Logo.svg',
+                          semanticsLabel: 'Your SVG Image',
+                          width: 100,
+                          height: 130,
+                        ),
+                      ))
+                      ;
                     } else if (snapshot.hasError) {
                       return  SvgPicture.asset(
                         'assets/images/emptyinbox.svg',

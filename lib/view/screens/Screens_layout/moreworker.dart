@@ -123,8 +123,8 @@ class _MoreworkerState extends State<Moreworker> {
 
         },
         backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-        shape: CircleBorder(), // Make the button circular
+        child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
+        //        shape: CircleBorder(), // Make the button circular
       ),
       backgroundColor: Colors.white,
       body:
@@ -139,13 +139,14 @@ class _MoreworkerState extends State<Moreworker> {
                 children: [
                   CircleAvatar(
                     radius: 35,
+                    backgroundColor: Colors.transparent,
                     backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                        ? (profile_pic == "https://workdonecorp.com/images/"
-                        ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
-                        : NetworkImage(profile_pic))
-                        : AssetImage('assets/images/profileimage.png') as ImageProvider,
+                        && profile_pic == "https://workdonecorp.com/images/"
+                        ? AssetImage('assets/images/default.png') as ImageProvider
+                        : NetworkImage(profile_pic?? 'assets/images/default.png'),
+                  )
 
-                  ),
+,
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Column(

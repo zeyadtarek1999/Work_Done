@@ -41,7 +41,7 @@ class _layoutworkerState extends State<layoutworker> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               buildBottomNavItem(0, Icons.home, 'Home'),
-              buildBottomNavItem(1, Icons.check_circle, 'Projects'),
+              buildBottomNavItem(1, Icons.check_circle, 'My Projects'),
               SizedBox(), // Empty space in the center
               buildBottomNavItem(2, Icons.inbox, 'Inbox'),
               buildBottomNavItem(3, Icons.more_vert, 'More'),

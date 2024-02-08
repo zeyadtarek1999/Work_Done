@@ -96,7 +96,7 @@ profileimagewidth =screenWidth! * 0.37;
     profileimageheight =screenHeight! * 0.2;
     insidecontainerleftheight =screenHeight! * 0.107;
     insidecontainerrightheight =screenHeight! * 0.107;
-    Infocontainerheight =screenHeight! * 0.37;
+    Infocontainerheight =screenHeight! * 0.54;
 
   }
 }

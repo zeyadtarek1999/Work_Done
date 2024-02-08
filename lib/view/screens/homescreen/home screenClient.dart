@@ -9,10 +9,10 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../../controller/shimmers/shimmer basic.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Explore/Explore Client.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
@@ -97,6 +97,7 @@ Future<List<Item>> fetchProjects() async {
     throw Exception('Error retrieving project data: $e');
   }
 }
+late AnimationController ciruclaranimation;
 
 final StreamController<String> _likedStatusController = StreamController<String>();
 
@@ -185,7 +186,7 @@ Future<Map<String, dynamic>> removeProjectFromLikes(String projectId) async {
 final ScreenshotController screenshotController = ScreenshotController();
 
 
-class _HomeclientState extends State<Homeclient> {
+class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateMixin {
 
 
   int _currentIndex = 0;
@@ -196,9 +197,19 @@ class _HomeclientState extends State<Homeclient> {
     initializeProjects();
     _getUserProfile();
     likedProjectsMap= {};
+    ciruclaranimation = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    ciruclaranimation.repeat(reverse: false);
 
 
+  }
 
+  @override
+  void dispose() {
+    ciruclaranimation.dispose();
+    super.dispose();
   }
   String profile_pic ='' ;
   String firstname ='' ;
@@ -370,7 +381,7 @@ class _HomeclientState extends State<Homeclient> {
 
     return AdvancedDrawer(
 
-      openRatio: 0.5,
+      openRatio: 0.6,
       backdropColor: HexColor('ECEDED'),
       controller: advancedDrawerController,
       rtlOpening: false,
@@ -386,12 +397,11 @@ class _HomeclientState extends State<Homeclient> {
             children: [
               CircleAvatar(
                 radius: 35,
+                backgroundColor: Colors.transparent,
                 backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                    ? (profile_pic == "https://workdonecorp.com/images/"
-                    ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
-                    : NetworkImage(profile_pic))
-                    : AssetImage('assets/images/profileimage.png') as ImageProvider,
-
+                    && profile_pic == "https://workdonecorp.com/images/"
+                    ? AssetImage('assets/images/default.png') as ImageProvider
+                    : NetworkImage(profile_pic?? 'assets/images/default.png'),
               ),
               SizedBox(
                 height: 12,
@@ -550,26 +560,26 @@ class _HomeclientState extends State<Homeclient> {
               Spacer(),
 
               Text('Powered by :',
-                        style: GoogleFonts.poppins(
-                          textStyle: TextStyle(
-                              color: HexColor('6A4141'),
-                              fontSize: 15,
-                              fontWeight: FontWeight.normal),
-                        ),
-                      ),
+                style: GoogleFonts.poppins(
+                  textStyle: TextStyle(
+                      color: HexColor('6A4141'),
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal),
+                ),
+              ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   SvgPicture.asset(
                     'assets/images/Logo.svg',
-                    width: 50.0,
-                    height: 64.0,
+                    fit: BoxFit.cover,
+                    width: 60.0,
+                    height: 75.0,
                   ),
-                  Text('Workdone corp.',
+                  Text('Workdone Corp.',
                     style: GoogleFonts.poppins(
                       textStyle: TextStyle(
                           color: HexColor('595B5B'),
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.normal),
                     ),
                   ),
@@ -616,10 +626,18 @@ class _HomeclientState extends State<Homeclient> {
                             onTap: () {
                               drawerControl();
                             },
-                            child: SvgPicture.asset(
-                              'assets/icons/menuicon.svg',
-                              width: 57.0,
-                              height: 57.0,
+                            child: Container(
+                              height: 55,
+                              width: 55,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20.0),
+                                color:HexColor('4d8d6e'),
+                              ),
+                              child:
+                              Icon(
+                                Ionicons.menu_outline,size: 30,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                           Spacer(),
@@ -638,17 +656,14 @@ class _HomeclientState extends State<Homeclient> {
                               Get.to(ProfileScreenClient2());
                               // Handle the tap event here
                             },
-                            child: CircleAvatar(
+                            child:  CircleAvatar(
                               radius: 27,
                               backgroundColor: Colors.transparent,
                               backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                                  ? (profile_pic == "https://workdonecorp.com/images/"
-                                  ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
-                                  : NetworkImage(profile_pic))
-                                  : AssetImage('assets/images/profileimage.png') as ImageProvider,
-
-
-                            ),
+                                  && profile_pic == "https://workdonecorp.com/images/"
+                                  ? AssetImage('assets/images/default.png') as ImageProvider
+                                  : NetworkImage(profile_pic?? 'assets/images/default.png'),
+                            )
                           ),
                         ],
                       ),
@@ -694,11 +709,15 @@ class _HomeclientState extends State<Homeclient> {
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         // Replace CircularProgressIndicator with Shimmer.fromColors
-                        return Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: YourShimmerWidget(), // Your custom shimmer widget
-                        );
+                        return    Center(child: RotationTransition(
+                          turns: ciruclaranimation,
+                          child: SvgPicture.asset(
+                            'assets/images/Logo.svg',
+                            semanticsLabel: 'Your SVG Image',
+                            width: 100,
+                            height: 130,
+                          ),
+                        ));
                       } else if (snapshot.hasError) {
                         return Text('Error: ${snapshot.error}');
                       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -800,9 +819,18 @@ class _HomeclientState extends State<Homeclient> {
                             if (snapshot.connectionState == ConnectionState.waiting) {
                               return Column(
                                 children: [
-                         SizedBox(height: 80,),       Center(child: CircularProgressIndicator())
+                         SizedBox(height: 80,),       Center(child: RotationTransition(
+                                    turns: ciruclaranimation,
+                                    child: SvgPicture.asset(
+                                      'assets/images/Logo.svg',
+                                      semanticsLabel: 'Your SVG Image',
+                                      width: 100,
+                                      height: 130,
+                                    ),
+                                  ))
                                   ,SizedBox(height: 80,)
                                 ],
+
                               );
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
