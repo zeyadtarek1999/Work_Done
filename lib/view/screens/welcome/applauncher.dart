@@ -75,11 +75,12 @@ class _AppLauncherState extends State<AppLauncher> {
               Get.off(layoutworker());
             } else {
               print('Error: Unknown user type.');
-              throw Exception('Failed to load profile information');
+              Get.off(WelcomeScreen());
+
             }
           } else {
             print('Error: Response data does not contain user_type.');
-            throw Exception('Failed to load profile information');
+            Get.off(WelcomeScreen());
           }
         } else {
           // Handle error response

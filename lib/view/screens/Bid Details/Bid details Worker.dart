@@ -35,6 +35,7 @@ import '../homescreen/home screenClient.dart';
 import '../view profile screens/Client profile view.dart';
 import 'package:http/http.dart' as http;
 
+import '../view profile screens/Worker profile .dart';
 import '../view profile screens/Worker profile view.dart';
 import 'Place a Bid.dart';
 
@@ -1039,7 +1040,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   children: [
                                                     GestureDetector(
                                                       onTap: () {
-                                                        Get.to(ProfilePageClient(
+                                                        Get.to(Workerprofileother
+                                                          (
                                                             userId: projectData
                                                                 .selectworkerbid!.worker_id
                                                                 .toString()));
@@ -1463,6 +1465,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                                                                     child: ElevatedButton(
                                                                                                                       onPressed: () {
                                                                                                                         Get.to(ChatScreen(
+
                                                                                                                             seconduserimage: projectData.selectworkerbid.worker_profile_pic,
                                                                                                                             chatId: projectData.pageaccessdata!.chat_ID,
                                                                                                                             currentUser: projectData.selectworkerbid.worker_firstname,
@@ -4196,7 +4199,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               Expanded(
                                                 child: TextButton(
                                                   onPressed: () {
-                                                    Get.to(ProfilePageClient(
+                                                    Get.to(Workerprofileother
+                                                      (
                                                         userId: projectData
                                                             .selectworkerbid.worker_id
                                                             .toString()));
@@ -5018,7 +5022,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                       // Navigate to worker profile page
                       // You can replace this with your navigation logic
                       Get.to(
-                          ProfilePageClient(userId: item.workerId.toString()));
+                          Workerprofileother
+                            (userId: item.workerId.toString()));
                     },
                     child: Text(
                       item.workerFirstname.length > 7

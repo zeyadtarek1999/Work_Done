@@ -437,60 +437,7 @@ class _projectsClientState extends State<projectsClient> with SingleTickerProvid
                 }
               },
             ),
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceAround,
-            //   children: [
-            //     if (currentPage > 0)
-            //       TextButton(
-            //         onPressed: () {
-            //           setState(() {
-            //             currentPage--;
-            //             refreshProjects(); // Use refreshProjects instead of fetchProjects
-            //           });
-            //         },
-            //         style: TextButton.styleFrom(
-            //
-            //           primary: Colors.redAccent,
-            //
-            //         ),
-            //         child: Text(
-            //           'Previous Page',
-            //           style: TextStyle(fontSize: 16, ),
-            //         ),
-            //       ),
-            //     TextButton(
-            //       onPressed: () async {
-            //         setState(() {
-            //           currentPage++;
-            //           refreshProjects();
-            //         });
-            //
-            //         // Fetch the projects for the next page
-            //         List<Item>? nextPageProjects = await fetchProjects();
-            //
-            //         // Check if the next page is empty or no data and hide the button accordingly
-            //         if (!shouldShowNextButton(nextPageProjects)) {
-            //           setState(() {
-            //             currentPage = 0;
-            //             refreshProjects();
-            //           });
-            //         } else {
-            //           // Update the futureProjects with the fetched projects
-            //           futureProjects = Future.value(nextPageProjects);
-            //         }
-            //       },
-            //       style: TextButton.styleFrom(
-            //
-            //         primary: Colors.black45,
-            //
-            //       ),
-            //       child: Text(
-            //         'Next Page',
-            //         style: TextStyle(fontSize: 16),
-            //       ),
-            //     ),
-            //   ],
-            // ),
+
             SizedBox(height: 50,),
           ],
         ),

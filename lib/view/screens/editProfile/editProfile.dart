@@ -389,6 +389,32 @@ class _editProfileState extends State<editProfile> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Center(
+                  child: Column(
+                    children: [
+                      Text('Note',
+                        style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                              color: Colors.red,
+                              fontSize: 16 ,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      SizedBox(height: 3,),
+                      Text('You Can Edit Any Field Only and Press Submit',
+                        style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                              color: Colors.black45,
+                              fontSize: 13 ,
+                              fontWeight: FontWeight.w600),
+                          decoration: TextDecoration.underline,
+
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+SizedBox(height: 8,),
+                Center(
                   child: Stack(
                     alignment: Alignment.center,
                     children: [

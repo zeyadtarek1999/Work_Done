@@ -317,16 +317,6 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
       backgroundColor: HexColor('ECECEC'),
       appBar: AppBar(
         backgroundColor: HexColor('ECECEC'),
-        leading: IconButton(
-          onPressed: () {
-            Get.back();
-          },
-          icon: Icon(
-            Ionicons.arrow_back,
-            size: 30,
-            color: HexColor('1A1D1E'),
-          ),
-        ),
         title: Text(
           'Post New Project',
           style: GoogleFonts.poppins(
@@ -338,6 +328,16 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
         ),
         centerTitle: true,
         elevation: 0,
+        leading: IconButton(
+          onPressed: () {
+            Get.back();
+          },
+          icon: Icon(
+            Ionicons.arrow_back,
+            size: 30,
+            color: HexColor('1A1D1E'),
+          ),
+        ),
       ),
       body:
 
@@ -635,38 +635,28 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  child: FormField<String>(
+                  child: Column(
+                  children: [
+                    TextFormField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        hintText: 'Write a Project Title',
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16.0,
+                        ),
+                        border: InputBorder.none, // Remove the underline
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 15.0), // Adjust padding
+                      ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Title is required';
                         }
                         return null;
                       },
-                      builder: (FormFieldState state) {
-                        return Column(
-                        children: [
-                          TextFormField(
-                            controller: titleController,
-                            decoration: InputDecoration(
-                              hintText: 'Write a Project Title',
-                              hintStyle: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 16.0,
-                              ),
-                              border: InputBorder.none, // Remove the underline
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16.0, vertical: 15.0), // Adjust padding
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                              }
-                              return null;
-                            },
-                          ),
-                        ],
-                      );
-                    }
-                  ),
+                    ),
+                  ],
+                                        ),
                                 ),
                                 SizedBox(
                   height: 14,

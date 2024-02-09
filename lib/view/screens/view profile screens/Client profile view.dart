@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -10,6 +13,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../model/mediaquery.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Bid Details/Bid details Worker.dart';
 import '../Support Screen/Helper.dart';
@@ -27,39 +31,21 @@ class ProfilePageClient extends StatefulWidget {
 
 class _ProfilePageClientState extends State<ProfilePageClient> {
 
-  List<reviewsitems> reviewsitems2 = [
-    reviewsitems(
-      imagePath: 'assets/images/testimage.jpg',
-      itemName: 'Wall Painting',
-      description: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts and visual mockups.',
-      by: 'John',
-      timeAgo: '22 min',
-      bidAmount: '5',
-    ),
-    reviewsitems(
-      imagePath: 'assets/images/pluming.jpg',
-      itemName: 'Plumbing',
-      description: 'Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts and visual mockups.',
-      by: 'Yousef',
-      timeAgo: '30 min',
-      bidAmount: '7',
-    ),
-    // Add more data items as needed
-  ];
-
+  int currentTabIndex = 0; // Assuming the default tab is Under Bid
 
   bool shouldShowNextButton(List<Item>? nextPageData) {
     // Add your condition to check if the next page is not empty here
     return nextPageData != null && nextPageData.isNotEmpty;
   }
-  late Future<List<Item>> futureProjects;
+  late  Future<UserProfile> futureProjects;
   List<Item> items = [];
   TextEditingController searchController = TextEditingController();
 
   final StreamController<String> _likedStatusController = StreamController<String>();
 
-
-
+  late Future<RatingInfo> futureRatingInfo;
+double barwidth= 150;
+double widthofbar = 150;
   Stream<String> get likedStatusStream => _likedStatusController.stream;
   List<String> likedProjects = []; // List to store liked project IDs
   Map<int, bool> likedProjectsMap = {};
@@ -143,12 +129,12 @@ class _ProfilePageClientState extends State<ProfilePageClient> {
   final ScreenshotController screenshotController = ScreenshotController();
 
   void refreshProjects() {
-    futureProjects = fetchProjects();
+    futureProjects = fetchUserProfile(widget.userId);
   }
   Future<void> initializeProjects() async {
     try {
       // Initialize futureProjects in initState or wherever appropriate
-      futureProjects = fetchProjects();
+      futureProjects = fetchUserProfile(widget.userId);
       refreshProjects();
 
     } catch (e) {
@@ -190,12 +176,12 @@ class _ProfilePageClientState extends State<ProfilePageClient> {
     }
   }
 
-  Future<Item> fetchUpdatedProject(int projectId) async {
-    // Fetch updated data for the specific project
-    // You may need to adjust the API endpoint and request parameters
-    final updatedProjects = await fetchProjects();
-    return updatedProjects.firstWhere((project) => project.projectId == projectId);
-  }
+  // Future<Item> fetchUpdatedProject(int projectId) async {
+  //   // Fetch updated data for the specific project
+  //   // You may need to adjust the API endpoint and request parameters
+  //   final updatedProjects = await fetchUserProfile(widget.userId);
+  //   return updatedProjects.firstWhere((project) => project.projectId == projectId);
+  // }
 
 
 
@@ -257,9 +243,8 @@ class _ProfilePageClientState extends State<ProfilePageClient> {
   _getusertype();
   _getUserProfile();
   numberofprojects();
-
   _getusertype();
-
+  get_review();
   }
 
   String firstname = '';
@@ -270,6 +255,83 @@ class _ProfilePageClientState extends State<ProfilePageClient> {
   String language = '';
   String usertype = '';
   int projectnumber = 0;
+  dynamic stars_5 = 0;
+  dynamic stars_4 = 0;
+  dynamic stars_3 = 0;
+  dynamic stars_2 = 0;
+  dynamic stars_1 = 0;
+  double avg_rating = 0.0;
+
+  Future<void> get_review() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/rating_details';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse('https://workdonecorp.com/api/rating_details'),
+          headers: {
+            'Authorization': 'Bearer $userToken',
+            'Content-Type': 'application/json', // Add this line
+          },
+          body: json.encode({
+            'user_id': "${widget.userId}",
+          }),
+        );
+        print('userid ww' + widget.userId);
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('data')) {
+            Map<String, dynamic> data = responseData['data'];
+            setState(() {
+              stars_1 = data['stars_1'] ?? 0;
+              stars_2 = data['stars_2'] ?? 0;
+              stars_3 = data['stars_3'] ?? 0;
+              stars_4 = data['stars_4'] ?? 0;
+              stars_5 = data['stars_5'] ?? 0;
+              avg_rating = double.parse(data['avg_rating']);
+            });
+
+            print('Response: $responseData');
+            print('average: $avg_rating');
+            print('average: $avg_rating');
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          if (response.statusCode == 500) {
+            throw Exception('Internal server error');
+          } else {
+            throw Exception('Failed to load profile information');
+          }
+        }
+      }
+      setState(() {
+        isLoading = false;
+      });
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+      if (error is Exception && error == 'Failed to load data from API: null') {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load user profile')));
+      } else if (error is Exception && error == 'Internal server error') {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Internal server error')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('An error occurred')));
+      }
+    }
+  }
+
   Future<void> _getusertype() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -318,11 +380,19 @@ class _ProfilePageClientState extends State<ProfilePageClient> {
     }
   }
 
-  Future<List<Item>> fetchProjects() async {
+
+  Future<UserProfile> fetchUserProfile(String userId) async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String userToken = prefs.getString('user_token') ?? '';
+      String ? filter;
 
+      if (currentTabIndex == 0) {
+        filter = 'active';
+
+      } else {
+        filter = 'completed';
+      }
       final response = await http.post(
         Uri.parse('https://workdonecorp.com/api/get_others_profile'),
         headers: {
@@ -330,9 +400,9 @@ class _ProfilePageClientState extends State<ProfilePageClient> {
           'Authorization': 'Bearer $userToken',
         },
         body: json.encode({
-          'user_id': widget.userId.toString(),
-          // Ensure `currentPage` is defined somewhere
-          // Include other parameters as needed
+          'user_id': userId.toString(),
+          'filter': filter,
+
         }),
       );
 
@@ -340,25 +410,7 @@ class _ProfilePageClientState extends State<ProfilePageClient> {
         final dynamic responseData = json.decode(response.body);
 
         if (responseData['status'] == 'success') {
-          final List<dynamic> projectsJson = responseData['projects'];
-
-          List<Item> projects = projectsJson.map((json) {
-            return Item(
-              projectId: json['project_id'],
-              client_id:  json['client_id'],
-              title: json['title'],
-              description: json['desc'],
-              imageUrl: json['images'] != null ? List<String>.from(json['images']) : [], // This creates a list from the JSON array
-              postedFrom: json['posted_from'],
-              client_firstname: json['client_firstname'],
-              liked: json['liked'],
-              numbers_of_likes:  json['numbers_of_likes'],
-              isLiked: json['liked'],
-              lowest_bids: json['lowest_bid'] ?? 'No Bids', // Assign "No Bids" if null
-            );
-          }).toList();
-
-          return projects;
+          return UserProfile.fromJson(responseData);
         } else {
           throw Exception('Failed to load data from API: ${responseData['msg']}');
         }
@@ -366,10 +418,45 @@ class _ProfilePageClientState extends State<ProfilePageClient> {
         throw Exception('Failed to load data from API: Status code ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error retrieving project data: $e');
+      throw Exception('Error retrieving user profile: $e');
     }
   }
+  Future<RatingInfo> rating(String userId) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String userToken = prefs.getString('user_token') ?? '';
+      int userIdInt = int.parse(userId);
 
+      final response = await http.post(
+        Uri.parse('https://www.workdonecorp.com/api/rating_details'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $userToken',
+        },
+        body: json.encode({
+          'user_id': userId,
+        }),
+      );
+
+      print('User data id: $userId');
+      print('Variable: $userIdInt');
+
+      if (response.statusCode == 200) {
+        final dynamic responseData = json.decode(response.body);
+
+        if (responseData['status'] == 'success') {
+          print(RatingInfo.fromJson(responseData));
+          return RatingInfo.fromJson(responseData);
+        } else {
+          throw Exception('Failed to load data from API: ${responseData['msg']}');
+        }
+      } else {
+        throw Exception('Failed to load data from API: Status code ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error retrieving user profile: $e');
+    }
+  }
 
   Future<void> numberofprojects() async {
     try {
@@ -475,199 +562,469 @@ print(widget.userId.toString(),);
   @override
   Widget build(BuildContext context) {
 
-    return Scaffold(
-      floatingActionButton:
-      FloatingActionButton(    heroTag: 'workdone_${unique}',
+    return DefaultTabController(
+
+      length: 2, // Number of tabs
+      initialIndex: currentTabIndex,
+      child: Scaffold(
+        floatingActionButton:
+        FloatingActionButton(    heroTag: 'workdone_${unique}',
 
 
 
-        onPressed: () {
-          _navigateToNextPage(context);
+          onPressed: () {
+            _navigateToNextPage(context);
 
-        },
-        backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        shape: CircleBorder(), // Make the button circular
-      ),
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text("$firstname Profile", style: TextStyle(color: Colors.black),),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        leading: BackButton(color: Colors.black,),
-
-      ),
-      body:
-      Screenshot(
-        controller:screenshotController ,
-        child: NestedScrollView(
-          headerSliverBuilder: (context, value) {
-            return [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      SizedBox(height: 30,),
-                       Center(
-                        child: Container(
-                          height: 140,
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.grey.shade300, width: 5)
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(300),
-                            child: Image.network(profile_pic ==
-                                'https://workdonecorp.com/images/'
-                                ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
-                                : profile_pic
-                                 ??
-                                'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                            ),),
-                          ),
-                        ),
-
-                      SizedBox(height: 20,),
-                       Text("$firstname", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),),
-                      SizedBox(height: 10,),
-                       Text("$usertype", style: TextStyle(color: Colors.grey, fontSize: 16),),
-                      SizedBox(height: 40),
-                      Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Column(
-                                  children: [
-                                    Text("${projectnumber.toString()}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
-                                    SizedBox(height: 5,),
-                                    Text("Projects", style: TextStyle(color: Colors.grey,),),
-                                  ],
-                                ),
-
-                              ]
-                          )
-                      ),
-                      SizedBox(height: 20,),
-                      Row(
-                        children: [
-                          Expanded(child: Container(
-                            color: Colors.black,
-                            height: 2,
-                          )),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-              )
-            ];
           },
-          body:                     SingleChildScrollView(
-            child: Column(
-              children: [
-                FutureBuilder<List<Item>>(
-                  future: futureProjects,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Column(
-                        children: [
-                          SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
-                        ],
-                      );
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else if (snapshot.data != null && snapshot.data!.isEmpty) {
-                      // If projects list is empty, reset current page to 0 and refresh
-                      currentPage = 0;
-                      refreshProjects();
-                      return Text('No projects found.');
-                    } else {
-                      return ListView.builder(
-                        physics: NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, index) {
-                          return buildListItem(snapshot.data![index]);
-                        },
-                      );
-                    }
-                  },
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    if (currentPage > 1)
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            currentPage--;
-                            refreshProjects(); // Use refreshProjects instead of fetchProjects
-                          });
-                        },
-                        style: TextButton.styleFrom(
-            
-                          foregroundColor: Colors.redAccent,
-            
-                        ),
-                        child: Text(
-                          'Previous Page',
-                          style: TextStyle(fontSize: 16, ),
-                        ),
-                      ),
-                    TextButton(
-                      onPressed: () async {
-                        setState(() {
-                          currentPage++;
-                          refreshProjects();
-                        });
-            
-                        // Fetch the projects for the next page
-                        List<Item>? nextPageProjects = await fetchProjects();
-            
-                        // Check if the next page is empty or no data and hide the button accordingly
-                        if (!shouldShowNextButton(nextPageProjects)) {
-                          setState(() {
-                            currentPage = 1;
-                            refreshProjects();
-                          });
-                        } else {
-                          // Update the futureProjects with the fetched projects
-                          futureProjects = Future.value(nextPageProjects);
-                        }
-                      },
-                      style: TextButton.styleFrom(
-            
-                        primary: Colors.black45,
-            
-                      ),
-                      child: Text(
-                        'Next Page',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 50,)
-              ],
-            ),
-          )
+          backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+      child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        shape: CircleBorder(), // Make the button circular
+        ),
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text("$firstname Profile", style: TextStyle(color: Colors.black),),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          leading: BackButton(color: Colors.black,),
 
         ),
+        body:
+        Screenshot(
+          controller:screenshotController ,
+          child: NestedScrollView(
+            headerSliverBuilder: (context, value) {
+              return [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 30,),
+                        Center(
+                          child: Container(
+                            height: 140,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.grey.shade300, width: 5),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(300),
+                              child: (profile_pic != null && profile_pic.isNotEmpty && profile_pic.startsWith('http'))
+                                  ? Image.network(profile_pic)
+                                  : Image.asset('assets/images/default.png'),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20,),
+                         Text("$firstname", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),),
+                        SizedBox(height: 10,),
+                         Text("Client", style: TextStyle(color: Colors.grey, fontSize: 16),),
+                        SizedBox(height: 16,),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.star,color: Colors.yellow,size: 30,),SizedBox(width: 8,),
+                                Text('${avg_rating}',
+                                  style: GoogleFonts.poppins(
+                                    textStyle: TextStyle(
+                                      color: HexColor('454545'),
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),),
+                              ],
+                            ),
+      SizedBox(height: 10,),
+
+                        RatingBar.builder(
+
+                          initialRating: avg_rating,
+                          minRating: 0,
+                          direction: Axis.horizontal,
+                          allowHalfRating: true,
+                          itemCount: 5,
+                          itemSize: 40,
+                          itemBuilder: (context, _) => Icon(
+                            Icons.star,
+                            color: Colors.yellow,
+                          ),
+                          onRatingUpdate: (rating) {
+                            print(rating);
+                          },
+                        ),
+                        SizedBox(height: 10,),
+
+                    Center(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          primary: Color(0xFF4D8D6E),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+
+                                title: Text('Rating Bar'),
+                                content:        Container(
+                                  height: 260,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text('5'),
+                                          SizedBox(width: 8,),
+                                          Stack(
+                                            children: [
+                                              Container(
+                                                width: 150,
+                                                height: 30,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(7),
+                                                  border: Border.all(color: Colors.transparent), // Set border color to transparent
+                                                ),
+                                              ),
+                                              Container(
+                                                width: barwidth *(stars_5/100),
+                                                height: 30,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.yellow,
+                                                  borderRadius: BorderRadius.circular(7),
+                                                  border: Border.all(color: Colors.transparent), // Set border color to transparent
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                        ],
+                                      ),
+                                      SizedBox(height: 9,),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text('4'),
+                                          SizedBox(width: 8,),
+                                          Stack(
+                                            children: [
+                                              Container(
+                                                width: 150,
+                                                height: 30,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(7),
+                                                  border: Border.all(color: Colors.transparent), // Set border color to transparent
+                                                ),
+                                              ),
+                                              Container(
+                                                width: barwidth *(stars_4/100),
+                                                height: 30,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.yellow,
+                                                  borderRadius: BorderRadius.circular(7),
+                                                  border: Border.all(color: Colors.transparent), // Set border color to transparent
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                        ],
+                                      ),
+                                      SizedBox(height: 9,),
+
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text('3'),
+                                          SizedBox(width: 8,),
+                                          Stack(
+                                            children: [
+                                              Container(
+                                                width: 150,
+                                                height: 30,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(7),
+                                                  border: Border.all(color: Colors.transparent), // Set border color to transparent
+                                                ),
+                                              ),
+                                              Container(
+                                                width: barwidth *(stars_3/100),
+                                                height: 30,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.yellow,
+                                                  borderRadius: BorderRadius.circular(7),
+                                                  border: Border.all(color: Colors.transparent), // Set border color to transparent
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                        ],
+                                      ),
+                                      SizedBox(height: 9,),
+
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text('2'),
+                                          SizedBox(width: 8,),
+                                          Stack(
+                                            children: [
+                                              Container(
+                                                width: 150,
+                                                height: 30,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(7),
+                                                  border: Border.all(color: Colors.transparent), // Set border color to transparent
+                                                ),
+                                              ),
+                                              Container(
+                                                width: barwidth *(stars_2/100),
+                                                height: 30,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.yellow,
+                                                  borderRadius: BorderRadius.circular(7),
+                                                  border: Border.all(color: Colors.transparent), // Set border color to transparent
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                        ],
+                                      ),
+                                      SizedBox(height: 9,),
+
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text('1'),
+                                          SizedBox(width: 8,),
+                                          Stack(
+                                            children: [
+                                              Container(
+                                                width: 150,
+                                                height: 30,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(7),
+                                                  border: Border.all(color: Colors.transparent), // Set border color to transparent
+                                                ),
+                                              ),
+                                              Container(
+                                                width: barwidth *(stars_1/100),
+                                                height: 30,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.yellow,
+                                                  borderRadius: BorderRadius.circular(7),
+                                                  border: Border.all(color: Colors.transparent), // Set border color to transparent
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                        ],
+                                      ),
+
+                                    ],
+                                  ),
+                                )    ,
+
+                                  actions: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('Close'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        child: Text('Rating bar' ,style: TextStyle(color: Colors.white),),
+                      ),
+                    ),
+
+                                            SizedBox(height: 40),
+                        Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Text("${projectnumber.toString()}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                                      SizedBox(height: 5,),
+                                      Text("Projects", style: TextStyle(color: Colors.grey,),),
+
+
+
+                                    ],
+                                  ),
+
+                                ]
+                            )
+                        ),
+                        SizedBox(height: 20,),
+                        Row(
+                          children: [
+                            Expanded(child: Container(
+                              color: Colors.black45,
+                              height: 2,
+                            )),
+                          ],
+                        ),
+                        SizedBox(height: 8,),
+                        Container(
+                          width: 335,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                                color: HexColor('E4E3F3'),
+                                width: 2 // Set the border color here
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(30)),
+                          ),
+                          child: TabBar(
+
+                            onTap: (index) {
+                              setState(() {
+                                currentTabIndex = index;
+                                refreshProjects();
+                              });
+                            },
+                            tabs: [
+                              Tab(
+                                text: 'Accepted',
+                              ),
+                              Tab(
+                                text: 'Completed',
+                              ),
+
+                            ],
+                            indicator: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: HexColor('#4D8D6E'), // Hex color
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5), // Shadow color
+                                  spreadRadius: 4, // Spread radius
+                                  blurRadius: 9, // Blur radius
+                                  offset:
+                                  Offset(6, 5), // Offset in the x and y direction
+                                ),
+                              ],
+                            ),
+                            indicatorSize:TabBarIndicatorSize.tab ,
+                            labelStyle: GoogleFonts.encodeSans(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                            labelColor: Colors.white,
+                            unselectedLabelColor: Colors.black,
+                          ),
+                        ),
+                        SizedBox(height: 8,)
+                        ,
+                        Row(
+                          children: [
+                            Expanded(child: Container(
+                              color: Colors.black45,
+                              height: 2,
+                            )),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              ];
+            },
+            body:                     SingleChildScrollView(
+              child: Column(
+                children: [
+                FutureBuilder<UserProfile>(
+                future: futureProjects,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else if (snapshot.data != null) {
+                    UserProfile userProfile = snapshot.data!;
+                    return ListView.builder(
+                      physics: NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: userProfile.projects.length,
+                      itemBuilder: (context, index) {
+                        return buildProjectItem(userProfile.projects[index]);
+                      },
+                    );
+                  } else {
+                    return                   Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          child: SvgPicture.asset(
+                            'assets/images/nothing.svg',
+                            width: 100.0, // Set the width you want
+                            height: 100.0, // Set the height you want
+                          ),
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Text(
+                          'No Projects yet',
+                          style: GoogleFonts.encodeSans(
+                            textStyle: TextStyle(
+                                color: HexColor('BBC3CE'),
+                                fontSize: 18,
+                                fontWeight: FontWeight.normal),
+                          ),
+                        ),
+                      ],
+                    )
+                  ;
+                  }
+                },
+              ),
+
+                  SizedBox(height: 50,)
+                ],
+              ),
+            )
+
+          ),
+        ),
+
+
+
       ),
-
-
-
     );
 
   }
 
-  Widget buildListItem(Item item) {
+  Widget buildProjectItem(Project project) {
+    String ratingOnWorker = project.reviews.ratingOnWorker ?? 'No rate yet';
+
     return GestureDetector(
       onTap: () {
         Get.to(
-              () => bidDetailsClient(projectId: item.projectId),  );    },
+              () => bidDetailsClient(projectId: project.projectId),  );    },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
         padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
@@ -696,11 +1053,11 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                       pageSnapping: true
                       ,
 
-                      itemCount: item.imageUrl.length, // The count of total images
+                      itemCount: project.images.length, // The count of total images
                       controller: PageController(viewportFraction: 1), // PageController for full-page scrolling
                       itemBuilder: (_, index) {
                         return Image.network(
-                          item.imageUrl[index], // Access each image by index
+                          project.images[index], // Access each image by index
                           fit: BoxFit.cover, // Cover the entire area of the container
                         );
                       },
@@ -729,7 +1086,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                             Padding(
                               padding: const EdgeInsets.only(top: 8.0, left: 5),
                               child: Text(
-                                "${item.numbers_of_likes}",
+                                "${project.numbersOfLikes}",
                                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                               ),
                             ),
@@ -737,24 +1094,24 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                             IconButton(
                               iconSize: 22,
                               icon: Icon(
-                                likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                likedProjectsMap[project.projectId] ?? project.liked == "true"
                                     ? Icons.favorite
                                     : Icons.favorite_border,
-                                color: likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                color: likedProjectsMap[project.projectId] ?? project.liked == "true"
                                     ? Colors.red
                                     : Colors.grey,
                               ),
                               onPressed: () async {
                                 try {
-                                  if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
+                                  if (likedProjectsMap[project.projectId] ?? project.liked == "true") {
                                     // If liked, remove like
-                                    final response = await removeProjectFromLikes(item.projectId.toString());
+                                    final response = await removeProjectFromLikes(project.projectId.toString());
 
                                     if (response['status'] == 'success') {
                                       // If successfully removed from likes
                                       setState(() {
-                                        likedProjectsMap[item.projectId] = false;
-                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) - 1;
+                                        likedProjectsMap[project.projectId] = false;
+                                        project.numbersOfLikes = (project.numbersOfLikes ?? 0) - 1;
                                       });
                                       print('Project removed from likes');
                                     } else {
@@ -763,19 +1120,19 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                                     }
                                   } else {
                                     // If not liked, add like
-                                    final response = await addProjectToLikes(item.projectId.toString());
+                                    final response = await addProjectToLikes(project.projectId.toString());
 
                                     if (response['status'] == 'success') {
                                       // If successfully added to likes
                                       setState(() {
-                                        likedProjectsMap[item.projectId] = true;
-                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) + 1;
+                                        likedProjectsMap[project.projectId] = true;
+                                        project.numbersOfLikes = (project.numbersOfLikes ?? 0) + 1;
                                       });
                                       print('Project added to likes');
                                     } else if (response['msg'] == 'This Project is Already in Likes !') {
                                       // If the project is already liked, switch to Icons.favorite_border
                                       setState(() {
-                                        likedProjectsMap[item.projectId] = false;
+                                        likedProjectsMap[project.projectId] = false;
                                       });
                                       print('Project is already liked');
                                     } else {
@@ -808,9 +1165,9 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
-                        item.title.length > 16
-                            ? item.title.substring(0, 16) + '...' // Display first 14 letters and add ellipsis
-                            : item.title,
+                        project.title.length > 16
+                            ? project.title.substring(0, 16) + '...' // Display first 14 letters and add ellipsis
+                            : project.title,
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('131330'),
@@ -841,7 +1198,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                         ),
                         child: TextButton(
                           onPressed: () {
-                            Get.to(ProfilePageClient(userId:item.client_id.toString()));
+                            Get.to(ProfilePageClient(userId:project.clientId.toString()));
                           },
                           style: TextButton.styleFrom(
                             fixedSize: Size(50, 30), // Adjust the size as needed
@@ -849,7 +1206,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                           ),
                           child: Text.rich(
                             TextSpan(
-                              children: _buildTextSpans(item.client_firstname, searchController.text),
+                              children: _buildTextSpans(project.clientFirstname, searchController.text),
                             ),
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis, // Use the client name from the fetched data
@@ -863,13 +1220,14 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                       ),
                     ],
                   ),
+
                   SizedBox(height: 6),
                   Row(
                     children: [
                       Expanded(
                         child: Text.rich(
                           TextSpan(
-                            children: _buildTextSpans(item.description, searchController.text),
+                            children: _buildTextSpans(project.desc, searchController.text),
                           ),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
@@ -885,6 +1243,22 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                       SizedBox(width: 7,),
                       Column(
                         children: [
+                          Row(
+                            children: [
+                              Icon(Icons.star,color: Colors.yellow,),
+                              Text(
+                                '${ratingOnWorker}',
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                    color: HexColor('393B3E'),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+SizedBox(height: 3,),
                           Text(
                             'lowest bid',
                             style: GoogleFonts.openSans(
@@ -896,9 +1270,9 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                             ),
                           ),
                           SizedBox(height: 6,),
-                          item.lowest_bids != 'No Bids'
+                          project.lowestBid != 'No Bids'
                               ? Text('\$ '+
-                              item.lowest_bids.toString() , // Use 'N/A' or any preferred default text
+                              project.lowestBid.toString() , // Use 'N/A' or any preferred default text
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
                                 color: HexColor('393B3E'),
@@ -930,7 +1304,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                       ),
                       SizedBox(width: 5),
                       Text(
-                        item.postedFrom, // Use the posted time from the fetched data
+                        project.postedFrom, // Use the posted time from the fetched data
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('777778'),
@@ -951,7 +1325,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                         child: ElevatedButton(
                           onPressed: () {
                             Get.to(
-                                  () => bidDetailsClient(projectId: item.projectId),  );
+                                  () => bidDetailsClient(projectId: project.projectId),  );
                             // Handle button press
                           },
                           child: Text('Details',style: TextStyle(color: Colors.white),),
@@ -978,133 +1352,166 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
 }
 
 
-class items {
-  final String imagePath;
-  final String itemName;
-  final String description;
-  final String by;
-  final String timeAgo;
-  final String bidAmount;
+class UserProfile {
+  final String status;
+  final String msg;
+  final UserData userData;
+  final List<Project> projects;
+  final int projectCount;
 
-  items({
-    required this.imagePath,
-    required this.itemName,
-    required this.description,
-    required this.by,
-    required this.timeAgo,
-    required this.bidAmount,
-  });
-}
-
-class reviewsitems {
-  final String imagePath;
-  final String itemName;
-  final String description;
-  final String by;
-  final String timeAgo;
-  final String bidAmount;
-
-  reviewsitems({
-    required this.imagePath,
-    required this.itemName,
-    required this.description,
-    required this.by,
-    required this.timeAgo,
-    required this.bidAmount,
-  });
-}
-class Access {
-  int user;
-  String owner;
-  String projectStatus;
-
-  Access({
-    required this.user,
-    required this.owner,
-    required this.projectStatus,
+  UserProfile({
+    required this.status,
+    required this.msg,
+    required this.userData,
+    required this.projects,
+    required this.projectCount,
   });
 
-  factory Access.fromJson(Map<String, dynamic> json) {
-    return Access(
-      user: json['user'],
-      owner: json['owner'].toString(),
-      projectStatus: json['project_status'],
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    return UserProfile(
+      status: json['status'],
+      msg: json['msg'],
+      userData: UserData.fromJson(json['user_data']),
+      projects: List<Project>.from(json['projects'].map((project) => Project.fromJson(project))),
+      projectCount: json['project_count'],
     );
   }
 }
 
-class ClientData {
-  int clientId;
-  String firstname;
-  String lastname;
-  String profileImage;
-
-  ClientData({
-    required this.clientId,
-    required this.firstname,
-    required this.lastname,
-    required this.profileImage,
-  });
-
-  factory ClientData.fromJson(Map<String, dynamic> json) {
-    return ClientData(
-      clientId: json['client_id'],
-      firstname: json['firstname'],
-      lastname: json['lastname'],
-      profileImage: json['profle_image'] ??
-          'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-    );
-  }
-}
-
-class ProjectData {
+class UserData {
   final String firstname;
   final String lastname;
   final String email;
-  final String profile_pic;
+  final String profilePic;
   final String phone;
   final String language;
 
-
-  // Include the client data
-
-  ProjectData({
+  UserData({
     required this.firstname,
     required this.lastname,
     required this.email,
+    required this.profilePic,
     required this.phone,
-    required this.profile_pic,
     required this.language,
-    r
   });
 
-
+  factory UserData.fromJson(Map<String, dynamic> json) {
+    return UserData(
+      firstname: json['firstname'],
+      lastname: json['lastname'],
+      email: json['email'],
+      profilePic: json['profile_pic'],
+      phone: json['phone'],
+      language: json['language'],
+    );
+  }
 }
-class Item {
+
+class Project {
   final int projectId;
-  final int client_id;
+  final int clientId;
+  final String clientFirstname;
+  final String projectTypeId;
   final String title;
-  final String client_firstname;
-  late  String liked;
-  final String description;
-  final List<String> imageUrl;
-  int numbers_of_likes;
+  final String desc;
+  final String timeframeStart;
+  final String timeframeEnd;
+  final List<String> images;
+  final String? video;
   final String postedFrom;
-  String isLiked;
-  dynamic? lowest_bids;
+  final String liked;
+   int? numbersOfLikes;
+  final dynamic lowestBid;
+  final Reviews reviews;
 
-
-  Item({
+  Project({
     required this.projectId,
-    required this.client_id,
-    required this.lowest_bids,
+    required this.clientId,
+    required this.clientFirstname,
+    required this.projectTypeId,
     required this.title,
-    required this.client_firstname,
-    required this.description,
-    required this.liked,
-    required this.numbers_of_likes,
-    required this.imageUrl,
+    required this.desc,
+    required this.timeframeStart,
+    required this.timeframeEnd,
+    required this.images,
+    required this.video,
     required this.postedFrom,
-    required this. isLiked,
-  }): assert(lowest_bids != null);
+    required this.liked,
+    required this.numbersOfLikes,
+    required this.lowestBid,
+    required this.reviews,
+  });
+
+  factory Project.fromJson(Map<String, dynamic> json) {
+    return Project(
+      projectId: json['project_id'],
+      clientId: json['client_id'],
+      clientFirstname: json['client_firstname'],
+      projectTypeId: json['project_type_id'],
+      title: json['title'],
+      desc: json['desc'],
+      timeframeStart: json['timeframe_start'],
+      timeframeEnd: json['timeframe_end'],
+      images: List<String>.from(json['images'].map((image) => image)),
+      video: json['video'],
+      postedFrom: json['posted_from'],
+      liked: json['liked'],
+      numbersOfLikes: json['numbers_of_likes'],
+      lowestBid: json['lowest_bid'],
+      reviews: Reviews.fromJson(json['reviews']),
+    );
+  }
+}
+
+class Reviews {
+  final String? reviewOnWorker;
+  final String? ratingOnWorker;
+  final String? reviewOnClient;
+  final String? ratingOnClient;
+
+  Reviews({
+    required this.reviewOnWorker,
+    required this.ratingOnWorker,
+    required this.reviewOnClient,
+    required this.ratingOnClient,
+  });
+
+  factory Reviews.fromJson(Map<String, dynamic> json) {
+    return Reviews(
+      reviewOnWorker: json['review_on_worker'],
+      ratingOnWorker: json['rating_on_worker'],
+      reviewOnClient: json['review_on_client'],
+      ratingOnClient: json['rating_on_client'],
+    );
+  }
+}
+
+
+class RatingInfo {
+  final String avgRating;
+  final int stars5;
+  final int stars4;
+  final int stars3;
+  final int stars2;
+  final int stars1;
+
+  RatingInfo({
+    required this.avgRating,
+    required this.stars5,
+    required this.stars4,
+    required this.stars3,
+    required this.stars2,
+    required this.stars1,
+  });
+
+  factory RatingInfo.fromJson(Map<String, dynamic> json) {
+    return RatingInfo(
+      avgRating: json['avg_rating'],
+      stars5: json['stars_5'],
+      stars4: json['stars_4'],
+      stars3: json['stars_3'],
+      stars2: json['stars_2'],
+      stars1: json['stars_1'],
+    );
+  }
 }

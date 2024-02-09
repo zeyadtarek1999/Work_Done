@@ -23,6 +23,7 @@ import '../Reviews/reviews.dart';
 import '../Support Screen/Support.dart';
 import '../editProfile/editProfile.dart';
 import '../view profile screens/Client profile view.dart';
+import '../view profile screens/Reviews profile .dart';
 
 class Homeclient extends StatefulWidget {
   const Homeclient({super.key});
@@ -531,32 +532,32 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
               SizedBox(
                 height: 12,
               ),
-              // Row(
-              //   children: [
-              //     SvgPicture.asset(
-              //       'assets/icons/portfolioicon.svg',
-              //       width: 35.0,
-              //       height: 35.0,
-              //     ),
-              //     SizedBox(
-              //       width: 8,
-              //     ),
-              //     TextButton(
-              //
-              //
-              //       onPressed: () {Get.to(Reviews());},
-              //       child: Text(
-              //         'Review',
-              //         style: GoogleFonts.poppins(
-              //           textStyle: TextStyle(
-              //               color: HexColor('1A1D1E'),
-              //               fontSize: 15,
-              //               fontWeight: FontWeight.normal),
-              //         ),
-              //       ),
-              //     )
-              //   ],
-              // ),
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    'assets/icons/portfolioicon.svg',
+                    width: 35.0,
+                    height: 35.0,
+                  ),
+                  SizedBox(
+                    width: 8,
+                  ),
+                  TextButton(
+
+
+                    onPressed: () {Get.to(reviewprofile());},
+                    child: Text(
+                      'Review',
+                      style: GoogleFonts.poppins(
+                        textStyle: TextStyle(
+                            color: HexColor('1A1D1E'),
+                            fontSize: 15,
+                            fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                  )
+                ],
+              ),
               Spacer(),
 
               Text('Powered by :',

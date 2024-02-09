@@ -349,6 +349,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
         GestureDetector(
           onTap:(){
             Get.to(ChatScreen(
+
               seconduserimage: item.other_side_image,
               chatId: item.chat_id,
               currentUser: '${firstname}',

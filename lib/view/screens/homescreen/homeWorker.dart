@@ -28,6 +28,7 @@ import '../Support Screen/Support.dart';
 import '../editProfile/editProfile.dart';
 import '../editProfile/editprofileworker.dart';
 import '../view profile screens/Client profile view.dart';
+import '../view profile screens/Reviews profile .dart';
 import 'home screenClient.dart';
 
 class Homescreenworker extends StatefulWidget {
@@ -650,32 +651,32 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                 SizedBox(
                   height: 12,
                 ),
-            // Row(
-            //   children: [
-            //     SvgPicture.asset(
-            //       'assets/icons/portfolioicon.svg',
-            //       width: 35.0,
-            //       height: 35.0,
-            //     ),
-            //     SizedBox(
-            //       width: 8,
-            //     ),
-            //     TextButton(
-            //
-            //
-            //       onPressed: () {Get.to(Reviews());},
-            //       child: Text(
-            //         'Review',
-            //         style: GoogleFonts.poppins(
-            //           textStyle: TextStyle(
-            //               color: HexColor('1A1D1E'),
-            //               fontSize: 15,
-            //               fontWeight: FontWeight.normal),
-            //         ),
-            //       ),
-            //     )
-            //   ],
-            // ),
+            Row(
+              children: [
+                SvgPicture.asset(
+                  'assets/icons/portfolioicon.svg',
+                  width: 35.0,
+                  height: 35.0,
+                ),
+                SizedBox(
+                  width: 8,
+                ),
+                TextButton(
+
+
+                  onPressed: () {Get.to(reviewprofile());},
+                  child: Text(
+                    'Review',
+                    style: GoogleFonts.poppins(
+                      textStyle: TextStyle(
+                          color: HexColor('1A1D1E'),
+                          fontSize: 15,
+                          fontWeight: FontWeight.normal),
+                    ),
+                  ),
+                )
+              ],
+            ),
                 Spacer(),
 
                 Text('Powered by :',

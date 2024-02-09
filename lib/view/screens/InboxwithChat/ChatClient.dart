@@ -14,9 +14,11 @@ import 'package:intl/intl.dart';
 import '../Support Screen/Helper.dart';
 import '../homescreen/home screenClient.dart';
 import '../view profile screens/Client profile view.dart';
+import '../view profile screens/Worker profile .dart';
 
 class ChatScreen extends StatelessWidget {
-  final String chatId; // Unique identifier for the chat
+  final String chatId;
+  // Unique identifier for the chat
   final String currentUser; // Identify whether the current user is client or worker
   final String secondUserName; // Add this line
   final String userId; // Add this line
@@ -71,8 +73,14 @@ class ChatScreen extends StatelessWidget {
             ),
       Center(
         child: TextButton(onPressed: () {
-          Get.to(ProfilePageClient(
-              userId: userId ));
+          if (currentUser=='client') {
+            Get.to(Workerprofileother(userId: userId));
+
+          }else {
+            Get.to(ProfilePageClient(userId: userId));
+
+
+          }
         },
           child: Text(
             '${secondUserName}',
