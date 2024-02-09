@@ -168,25 +168,17 @@ class _projectPostState extends State<projectPost> with SingleTickerProviderStat
     }); // Start loading
     }
 
-    // Add video if not null
     if (_videoFile != null) {
-      print('Adding video to the request...');
-      request.files.add(await http.MultipartFile.fromPath('video', _videoFile!.path));
+      List<int> videoBytes = await _videoFile!.readAsBytes();
+      request.files.add(await http.MultipartFile.fromBytes('video', videoBytes,
+          filename: _videoFile!.path.split('/').last));
     }
 
-    // Add images if any
-    // Add images if any
     if (_imageFiles != [] && _imageFiles.isNotEmpty) {
-
-      print('Adding images to the request...');
-      print(_imageFiles);
       for (var imageFile in _imageFiles) {
-        request.files.add(http.MultipartFile(
-          'images[]',
-          imageFile.readAsBytes().asStream(),
-          imageFile.lengthSync(),
-          filename: imageFile.path,
-        ));
+        List<int> imageBytes = await imageFile.readAsBytes();
+        request.files.add(await http.MultipartFile.fromBytes('images[]', imageBytes,
+            filename: imageFile.path.split('/').last));
       }
     }
 
@@ -525,68 +517,60 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                     ),
                     SizedBox(height: 7),
                     Column(
-                            children: [
-                              GestureDetector(
-                                  onTap: () {
-                                                if (_videoController == null || !_videoController!.value.isInitialized) {
-                                                  _pickVideo();
-                                                }
-                                  },
-                                  child: Expanded(
-                                                child: Center(
-                                                  child: _videoController != null && _videoController!.value.isInitialized
-                                                      ? AspectRatio(
-                                                    aspectRatio: _videoController!.value.aspectRatio,
-                                                    child: VideoPlayer(_videoController!),
-                                                  )
-                                                      : GestureDetector(
-                                                    onTap: _pickVideo,
-                                                        child: Container(
-                                                height: 150, // Fixed height for the container
-                                                width: 350,
-                                                decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(15),
-                                                        color: Colors.white,
-                                                ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.video_camera_back,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            if (_videoController == null || !_videoController!.value.isInitialized) {
+                              _pickVideo();
+                            }
+                          },
+                          child: _videoController != null && _videoController!.value.isInitialized
+                              ? AspectRatio(
+                            aspectRatio: _videoController!.value.aspectRatio,
+                            child: VideoPlayer(_videoController!),
+                          )
+                              : Container(
+                            height: 150,
+                            width: 350,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15),
+                              color: Colors.white,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.video_camera_back,
+                                  color: HexColor('4D8D6E'),
+                                  size: 30,
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Upload Here',
+                                  style: TextStyle(
                                     color: HexColor('4D8D6E'),
-                                    size: 30,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    'Upload Here',
+                                ),
+                                SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                  child: Text(
+                                    'Please upload a clear video of the project (from all sides, if applicable) to help the worker place an accurate bid!',
+                                    textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      color: HexColor('4D8D6E'),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
                                     ),
                                   ),
-                                  SizedBox(height: 8),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                    child: Text(
-                                      'Please upload clear video of the project (from all sides, if applicable) to help the worker place an accurate bid!',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                                                        ),
-                                                      )
-
-                                                ),
-                                  ),
-                                                    ),
-                            ],
+                                ),
+                              ],
+                            ),
                           ),
+                        ),
+                      ],
+                    ),
                     SizedBox(
 
                       height: 14,

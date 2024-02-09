@@ -18,7 +18,6 @@ import '../view profile screens/Worker profile .dart';
 
 class ChatScreen extends StatelessWidget {
   final String chatId;
-  // Unique identifier for the chat
   final String currentUser; // Identify whether the current user is client or worker
   final String secondUserName; // Add this line
   final String userId; // Add this line
