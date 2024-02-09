@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:blurry_modal_progress_hud/blurry_modal_progress_hud.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -26,7 +28,7 @@ class LoginScreenclient extends StatefulWidget {
   State<LoginScreenclient> createState() => _LoginScreenclientState();
 }
 
-class _LoginScreenclientState extends State<LoginScreenclient> {
+class _LoginScreenclientState extends State<LoginScreenclient>  with SingleTickerProviderStateMixin {
   final formKey = GlobalKey<FormState>();
   bool isLoading = false;
 
@@ -157,6 +159,7 @@ class _LoginScreenclientState extends State<LoginScreenclient> {
   @override
   void dispose() {
     passwordController.dispose();
+    ciruclaranimation.dispose();
     emailController.dispose();
     super.dispose();
   }
@@ -188,9 +191,17 @@ class _LoginScreenclientState extends State<LoginScreenclient> {
       },
     );
   }
+  late AnimationController ciruclaranimation;
   @override
   void initState() {
     super.initState();
+    ciruclaranimation = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    ciruclaranimation.repeat(reverse: false);
+
+
     _testSavedToken(); // Test the saved token
   }
 
@@ -225,199 +236,217 @@ class _LoginScreenclientState extends State<LoginScreenclient> {
     return Form(
       key: formKey,
       child: SafeArea(
-        child: Scaffold(
-          body: SizedBox(
-            width: size.width,
-            height: size.height,
-            child: SingleChildScrollView(
-              child: Stack(
-                children: [
-                  const Upside(
-                    imgUrl: "assets/images/workers.png",
-                  ),
-                  const PageTitleBar(title: 'Login to your account'),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 320.0),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(50),
-                          topRight: Radius.circular(50),
+        child: BlurryModalProgressHUD(
+          inAsyncCall: isLoading,
+          blurEffectIntensity: 7,
+          progressIndicator: Center(child: RotationTransition(
+            turns: ciruclaranimation,
+            child: SvgPicture.asset(
+              'assets/images/Logo.svg',
+              semanticsLabel: 'Your SVG Image',
+              width: 100,
+              height: 130,
+            ),
+          )),
+
+
+          dismissible: false,
+          opacity: 0.4,
+          child:
+         Scaffold(
+            body: SizedBox(
+              width: size.width,
+              height: size.height,
+              child: SingleChildScrollView(
+                child: Stack(
+                  children: [
+                    const Upside(
+                      imgUrl: "assets/images/workers.png",
+                    ),
+                    const PageTitleBar(title: 'Login to your account'),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 320.0),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(50),
+                            topRight: Radius.circular(50),
+                          ),
                         ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const SizedBox(
-                            height: 15,
-                          ),
-                          iconButton2(context),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          Column(
-                            children: [
-                              Center(
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(
-                                      vertical: 10),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 5),
-                                  width: size.width * 0.8,
-                                  decoration: BoxDecoration(
-                                    color: HexColor('#F5F5F5'),
-                                    borderRadius: BorderRadius.circular(29),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Opacity(
-                                          opacity: 0.5,
-                                          child: Icon(
-                                            Icons.email_outlined,
-                                            color: HexColor('#292929'),
-                                          )), // Replace with the desired icon
-                                      SizedBox(width: 20.0),
-                                      Expanded(
-                                        child: TextFormField(
-                                          keyboardType:
-                                          TextInputType.emailAddress,
-                                          controller: emailController,
-                                          validator: (value) =>
-                                              _validateEmail(value!),
-                                          onSaved: (value) {
-                                            _email = value!;
-
-                                            // Save email value if needed
-                                          },
-                                          onChanged: _onChanged,
-                                          decoration: InputDecoration(
-                                            hintText: 'E-mail',
-                                            // Replace with the desired hint text
-                                            border: InputBorder.none,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-
-                              SizedBox(height: 16.0),
-                              // Hide the validation message initially
-
-                              Center(
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(
-                                      vertical: 10),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 5),
-                                  width: size.width * 0.8,
-                                  decoration: BoxDecoration(
-                                    color: HexColor('#F5F5F5'),
-                                    borderRadius: BorderRadius.circular(29),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      SvgPicture.asset(
-                                        'assets/icons/passwordicon.svg',
-                                        // Replace with the path to your SVG file
-                                        width: 23.0,
-                                        // Replace with the desired width of the icon
-                                        height:
-                                        23.0, // Replace with the desired height of the icon
-                                      ),
-                                      // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
-                                      SizedBox(width: 20.0),
-                                      Container(
-                                        child: Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 15,
+                            ),
+                            iconButton2(context),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            Column(
+                              children: [
+                                Center(
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 5),
+                                    width: size.width * 0.8,
+                                    decoration: BoxDecoration(
+                                      color: HexColor('#F5F5F5'),
+                                      borderRadius: BorderRadius.circular(29),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Opacity(
+                                            opacity: 0.5,
+                                            child: Icon(
+                                              Icons.email_outlined,
+                                              color: HexColor('#292929'),
+                                            )), // Replace with the desired icon
+                                        SizedBox(width: 20.0),
+                                        Expanded(
                                           child: TextFormField(
-                                            inputFormatters: [
-                                              EnglishTextInputFormatter()
-                                            ],
-                                            // Apply the custom formatter
-
-                                            keyboardType: TextInputType.text,
-                                            controller: passwordController,
-                                            obscureText: _isObscured,
+                                            keyboardType:
+                                            TextInputType.emailAddress,
+                                            controller: emailController,
                                             validator: (value) =>
-                                                _validatePassword(value!),
+                                                _validateEmail(value!),
                                             onSaved: (value) {
-                                              _password = value!;
+                                              _email = value!;
+
+                                              // Save email value if needed
                                             },
+                                            onChanged: _onChanged,
                                             decoration: InputDecoration(
-                                              suffixIcon: GestureDetector(
-                                                onTap:
-                                                _togglePasswordVisibility,
-                                                // Call the _togglePasswordVisibility function here
-                                                child: Icon(
-                                                  _isObscured
-                                                      ? Icons.visibility
-                                                      : Icons.visibility_off,
-                                                ),
-                                              ),
-                                              hintText: 'Password',
+                                              hintText: 'E-mail',
                                               // Replace with the desired hint text
                                               border: InputBorder.none,
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 15,),
-                              Container(
-                                width: 200,
-                                height: 50,
-                                child: ElevatedButton(
-                                  onPressed: isLoading ? null : _login,
-                                  style: ElevatedButton.styleFrom(
-                                    primary: Color(0xFF4D8D6E), // Set the color to 4D8D6E
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15.0), // Set the border radius to make it circular
+                                      ],
                                     ),
                                   ),
-                                  child: isLoading
-                                      ? CircularProgressIndicator()
-                                      : Text('Login',style: TextStyle(color: Colors.white,fontSize: 16),) ,
                                 ),
-                              ),
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              UnderPart(
-                                title: "Don't have an account?",
-                                navigatorText: "Register here",
-                                onTap: () {
-                                  _showBottomSheet(context);
-                                },
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              TextButton(
-                                onPressed: (){Get.to(ForgotPasswordScreen());},
-                                child: Text(
-                                'Forgot password?',
-                                style: TextStyle(
-                                    color: HexColor("#4D8D6E"),
-                                    fontFamily: 'OpenSans',
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13),
-                              ),),
-                              const SizedBox(
-                                height: 40,
-                              )
-                            ],
-                          )
-                        ],
+
+                                SizedBox(height: 16.0),
+                                // Hide the validation message initially
+
+                                Center(
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 5),
+                                    width: size.width * 0.8,
+                                    decoration: BoxDecoration(
+                                      color: HexColor('#F5F5F5'),
+                                      borderRadius: BorderRadius.circular(29),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/icons/passwordicon.svg',
+                                          // Replace with the path to your SVG file
+                                          width: 23.0,
+                                          // Replace with the desired width of the icon
+                                          height:
+                                          23.0, // Replace with the desired height of the icon
+                                        ),
+                                        // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
+                                        SizedBox(width: 20.0),
+                                        Container(
+                                          child: Expanded(
+                                            child: TextFormField(
+                                              inputFormatters: [
+                                                EnglishTextInputFormatter()
+                                              ],
+                                              // Apply the custom formatter
+
+                                              keyboardType: TextInputType.text,
+                                              controller: passwordController,
+                                              obscureText: _isObscured,
+                                              validator: (value) =>
+                                                  _validatePassword(value!),
+                                              onSaved: (value) {
+                                                _password = value!;
+                                              },
+                                              decoration: InputDecoration(
+                                                suffixIcon: GestureDetector(
+                                                  onTap:
+                                                  _togglePasswordVisibility,
+                                                  // Call the _togglePasswordVisibility function here
+                                                  child: Icon(
+                                                    _isObscured
+                                                        ? Icons.visibility
+                                                        : Icons.visibility_off,
+                                                  ),
+                                                ),
+                                                hintText: 'Password',
+                                                // Replace with the desired hint text
+                                                border: InputBorder.none,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 15,),
+                                Container(
+                                  width: 200,
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    onPressed: isLoading ? null : _login,
+                                    style: ElevatedButton.styleFrom(
+                                      primary: Color(0xFF4D8D6E), // Set the color to 4D8D6E
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(15.0), // Set the border radius to make it circular
+                                      ),
+                                    ),
+                                    child: isLoading
+                                        ? CircularProgressIndicator()
+                                        : Text('Login',style: TextStyle(color: Colors.white,fontSize: 16),) ,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                UnderPart(
+                                  title: "Don't have an account?",
+                                  navigatorText: "Register here",
+                                  onTap: () {
+                                    _showBottomSheet(context);
+                                  },
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                TextButton(
+                                  onPressed: (){Get.to(ForgotPasswordScreen());},
+                                  child: Text(
+                                  'Forgot password?',
+                                  style: TextStyle(
+                                      color: HexColor("#4D8D6E"),
+                                      fontFamily: 'OpenSans',
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13),
+                                ),),
+                                const SizedBox(
+                                  height: 40,
+                                )
+                              ],
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                  )
-                ],
+                    )
+                  ],
+                ),
               ),
             ),
           ),

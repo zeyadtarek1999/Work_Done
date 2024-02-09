@@ -24,7 +24,7 @@ class exploreClient extends StatefulWidget {
   State<exploreClient> createState() => _exploreClientState();
 }
 
-class _exploreClientState extends State<exploreClient> {
+class _exploreClientState extends State<exploreClient> with SingleTickerProviderStateMixin {
   TextEditingController searchController = TextEditingController();
   late Future<List<Item>> futureProjects;
   int currentPage = 0;
@@ -97,13 +97,23 @@ class _exploreClientState extends State<exploreClient> {
 
 
   List<Item> filteredItems = [];
-
+  late AnimationController ciruclaranimation;
   @override
   void initState() {
     super.initState();
     // Call the function that fetches projects and assign the result to futureProjects
     futureProjects = fetchProjects();
+    ciruclaranimation = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    ciruclaranimation.repeat(reverse: false);
 
+  }
+  @override
+  void dispose() {
+    ciruclaranimation.dispose();
+    super.dispose();
   }
 
   List<InlineSpan> _buildTextSpans(String text, String query) {
@@ -192,15 +202,14 @@ class _exploreClientState extends State<exploreClient> {
 
           },
           backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-          child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-          shape: CircleBorder(), // Make the button circular
+  child: Icon(Icons.help ,color: Colors.white,), // Use the support icon          shape: CircleBorder(), // Make the button circular
         ),
       backgroundColor: HexColor('F9F9F9'),
       appBar: AppBar(systemOverlayStyle:SystemUiOverlayStyle.dark ,
         toolbarHeight: 70,
         backgroundColor: HexColor('F9F9F9'),
         elevation: 0,
-        leading: IconButton(onPressed: (){Get.back();}, icon: Icon(Icons.arrow_back_sharp ,color: Colors.black,size: 30,)),
+        // leading: IconButton(onPressed: (){Get.back();}, icon: Icon(Icons.arrow_back_sharp ,color: Colors.black,size: 30,)),
         title: Text('Explore',
           style: GoogleFonts.openSans(
             textStyle: TextStyle(
@@ -343,7 +352,16 @@ class _exploreClientState extends State<exploreClient> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Column(
                         children: [
-                          SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
+                          SizedBox(height: 80,),        Center(child: RotationTransition(
+                            turns: ciruclaranimation,
+                            child: SvgPicture.asset(
+                              'assets/images/Logo.svg',
+                              semanticsLabel: 'Your SVG Image',
+                              width: 100,
+                              height: 130,
+                            ),
+                          ))
+                          ,SizedBox(height: 80,)
                         ],
                       );
                     } else if (snapshot.hasError) {
@@ -587,9 +605,9 @@ class _exploreClientState extends State<exploreClient> {
                             ),
                           ),
                           SizedBox(height: 6,),
-                           item.lowest_bids != 'No Bids'
+                            item.lowest_bids != 'No Bids'
                               ? Text(
-                            item.lowest_bids.toString(), // Use 'N/A' or any preferred default text
+                              '\$ ' + item.lowest_bids.toString(), // Use 'N/A' or any preferred default text
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
                                 color: HexColor('393B3E'),

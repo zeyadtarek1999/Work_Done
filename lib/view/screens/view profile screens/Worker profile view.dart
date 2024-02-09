@@ -89,8 +89,7 @@ class _ProfilePageWorkerState extends State<ProfilePageWorker> {
 
         },
         backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-        shape: CircleBorder(), // Make the button circular
+child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        shape: CircleBorder(), // Make the button circular
       ),
       backgroundColor: Colors.white,
       appBar: AppBar(

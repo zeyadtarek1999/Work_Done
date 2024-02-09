@@ -248,92 +248,93 @@ class _InboxClientState extends State<InboxClient> with SingleTickerProviderStat
 
         },
         backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-        shape: CircleBorder(), // Make the button circular
+child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        shape: CircleBorder(), // Make the button circular
       ),
       backgroundColor: HexColor('4D8D6E'),
       body: Screenshot(
         controller:screenshotController ,
         child:Container(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                    left: 20, right: 20, top: 40, bottom: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Inbox',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 20, right: 20, top: 55, bottom: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Inbox',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height / 1.279,
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20))),
-                child: FutureBuilder<List<Item>>(
-                  future: futurechatusers,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: RotationTransition(
-                        turns: ciruclaranimation,
-                        child: SvgPicture.asset(
-                          'assets/images/Logo.svg',
-                          semanticsLabel: 'Your SVG Image',
-                          width: 100,
-                          height: 130,
-                        ),
-                      ))
-                      ;
-                    } else if (snapshot.hasError) {
-                      return  SvgPicture.asset(
-                        'assets/images/emptyinbox.svg',
-                        width: 100.0,
-                        height: 100.0,
-                      );
-
-                    } else if (snapshot.data!.isEmpty) {
-                      return  SvgPicture.asset(
-                        'assets/images/emptyinbox.svg',
-                        width: 100.0,
-                        height: 100.0,
-                      );
-
-                    }else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return  SvgPicture.asset(
-                        'assets/images/emptyinbox.svg',
-                        width: 100.0,
-                        height: 100.0,
-                      );
-                    } else {
-                      // Update the items list
-                      items = snapshot.data!;
-
-                      return ListView.builder(
-                        physics: NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, index) {
-                          return buildListItem(snapshot.data![index]);
-                        },
-                      );
-
-                    }
-                  },
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height / 1.279,
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20))),
+                  child: FutureBuilder<List<Item>>(
+                    future: futurechatusers,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: RotationTransition(
+                          turns: ciruclaranimation,
+                          child: SvgPicture.asset(
+                            'assets/images/Logo.svg',
+                            semanticsLabel: 'Your SVG Image',
+                            width: 100,
+                            height: 130,
+                          ),
+                        ))
+                        ;
+                      } else if (snapshot.hasError) {
+                        return  SvgPicture.asset(
+                          'assets/images/emptyinbox.svg',
+                          width: 100.0,
+                          height: 100.0,
+                        );
+            
+                      } else if (snapshot.data!.isEmpty) {
+                        return  SvgPicture.asset(
+                          'assets/images/emptyinbox.svg',
+                          width: 100.0,
+                          height: 100.0,
+                        );
+            
+                      }else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return  SvgPicture.asset(
+                          'assets/images/emptyinbox.svg',
+                          width: 100.0,
+                          height: 100.0,
+                        );
+                      } else {
+                        // Update the items list
+                        items = snapshot.data!;
+            
+                        return ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (context, index) {
+                            return buildListItem(snapshot.data![index]);
+                          },
+                        );
+            
+                      }
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
         ),

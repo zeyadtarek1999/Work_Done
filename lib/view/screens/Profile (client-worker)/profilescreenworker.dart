@@ -19,6 +19,7 @@ import '../../../model/mediaquery.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../editProfile/editProfile.dart';
+import '../editProfile/editprofileworker.dart';
 
 class ProfileScreenworker extends StatefulWidget {
   @override
@@ -31,8 +32,6 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
   int? clientId;
   bool isAddressDetailsVisible =
   false; // Initially, address details are not visible
-
-  List<Map<String, dynamic>> languages = [];
 
 
   String firstname = '';
@@ -50,6 +49,7 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
   void initState() {
     super.initState();
     _getUserProfile();
+
     getaddressuser();
   }String addressline1 = '';
 
@@ -188,11 +188,11 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
   @override
   Widget build(BuildContext context) {
     EdgeInsets mediaQueryPadding = MediaQuery.of(context).padding;
-    double topPadding = mediaQueryPadding.top + 93;
-    double topPadding2 = mediaQueryPadding.top + 113;
-    double topPadding3 = mediaQueryPadding.top + 150;
-    double topPadding4 = mediaQueryPadding.top + 70;
-    double topPadding5 = mediaQueryPadding.top + 53;
+    double topPadding = mediaQueryPadding.top + 20;
+    double topPadding2 = mediaQueryPadding.top + 48;
+    double topPadding3 = mediaQueryPadding.top + 80;
+    double topPadding4 = mediaQueryPadding.top + 2;
+    double topPadding5 = mediaQueryPadding.top + 36;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: HexColor('4D8D6E'),
       // Change this color to the desired one
@@ -210,12 +210,35 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
 
           },
           backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-          child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-          shape: CircleBorder(), // Make the button circular
+  child: Icon(Icons.help ,color: Colors.white,), // Use the support icon          shape: CircleBorder(), // Make the button circular
         ),
         key: _scaffoldKey,
         backgroundColor: HexColor('F5F5F5'),
-        body :Screenshot(
+      appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 10.0),
+          child: IconButton(
+              onPressed: () {
+                Get.back();
+              },
+              icon: Icon(
+                Icons.arrow_back_ios,
+                size: 29,
+                color: Colors.white,
+              )),
+        ),
+        title: Text(
+          'Profile',
+          style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+
+      ),
+
+      body :Screenshot(
           controller:screenshotController ,
           child: SafeArea(
               child: SingleChildScrollView(
@@ -228,44 +251,6 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                           width: ScreenUtil.screenWidth,
                           height: ScreenUtil.containerheight3,
                           decoration: BoxDecoration(color: HexColor('#4D8D6E')),
-                        ),
-                        Padding(
-                          padding:
-                          EdgeInsets.symmetric(vertical: 12, horizontal: 5),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              IconButton(
-                                  onPressed: () {
-                                    drawerControl();
-                                  },
-                                  icon: Icon(
-                                    Icons.menu,
-                                    size: 32,
-                                    color: Colors.white,
-                                  )),
-                              SizedBox(
-                                width: 14,
-                              ),
-                              Text(
-                                'Profile',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Spacer(),
-                              IconButton(
-                                  onPressed: () {
-                                    Get.back();
-                                  },
-                                  icon: Icon(
-                                    Icons.arrow_back_ios,
-                                    size: 29,
-                                    color: Colors.white,
-                                  )),
-                            ],
-                          ),
                         ),
                         Padding(
                           padding: EdgeInsets.only(top: topPadding),
@@ -392,57 +377,70 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                           ),
                           Spacer(),
                           ElevatedButton(
-                          child: Text('license'),
+                            child: Text('license',style: TextStyle(color: Colors.white),),
+                            onPressed: () {
+                              // Show the license popup
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Center(child: Text('License',style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,),)),
 
-                          onPressed: () {
-                            // Show the license popup
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text('License'),
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children:
-
-                                [
-
-                                  Container(
-                                    width: 200, // Set your preferred width
-                                    height: 200, // Set your preferred height
-                                    child: (license_pic != null && license_pic.isNotEmpty && license_pic != "https://workdonecorp.com/images/")
-                                        ? Image.network(license_pic, fit: BoxFit.contain)
-                                        : Image.network('https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png', fit: BoxFit.contain),
-                                  ),
-
-                                  SizedBox(height: 10),
-                                      Text(
-                                        'Your license Number',
-                                        style: TextStyle(fontSize: 16),
-                                      ),
-                                  SizedBox(height: 10),
-                                  Text(
-                                    '${license_number}',
-                                    style: TextStyle(fontSize: 16 ,color: HexColor('4D8D6E')),
-                                  ),
-                                    ]
-                                  ),
-
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context)
-                                            .pop(); // Close the dialog
-                                      },
-                                      child: Text('Close'),
+                                    content: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                      Text('License Image:',style: TextStyle(color: Colors.black45,fontWeight: FontWeight.bold,fontSize: 16),),
+                                        Center(
+                                          child: Container(
+                                            width: 200, // Set your preferred width
+                                            height: 200, // Set your preferred height
+                                            child: (license_pic != null && license_pic.isNotEmpty && license_pic != "https://workdonecorp.com/images/")
+                                                ? Image.network(license_pic, fit: BoxFit.contain)
+                                                : Image.network('https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png', fit: BoxFit.contain),
+                                          ),
+                                        ),
+                                        SizedBox(height: 10),
+                                        Text(
+                                          'Your license Number:'
+                                          ,style: TextStyle(color: Colors.black45,fontWeight: FontWeight.bold, fontSize: 16),),
+                                        SizedBox(height: 10),
+                                        Center(
+                                          child: Text(
+                                            '${license_number}',
+                                            style: TextStyle(fontSize: 16, color: HexColor('4D8D6E')),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                );
-                              },
-
-                            );
-                          })
-    ],
+                                    actions: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                        child: Center(
+                                          child: ElevatedButton(
+                                            child: Text(
+                                              'Close',
+                                              style: TextStyle(color: Colors.white), // Set the text color to white
+                                            ),
+                                            onPressed: () {
+                                              Navigator.of(context)
+                                                  .pop(); // Close the dialog
+                                            },
+                                            style: ButtonStyle(
+                                              backgroundColor: MaterialStateProperty.all(HexColor('4D8D6E')), // Set the background color
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(HexColor('4D8D6E')), // Set the background color
+                            ),
+                          ),    ],
                       ),
                     ),
                     Center(
@@ -743,7 +741,7 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                         height: 45,
                         margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
                         child: ElevatedButton(
-                          onPressed: () {Get.to(editProfile());},
+                          onPressed: () {Get.to(editProfileworker());},
                           style: ElevatedButton.styleFrom(
                             backgroundColor: HexColor('#4D8D6E'),
                             shape: RoundedRectangleBorder(

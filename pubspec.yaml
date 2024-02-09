@@ -77,6 +77,8 @@ dependencies:
   flutter_spinkit: ^5.2.0
   easy_stepper: ^0.8.3
   fluentui_system_icons: ^1.1.225
+  persistent_bottom_nav_bar_v2: ^4.2.8
+  blurry_modal_progress_hud: ^1.1.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

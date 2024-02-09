@@ -124,8 +124,7 @@ class _MoreclientState extends State<Moreclient> {
 
         },
         backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-        shape: CircleBorder(), // Make the button circular
+child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
       ),
       backgroundColor: Colors.white,
       body:
@@ -140,12 +139,11 @@ class _MoreclientState extends State<Moreclient> {
                 children: [
                   CircleAvatar(
                     radius: 35,
-                    backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                        ? (profile_pic == "https://workdonecorp.com/images/"
-                        ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
-                        : NetworkImage(profile_pic))
-                        : AssetImage('assets/images/profileimage.png') as ImageProvider,
-
+                    backgroundColor: Colors.transparent,
+                    backgroundImage: profile_pic != '' && profile_pic.isNotEmpty
+                        && profile_pic == "https://workdonecorp.com/images/"
+                        ? AssetImage('assets/images/default.png') as ImageProvider
+                        : NetworkImage(profile_pic?? 'assets/images/default.png'),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
@@ -338,11 +336,8 @@ class _MoreclientState extends State<Moreclient> {
                   TextButton(
                       onPressed: () async {
                         await clearSharedPreferences(); // Call the function to clear client_id
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => WelcomeScreen()),
-                        );
+                        Get.offAll(WelcomeScreen());
+
                       },
                       child:  Text('Log Out',
                             style: GoogleFonts.encodeSans(

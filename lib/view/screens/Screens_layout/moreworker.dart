@@ -123,7 +123,7 @@ class _MoreworkerState extends State<Moreworker> {
 
         },
         backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-        child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
+child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
         //        shape: CircleBorder(), // Make the button circular
       ),
       backgroundColor: Colors.white,
@@ -339,10 +339,8 @@ class _MoreworkerState extends State<Moreworker> {
                     onPressed: () async {
                       await clearSharedPreferences(); // Add this line to clear SharedPreferences
 
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => WelcomeScreen()),
-                      );
+                      Get.offAll(WelcomeScreen());
+
                     },
                     child:  Text('Log Out',
                         style: GoogleFonts.encodeSans(

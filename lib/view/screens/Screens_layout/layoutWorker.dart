@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:persistent_bottom_nav_bar_v2/persistent-tab-view.dart';
 import 'package:workdone/view/screens/Screens_layout/projects%20CLient.dart';
 
 
@@ -16,66 +17,78 @@ class layoutworker extends StatefulWidget {
   @override
   State<layoutworker> createState() => _layoutworkerState();
 }
-
-class _layoutworkerState extends State<layoutworker> {
-  int _currentIndex = 0;
+final List<PersistentBottomNavBarItem> _navBarItems = [
+  PersistentBottomNavBarItem(
+    icon: Icon(Icons.home),
+    title: ('Home'),
+    activeColorPrimary: HexColor('#4D8D6E'),
+    inactiveColorPrimary: Colors.grey[700],
+  ),
+  PersistentBottomNavBarItem(
+    icon: Icon(Icons.check_circle),
+    title: ('My Projects'),
+    activeColorPrimary: HexColor('#4D8D6E'),
+    inactiveColorPrimary: Colors.grey[700],
+  ),
+  PersistentBottomNavBarItem(
+    icon: Icon(Icons.inbox),
+    title: ('Inbox'),
+    activeColorPrimary: HexColor('#4D8D6E'),
+    inactiveColorPrimary: Colors.grey[700],
+  ),
+  PersistentBottomNavBarItem(
+    icon: Icon(Icons.more_vert),
+    title: ('More'),
+    activeColorPrimary: HexColor('#4D8D6E'),
+    inactiveColorPrimary: Colors.grey[700],
+  ),
+];
+class _layoutworkerState extends State<layoutworker> with SingleTickerProviderStateMixin {
+  int _selectedIndex = 0;
+  late PersistentTabController _tabController;
   List<Widget> _screens = [
     Homescreenworker(),
-    projectsClient(),
+    projectsWorker(),
     InboxClient(),
     Moreworker(),
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_currentIndex],
-      bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        color: Colors.white,
-        child: Container(
-          height: 56.0,
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              buildBottomNavItem(0, Icons.home, 'Home'),
-              buildBottomNavItem(1, Icons.check_circle, 'My Projects'),
-              SizedBox(), // Empty space in the center
-              buildBottomNavItem(2, Icons.inbox, 'Inbox'),
-              buildBottomNavItem(3, Icons.more_vert, 'More'),
-            ],
-          ),
-        ),
-      ),
-    );
+  void initState() {
+    super.initState();
+    _tabController = PersistentTabController(initialIndex: 0);
   }
+  @override
+  Widget build(BuildContext context) {
+    return PersistentTabView(
+      context,
+      controller: _tabController,
+      screens: _screens,
+      items: _navBarItems,
+      confineInSafeArea: true,
 
-  Widget buildBottomNavItem(int index, IconData icon, String label) {
-    return Expanded(
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: _currentIndex == index ? HexColor('#4D8D6E') : Colors.grey[700],
-            ),
-            Text(
-              label,
-              style: TextStyle(
-                color: _currentIndex == index ? HexColor('#4D8D6E') : Colors.grey[700],
-              ),
-            ),
-          ],
-        ),
+      navBarHeight: 70,
+      backgroundColor: Colors.white,
+      handleAndroidBackButtonPress: true, // Default is true.
+      resizeToAvoidBottomInset: true,
+      stateManagement: true,
+      hideNavigationBarWhenKeyboardShows: true,
+      decoration: NavBarDecoration(
+        borderRadius: BorderRadius.circular(10.0),
+        colorBehindNavBar: Colors.white,
       ),
+      popAllScreensOnTapOfSelectedTab: true,
+      popActionScreens: PopActionScreensType.all,
+      itemAnimationProperties: ItemAnimationProperties(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.ease,
+      ),
+      screenTransitionAnimation: ScreenTransitionAnimation(
+        animateTabTransition: true,
+        curve: Curves.ease,
+        duration: Duration(milliseconds: 300),
+      ),
+      navBarStyle: NavBarStyle.style3,
     );
   }
 }

@@ -312,8 +312,7 @@ setState(() {
 
         },
         backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-        shape: CircleBorder(), // Make the button circular
+child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        shape: CircleBorder(), // Make the button circular
       ),
       backgroundColor: HexColor('ECECEC'),
       appBar: AppBar(
@@ -927,7 +926,7 @@ setState(() {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               RoundedButton(
-                                text: 'Done',
+                                text: 'Post',
                                 press: () {
                                   if (_formKey.currentState!.validate()) {
                                     submitProject();
@@ -939,7 +938,7 @@ setState(() {
                             ],
                           ),
                     ),                                SizedBox(
-                  height: 14,
+                  height: 60,
                                 ),
                               ]),
                 ),

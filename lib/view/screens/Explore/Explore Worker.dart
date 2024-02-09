@@ -25,7 +25,7 @@ class exploreWorker extends StatefulWidget {
   State<exploreWorker> createState() => _exploreWorkerState();
 }
 
-class _exploreWorkerState extends State<exploreWorker> {
+class _exploreWorkerState extends State<exploreWorker> with SingleTickerProviderStateMixin {
   TextEditingController searchController = TextEditingController();
   late Future<List<Item>> futureProjects;
   int currentPage = 0;
@@ -98,13 +98,23 @@ class _exploreWorkerState extends State<exploreWorker> {
 
 
   List<Item> filteredItems = [];
-
+  late AnimationController ciruclaranimation;
   @override
   void initState() {
     super.initState();
     // Call the function that fetches projects and assign the result to futureProjects
     futureProjects = fetchProjects();
+    ciruclaranimation = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    ciruclaranimation.repeat(reverse: false);
 
+  }
+  @override
+  void dispose() {
+    ciruclaranimation.dispose();
+    super.dispose();
   }
 
   List<InlineSpan> _buildTextSpans(String text, String query) {
@@ -192,15 +202,14 @@ class _exploreWorkerState extends State<exploreWorker> {
 
           },
           backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-          child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-          shape: CircleBorder(), // Make the button circular
+  child: Icon(Icons.help ,color: Colors.white,), // Use the support icon          shape: CircleBorder(), // Make the button circular
         ),
         backgroundColor: HexColor('F9F9F9'),
         appBar: AppBar(systemOverlayStyle:SystemUiOverlayStyle.dark ,
           toolbarHeight: 70,
           backgroundColor: HexColor('F9F9F9'),
           elevation: 0,
-          leading: IconButton(onPressed: (){Get.back();}, icon: Icon(Icons.arrow_back_sharp ,color: Colors.black,size: 30,)),
+          // leading: IconButton(onPressed: (){Get.back();}, icon: Icon(Icons.arrow_back_sharp ,color: Colors.black,size: 30,)),
           title: Text('Explore',
             style: GoogleFonts.openSans(
               textStyle: TextStyle(
@@ -234,193 +243,214 @@ class _exploreWorkerState extends State<exploreWorker> {
         body:
         Screenshot(
           controller:screenshotController ,
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 13.0),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(7.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5), // Color of the shadow
-                            spreadRadius: 2, // Spread radius
-                            blurRadius: 4, // Blur radius
-                            offset: Offset(0, 2), // Offset in the x and y direction
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: EdgeInsets.all(16.0),
-                              decoration: BoxDecoration(
-                                color: HexColor('4D8D6E'),
-                                borderRadius: BorderRadius.circular(7.0),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  'All',
-                                  style: GoogleFonts.openSans(
-                                    textStyle: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 15 ,
-                                        fontWeight: FontWeight.w600),
+          child:  RefreshIndicator(
+            color: HexColor('4D8D6E'),
+            backgroundColor: Colors.white,
+
+            onRefresh: () async {
+              setState(() {
+                futureProjects = fetchProjects();
+              });
+            },
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 13.0),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(7.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5), // Color of the shadow
+                              spreadRadius: 2, // Spread radius
+                              blurRadius: 4, // Blur radius
+                              offset: Offset(0, 2), // Offset in the x and y direction
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: EdgeInsets.all(16.0),
+                                decoration: BoxDecoration(
+                                  color: HexColor('4D8D6E'),
+                                  borderRadius: BorderRadius.circular(7.0),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'All',
+                                    style: GoogleFonts.openSans(
+                                      textStyle: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15 ,
+                                          fontWeight: FontWeight.w600),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
 
-                          Expanded(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 16.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(7.0),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.search,
-                                    color: HexColor('878A8E'),
-                                  ),
-                                  SizedBox(width: 8.0),
-                                  Expanded(
-                                    child: TextField(
-                                      controller: searchController,
-                                      onChanged: (query) {
-                                        // Use a debounce mechanism to delay the refresh and avoid unnecessary API calls
-                                        if (searchDebouncer?.isActive ?? false) {
-                                          searchDebouncer!.cancel();
-                                        }
+                            Expanded(
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(7.0),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.search,
+                                      color: HexColor('878A8E'),
+                                    ),
+                                    SizedBox(width: 8.0),
+                                    Expanded(
+                                      child: TextField(
+                                        controller: searchController,
+                                        onChanged: (query) {
+                                          // Use a debounce mechanism to delay the refresh and avoid unnecessary API calls
+                                          if (searchDebouncer?.isActive ?? false) {
+                                            searchDebouncer!.cancel();
+                                          }
 
-                                        searchDebouncer = Timer(Duration(milliseconds: 500), () {
+                                          searchDebouncer = Timer(Duration(milliseconds: 500), () {
 
+                                            setState(() {
+                                              refreshProjects();
+
+                                            }); // Trigger the refresh after a delay (e.g., 500 milliseconds)
+                                          });
+                                        },
+                                        onSubmitted: (query) {
+                                          // Trigger the refresh when the user presses "Done" on the keyboard
                                           setState(() {
                                             refreshProjects();
 
-                                          }); // Trigger the refresh after a delay (e.g., 500 milliseconds)
-                                        });
-                                      },
-                                      onSubmitted: (query) {
-                                        // Trigger the refresh when the user presses "Done" on the keyboard
-                                        setState(() {
-                                          refreshProjects();
-
-                                        });
-                                      },
-                                      decoration: InputDecoration(
-                                        hintText: 'Search',
-                                        hintStyle: TextStyle(color: HexColor('878A8E')),
-                                        border: InputBorder.none,
-                                      ),
-                                      style: TextStyle(color: Colors.black),
-                                    )
+                                          });
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: 'Search',
+                                          hintStyle: TextStyle(color: HexColor('878A8E')),
+                                          border: InputBorder.none,
+                                        ),
+                                        style: TextStyle(color: Colors.black),
+                                      )
 
 
-                                    ,
+                                      ,
 
-                                  ),
-                                ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
 
-                  FutureBuilder<List<Item>>(
-                    future: futureProjects,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Column(
-                          children: [
-                            SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
-                          ],
-                        );
-                      } else if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      } else if (snapshot.data != null && snapshot.data!.isEmpty) {
-                        // If projects list is empty, reset current page to 0 and refresh
-                        currentPage = 0;
-                        refreshProjects();
-                        return Text('No projects found.');
-                      } else {
-                        return ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (context, index) {
-                            return buildListItem(snapshot.data![index]);
-                          },
-                        );
-                      }
-                    },
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      if (currentPage > 0)
+                    FutureBuilder<List<Item>>(
+                      future: futureProjects,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Column(
+                            children: [
+                              SizedBox(height: 80,),       Center(child: RotationTransition(
+                                turns: ciruclaranimation,
+                                child: SvgPicture.asset(
+                                  'assets/images/Logo.svg',
+                                  semanticsLabel: 'Your SVG Image',
+                                  width: 100,
+                                  height: 130,
+                                ),
+                              ))
+                              ,SizedBox(height: 80,)
+                            ],
+                          );
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (snapshot.data != null && snapshot.data!.isEmpty) {
+                          // If projects list is empty, reset current page to 0 and refresh
+                          currentPage = 0;
+                          refreshProjects();
+                          return Text('No projects found.');
+                        } else {
+                          return ListView.builder(
+                            physics: NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              return buildListItem(snapshot.data![index]);
+                            },
+                          );
+                        }
+                      },
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        if (currentPage > 0)
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                currentPage--;
+                                refreshProjects(); // Use refreshProjects instead of fetchProjects
+                              });
+                            },
+                            style: TextButton.styleFrom(
+
+                              primary: Colors.redAccent,
+
+                            ),
+                            child: Text(
+                              'Previous Page',
+                              style: TextStyle(fontSize: 16, ),
+                            ),
+                          ),
                         TextButton(
-                          onPressed: () {
+                          onPressed: () async {
                             setState(() {
-                              currentPage--;
-                              refreshProjects(); // Use refreshProjects instead of fetchProjects
+                              currentPage++;
+                              refreshProjects();
                             });
+
+                            // Fetch the projects for the next page
+                            List<Item>? nextPageProjects = await fetchProjects();
+
+                            // Check if the next page is empty or no data and hide the button accordingly
+                            if (!shouldShowNextButton(nextPageProjects)) {
+                              setState(() {
+                                currentPage = 0;
+                                refreshProjects();
+                              });
+                            } else {
+                              // Update the futureProjects with the fetched projects
+                              futureProjects = Future.value(nextPageProjects);
+                            }
                           },
                           style: TextButton.styleFrom(
 
-                            primary: Colors.redAccent,
+                            primary: Colors.black45,
 
                           ),
                           child: Text(
-                            'Previous Page',
-                            style: TextStyle(fontSize: 16, ),
+                            'Next Page',
+                            style: TextStyle(fontSize: 16),
                           ),
                         ),
-                      TextButton(
-                        onPressed: () async {
-                          setState(() {
-                            currentPage++;
-                            refreshProjects();
-                          });
-
-                          // Fetch the projects for the next page
-                          List<Item>? nextPageProjects = await fetchProjects();
-
-                          // Check if the next page is empty or no data and hide the button accordingly
-                          if (!shouldShowNextButton(nextPageProjects)) {
-                            setState(() {
-                              currentPage = 0;
-                              refreshProjects();
-                            });
-                          } else {
-                            // Update the futureProjects with the fetched projects
-                            futureProjects = Future.value(nextPageProjects);
-                          }
-                        },
-                        style: TextButton.styleFrom(
-
-                          primary: Colors.black45,
-
-                        ),
-                        child: Text(
-                          'Next Page',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 50,)
-                ],
+                      ],
+                    ),
+                    SizedBox(height: 50,)
+                  ],
+                ),
               ),
             ),
           ),

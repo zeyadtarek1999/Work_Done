@@ -178,624 +178,416 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
   @override
   Widget build(BuildContext context) {
     EdgeInsets mediaQueryPadding = MediaQuery.of(context).padding;
-    double topPadding = mediaQueryPadding.top + 93;
-    double topPadding2 = mediaQueryPadding.top + 113;
-    double topPadding3 = mediaQueryPadding.top + 150;
-    double topPadding4 = mediaQueryPadding.top + 70;
-    double topPadding5 = mediaQueryPadding.top + 53;
+    double topPadding = mediaQueryPadding.top + 20;
+    double topPadding2 = mediaQueryPadding.top + 48;
+    double topPadding3 = mediaQueryPadding.top + 80;
+    double topPadding4 = mediaQueryPadding.top + 2;
+    double topPadding5 = mediaQueryPadding.top + 36;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: HexColor('4D8D6E'),
       // Change this color to the desired one
       statusBarIconBrightness:
       Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
-    return AdvancedDrawer(
-          openRatio: 0.5,
-
-          backdropColor: HexColor('ECEDED'),
-          controller: advancedDrawerController,
-          rtlOpening: false,
-          openScale: 0.89,
-          childDecoration:
-              BoxDecoration(borderRadius: BorderRadius.circular(20)),
-          animationCurve: Curves.easeInOut,
-          animationDuration: Duration(milliseconds: 1000),
-          drawer: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 50, left: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 35,
-                    backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                        ? (profile_pic == "https://workdonecorp.com/images/"
-                        ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
-                        : NetworkImage(profile_pic))
-                        : AssetImage('assets/images/profileimage.png') as ImageProvider,
-
-                  ),
-
-                  SizedBox(
-                    height: 12,
-                  ),
-                  Text(
-                    "$firstname $secondname" ,
-                    style: GoogleFonts.poppins(
-                      textStyle: TextStyle(
-                          color: HexColor('1A1D1E'),
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 9,
-                  ),
-                  Text(
-                    'zzeyadtarek11@gmail.com',
-                    style: GoogleFonts.poppins(
-                      textStyle: TextStyle(
-                          color: HexColor('6A6A6A'),
-                          fontSize: 13,
-                          fontWeight: FontWeight.normal),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  Row(
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icons/user.svg',
-                        width: 35.0,
-                        height: 35.0,
-                      ),
-                      SizedBox(
-                        width: 8,
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          'Edit Profile',
-                          style: GoogleFonts.poppins(
-                            textStyle: TextStyle(
-                                color: HexColor('1A1D1E'),
-                                fontSize: 15,
-                                fontWeight: FontWeight.normal),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                    height: 12,
-                  ),
-                  Row(
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icons/time.svg',
-                        width: 35.0,
-                        height: 35.0,
-                      ),
-                      SizedBox(
-                        width: 8,
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          'Projects',
-                          style: GoogleFonts.poppins(
-                            textStyle: TextStyle(
-                                color: HexColor('1A1D1E'),
-                                fontSize: 15,
-                                fontWeight: FontWeight.normal),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                    height: 12,
-                  ),
-                  Row(
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icons/notification.svg',
-                        width: 35.0,
-                        height: 35.0,
-                      ),
-                      SizedBox(
-                        width: 8,
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          'Notifications',
-                          style: GoogleFonts.poppins(
-                            textStyle: TextStyle(
-                                color: HexColor('1A1D1E'),
-                                fontSize: 15,
-                                fontWeight: FontWeight.normal),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                    height: 12,
-                  ),
-                  Row(
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icons/portfolioicon.svg',
-                        width: 35.0,
-                        height: 35.0,
-                      ),
-                      SizedBox(
-                        width: 8,
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          'Portfolio',
-                          style: GoogleFonts.poppins(
-                            textStyle: TextStyle(
-                                color: HexColor('1A1D1E'),
-                                fontSize: 15,
-                                fontWeight: FontWeight.normal),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                    height: 60,
-                  ),
-                  Row(
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icons/logout.svg',
-                        width: 35.0,
-                        height: 35.0,
-                      ),
-                      SizedBox(
-                        width: 8,
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          'Log Out',
-                          style: GoogleFonts.poppins(
-                            textStyle: TextStyle(
-                                color: HexColor('1A1D1E'),
-                                fontSize: 15,
-                                fontWeight: FontWeight.normal),
-                          ),
-                        ),
-                      )
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ),
-          child: Scaffold(
-            floatingActionButton:
-            FloatingActionButton(    heroTag: 'workdone_${unique}',
+    return Scaffold(
+      floatingActionButton:
+      FloatingActionButton(    heroTag: 'workdone_${unique}',
 
 
 
+        onPressed: () {
+          _navigateToNextPage(context);
+
+        },
+        backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+          child: Icon(Icons.help ,color: Colors.white,), // Use the support icon              shape: CircleBorder(), // Make the button circular
+      ),
+      appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 10.0),
+          child: IconButton(
               onPressed: () {
-                _navigateToNextPage(context);
-
+                Get.back();
               },
-              backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-              child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-              shape: CircleBorder(), // Make the button circular
-            ),
-            key: _scaffoldKey,
-            backgroundColor: HexColor('F5F5F5'),
-            body :Screenshot(
-              controller:screenshotController ,
-              child: SafeArea(
-                child: SingleChildScrollView(
-                    child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                      Stack(
-                        children: [
-                          Container(
-                            width: ScreenUtil.screenWidth,
-                            height: ScreenUtil.containerheight3,
-                            decoration: BoxDecoration(color: HexColor('#4D8D6E')),
-                          ),
-                          Padding(
-                            padding:
-                                EdgeInsets.symmetric(vertical: 12, horizontal: 5),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
+              icon: Icon(
+                Icons.arrow_back_ios,
+                size: 29,
+                color: Colors.white,
+              )),
+        ),
+        title: Text(
+          'Profile',
+          style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold),
+        ),
+          centerTitle: true,
+
+      ),
+      key: _scaffoldKey,
+      backgroundColor: HexColor('F5F5F5'),
+      body :Screenshot(
+        controller:screenshotController ,
+        child: SingleChildScrollView(
+            child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+              Stack(
+                children: [
+                  Container(
+                    width: ScreenUtil.screenWidth,
+                    height: ScreenUtil.containerheight3,
+                    decoration: BoxDecoration(color: HexColor('#4D8D6E')),
+                  ),
+
+                  Padding(
+                    padding: EdgeInsets.only(top: topPadding),
+                    child: Center(
+                      child: Container(
+                        width: ScreenUtil.opacitycontainerwidth1,
+                        height: ScreenUtil.opacitycontainerheight1,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(17),
+                          // Set the border radius here
+
+                          color: Colors.white24.withAlpha(80),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: topPadding2),
+                    child: Center(
+                      child: Container(
+                        width: ScreenUtil.opacitycontainerwidth2,
+                        height: ScreenUtil.opacitycontainerheight1,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(17),
+                          // Set the border radius here
+
+                          color: Colors.white24.withAlpha(50),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: topPadding3),
+                    child: Center(
+                      child: Container(
+                        width: ScreenUtil.opacitycontainerwidth3,
+                        height: ScreenUtil.opacitycontainerheight3,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(17),
+                          // Set the border radius here
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              // Shadow color
+                              offset: Offset(0, 4.0),
+                              // Set the offset (x, y) to control the shadow position
+                              blurRadius:
+                                  8.0, // Set the blur radius to control the spread of the shadow
+                            ),
+                          ],
+                          color: Colors.white,
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.only(top: topPadding5),
+                          child: Center(
+                            child: Column(
                               children: [
-                                IconButton(
-                                    onPressed: () {
-                                      drawerControl();
-                                    },
-                                    icon: Icon(
-                                      Icons.menu,
-                                      size: 32,
-                                      color: Colors.white,
-                                    )),
-                                SizedBox(
-                                  width: 14,
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Client',
+
+                                style: GoogleFonts.poppins(
+                                textStyle: TextStyle(
+                                color: HexColor('C9C227'),
+                              fontSize: 20,
+                              fontWeight: FontWeight.normal),
+                        ),
+                      ),
+                                  ],
                                 ),
                                 Text(
-                                  'Profile',
+                                  '$firstname $secondname',
                                   style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold),
+                                      color: HexColor('#022C43'),
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.normal),
                                 ),
-                                Spacer(),
-                                IconButton(
-                                    onPressed: () {
-                                      Get.back();
-                                    },
-                                    icon: Icon(
-                                      Icons.arrow_back_ios,
-                                      size: 29,
-                                      color: Colors.white,
-                                    )),
                               ],
                             ),
                           ),
-                          Padding(
-                            padding: EdgeInsets.only(top: topPadding),
-                            child: Center(
-                              child: Container(
-                                width: ScreenUtil.opacitycontainerwidth1,
-                                height: ScreenUtil.opacitycontainerheight1,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(17),
-                                  // Set the border radius here
-              
-                                  color: Colors.white24.withAlpha(80),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(top: topPadding2),
-                            child: Center(
-                              child: Container(
-                                width: ScreenUtil.opacitycontainerwidth2,
-                                height: ScreenUtil.opacitycontainerheight1,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(17),
-                                  // Set the border radius here
-              
-                                  color: Colors.white24.withAlpha(50),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(top: topPadding3),
-                            child: Center(
-                              child: Container(
-                                width: ScreenUtil.opacitycontainerwidth3,
-                                height: ScreenUtil.opacitycontainerheight3,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(17),
-                                  // Set the border radius here
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.5),
-                                      // Shadow color
-                                      offset: Offset(0, 4.0),
-                                      // Set the offset (x, y) to control the shadow position
-                                      blurRadius:
-                                          8.0, // Set the blur radius to control the spread of the shadow
-                                    ),
-                                  ],
-                                  color: Colors.white,
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.only(top: topPadding5),
-                                  child: Center(
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              'Client',
-              
-                                        style: GoogleFonts.poppins(
-                                        textStyle: TextStyle(
-                                        color: HexColor('C9C227'),
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.normal),
-                                ),
-                              ),
-                                          ],
-                                        ),
-                                        Text(
-                                          '$firstname $secondname',
-                                          style: TextStyle(
-                                              color: HexColor('#022C43'),
-                                              fontSize: 26,
-                                              fontWeight: FontWeight.normal),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(top: topPadding4),
-                            child: Center(
-                              child: Container(
-                                width: ScreenUtil.profileimagewidth,
-                                height: ScreenUtil.profileimageheight,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: HexColor('#B2B1B1'),
-                                    width: 5,
-                                  ),
-                                ),
-                                child: CircleAvatar(
-                                  radius: 35,
-                                  backgroundImage: (profile_pic != null && profile_pic.isNotEmpty)
-                                      ? (profile_pic == "https://workdonecorp.com/images/"
-                                      ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
-                                      : NetworkImage(profile_pic ,))
-                                      : AssetImage('assets/images/profileimage.png') as ImageProvider,
-                                ),
-
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 19, horizontal: 20),
-                        child: Text(
-                          'Personal Info'.toUpperCase(),
-                          style: TextStyle(
-                              color: HexColor('#022C43'),
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold),
                         ),
                       ),
-                      Center(
-                        child: Container(
-                          height: ScreenUtil.Infocontainerheight,
-                          width: ScreenUtil.Infocontainerwidth,
-                          decoration: BoxDecoration(
-                            color: HexColor('#F9F9F9'),
-                            borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: topPadding4),
+                    child: Center(
+                      child: Container(
+                        width: ScreenUtil.profileimagewidth,
+                        height: ScreenUtil.profileimageheight,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: HexColor('#B2B1B1'),
+                            width: 5,
                           ),
-                          child: Column(
+                        ),
+                        child: CircleAvatar(
+                          radius: 35,
+                          backgroundImage: (profile_pic != null && profile_pic.isNotEmpty)
+                              ? (profile_pic == "https://workdonecorp.com/images/"
+                              ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
+                              : NetworkImage(profile_pic ,))
+                              : AssetImage('assets/images/profileimage.png') as ImageProvider,
+                        ),
+
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 19, horizontal: 20),
+                child: Text(
+                  'Personal Info'.toUpperCase(),
+                  style: TextStyle(
+                      color: HexColor('#022C43'),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+              Center(
+                child: Container(
+                  height: ScreenUtil.Infocontainerheight,
+                  width: ScreenUtil.Infocontainerwidth,
+                  decoration: BoxDecoration(
+                    color: HexColor('#F9F9F9'),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: 20,
+                        ),
+                        child: Container(
+                          height: 50,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: HexColor('#707070').withOpacity(0.1),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          child: Row(
                             children: [
                               Padding(
-                                padding: EdgeInsets.only(
-                                  top: 20,
-                                ),
-                                child: Container(
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: HexColor('#707070').withOpacity(0.1),
-                                        width: 1,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsets.symmetric(horizontal: 12),
-                                        child: Text(
-                                          'Phone Number:',
-                                          style: TextStyle(
-                                              color: HexColor('#4D8D6E'),
-                                              fontWeight: FontWeight.w400,
-                                              fontSize: 17),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: ScreenUtil.sizeboxwidth3,
-                                      ),
-                                      Text(
-                                        '$phonenumber',
-                                        style: TextStyle(
-                                            color: HexColor('#404040'), fontSize: 15),
-                                      )
-                                    ],
-                                  ),
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  'Phone Number:',
+                                  style: TextStyle(
+                                      color: HexColor('#4D8D6E'),
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 17),
                                 ),
                               ),
-                              Container(
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: HexColor('#707070').withOpacity(0.1),
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsets.symmetric(horizontal: 12),
-                                        child: Text(
-                                          'Email Address:',
-                                          style: TextStyle(
-                                              color: HexColor('#4D8D6E'),
-                                              fontWeight: FontWeight.w400,
-                                              fontSize: 17),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: ScreenUtil.sizeboxwidth3,
-                                      ),
-                                      Text(
-                                        '$email',
-                                        style: TextStyle(
-                                            color: HexColor('#404040'), fontSize: 15),
-                                      )
-                                    ],
-                                  ),
-                                ),
+                              SizedBox(
+                                width: ScreenUtil.sizeboxwidth3,
                               ),
-                              Container(
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: HexColor('#707070').withOpacity(0.1),
-                                        width: 1,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsets.symmetric(horizontal: 12),
-                                        child: Text(
-                                          'Language Spoken:',
-                                          style: TextStyle(
-                                            color: HexColor('#4D8D6E'),
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 17,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: ScreenUtil.sizeboxwidth3),
-                                      Text(
-                                        '$language',
-                                        style: TextStyle(
-                                            color: HexColor('#404040'), fontSize: 15),
-                                      )
-                                    ],
-                                  )),
-                              Container(
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: HexColor('#707070').withOpacity(0.1),
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsets.symmetric(horizontal: 12),
-                                        child: Text(
-                                          'Address:',
-                                          style: TextStyle(
-                                              color: HexColor('#4D8D6E'),
-                                              fontWeight: FontWeight.w400,
-                                              fontSize: 17),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: ScreenUtil.sizeboxwidth3,
-                                      ),
-                                      Text(
-                                        '$addressline1 , $addressline2 , $city , $state  ',
-                                        style: TextStyle(
-                                            color: HexColor('#404040'), fontSize: 15),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: HexColor('#707070').withOpacity(0.1),
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 12),
-                                      child: Text(
-                                        'Zip Code:',
-                                        style: TextStyle(
-                                            color: HexColor('#4D8D6E'),
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 17),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: ScreenUtil.sizeboxwidth3,
-                                    ),
-                                    Text(
-                                      '$addressZip    ',
-                                      style: TextStyle(
-                                          color: HexColor('#404040'), fontSize: 15),
-                                    )
-                                  ],
-                                ),
-                              ),
-              
+                              Text(
+                                '$phonenumber',
+                                style: TextStyle(
+                                    color: HexColor('#404040'), fontSize: 15),
+                              )
                             ],
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 17,
-                      ),
-                      Center(
-                        child: Container(
-                          width: ScreenUtil.buttonscreenwidth,
-                          height: 45,
-                          margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
-                          child: ElevatedButton(
-                            onPressed: () {Get.to(editProfile());},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: HexColor('#4D8D6E'),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30.0),
-                                // Adjust the value to change the corner radius
-                                side: BorderSide(
-                                    width:
-                                        buttonscreenwidth // Adjust the value to change the width of the narrow edge
-                                    ),
-                              ),
-                            ),
-                            child: Text(
-                              'Edit',
-                              style: TextStyle(fontSize: 16.0, color: Colors.white),
+                      Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: HexColor('#707070').withOpacity(0.1),
+                              width: 1,
                             ),
                           ),
                         ),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  'Email Address:',
+                                  style: TextStyle(
+                                      color: HexColor('#4D8D6E'),
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 17),
+                                ),
+                              ),
+                              SizedBox(
+                                width: ScreenUtil.sizeboxwidth3,
+                              ),
+                              Text(
+                                '$email',
+                                style: TextStyle(
+                                    color: HexColor('#404040'), fontSize: 15),
+                              )
+                            ],
+                          ),
+                        ),
                       ),
-                      SizedBox(
-                        height: ScreenUtil.sizeboxheight,
+                      Container(
+                          height: 50,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: HexColor('#707070').withOpacity(0.1),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  'Language Spoken:',
+                                  style: TextStyle(
+                                    color: HexColor('#4D8D6E'),
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 17,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: ScreenUtil.sizeboxwidth3),
+                              Text(
+                                '$language',
+                                style: TextStyle(
+                                    color: HexColor('#404040'), fontSize: 15),
+                              )
+                            ],
+                          )),
+                      Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: HexColor('#707070').withOpacity(0.1),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  'Address:',
+                                  style: TextStyle(
+                                      color: HexColor('#4D8D6E'),
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 17),
+                                ),
+                              ),
+                              SizedBox(
+                                width: ScreenUtil.sizeboxwidth3,
+                              ),
+                              Text(
+                                '$addressline1 , $addressline2 , $city , $state  ',
+                                style: TextStyle(
+                                    color: HexColor('#404040'), fontSize: 15),
+                              )
+                            ],
+                          ),
+                        ),
                       ),
-                  ],
-                ),
-                    )),
-            ),
-          ),
+                      Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: HexColor('#707070').withOpacity(0.1),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 12),
+                              child: Text(
+                                'Zip Code:',
+                                style: TextStyle(
+                                    color: HexColor('#4D8D6E'),
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 17),
+                              ),
+                            ),
+                            SizedBox(
+                              width: ScreenUtil.sizeboxwidth3,
+                            ),
+                            Text(
+                              '$addressZip    ',
+                              style: TextStyle(
+                                  color: HexColor('#404040'), fontSize: 15),
+                            )
+                          ],
+                        ),
+                      ),
 
-        );
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 17,
+              ),
+              Center(
+                child: Container(
+                  width: ScreenUtil.buttonscreenwidth,
+                  height: 60,
+                  margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
+                  child: ElevatedButton(
+                    onPressed: () {Get.to(editProfile());},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: HexColor('#4D8D6E'),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                        // Adjust the value to change the corner radius
+                        side: BorderSide(
+                            width:
+                                buttonscreenwidth // Adjust the value to change the width of the narrow edge
+                            ),
+                      ),
+                    ),
+                    child: Text(
+                      'Edit',
+                      style: TextStyle(fontSize: 16.0, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: ScreenUtil.sizeboxheight,
+              ),
+          ],
+        ),
+            ),
+      ),
+    );
 
   }void drawerControl() {
     advancedDrawerController.showDrawer();

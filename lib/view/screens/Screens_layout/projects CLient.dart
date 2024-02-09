@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/view/screens/Screens_layout/layoutclient.dart';
 import '../../../model/mediaquery.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Bid Details/Bid details ClientPost.dart';
@@ -23,7 +24,7 @@ class projectsClient extends StatefulWidget {
   State<projectsClient> createState() => _projectsClientState();
 }
 
-class _projectsClientState extends State<projectsClient> {
+class _projectsClientState extends State<projectsClient> with SingleTickerProviderStateMixin {
   int currentPage = 1;
   bool shouldShowNextButton(List<Item>? nextPageData) {
     // Add your condition to check if the next page is not empty here
@@ -108,13 +109,23 @@ class _projectsClientState extends State<projectsClient> {
 
 
   final ScreenshotController screenshotController2 = ScreenshotController();
-
+  late AnimationController ciruclaranimation;
   @override
   void initState() {
     super.initState();
     // Call the function that fetches projects and assign the result to futureProjects
     futureProjects = fetchProjects();
+    ciruclaranimation = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    ciruclaranimation.repeat(reverse: false);
 
+  }
+  @override
+  void dispose() {
+    ciruclaranimation.dispose();
+    super.dispose();
   }
 
   List<InlineSpan> _buildTextSpans(String text, String query) {
@@ -188,8 +199,7 @@ class _projectsClientState extends State<projectsClient> {
 
             },
           backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-          child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-          shape: CircleBorder(), // Make the button circular
+  child: Icon(Icons.help ,color: Colors.white,), // Use the support icon          shape: CircleBorder(), // Make the button circular
         ),
         backgroundColor: HexColor('EAEAEE'),
         appBar: PreferredSize(
@@ -319,148 +329,171 @@ class _projectsClientState extends State<projectsClient> {
     );
   }
   Widget buildTabContent(String filter) {
-    return               SingleChildScrollView(
-      child: Column(
-        children: [
-          FutureBuilder<List<Item>>(
-            future: futureProjects,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Column(
-                  children: [
-                    SizedBox(height: 80,),       Center(child: CircularProgressIndicator()),SizedBox(height: 80,)
-                  ],
-                );
-              } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              } else if (snapshot.data != null && snapshot.data!.isEmpty) {
-                // If projects list is empty, reset current page to 0 and refresh
-                currentPage = 0;
-                refreshProjects();
-                return               Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+    return                RefreshIndicator(
+      color: HexColor('4D8D6E'),
+      backgroundColor: Colors.white,
+
+      onRefresh: () async {
+        setState(() {
+          futureProjects = fetchProjects();
+        });
+      },
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+
+        child: Column(
+          children: [
+            FutureBuilder<List<Item>>(
+              future: futureProjects,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Column(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      SizedBox(height: 80,),        Center(child: RotationTransition(
+                        turns: ciruclaranimation,
                         child: SvgPicture.asset(
-                          'assets/images/nothing.svg',
-                          width: 100.0, // Set the width you want
-                          height: 100.0, // Set the height you want
+                          'assets/images/Logo.svg',
+                          semanticsLabel: 'Your SVG Image',
+                          width: 100,
+                          height: 130,
                         ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        'No Projects yet',
-                        style: GoogleFonts.encodeSans(
-                          textStyle: TextStyle(
-                              color: HexColor('BBC3CE'),
-                              fontSize: 18,
-                              fontWeight: FontWeight.normal),
+                      ))
+                      ,SizedBox(height: 80,)
+                    ],
+                  );
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (snapshot.data != null && snapshot.data!.isEmpty) {
+                  // If projects list is empty, reset current page to 0 and refresh
+                  currentPage = 0;
+                  refreshProjects();
+                  return               Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          child: SvgPicture.asset(
+                            'assets/images/nothing.svg',
+                            width: 100.0, // Set the width you want
+                            height: 100.0, // Set the height you want
+                          ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 80.0),
-                        child: Container(
-                          width: ScreenUtil.buttonscreenwidth,
-                          height: 45,
-                          margin:
-                          EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: HexColor('#4D8D6E'),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30.0),
-                                // Adjust the value to change the corner radius
-                                side: BorderSide(
-                                    width:
-                                    130 // Adjust the value to change the width of the narrow edge
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Text(
+                          'No Projects yet',
+                          style: GoogleFonts.encodeSans(
+                            textStyle: TextStyle(
+                                color: HexColor('BBC3CE'),
+                                fontSize: 18,
+                                fontWeight: FontWeight.normal),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 80.0),
+                          child: Container(
+                            width: ScreenUtil.buttonscreenwidth,
+                            height: 45,
+                            margin:
+                            EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Get.offAll(layoutclient());
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: HexColor('#4D8D6E'),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                  // Adjust the value to change the corner radius
+                                  side: BorderSide(
+                                      width:
+                                      130 // Adjust the value to change the width of the narrow edge
+                                  ),
                                 ),
                               ),
-                            ),
-                            child: Text(
-                              'Find a Project',
-                              style: TextStyle(fontSize: 16.0, color: Colors.white),
+                              child: Text(
+                                'Find a Project',
+                                style: TextStyle(fontSize: 16.0, color: Colors.white),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
+                      ],
+                    ),
+                  );
 
-              } else {
-                return ListView.builder(
-                  physics: NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    return buildListItem(snapshot.data![index]);
-                  },
-                );
-              }
-            },
-          ),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceAround,
-          //   children: [
-          //     if (currentPage > 0)
-          //       TextButton(
-          //         onPressed: () {
-          //           setState(() {
-          //             currentPage--;
-          //             refreshProjects(); // Use refreshProjects instead of fetchProjects
-          //           });
-          //         },
-          //         style: TextButton.styleFrom(
-          //
-          //           primary: Colors.redAccent,
-          //
-          //         ),
-          //         child: Text(
-          //           'Previous Page',
-          //           style: TextStyle(fontSize: 16, ),
-          //         ),
-          //       ),
-          //     TextButton(
-          //       onPressed: () async {
-          //         setState(() {
-          //           currentPage++;
-          //           refreshProjects();
-          //         });
-          //
-          //         // Fetch the projects for the next page
-          //         List<Item>? nextPageProjects = await fetchProjects();
-          //
-          //         // Check if the next page is empty or no data and hide the button accordingly
-          //         if (!shouldShowNextButton(nextPageProjects)) {
-          //           setState(() {
-          //             currentPage = 0;
-          //             refreshProjects();
-          //           });
-          //         } else {
-          //           // Update the futureProjects with the fetched projects
-          //           futureProjects = Future.value(nextPageProjects);
-          //         }
-          //       },
-          //       style: TextButton.styleFrom(
-          //
-          //         primary: Colors.black45,
-          //
-          //       ),
-          //       child: Text(
-          //         'Next Page',
-          //         style: TextStyle(fontSize: 16),
-          //       ),
-          //     ),
-          //   ],
-          // ),
-          SizedBox(height: 50,),
-        ],
+                } else {
+                  return ListView.builder(
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return buildListItem(snapshot.data![index]);
+                    },
+                  );
+                }
+              },
+            ),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+            //   children: [
+            //     if (currentPage > 0)
+            //       TextButton(
+            //         onPressed: () {
+            //           setState(() {
+            //             currentPage--;
+            //             refreshProjects(); // Use refreshProjects instead of fetchProjects
+            //           });
+            //         },
+            //         style: TextButton.styleFrom(
+            //
+            //           primary: Colors.redAccent,
+            //
+            //         ),
+            //         child: Text(
+            //           'Previous Page',
+            //           style: TextStyle(fontSize: 16, ),
+            //         ),
+            //       ),
+            //     TextButton(
+            //       onPressed: () async {
+            //         setState(() {
+            //           currentPage++;
+            //           refreshProjects();
+            //         });
+            //
+            //         // Fetch the projects for the next page
+            //         List<Item>? nextPageProjects = await fetchProjects();
+            //
+            //         // Check if the next page is empty or no data and hide the button accordingly
+            //         if (!shouldShowNextButton(nextPageProjects)) {
+            //           setState(() {
+            //             currentPage = 0;
+            //             refreshProjects();
+            //           });
+            //         } else {
+            //           // Update the futureProjects with the fetched projects
+            //           futureProjects = Future.value(nextPageProjects);
+            //         }
+            //       },
+            //       style: TextButton.styleFrom(
+            //
+            //         primary: Colors.black45,
+            //
+            //       ),
+            //       child: Text(
+            //         'Next Page',
+            //         style: TextStyle(fontSize: 16),
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            SizedBox(height: 50,),
+          ],
+        ),
       ),
     );
 

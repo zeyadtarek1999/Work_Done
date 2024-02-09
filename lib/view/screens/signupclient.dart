@@ -19,6 +19,7 @@ import '../../model/textinputformatter.dart';
 import '../components/page_title_bar.dart';
 import '../components/under_part.dart';
 import '../components/upside.dart';
+import '../stateslectorpopup.dart';
 import 'Screens_layout/layoutWorker.dart';
 import '../widgets/rounded_button.dart';
 import '../widgets/rounded_input_field.dart';
@@ -29,22 +30,11 @@ import 'login_screen_worker.dart';
 
 class SignUpScreen2 extends StatefulWidget {
 
-  final String addressLine;
-  final String addressSt2;
-  final String city;
-  final String state;
-
-  SignUpScreen2({
-    required this.addressLine,
-    required this.addressSt2,
-    required this.city,
-    required this.state,
-  });
   @override
   State<SignUpScreen2> createState() => _SignUpScreen2State();
 }
 
-class _SignUpScreen2State extends State<SignUpScreen2> {
+class _SignUpScreen2State extends State<SignUpScreen2> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   List<Map<String, dynamic>> languages = [
     {'lang_id': '1', 'lang': 'English'},
@@ -56,7 +46,33 @@ class _SignUpScreen2State extends State<SignUpScreen2> {
   String city = '';
   String state = '';
 
+
   String selectedLanguage = '';
+  final addressLineController = TextEditingController();
+  final addressst2Controller = TextEditingController();
+  final cityController = TextEditingController();
+  final stateController = TextEditingController();
+
+
+
+  TextEditingController _searchController = TextEditingController();
+  String selectedState = 'Select State';
+
+  bool _isFormFilled = false;
+
+  List<String> statesOfAmerica = [
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
+    'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts',
+    'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey',
+    'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island',
+    'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
+    'Wisconsin', 'Wyoming',
+  ];
+  _AddressPickerPopupState() {
+    assert(statesOfAmerica.toSet().length == statesOfAmerica.length,
+    'Duplicate values found in statesOfAmerica list');
+  }
+
 bool isSearchBarVisible =false;
   bool isLanguageListVisible = false; // Add this variable
   String selectedCountryCode = '+1'; // Default country code for the United States
@@ -140,7 +156,6 @@ bool isSearchBarVisible =false;
 
   bool isSendingData = false;
 
-  bool _isFormFilled = false;
 
   void _markFormAsFilled() {
     setState(() {
@@ -211,7 +226,8 @@ bool isSearchBarVisible =false;
 
   String _selectedCountryCode = '+1';
 
-  // Default country code
+  late AnimationController ciruclaranimation;
+
   @override
   void dispose() {
     // Dispose of your controllers here
@@ -222,6 +238,11 @@ bool isSearchBarVisible =false;
     zipcodeController.dispose();
     emailController2.dispose();
     passwordController.dispose();
+    addressLineController.dispose();
+    addressst2Controller.dispose();
+    cityController.dispose();
+    stateController.dispose();
+    ciruclaranimation.dispose();
     super.dispose();
   }
 
@@ -230,7 +251,11 @@ bool isSearchBarVisible =false;
   @override
   void initState() {
     super.initState();
-    // Initialize checkedItems with the same length as items, and all values as false
+    ciruclaranimation = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    ciruclaranimation.repeat(reverse: false);
   }
 
   void _togglePasswordVisibility() {
@@ -257,62 +282,97 @@ bool isSearchBarVisible =false;
 
   Future<void> _register() async {
     try {
-      // Call the registerClient method from the apiClient
       final registrationResponse = await apiClient.registerClient(
         firstName: firstnameController.text,
         lastName: lastnameController.text,
         email: emailController2.text,
         password: passwordController.text,
         phone: phoneNumberController.text,
-        language: selectedLanguage,  // Use the selected language directly
+        language: selectedLanguage,
         addressZip: zipcodeController.text,
-        street1: capturedAddressLine,
-        street2: capturedAddressLine2,
-        city: capturedCity,
-        state: capturedState,
+        street1: addressLineController.text,
+        street2: addressst2Controller.text,
+        city: cityController.text,
+        state: state.toString(),
       );
-       print (capturedAddressLine);
-       print (capturedAddressLine2);
-       print (capturedCity);
-       print (capturedState);
-       print (selectedLanguage);
-       print (phoneNumberController);
+
+      print(' $selectedLanguage');
+      print('Registration Response: $emailController2');
+      print('Registration Response: $firstnameController');
+      print('Registration Response: $lastnameController');
+      print('Registration Response: $zipcodeController');
+      print('Registration Response: $addressLineController');
+      print('Registration Response: $addressst2Controller');
+      print('Registration Response: $cityController');
+      print('Registration Response: $state');
+      print('Registration Response: $state');
+      print('Registration Response: $state');
       setState(() {
         _isLoading = true;
       });
-      // Print the complete registration response for debugging
-      print('Registration Response: $registrationResponse');
 
-      // Handle the registration response as needed
       if (registrationResponse.containsKey('status') &&
           registrationResponse.containsKey('msg') &&
           registrationResponse.containsKey('token')) {
         final String user_token = registrationResponse['token'];
 
-        // Store the token in shared preferences
         final SharedPreferences prefs = await SharedPreferences.getInstance();
+        Fluttertoast.showToast(
+          msg: "Registration successful: ${registrationResponse['msg']}",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
         prefs.setString('user_token', user_token);
         Get.offAll(layoutclient());
       } else {
-        // Handle the case where the expected keys are not present in the response
+        Fluttertoast.showToast(
+          msg: "Registration failed: ${registrationResponse['msg']}",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
         print('Invalid registration response format');
       }
+
+      setState(() {
+        _isLoading = false;
+      });
+
+
+
     } catch (error) {
-      // Handle errors
       print('Error during registration: $error');
-      // Display a snackbar or toast with the error message
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Registration failed: $error'),
+      Fluttertoast.showToast(
+        msg: 'Error during registration: $error',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
         backgroundColor: Colors.red,
-      ));
-    }  finally {
-  // Hide the circular progress indicator
-  setState(() {
-  _isLoading = false;
-  });
-  }
-  }
-  // Function to save the token in shared preferences
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      setState(() {
+        _isLoading = false;
+      });
+
+      Fluttertoast.showToast(
+        msg: "Registration failed: $error",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }  // Function to save the token in shared preferences
   Future<void> _saveToken(String token) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
@@ -528,22 +588,164 @@ bool isSearchBarVisible =false;
                             ),
                             GestureDetector(
                               onTap: () async {
-                                final result = await showDialog(
-                                  context: context,
-                                  builder: (context) => AddressPickerPopup(
-                                    onDonePressed: (addressLine, addressLine2, city, state) {
-                                      // Update captured address information
-                                      capturedAddressLine = addressLine;
-                                      capturedAddressLine2 = addressLine2;
-                                      capturedCity = city;
-                                      capturedState = state;
-                                    },
-                                  ),
+                                await showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20.0),
+                                      ),
+                                      content: SingleChildScrollView(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Stack(
+                                              children: [
+                                                TextFormField(
+                                                  readOnly: true, // Set this to true to disable editing
+                                                  style: TextStyle(color: HexColor('#4D8D6E')),
+                                                  decoration: InputDecoration(
+                                                    hintText: selectedState ?? 'Select State', // Use selectedState or 'Select State' if it's null
+                                                    hintStyle: TextStyle(color: HexColor('#4D8D6E')),
+                                                    enabledBorder: OutlineInputBorder(
+                                                      borderSide: BorderSide(color: HexColor('#707070')),
+                                                      borderRadius: BorderRadius.circular(15.0),
+                                                    ),
+                                                    focusedBorder: OutlineInputBorder(
+                                                      borderSide: BorderSide(color: HexColor('#4D8D6E')),
+                                                      borderRadius: BorderRadius.circular(15.0),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Positioned.fill(
+                                                  child: InkWell(
+                                                    onTap: () {
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (BuildContext context) {
+                                                          return StateSelectorPopup(
+                                                            states: statesOfAmerica,
+                                                            onSelect: (newlySelectedState) {
+                                                              // Update selectedState when a state is selected
+                                                              setState(() {
+                                                                selectedState = newlySelectedState;
+                                                              });
+                                                              print('Selected State: $newlySelectedState');
+                                                            },
+                                                          );
+                                                        },
+                                                      );
+                                                    },
+                                                    splashColor: Colors.transparent,
+                                                    highlightColor: Colors.transparent,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+
+
+
+
+                                            SizedBox(height: 10),
+
+                                            TextFormField(
+                                              controller: addressLineController,
+                                              style: TextStyle(color: HexColor('#4D8D6E')),
+                                              decoration: InputDecoration(
+                                                hintText: 'Address Line',
+
+                                                hintStyle: TextStyle(color: HexColor('#707070')),
+                                                enabledBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: HexColor('#707070')),
+                                                  borderRadius: BorderRadius.circular(15.0),
+                                                ),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: HexColor('#4D8D6E')),
+                                                  borderRadius: BorderRadius.circular(15.0),
+                                                ),
+                                              ),
+                                              validator: (value) {
+                                                if (value == null || value.isEmpty) {
+                                                  return 'Enter address line';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                            SizedBox(height: 10),
+                                            TextFormField(
+                                              controller: addressst2Controller,
+                                              style: TextStyle(color: HexColor('#4D8D6E')),
+                                              decoration: InputDecoration(
+                                                hintText: 'Address Line 2',
+
+                                                hintStyle: TextStyle(color: HexColor('#707070')),
+                                                enabledBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: HexColor('#707070')),
+                                                  borderRadius: BorderRadius.circular(15.0),
+                                                ),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: HexColor('#4D8D6E')),
+                                                  borderRadius: BorderRadius.circular(15.0),
+                                                ),
+                                              ),
+
+                                            ),
+                                            SizedBox(height: 10),
+                                            TextFormField(
+                                              controller: cityController,
+                                              style: TextStyle(color: HexColor('#4D8D6E')),
+                                              decoration: InputDecoration(
+                                                hintText: 'City',
+
+                                                hintStyle: TextStyle(color: HexColor('#707070')),
+                                                enabledBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: HexColor('#707070')),
+                                                  borderRadius: BorderRadius.circular(15.0),
+                                                ),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: HexColor('#4D8D6E')),
+                                                  borderRadius: BorderRadius.circular(15.0),
+                                                ),
+                                              ),
+                                              validator: (value) {
+                                                if (value == null || value.isEmpty) {
+                                                  return 'Enter city';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+
+
+                                            SizedBox(height: 10),
+                                            ElevatedButton(
+                                              onPressed: () {
+
+                                                String addressLine = addressLineController.text;
+                                                String addressLine2 = addressst2Controller.text;
+                                                String city = cityController.text;
+                                                String state = selectedState;
+
+                                                // Call the onDonePressed function and pass the values
+                                                setState(() {
+                                                  _isFormFilled = true;
+
+                                                });
+                                                Navigator.pop(context);
+
+                                              },
+                                              child: Text(
+                                                'Done',
+                                                style: TextStyle(color: Colors.white),
+                                              ),
+                                              style: ElevatedButton.styleFrom(
+                                                primary: HexColor('#4D8D6E'),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
                                 );
-                                // After the dialog is closed, update the icon rendering
-                                setState(() {
-                                  _isFormFilled = true; // Set this based on your validation logic
-                                });
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
@@ -560,16 +762,10 @@ bool isSearchBarVisible =false;
                                       width: 33.0,
                                       height: 33.0,
                                     ),
-                                    SizedBox(width: 20.0),
-                                    Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Address',
-                                          style: TextStyle(color: HexColor('#707070')),
-                                        ),
-                                      ],
+                                    SizedBox(width: 15.0),
+                                    Text(
+                                      ' Address',
+                                      style: TextStyle(color: HexColor('#707070'), fontSize: 16, fontWeight: FontWeight.w500),
                                     ),
                                     Spacer(),
                                     if (_isFormFilled)
@@ -736,98 +932,106 @@ bool isSearchBarVisible =false;
                       ,SizedBox(
                       height: ScreenUtil.sizeboxheight,
                     ),
-                        Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                      height: size.height * 0.103,
-                      width: size.width * 0.93,
-                      decoration: BoxDecoration(
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20.0 ,vertical: 10),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                                height: size.height * 0.103,
+                                width: size.width * 0.93,
+                                decoration: BoxDecoration(
 
-                        color: Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(29),
-                      ),
-                      child: Row(
-                        children: [
-                          SvgPicture.asset(
-                            'assets/icons/phonenumber.svg', // Replace with your SVG path
-                            width: 33.0,
-                            height: 33.0,
-                          ),
-                          SizedBox(width: 20.0),
-                          Expanded(
-                            child: Row(
-                              children: [
-                                DropdownButton<String>(
-                                  value: selectedPhoneCode,
-                                  onChanged: (newValue) {
-                                    setState(() {
-                                      // Update the selected phone code
-                                      selectedPhoneCode = newValue!;
-                                    });
-                                  },
-                                  items: americanPhoneCodes.map((code) {
-                                    return DropdownMenuItem<String>(
-                                      value: code,
-                                      child: Text(code),
-                                    );
-                                  }).toList(),
+                                  color: Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(29),
                                 ),
-                                SizedBox(width: 8), // Add some spacing between the dropdown and the text field
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: phoneNumberController,
-                                    decoration: InputDecoration(
-                                      hintText: 'Phone Number',
-                                      border: InputBorder.none,
-                                      contentPadding: EdgeInsets.all(0),
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/icons/phonenumber.svg', // Replace with your SVG path
+                                      width: 33.0,
+                                      height: 33.0,
                                     ),
-                                    keyboardType: TextInputType.phone,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        // Remove non-digit characters from the input
-                                        final cleanedValue = value.replaceAll(RegExp(r'\D'), '');
+                                    SizedBox(width: 20.0),
+                                    Expanded(
+                                      child: Row(
+                                        children: [
+                                          DropdownButton<String>(
+                                            value: selectedPhoneCode,
+                                            onChanged: (newValue) {
+                                              setState(() {
+                                                // Update the selected phone code
+                                                selectedPhoneCode = newValue!;
+                                              });
+                                            },
+                                            items: americanPhoneCodes.map((code) {
+                                              return DropdownMenuItem<String>(
+                                                value: code,
+                                                child: Text(code),
+                                              );
+                                            }).toList(),
+                                          ),
+                                          SizedBox(width: 8), // Add some spacing between the dropdown and the text field
+                                          Expanded(
+                                            child: TextFormField(
 
-                                        // Format the cleaned phone number using the formatPhoneNumber function
-                                        final formattedPhoneNumber = formatPhoneNumber(cleanedValue);
-                                        phoneNumberController.value = TextEditingValue(
-                                          text: formattedPhoneNumber,
-                                          selection: TextSelection.collapsed(offset: formattedPhoneNumber.length),
-                                        );
+                                              controller: phoneNumberController,
+                                              decoration: InputDecoration(
+                                                hintText: 'Phone Number',
+                                                border: InputBorder.none,
+                                                contentPadding: EdgeInsets.all(0), // Remove content padding
 
-                                        // Validate the phone number
-                                        isPhoneNumberValid = validatePhoneNumber(cleanedValue);
-                                      });
-                                    },
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                      LengthLimitingTextInputFormatter(10),
-                                    ],
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Please enter a phone number';
-                                      }
+                                              ),
+                                              keyboardType: TextInputType.phone,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  // Format the phone number using the formatPhoneNumber function
+                                                  final formattedPhoneNumber = formatPhoneNumber(value);
+                                                  phoneNumberController.value = TextEditingValue(
+                                                    text: formattedPhoneNumber,
+                                                    selection: TextSelection.collapsed(offset: formattedPhoneNumber.length),
 
-                                      // Basic validation: Check if the input has 10 digits
-                                      if (value.replaceAll(RegExp(r'\D'), '').length != 10) {
-                                        return 'Invalid phone number';
-                                      }
+                                                  );
+// Add +1 prefix to the formatted phone number
+                                                  phoneNumberController.text = '$formattedPhoneNumber';
 
-                                      return null;
-                                    },
-                                  ),
+                                                  // Ensure the cursor position is at the end
+                                                  phoneNumberController.selection = TextSelection.fromPosition(
+                                                    TextPosition(offset: phoneNumberController.text.length),
+                                                  );
+                                                  print(phoneNumberController.text);
+                                                  // Validate the phone number
+                                                  isPhoneNumberValid = validatePhoneNumber(formattedPhoneNumber);
+                                                });
+                                              },
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter.digitsOnly,
+                                                LengthLimitingTextInputFormatter(10), // Limit the input length to 10 digits
+                                              ],
+                                              validator: (value) {
+                                                if (value == null || value.isEmpty) {
+                                                  return 'Please enter a phone number';
+                                                }
+
+                                                // Basic validation: Check if the formatted phone number has 10 digits
+                                                final formattedPhoneNumber = formatPhoneNumber(value);
+                                                if (formattedPhoneNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
+                                                  return 'Invalid phone number';
+                                                }
+
+                                                return null; // Return null if the input is valid
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ), if (!isPhoneNumberValid)
+                                      Text(
+                                        'Please enter a valid phone number.',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
-                          ), if (!isPhoneNumberValid)
-                            Text(
-                              'Please enter a valid phone number.',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
 
                             SizedBox(
                               height: ScreenUtil.sizeboxheight,
@@ -1043,12 +1247,37 @@ bool isSearchBarVisible =false;
                               height: ScreenUtil.sizeboxheight,
                             ),
 
-
-                            RoundedButton(
-                              loading: isLoading,
-                              text: 'REGISTER',
-                              press: () => _register(),
+                            Center(
+                              child: _isLoading
+                                  ? Center(
+                                child: RotationTransition(
+                                  turns: ciruclaranimation,
+                                  child: SvgPicture.asset(
+                                    'assets/images/Logo.svg',
+                                    semanticsLabel: 'Your SVG Image',
+                                    width: 100,
+                                    height: 130,
+                                  ),
+                                ),
+                              )
+                              // Show loading indicator when uploading
+                                  : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  RoundedButton(
+                                    text: 'Register',
+                                    press: () {
+                                      if (_formKey.currentState!.validate()) {
+                                        _register();
+                                      } else {
+                                        Fluttertoast.showToast(msg: "Please fill in all required fields.");
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
+
                             const SizedBox(
                               height: 10,
                             ),
@@ -1082,187 +1311,187 @@ bool isSearchBarVisible =false;
   }
 }
 
-class AddressPickerPopup extends StatefulWidget {
-  final Function(String, String, String, String) onDonePressed;
-
-  AddressPickerPopup({
-    required this.onDonePressed,
-
-  });
-
-  @override
-  State<AddressPickerPopup> createState() => _AddressPickerPopupState();
-}
-
-class _AddressPickerPopupState extends State<AddressPickerPopup> {
-  GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  String selectedState = 'Alabama'; // or any other valid state from your list
-
-  bool _isFormFilled = false; // Initialize as false
-  // List of states of America
-  List<String> statesOfAmerica = [
-    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
-    'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts',
-    'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey',
-    'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island',
-    'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
-    'Wisconsin', 'Wyoming',
-  ];
-  _AddressPickerPopupState() {
-    assert(statesOfAmerica.toSet().length == statesOfAmerica.length,
-    'Duplicate values found in statesOfAmerica list');
-  }
-  // Define a callback function to pass data back to SignUpScreen2
-  void _onDonePressed(String addressLine, String addressLine2, String city, String state) {
-    widget.onDonePressed(addressLine, addressLine2, city, state);
-  }
-  @override
-  Widget build(BuildContext context) {
-    // Define TextEditingController variables
-    TextEditingController addressLineController = TextEditingController();
-    TextEditingController addressst2Controller = TextEditingController();
-    TextEditingController cityController = TextEditingController();
-    TextEditingController stateController = TextEditingController();
-
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.0),
-      ),
-      content: Form(
-        key: formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                value: selectedState,
-                onChanged: (newValue) {
-                  setState(() {
-                    selectedState = newValue!;
-                  });
-                },
-                items: statesOfAmerica.map((state) {
-                  return DropdownMenuItem<String>(
-                    value: state,
-                    child: Text(state),
-                  );
-                }).toList(),
-                decoration: InputDecoration(
-                  hintText: 'State',
-                  hintStyle: TextStyle(color: HexColor('#707070')),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('#707070')),
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('#4D8D6E')),
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Select a state';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 10),
-
-              TextFormField(
-                controller: addressLineController,
-                style: TextStyle(color: HexColor('#4D8D6E')),
-                decoration: InputDecoration(
-                  hintText: 'Address Line',
-                  hintStyle: TextStyle(color: HexColor('#707070')),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('#707070')),
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('#4D8D6E')),
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Enter address line';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: addressst2Controller,
-                style: TextStyle(color: HexColor('#4D8D6E')),
-                decoration: InputDecoration(
-                  hintText: 'Address Line 2',
-                  hintStyle: TextStyle(color: HexColor('#707070')),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('#707070')),
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('#4D8D6E')),
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                ),
-
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: cityController,
-                style: TextStyle(color: HexColor('#4D8D6E')),
-                decoration: InputDecoration(
-                  hintText: 'City',
-                  hintStyle: TextStyle(color: HexColor('#707070')),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('#707070')),
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('#4D8D6E')),
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Enter city';
-                  }
-                  return null;
-                },
-              ),
-
-
-              SizedBox(height: 10),
-    ElevatedButton(
-    onPressed: () {
-    if (formKey.currentState!.validate()) {
-    String addressLine = addressLineController.text;
-    String addressLine2 = addressst2Controller.text;
-    String city = cityController.text;
-    String state = selectedState;
-
-    // Call the onDonePressed function and pass the values
-    _onDonePressed(addressLine, addressLine2, city, state);
-    setState(() {
-    _isFormFilled = true;
-    });
-    Navigator.pop(context);
-    }
-    },
-    child: Text(
-    'Done',
-    style: TextStyle(color: Colors.white),
-    ),
-    style: ElevatedButton.styleFrom(
-    primary: HexColor('#4D8D6E'),
-    ),
-    ),
-              ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
+// class AddressPickerPopup extends StatefulWidget {
+//   final Function(String, String, String, String) onDonePressed;
+//
+//   AddressPickerPopup({
+//     required this.onDonePressed,
+//
+//   });
+//
+//   @override
+//   State<AddressPickerPopup> createState() => _AddressPickerPopupState();
+// }
+//
+// class _AddressPickerPopupState extends State<AddressPickerPopup> {
+//   GlobalKey<FormState> formKey = GlobalKey<FormState>();
+//   String selectedState = 'Alabama'; // or any other valid state from your list
+//
+//   bool _isFormFilled = false; // Initialize as false
+//   // List of states of America
+//   List<String> statesOfAmerica = [
+//     'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
+//     'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts',
+//     'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey',
+//     'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island',
+//     'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
+//     'Wisconsin', 'Wyoming',
+//   ];
+//   _AddressPickerPopupState() {
+//     assert(statesOfAmerica.toSet().length == statesOfAmerica.length,
+//     'Duplicate values found in statesOfAmerica list');
+//   }
+//   // Define a callback function to pass data back to SignUpScreen2
+//   void _onDonePressed(String addressLine, String addressLine2, String city, String state) {
+//     widget.onDonePressed(addressLine, addressLine2, city, state);
+//   }
+//   @override
+//   Widget build(BuildContext context) {
+//     // Define TextEditingController variables
+//     TextEditingController addressLineController = TextEditingController();
+//     TextEditingController addressst2Controller = TextEditingController();
+//     TextEditingController cityController = TextEditingController();
+//     TextEditingController stateController = TextEditingController();
+//
+//     return AlertDialog(
+//       shape: RoundedRectangleBorder(
+//         borderRadius: BorderRadius.circular(20.0),
+//       ),
+//       content: Form(
+//         key: formKey,
+//         child: SingleChildScrollView(
+//           child: Column(
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               DropdownButtonFormField<String>(
+//                 value: selectedState,
+//                 onChanged: (newValue) {
+//                   setState(() {
+//                     selectedState = newValue!;
+//                   });
+//                 },
+//                 items: statesOfAmerica.map((state) {
+//                   return DropdownMenuItem<String>(
+//                     value: state,
+//                     child: Text(state),
+//                   );
+//                 }).toList(),
+//                 decoration: InputDecoration(
+//                   hintText: 'State',
+//                   hintStyle: TextStyle(color: HexColor('#707070')),
+//                   enabledBorder: OutlineInputBorder(
+//                     borderSide: BorderSide(color: HexColor('#707070')),
+//                     borderRadius: BorderRadius.circular(15.0),
+//                   ),
+//                   focusedBorder: OutlineInputBorder(
+//                     borderSide: BorderSide(color: HexColor('#4D8D6E')),
+//                     borderRadius: BorderRadius.circular(15.0),
+//                   ),
+//                 ),
+//                 validator: (value) {
+//                   if (value == null || value.isEmpty) {
+//                     return 'Select a state';
+//                   }
+//                   return null;
+//                 },
+//               ),
+//               SizedBox(height: 10),
+//
+//               TextFormField(
+//                 controller: addressLineController,
+//                 style: TextStyle(color: HexColor('#4D8D6E')),
+//                 decoration: InputDecoration(
+//                   hintText: 'Address Line',
+//                   hintStyle: TextStyle(color: HexColor('#707070')),
+//                   enabledBorder: OutlineInputBorder(
+//                     borderSide: BorderSide(color: HexColor('#707070')),
+//                     borderRadius: BorderRadius.circular(15.0),
+//                   ),
+//                   focusedBorder: OutlineInputBorder(
+//                     borderSide: BorderSide(color: HexColor('#4D8D6E')),
+//                     borderRadius: BorderRadius.circular(15.0),
+//                   ),
+//                 ),
+//                 validator: (value) {
+//                   if (value == null || value.isEmpty) {
+//                     return 'Enter address line';
+//                   }
+//                   return null;
+//                 },
+//               ),
+//               SizedBox(height: 10),
+//               TextFormField(
+//                 controller: addressst2Controller,
+//                 style: TextStyle(color: HexColor('#4D8D6E')),
+//                 decoration: InputDecoration(
+//                   hintText: 'Address Line 2',
+//                   hintStyle: TextStyle(color: HexColor('#707070')),
+//                   enabledBorder: OutlineInputBorder(
+//                     borderSide: BorderSide(color: HexColor('#707070')),
+//                     borderRadius: BorderRadius.circular(15.0),
+//                   ),
+//                   focusedBorder: OutlineInputBorder(
+//                     borderSide: BorderSide(color: HexColor('#4D8D6E')),
+//                     borderRadius: BorderRadius.circular(15.0),
+//                   ),
+//                 ),
+//
+//               ),
+//               SizedBox(height: 10),
+//               TextFormField(
+//                 controller: cityController,
+//                 style: TextStyle(color: HexColor('#4D8D6E')),
+//                 decoration: InputDecoration(
+//                   hintText: 'City',
+//                   hintStyle: TextStyle(color: HexColor('#707070')),
+//                   enabledBorder: OutlineInputBorder(
+//                     borderSide: BorderSide(color: HexColor('#707070')),
+//                     borderRadius: BorderRadius.circular(15.0),
+//                   ),
+//                   focusedBorder: OutlineInputBorder(
+//                     borderSide: BorderSide(color: HexColor('#4D8D6E')),
+//                     borderRadius: BorderRadius.circular(15.0),
+//                   ),
+//                 ),
+//                 validator: (value) {
+//                   if (value == null || value.isEmpty) {
+//                     return 'Enter city';
+//                   }
+//                   return null;
+//                 },
+//               ),
+//
+//
+//               SizedBox(height: 10),
+//     ElevatedButton(
+//     onPressed: () {
+//     if (formKey.currentState!.validate()) {
+//     String addressLine = addressLineController.text;
+//     String addressLine2 = addressst2Controller.text;
+//     String city = cityController.text;
+//     String state = selectedState;
+//
+//     // Call the onDonePressed function and pass the values
+//     _onDonePressed(addressLine, addressLine2, city, state);
+//     setState(() {
+//     _isFormFilled = true;
+//     });
+//     Navigator.pop(context);
+//     }
+//     },
+//     child: Text(
+//     'Done',
+//     style: TextStyle(color: Colors.white),
+//     ),
+//     style: ElevatedButton.styleFrom(
+//     primary: HexColor('#4D8D6E'),
+//     ),
+//     ),
+//               ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
+//
