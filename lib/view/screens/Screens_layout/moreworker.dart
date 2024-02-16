@@ -9,6 +9,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../Edit address.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
 import '../Profile (client-worker)/profilescreenworker.dart';
@@ -249,7 +250,9 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
                     width: 9,
                   ),
                   TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        launchUrl(Uri.parse('https://www.paypal.com/signin'),mode: LaunchMode.inAppWebView);
+                      },
                       child: Text(
                         'Payment method',
                         style: GoogleFonts.encodeSans(
@@ -259,6 +262,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
                               fontWeight: FontWeight.w600),
                         ),
                       )),
+
                 ],
               ),
               SizedBox(

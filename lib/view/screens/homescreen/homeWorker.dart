@@ -29,6 +29,7 @@ import '../editProfile/editProfile.dart';
 import '../editProfile/editprofileworker.dart';
 import '../view profile screens/Client profile view.dart';
 import '../view profile screens/Reviews profile .dart';
+import '../welcome/welcome_screen.dart';
 import 'home screenClient.dart';
 
 class Homescreenworker extends StatefulWidget {
@@ -140,7 +141,10 @@ Future<void> initializeProjects() async {
     print('Error initializing projects: $e');
   }
 }
-
+Future<void> clearSharedPreferences() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.clear();
+}
 Stream<String> get likedStatusStream => _likedStatusController.stream;
 List<String> likedProjects = []; // List to store liked project IDs
 Map<int, String> likedProjectsMap = {};
@@ -678,7 +682,25 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
               ],
             ),
                 Spacer(),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () async {
+                        await clearSharedPreferences(); // Call the function to clear client_id
+                        Get.offAll(WelcomeScreen());
 
+                      },
+                      child:  Text('Log Out',
+                          style: GoogleFonts.encodeSans(
+                            textStyle: TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600),
+                          )),
+                    )
+                  ],
+                ),
+                Spacer(),
                 Text('Powered by :',
                   style: GoogleFonts.poppins(
                     textStyle: TextStyle(
@@ -1063,9 +1085,9 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
         Get.to(Get.to(() => bidDetailsWorker(projectId: project.projectId)));
       },
       child: Container(
-        height: 120,
+        height: 130,
         // Adjust the height as needed
-        width: 270,
+        width: 280,
         // Adjust the width as needed
         margin: EdgeInsets.symmetric(horizontal: 12.0, vertical: 12),
         padding: EdgeInsets.symmetric(horizontal: 19.0, vertical: 16),
@@ -1085,11 +1107,13 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
           children: [
             Stack(
               children: [
+
                 Container(
                   width: 250,
-                  // Adjust the width of the image container as needed
-                  height: 135.0,
-                  // Adjust the height of the image container as needed
+
+                  height: 130.0,
+
+
                   child: PageView.builder(
                     pageSnapping: true
                     ,

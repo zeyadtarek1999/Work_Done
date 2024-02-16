@@ -680,18 +680,19 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                             SizedBox(height: 10,),
 
                             RatingBar.builder(
-
                               initialRating: avg_rating,
                               minRating: 0,
                               direction: Axis.horizontal,
                               allowHalfRating: true,
                               itemCount: 5,
                               itemSize: 40,
+                              ignoreGestures: true, // Set to true to make it unchoosable
                               itemBuilder: (context, _) => Icon(
                                 Icons.star,
                                 color: Colors.yellow,
                               ),
                               onRatingUpdate: (rating) {
+                                // This callback won't be triggered as ignoreGestures is set to true
                                 print(rating);
                               },
                             ),

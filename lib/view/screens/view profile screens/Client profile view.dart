@@ -24,12 +24,14 @@ import '../homescreen/home screenClient.dart';
 
 class ProfilePageClient extends StatefulWidget {
   final String userId;
+
   ProfilePageClient( {required this.userId,});
+
   @override
   _ProfilePageClientState createState() => _ProfilePageClientState();
 }
 
-class _ProfilePageClientState extends State<ProfilePageClient> {
+class _ProfilePageClientState extends State<ProfilePageClient> with SingleTickerProviderStateMixin {
 
   int currentTabIndex = 0; // Assuming the default tab is Under Bid
 
@@ -49,6 +51,7 @@ double widthofbar = 150;
   Stream<String> get likedStatusStream => _likedStatusController.stream;
   List<String> likedProjects = []; // List to store liked project IDs
   Map<int, bool> likedProjectsMap = {};
+  late AnimationController ciruclaranimation;
 
   Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
     try {
@@ -243,6 +246,13 @@ double widthofbar = 150;
   _getusertype();
   _getUserProfile();
   numberofprojects();
+
+  ciruclaranimation = AnimationController(
+    vsync: this,
+    duration: Duration(seconds: 2),
+  );
+  ciruclaranimation.repeat(reverse: false);
+
   _getusertype();
   get_review();
   }
@@ -585,7 +595,13 @@ print(widget.userId.toString(),);
           title: Text("$firstname Profile", style: TextStyle(color: Colors.black),),
           elevation: 0,
           backgroundColor: Colors.transparent,
-          leading: BackButton(color: Colors.black,),
+          leading:IconButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+              },
+            icon: Icon(Icons.arrow_back_sharp),
+            color: Colors.black,
+          ),
 
         ),
         body:
@@ -638,6 +654,7 @@ print(widget.userId.toString(),);
       SizedBox(height: 10,),
 
                         RatingBar.builder(
+                          ignoreGestures: true, // Set to true to make it unchoosable
 
                           initialRating: avg_rating,
                           minRating: 0,
@@ -953,56 +970,70 @@ print(widget.userId.toString(),);
             body:                     SingleChildScrollView(
               child: Column(
                 children: [
-                FutureBuilder<UserProfile>(
-                future: futureProjects,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else if (snapshot.data != null) {
-                    UserProfile userProfile = snapshot.data!;
-                    return ListView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: userProfile.projects.length,
-                      itemBuilder: (context, index) {
-                        return buildProjectItem(userProfile.projects[index]);
-                      },
-                    );
-                  } else {
-                    return                   Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          child: SvgPicture.asset(
-                            'assets/images/nothing.svg',
-                            width: 100.0, // Set the width you want
-                            height: 100.0, // Set the height you want
-                          ),
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        Text(
-                          'No Projects yet',
-                          style: GoogleFonts.encodeSans(
-                            textStyle: TextStyle(
-                                color: HexColor('BBC3CE'),
-                                fontSize: 18,
-                                fontWeight: FontWeight.normal),
-                          ),
-                        ),
-                      ],
-                    )
-                  ;
-                  }
-                },
-              ),
+                  FutureBuilder<UserProfile>(
+                    future: futureProjects,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Column(
+                          children: [
+                            SizedBox(height: 80,),        Center(child: RotationTransition(
+                              turns: ciruclaranimation,
+                              child: SvgPicture.asset(
+                                'assets/images/Logo.svg',
+                                semanticsLabel: 'Your SVG Image',
+                                width: 100,
+                                height: 130,
+                              ),
+                            ))
+                            ,SizedBox(height: 80,)
+                          ],
+                        );
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      }
 
+                      final userProfile = snapshot.data!;
+                      if (userProfile.projects.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                child: SvgPicture.asset(
+                                  'assets/images/nothing.svg',
+                                  width: 100.0, // Set the width you want
+                                  height: 100.0, // Set the height you want
+                                ),
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Text(
+                                'No Projects yet',
+                                style: GoogleFonts.encodeSans(
+                                  textStyle: TextStyle(
+                                      color: HexColor('BBC3CE'),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.normal),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        return ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: userProfile.projects.length,
+                          itemBuilder: (context, index) {
+                            return buildProjectItem(userProfile.projects[index]);
+                          },
+                        );
+                      }
+                    },
+                  ),
                   SizedBox(height: 50,)
                 ],
               ),

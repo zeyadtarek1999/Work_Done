@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_paypal_checkout/flutter_paypal_checkout.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -15,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/view/screens/check%20out%20client/payment.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutclient.dart';
 import 'package:workdone/view/screens/check%20out%20client/paypal%20checkout.dart';
+import 'package:workdone/view/screens/editProfile/editprofileworker.dart';
 import 'package:workdone/view/widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
 
@@ -24,6 +26,7 @@ import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
 import '../view profile screens/Client profile view.dart';
+import '../view profile screens/Worker profile .dart';
 
 class checkOutClient extends StatefulWidget {
   final int userId;
@@ -34,12 +37,14 @@ class checkOutClient extends StatefulWidget {
   final String workername;
   final String projecttitle;
   final String project_id;
+  final String selectedworkerrating;
   final String projectdesc;
 
   checkOutClient(
       {required this.userId,
       required this.workerimage,
       required this.projectimage,
+      required this.selectedworkerrating,
       required this.project_id,
       required this.workerId,
       required this.currentbid,
@@ -480,7 +485,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                             SizedBox(width: 5),
                             TextButton(
                               onPressed: () {
-                                Get.to(ProfilePageClient(userId: widget.workerId.toString()));
+                                Get.to(Workerprofileother(userId: widget.workerId.toString()));
                               },
                               child: Text(
                                 widget.workername.toString(),
@@ -495,7 +500,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                             ),
                             Spacer(),
                             Text(
-                              '4.5',
+                              '${widget.selectedworkerrating}',
                               style: TextStyle(fontSize: 16),
                             ),
                             Icon(
@@ -778,9 +783,10 @@ int projectIdAsInt = int.parse(widget.project_id);
                                         TextButton(
                                           onPressed: () {
                                             // Close the dialog
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: Text('OK'),
+Get.off(bidDetailsClient(projectId: projectIdAsInt));
+
+},
+                                          child: Text('Okay'),
                                         ),
                                       ],
                                     );
@@ -791,7 +797,15 @@ int projectIdAsInt = int.parse(widget.project_id);
 
                               },
                               onError: (error) {
-                                print("onError: $error");
+                                Fluttertoast.showToast(
+                                  msg: "Error during payment",
+                                  toastLength: Toast.LENGTH_SHORT,
+                                  gravity: ToastGravity.BOTTOM,
+                                  timeInSecForIosWeb: 1,
+                                  backgroundColor: Colors.red,
+                                  textColor: Colors.white,
+                                  fontSize: 16.0,
+                                );
                                 showDialog(
                                   context: context,
                                   builder: (BuildContext context) {
@@ -802,7 +816,7 @@ int projectIdAsInt = int.parse(widget.project_id);
                                         TextButton(
                                           onPressed: () {
                                             // Close the dialog
-                                            Navigator.of(context).pop();
+                                            Get.offAll(bidDetailsClient(projectId: projectIdAsInt));
                                           },
                                           child: Text('OK'),
                                         ),

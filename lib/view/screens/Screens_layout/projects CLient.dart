@@ -363,7 +363,9 @@ class _projectsClientState extends State<projectsClient> with SingleTickerProvid
                   );
                 } else if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}');
-                } else if (snapshot.data != null && snapshot.data!.isEmpty) {
+                }
+
+                else if (snapshot.data != null && snapshot.data!.isEmpty) {
                   // If projects list is empty, reset current page to 0 and refresh
                   currentPage = 0;
                   refreshProjects();

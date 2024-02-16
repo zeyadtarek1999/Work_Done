@@ -1,11 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/view/stateslectorpopup.dart';
 import '../../model/changePassword.dart';
 import '../../model/post address model.dart';
 import '../widgets/rounded_button.dart';
@@ -20,6 +22,20 @@ class editAddressClient extends StatefulWidget {
 }
 
 class _editAddressClientState extends State<editAddressClient> {
+  final formKey = GlobalKey<FormState>();
+
+  String selectedState = 'Select State';
+
+  bool _isFormFilled = false;
+
+  List<String> statesOfAmerica = [
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
+    'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts',
+    'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey',
+    'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island',
+    'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
+    'Wisconsin', 'Wyoming',
+  ];
   String addressline1 = '';
 
   String addressline2 = '';
@@ -46,6 +62,7 @@ class _editAddressClientState extends State<editAddressClient> {
     super.initState();
     // Fetch user profile information when the screen initializes
     getaddressuser();
+    addressZipController == addressZip.toString();
   }
 
 
@@ -54,7 +71,7 @@ class _editAddressClientState extends State<editAddressClient> {
     String street1 = addressline1Controller.text;
     String street2 = addressline2Controller.text;
     String city = cityController.text;
-    String state = stateController.text;
+    String state = selectedState;
     String zipCode = addressZipController.text;
 
     // Call the API to update the address
@@ -100,8 +117,8 @@ class _editAddressClientState extends State<editAddressClient> {
       } else {
         request.fields['city'] = city ;
       }
-      if (stateController    .text.isNotEmpty) {
-        request.fields['state'] = stateController    .text;
+      if (selectedState    .isNotEmpty) {
+        request.fields['state'] = selectedState;
       } else {
         request.fields['state'] = state  ;
       }
@@ -192,7 +209,7 @@ class _editAddressClientState extends State<editAddressClient> {
               addressline1  = Addressdata['street1'] ?? '';
               addressline2  = Addressdata['street2'] ?? '';
               city  = Addressdata['city'] ?? '';
-              state  = Addressdata['state'] ?? '';
+              selectedState  = Addressdata['state'] ?? '';
               addressZip = Addressdata['address_zip']?.toString() ?? '';
             });
 
@@ -218,237 +235,302 @@ class _editAddressClientState extends State<editAddressClient> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        toolbarHeight: 67,
+    return Form(
+      key: formKey,
+      child: Scaffold(
         backgroundColor: Colors.white,
-        title: Text(
-          'Edit Address',
-          style: GoogleFonts.roboto(
-            textStyle: TextStyle(
-              color: HexColor('454545'),
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          elevation: 0,
+          toolbarHeight: 67,
+          backgroundColor: Colors.white,
+          title: Text(
+            'Edit Address',
+            style: GoogleFonts.roboto(
+              textStyle: TextStyle(
+                color: HexColor('454545'),
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_sharp),
-          color: Colors.black,
-          onPressed: () {
-            Get.back();
-          },
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
-              child: Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10.0, vertical: 10),
-                        child: Text('Address Line 1'),
-                      ),
-                      Container(
-                        width: size.width * 0.90,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: TextField(
-                            controller: addressline1Controller ,
-                            decoration: InputDecoration(
-                              hintText: addressline1 ,
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
-              child: Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10.0, vertical: 10),
-                        child: Text('Address Line 2'),
-                      ),
-                      Container(
-                        width: size.width * 0.90,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: TextField(
-                            controller: addressline2Controller  ,
-                            decoration: InputDecoration(
-                              hintText: addressline2 ,
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
-              child: Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10.0, vertical: 10),
-                        child: Text("city" ),
-                      ),
-                      Container(
-                        width: size.width * 0.90,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: TextField(
-                            controller: cityController  ,
-                            decoration: InputDecoration(
-                              hintText: city ,
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
-              child: Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10.0, vertical: 10),
-                        child: Text('State'),
-                      ),
-                      Container(
-                        width: size.width * 0.90,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: TextField(
-                            controller: stateController  ,
-                            decoration: InputDecoration(
-                              hintText: state,
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
-              child: Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10.0, vertical: 10),
-                        child: Text("Zip Code" ),
-                      ),
-                      Container(
-                        width: size.width * 0.90,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: TextField(
-                            controller: addressZipController  ,
-                            decoration: InputDecoration(
-                              hintText: addressZip.toString() ,
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 20),
-      RoundedButton(
-        text: 'Confirm',
-        press: () async {
-          await editaddress();
-
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Update Address Done'),
-                content: Text('Your address has been successfully updated.'),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Close the dialog
-                      Navigator.pop(context); // Close the screen
-                    },
-                    child: Text('OK'),
-                  ),
-                ],
-              );
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_sharp),
+            color: Colors.black,
+            onPressed: () {
+              Get.back();
             },
-          );
-        },
-      )
-          ],
+          ),
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('Note',
+                    style: GoogleFonts.openSans(
+                      textStyle: TextStyle(
+                          color: Colors.red,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  SizedBox(height: 3,),
+                  Text('You Can Edit Any Field Only and Press Submit',
+                    style: GoogleFonts.openSans(
+                      textStyle: TextStyle(
+                          color: Colors.black45,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600),
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
+              ),                        SizedBox(height: 8,),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
+                child: Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 10),
+                          child: Text('Address Line 1'),
+                        ),
+                        Container(
+                          width: size.width * 0.90,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: TextField(
+                              controller: addressline1Controller ,
+                              decoration: InputDecoration(
+                                hintText: addressline1 ,
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
+                child: Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 10),
+                          child: Text('Address Line 2'),
+                        ),
+                        Container(
+                          width: size.width * 0.90,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: TextField(
+                              controller: addressline2Controller  ,
+                              decoration: InputDecoration(
+                                hintText: addressline2 ,
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
+                child: Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 10),
+                          child: Text("city" ),
+                        ),
+                        Container(
+                          width: size.width * 0.90,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: TextField(
+                              controller: cityController  ,
+                              decoration: InputDecoration(
+                                hintText: city ,
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
+                child: Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 10),
+                          child: Text('State'),
+                        ),
+                        Container(
+                          width: size.width * 0.90,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Stack(
+                            children: [
+                              TextFormField(
+                                readOnly: true,
+                                style: TextStyle(color: HexColor('#4D8D6E')),
+                                decoration: InputDecoration(
+                                  hintText: selectedState ?? 'Select State',
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                                  border: InputBorder.none,
+                                ),
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return StateSelectorPopup(
+                                        states: statesOfAmerica,
+                                        onSelect: (newlySelectedState) {
+                                          setState(() {
+                                            selectedState = newlySelectedState;
+                                          });
+                                          print('Selected State: $newlySelectedState');
+                                        },
+                                      );
+                                    },
+                                  );
+                                },
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                              ),
+                            ],
+                          ),
+                        ),                    ],
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
+                child: Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 10),
+                          child: Text("Zip Code" ),
+                        ),
+                        Container(
+                          width: size.width * 0.90,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: TextFormField(
+                              controller: addressZipController,
+                              inputFormatters: [
+                                LengthLimitingTextInputFormatter(5),
+                              ],
+                              decoration: InputDecoration(
+                                hintText: addressZip.toString(),
+                                border: InputBorder.none,
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  // If the value is empty, don't show an error message
+                                  return null;
+                                }
+
+                                if (value.length != 5 || !RegExp(r'^[0-9]+$').hasMatch(value)) {
+                                  return 'Please enter a valid 5-digit zip code.';
+                                }
+
+                                return null;
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 20),
+              RoundedButton(
+                text: 'Confirm',
+                press: () async {
+                  if (formKey.currentState!.validate()) {
+                    // If the form is valid, call the editaddress() function
+                    await editaddress();
+
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Update Address Done'),
+                          content: Text('Your address has been successfully updated.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context); // Close the dialog
+                              },
+                              child: Text('OK'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                },
+              )          ],
+          ),
         ),
       ),
     );

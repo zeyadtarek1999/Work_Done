@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:http_parser/http_parser.dart';
@@ -47,6 +48,7 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  final formkeyaddress = GlobalKey<FormState>();
   List<Map<String, dynamic>> languages = [
     {'lang_id': '1', 'lang': 'English'},
     {'lang_id': '2', 'lang': 'Arabic'},
@@ -237,7 +239,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
 
   bool isListExpanded = false;
 
-  bool _passwordsMatch = false;
+  bool _passwordsMatch = true;
 
   bool _isObscured = true;
 
@@ -258,12 +260,17 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
 
     return true;
   }
-
   bool _validatePasswords() {
     String password = passwordController.text;
     String confirmPassword = confirmPasswordController.text;
+
+    if (confirmPassword.isEmpty && password .isEmpty) {
+      return true; // Return true if the confirmPassword field is empty
+    }
+
     return password == confirmPassword;
   }
+
 
   String _email = '';
 
@@ -275,6 +282,8 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
 
   String _selectedCountryCode = '+1';
 late String user_token='';
+  late AnimationController ciruclaranimation;
+
   // Default country code
   @override
   void dispose() {
@@ -298,7 +307,6 @@ late String user_token='';
     super.dispose();
   }
 
-  late AnimationController ciruclaranimation;
   @override
   void initState() {
     super.initState();
@@ -456,7 +464,7 @@ bool _isLoading = false;
     String password = passwordController.text;
     String phone = phoneNumberController.text;
     String language = selectedLanguage;
-    String experience = expyearcontroller.text;
+    String experience = expyearcontroller.text.isEmpty ? 'No Experience year' : expyearcontroller.text;
     String jobType = selectedJobType;
     String licenseNumber = licenseController.text;
     String street1 = addressLineController.text;
@@ -852,166 +860,209 @@ bool _isLoading = false;
                             SizedBox(
                               height: ScreenUtil.sizeboxheight,
                             ),
-                            GestureDetector(
+                            InkWell(
                               onTap: () async {
                                 await showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
 
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                    ),
-                                    content: SingleChildScrollView(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Stack(
-                                            children: [
-                                              TextFormField(
-                                                readOnly: true, // Set this to true to disable editing
-                                                style: TextStyle(color: HexColor('#4D8D6E')),
-                                                decoration: InputDecoration(
-                                                  hintText: selectedState ?? 'Select State', // Use selectedState or 'Select State' if it's null
-                                                  hintStyle: TextStyle(color: HexColor('#4D8D6E')),
-                                                  enabledBorder: OutlineInputBorder(
-                                                    borderSide: BorderSide(color: HexColor('#707070')),
-                                                    borderRadius: BorderRadius.circular(15.0),
-                                                  ),
-                                                  focusedBorder: OutlineInputBorder(
-                                                    borderSide: BorderSide(color: HexColor('#4D8D6E')),
-                                                    borderRadius: BorderRadius.circular(15.0),
-                                                  ),
-                                                ),
-                                              ),
-                                              Positioned.fill(
-                                                child: InkWell(
-                                                  onTap: () {
-                                                    showDialog(
-                                                      context: context,
-                                                      builder: (BuildContext context) {
-                                                        return StateSelectorPopup(
-                                                          states: statesOfAmerica,
-                                                          onSelect: (newlySelectedState) {
-                                                            // Update selectedState when a state is selected
-                                                            setState(() {
-                                                              selectedState = newlySelectedState;
-                                                            });
-                                                            print('Selected State: $newlySelectedState');
-                                                          },
-                                                        );
-                                                      },
-                                                    );
-                                                  },
-                                                  splashColor: Colors.transparent,
-                                                  highlightColor: Colors.transparent,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-
-
-
-
-                                          SizedBox(height: 10),
-
-                                          TextFormField(
-                                            controller: addressLineController,
-                                            style: TextStyle(color: HexColor('#4D8D6E')),
-                                            decoration: InputDecoration(
-                                              hintText: 'Address Line',
-
-                                              hintStyle: TextStyle(color: HexColor('#707070')),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(color: HexColor('#707070')),
-                                                borderRadius: BorderRadius.circular(15.0),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(color: HexColor('#4D8D6E')),
-                                                borderRadius: BorderRadius.circular(15.0),
-                                              ),
-                                            ),
-                                            validator: (value) {
-                                              if (value == null || value.isEmpty) {
-                                                return 'Enter address line';
-                                              }
-                                              return null;
-                                            },
-                                          ),
-                                          SizedBox(height: 10),
-                                          TextFormField(
-                                            controller: addressst2Controller,
-                                            style: TextStyle(color: HexColor('#4D8D6E')),
-                                            decoration: InputDecoration(
-                                              hintText: 'Address Line 2',
-
-                                              hintStyle: TextStyle(color: HexColor('#707070')),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(color: HexColor('#707070')),
-                                                borderRadius: BorderRadius.circular(15.0),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(color: HexColor('#4D8D6E')),
-                                                borderRadius: BorderRadius.circular(15.0),
-                                              ),
-                                            ),
-
-                                          ),
-                                          SizedBox(height: 10),
-                                          TextFormField(
-                                            controller: cityController,
-                                            style: TextStyle(color: HexColor('#4D8D6E')),
-                                            decoration: InputDecoration(
-                                              hintText: 'City',
-
-                                              hintStyle: TextStyle(color: HexColor('#707070')),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(color: HexColor('#707070')),
-                                                borderRadius: BorderRadius.circular(15.0),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(color: HexColor('#4D8D6E')),
-                                                borderRadius: BorderRadius.circular(15.0),
-                                              ),
-                                            ),
-                                            validator: (value) {
-                                              if (value == null || value.isEmpty) {
-                                                return 'Enter city';
-                                              }
-                                              return null;
-                                            },
-                                          ),
-
-
-                                          SizedBox(height: 10),
-                                          ElevatedButton(
-                                            onPressed: () {
-
-                                                String addressLine = addressLineController.text;
-                                                String addressLine2 = addressst2Controller.text;
-                                                String city = cityController.text;
-                                                String state = selectedState;
-
-                                                // Call the onDonePressed function and pass the values
-                                                setState(() {
-                                                  _isFormFilled = true;
-
-                                                });
-                                                Navigator.pop(context);
-
-                                            },
-                                            child: Text(
-                                              'Done',
-                                              style: TextStyle(color: Colors.white),
-                                            ),
-                                            style: ElevatedButton.styleFrom(
-                                              primary: HexColor('#4D8D6E'),
-                                            ),
-                                          ),
-                                        ],
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (context) => AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20.0),
                                       ),
-                                    ),
-                                  )
-                                );
+                                      content: SingleChildScrollView(
+                                        child: StatefulBuilder(
+
+                                            builder: (BuildContext context, StateSetter setState) {
+                                              return Form(
+                                                key: formkeyaddress,
+                                                child: Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+
+                                                        Text('Write Your Address',
+                                                          style: GoogleFonts.encodeSans(
+                                                            textStyle: TextStyle(
+                                                                color: HexColor('454545'),
+                                                                fontSize: 22,
+                                                                fontWeight: FontWeight.bold),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    SizedBox(height: 10,),
+                                                    Stack(
+                                                      children: [
+                                                        TextFormField(
+                                                          readOnly: true, // Set this to true to disable editing
+                                                          style: TextStyle(color: HexColor('#4D8D6E')),
+                                                          decoration: InputDecoration(
+                                                            hintText: selectedState ?? 'Select State', // Use selectedState or 'Select State' if it's null
+                                                            hintStyle: TextStyle(color: HexColor('#4D8D6E')),
+                                                            enabledBorder: OutlineInputBorder(
+                                                              borderSide: BorderSide(color: HexColor('#707070')),
+                                                              borderRadius: BorderRadius.circular(15.0),
+                                                            ),
+                                                            focusedBorder: OutlineInputBorder(
+                                                              borderSide: BorderSide(color: HexColor('#4D8D6E')),
+                                                              borderRadius: BorderRadius.circular(15.0),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Positioned.fill(
+                                                          child: InkWell(
+                                                            onTap: () {
+                                                              showDialog(
+                                                                context: context,
+                                                                builder: (BuildContext context) {
+                                                                  return StateSelectorPopup(
+                                                                    states: statesOfAmerica,
+                                                                    onSelect: (newlySelectedState) {
+                                                                      // Update selectedState when a state is selected
+                                                                      setState(() {
+                                                                        selectedState = newlySelectedState;
+                                                                      });
+                                                                      print('Selected State: $newlySelectedState');
+                                                                    },
+                                                                  );
+                                                                },
+                                                              );
+                                                            },
+                                                            splashColor: Colors.transparent,
+                                                            highlightColor: Colors.transparent,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    SizedBox(height: 10),
+
+                                                    TextFormField(
+                                                      controller: addressLineController,
+                                                      style: TextStyle(color: HexColor('#4D8D6E')),
+                                                      decoration: InputDecoration(
+                                                        hintText: 'Address Line',
+
+                                                        hintStyle: TextStyle(color: HexColor('#707070')),
+                                                        enabledBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: HexColor('#707070')),
+                                                          borderRadius: BorderRadius.circular(15.0),
+                                                        ),
+                                                        focusedBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: HexColor('#4D8D6E')),
+                                                          borderRadius: BorderRadius.circular(15.0),
+                                                        ),
+                                                      ),
+                                                      validator: (value) {
+                                                        if (value == null || value.isEmpty) {
+                                                          return 'Enter address line';
+                                                        }
+                                                        return null;
+                                                      },
+                                                    ),
+                                                    SizedBox(height: 10),
+                                                    TextFormField(
+                                                      controller: addressst2Controller,
+                                                      style: TextStyle(color: HexColor('#4D8D6E')),
+                                                      decoration: InputDecoration(
+                                                        hintText: 'Address Line 2',
+                                                        hintStyle: TextStyle(color: HexColor('#707070')),
+                                                        enabledBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: HexColor('#707070')),
+                                                          borderRadius: BorderRadius.circular(15.0),
+                                                        ),
+                                                        focusedBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: HexColor('#4D8D6E')),
+                                                          borderRadius: BorderRadius.circular(15.0),
+                                                        ),
+                                                      ),
+                                                      validator: (value) {
+                                                        if (value == null || value.isEmpty) {
+                                                          return 'Please enter your address line 2';
+                                                        }
+                                                        return null;
+                                                      },
+                                                    ),
+                                                    SizedBox(height: 10),
+                                                    TextFormField(
+                                                      controller: cityController,
+                                                      style: TextStyle(color: HexColor('#4D8D6E')),
+                                                      decoration: InputDecoration(
+                                                        hintText: 'City',
+                                                        hintStyle: TextStyle(color: HexColor('#707070')),
+                                                        enabledBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: HexColor('#707070')),
+                                                          borderRadius: BorderRadius.circular(15.0),
+                                                        ),
+                                                        focusedBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: HexColor('#4D8D6E')),
+                                                          borderRadius: BorderRadius.circular(15.0),
+                                                        ),
+                                                      ),
+                                                      validator: (value) {
+                                                        if (value == null || value.isEmpty) {
+                                                          return 'Please enter your city';
+                                                        }
+                                                        return null;
+                                                      },
+                                                    ),
+                                                    SizedBox(height: 10),
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        ElevatedButton(
+                                                          onPressed: () {
+
+                                                            Navigator.pop(context);
+                                                          } ,
+                                                          child: Text(
+                                                            'close',
+                                                            style: TextStyle(color: Colors.white),
+                                                          ),
+                                                          style: ElevatedButton.styleFrom(
+                                                            primary: Colors.red,
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 15,),
+                                                        ElevatedButton(
+                                                          onPressed: () {
+                                                            if (formkeyaddress.currentState!.validate() &&
+                                                                selectedState != 'Select State') {
+                                                              // Call the onDonePressed function and pass the values
+                                                              setState(() {
+                                                                _isFormFilled = true;
+                                                              });
+                                                              Navigator.pop(context);
+                                                            } else {
+                                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                                SnackBar(
+                                                                  content: Text('Please fill in all fields.'),
+                                                                  backgroundColor: Colors.red,
+                                                                ),
+                                                              );
+                                                            }
+
+                                                          },
+                                                          child: Text(
+                                                            'Done',
+                                                            style: TextStyle(color: Colors.white),
+                                                          ),
+                                                          style: ElevatedButton.styleFrom(
+                                                            primary: HexColor('#4D8D6E'),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+
+                                                  ],
+                                                ),
+                                              );
+                                            }
+                                        ),
+                                      ),
+                                    ));
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
@@ -1034,7 +1085,13 @@ bool _isLoading = false;
                                       style: TextStyle(color: HexColor('#707070'), fontSize: 16, fontWeight: FontWeight.w500),
                                     ),
                                     Spacer(),
-                                    if (_isFormFilled)
+                                    Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 18,
+                                      color: Colors.grey,
+                                    ),
+                                    SizedBox(width: 8,),
+                                    if (_isFormFilled == true)
                                       Icon(Icons.check, color: Colors.green),
                                   ],
                                 ),
@@ -1062,7 +1119,7 @@ bool _isLoading = false;
                                   width: 33.0,
                                   // Replace with the desired width of the icon
                                   height:
-                                      33.0, // Replace with the desired height of the icon                      // Replace with the path to your SVG file
+                                  33.0, // Replace with the desired height of the icon                      // Replace with the path to your SVG file
                                 ),
                                 // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
                                 SizedBox(width: 20.0),
@@ -1071,9 +1128,15 @@ bool _isLoading = false;
                                   child: Expanded(
                                     child: TextFormField(
                                       controller: zipcodeController,
+                                      inputFormatters: [
+                                        LengthLimitingTextInputFormatter(5), // Limit the input length to 5 characters
+                                      ],
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
                                           return 'Zip Code';
+                                        }
+                                        if (value.length != 5) {
+                                          return 'Zip Code should be 5 digits';
                                         }
                                         return null; // Return null if the input is valid
                                       },
@@ -1082,7 +1145,7 @@ bool _isLoading = false;
                                       keyboardType: TextInputType.number,
 
                                       decoration: InputDecoration(
-                                        hintText: 'Preferred ZIP Code of Work',
+                                        hintText: 'Enter ZIP Code ',
                                         contentPadding: EdgeInsets.all(0), // Remove content padding
 
                                         // Replace with the desired hint text
@@ -1656,62 +1719,62 @@ SizedBox(height: 8,),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
-                                  hasUppercase
-                                      ? Icons.check_circle
-                                      : Icons.cancel,
-                                  color:
-                                      hasUppercase ? Colors.green : Colors.red,
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Uppercase letter',
-                                  style: TextStyle(
-                                    color: hasUppercase
-                                        ? Colors.green
-                                        : Colors.red,
-                                  ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start, // Adjusted this line
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.start, // Adjusted this line
+                                      children: [
+                                        Icon(
+                                          hasUppercase ? Icons.check_circle : Icons.cancel,
+                                          color: hasUppercase ? Colors.green : Colors.red,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Uppercase letter',
+                                          style: TextStyle(
+                                            color: hasUppercase ? Colors.green : Colors.red,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.start, // Adjusted this line
+                                      children: [
+                                        Icon(
+                                          hasLowercase ? Icons.check_circle : Icons.cancel,
+                                          color: hasLowercase ? Colors.green : Colors.red,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Lowercase letter',
+                                          style: TextStyle(
+                                            color: hasLowercase ? Colors.green : Colors.red,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.start, // Adjusted this line
+                                      children: [
+                                        Icon(
+                                          hasNumber ? Icons.check_circle : Icons.cancel,
+                                          color: hasNumber ? Colors.green : Colors.red,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Number',
+                                          style: TextStyle(
+                                            color: hasNumber ? Colors.green : Colors.red,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  hasLowercase
-                                      ? Icons.check_circle
-                                      : Icons.cancel,
-                                  color:
-                                      hasLowercase ? Colors.green : Colors.red,
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Lowercase letter',
-                                  style: TextStyle(
-                                    color: hasLowercase
-                                        ? Colors.green
-                                        : Colors.red,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  hasNumber ? Icons.check_circle : Icons.cancel,
-                                  color: hasNumber ? Colors.green : Colors.red,
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Number',
-                                  style: TextStyle(
-                                    color:
-                                        hasNumber ? Colors.green : Colors.red,
-                                  ),
-                                ),
-                              ],
-                            ),
+
                             SizedBox(
                               height: ScreenUtil.sizeboxheight,
                             ),

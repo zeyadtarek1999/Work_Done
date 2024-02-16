@@ -597,7 +597,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(300),
-                            child: (profile_pic != null && profile_pic.isNotEmpty && profile_pic.startsWith('http'))
+                            child: (profile_pic != null && profile_pic.isNotEmpty && profile_pic.startsWith('http') && profile_pic != 'https://workdonecorp.com/images/')
                                 ? Image.network(profile_pic)
                                 : Image.asset('assets/images/default.png'),
                           ),
@@ -626,6 +626,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
 SizedBox(height: 10,),
 
                       RatingBar.builder(
+                        ignoreGestures: true, // Set to true to make it unchoosable
 
                         initialRating: avg_rating,
                         minRating: 0,
@@ -841,8 +842,74 @@ SizedBox(height: 10,),
                       child: Text('Rating bar' ,style: TextStyle(color: Colors.white),),
                     ),
                   ),
+                      SizedBox(height: 10,),
 
+                      FutureBuilder<UserProfile>(
+                        future: futureProjects,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else if (snapshot.data != null) {
+                            UserProfile userProfile = snapshot.data!;
+
+                            return                                                             Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('license ',style: TextStyle(color: Colors.black45,fontSize: 18),),
+                                Container(
+                                  child: userProfile.userData.license_pic != '' &&
+                                      userProfile.userData.license_pic.isNotEmpty &&
+                                      userProfile.userData.license_pic != "https://workdonecorp.com/images/"
+                                      ? Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                    size: 24.0,
+                                  )
+                                      : Icon(
+                                    Icons.check_circle_outline,
+                                    color: Colors.grey,
+                                    size: 24.0,
+                                  ),
+                                ),
+                              ],
+                            );
+
+                          } else {
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                  child: SvgPicture.asset(
+                                    'assets/images/nothing.svg',
+                                    width: 100.0,
+                                    height: 100.0,
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                  'No Projects yet',
+                                  style: GoogleFonts.encodeSans(
+                                    textStyle: TextStyle(
+                                      color: HexColor('BBC3CE'),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                        },
+                      ),
                                           SizedBox(height: 20),
+
                       Padding(
                           padding: EdgeInsets.symmetric(horizontal: 20),
                           child: Row(
@@ -892,6 +959,7 @@ SizedBox(height: 10,),
 
                                                         return                                                              Column(
                                                           crossAxisAlignment: CrossAxisAlignment.start,
+                                                          mainAxisAlignment: MainAxisAlignment.center,
                                                           children: [
                                                             Center(
                                                               child: Column(
@@ -906,43 +974,6 @@ SizedBox(height: 10,),
                                                                     ),
                                                                   ),
 
-
-                                                                  Container(
-                                                                    height: 50,
-                                                                    decoration: BoxDecoration(
-                                                                      border: Border(
-                                                                        bottom: BorderSide(
-                                                                          color: HexColor('#707070').withOpacity(0.1),
-                                                                          width: 1,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    child: SingleChildScrollView(
-                                                                      scrollDirection: Axis.horizontal,
-                                                                      child: Row(
-                                                                        children: [
-                                                                          Padding(
-                                                                            padding: EdgeInsets.symmetric(horizontal: 12),
-                                                                            child: Text(
-                                                                              'Email Address:',
-                                                                              style: TextStyle(
-                                                                                  color: HexColor('#4D8D6E'),
-                                                                                  fontWeight: FontWeight.w400,
-                                                                                  fontSize: 17),
-                                                                            ),
-                                                                          ),
-                                                                          SizedBox(
-                                                                            width: ScreenUtil.sizeboxwidth3,
-                                                                          ),
-                                                                          Text(
-                                                                            '${userProfile.userData.email}',
-                                                                            style: TextStyle(
-                                                                                color: HexColor('#404040'), fontSize: 15),
-                                                                          )
-                                                                        ],
-                                                                      ),
-                                                                    ),
-                                                                  ),
                                                                   Container(
                                                                       height: 50,
                                                                       decoration: BoxDecoration(
@@ -1000,7 +1031,7 @@ SizedBox(height: 10,),
                                                                           width: ScreenUtil.sizeboxwidth3,
                                                                         ),
                                                                         Text(
-                                                                          '${userProfile.userData.experience}    ',
+                                                                          '${userProfile.userData.experience} Years of Experience   ',
                                                                           style: TextStyle(
                                                                               color: HexColor('#404040'), fontSize: 15),
                                                                         )
@@ -1041,39 +1072,6 @@ SizedBox(height: 10,),
                                                                     ),
                                                                   ),
 
-                                                                  Container(
-                                                                    height: 50,
-                                                                    decoration: BoxDecoration(
-                                                                      border: Border(
-                                                                        bottom: BorderSide(
-                                                                          color: HexColor('#707070').withOpacity(0.1),
-                                                                          width: 1,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    child: Row(
-                                                                      children: [
-                                                                        Padding(
-                                                                          padding: EdgeInsets.symmetric(horizontal: 12),
-                                                                          child: Text(
-                                                                            'Phone Number:',
-                                                                            style: TextStyle(
-                                                                                color: HexColor('#4D8D6E'),
-                                                                                fontWeight: FontWeight.w400,
-                                                                                fontSize: 17),
-                                                                          ),
-                                                                        ),
-                                                                        SizedBox(
-                                                                          width: ScreenUtil.sizeboxwidth3,
-                                                                        ),
-                                                                        Text(
-                                                                          '${userProfile.userData.phone}   ',
-                                                                          style: TextStyle(
-                                                                              color: HexColor('#404040'), fontSize: 15),
-                                                                        )
-                                                                      ],
-                                                                    ),
-                                                                  ),
                                                       SizedBox(height: 20,),
                                                                   ElevatedButton(
                                                                     onPressed: () {
@@ -1166,121 +1164,7 @@ SizedBox(height: 10,),
                                           },
                                           child: Text('Worker Details' ,style: TextStyle(color: Colors.white),),
                                         ),
-                                        SizedBox(width: 20,),
-                                        ElevatedButton(
-                                          child: Text('license',style: TextStyle(color: Colors.white),),
-                                          onPressed: () {
-                                            // Show the license popup
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return FutureBuilder<UserProfile>(
-                                                  future: futureProjects,
-                                                  builder: (context, snapshot) {
-                                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                                      return Center(
-                                                        child: CircularProgressIndicator(),
-                                                      );
-                                                    } else if (snapshot.hasError) {
-                                                      return Text('Error: ${snapshot.error}');
-                                                    } else if (snapshot.data != null) {
-                                                      UserProfile userProfile = snapshot.data!;
 
-                                                      return                                                              AlertDialog(
-                                                        title: Center(child: Text('License',style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,),)),
-
-                                                        content: Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          mainAxisSize: MainAxisSize.min,
-                                                          children: [
-                                                            Text('License Image:',style: TextStyle(color: Colors.black45,fontWeight: FontWeight.bold,fontSize: 16),),
-                                                            Center(
-                                                              child: Container(
-                                                                width: 200, // Set your preferred width
-                                                                height: 200, // Set your preferred height
-                                                                child: (userProfile.userData.license_pic != '' && userProfile.userData.license_pic.isNotEmpty && userProfile.userData.license_pic != "https://workdonecorp.com/images/")
-                                                                    ? Image.network(userProfile.userData.license_pic, fit: BoxFit.contain)
-                                                                    : Image.network('https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png', fit: BoxFit.contain),
-                                                              ),
-                                                            ),
-                                                            SizedBox(height: 10),
-                                                            Text(
-                                                              'Your license Number:'
-                                                              ,style: TextStyle(color: Colors.black45,fontWeight: FontWeight.bold, fontSize: 16),),
-                                                            SizedBox(height: 10),
-                                                            Center(
-                                                              child: userProfile.userData.license_number != '' && userProfile.userData.license_number.isNotEmpty
-                                                                  ? Text(
-                                                                '${userProfile.userData.license_number}',
-                                                                style: TextStyle(fontSize: 16, color: HexColor('#4D8D6E')),
-                                                              )
-                                                                  : Text(
-                                                                'No license number',
-                                                                style: TextStyle(fontSize: 16, color: HexColor('#4D8D6E')),
-                                                              ),
-                                                            ),
-
-                                                          ],
-                                                        ),
-                                                        actions: [
-                                                          Padding(
-                                                            padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                                            child: Center(
-                                                              child: ElevatedButton(
-                                                                child: Text(
-                                                                  'Close',
-                                                                  style: TextStyle(color: Colors.white), // Set the text color to white
-                                                                ),
-                                                                onPressed: () {
-                                                                  Navigator.of(context)
-                                                                      .pop(); // Close the dialog
-                                                                },
-                                                                style: ButtonStyle(
-                                                                  backgroundColor: MaterialStateProperty.all(HexColor('4D8D6E')), // Set the background color
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      );
-
-                                                    } else {
-                                                      return Column(
-                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                        children: [
-                                                          Padding(
-                                                            padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                                            child: SvgPicture.asset(
-                                                              'assets/images/nothing.svg',
-                                                              width: 100.0,
-                                                              height: 100.0,
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                            height: 20,
-                                                          ),
-                                                          Text(
-                                                            'No Projects yet',
-                                                            style: GoogleFonts.encodeSans(
-                                                              textStyle: TextStyle(
-                                                                color: HexColor('BBC3CE'),
-                                                                fontSize: 18,
-                                                                fontWeight: FontWeight.normal,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      );
-                                                    }
-                                                  },
-                                                );
-                                              },
-                                            );
-                                          },
-                                          style: ButtonStyle(
-                                            backgroundColor: MaterialStateProperty.all(HexColor('4D8D6E')), // Set the background color
-                                          ),
-                                        ),
                                       ],
                                     ),
                                     SizedBox(height: 12,),
@@ -1352,57 +1236,58 @@ SizedBox(height: 10,),
           body:                     SingleChildScrollView(
             child: Column(
               children: [
-              FutureBuilder<UserProfile>(
-              future: futureProjects,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                } else if (snapshot.data != null) {
-                  UserProfile userProfile = snapshot.data!;
-                  return ListView.builder(
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: userProfile.projects.length,
-                    itemBuilder: (context, index) {
-
-                      return buildProjectItem(userProfile.projects[index]);
-                    },
-                  );
-                } else {
-                  return                   Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: SvgPicture.asset(
-                          'assets/images/nothing.svg',
-                          width: 100.0, // Set the width you want
-                          height: 100.0, // Set the height you want
-                        ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        'No Projects yet',
-                        style: GoogleFonts.encodeSans(
-                          textStyle: TextStyle(
-                              color: HexColor('BBC3CE'),
-                              fontSize: 18,
-                              fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                    ],
-                  )
-                ;
-                }
-              },
-            ),
-
+                FutureBuilder<UserProfile>(
+                  future: futureProjects,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else if (snapshot.data != null) {
+                      UserProfile userProfile = snapshot.data!;
+                      if (userProfile.projects.isEmpty) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12.0),
+                              child: SvgPicture.asset(
+                                'assets/images/nothing.svg',
+                                width: 100.0, // Set the width you want
+                                height: 100.0, // Set the height you want
+                              ),
+                            ),
+                            SizedBox(
+                              height: 20,
+                            ),
+                            Text(
+                              'No Projects yet',
+                              style: GoogleFonts.encodeSans(
+                                textStyle: TextStyle(
+                                    color: HexColor('BBC3CE'),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.normal),
+                              ),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: userProfile.projects.length,
+                          itemBuilder: (context, index) {
+                            return buildProjectItem(userProfile.projects[index]);
+                          },
+                        );
+                      }
+                    } else {
+                      return Container(); // or return any other widget you want to show when the data is null
+                    }
+                  },
+                ),
                 SizedBox(height: 50,)
               ],
             ),

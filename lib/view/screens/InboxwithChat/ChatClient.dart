@@ -31,10 +31,12 @@ class ChatScreen extends StatelessWidget {
       
       });
 
+
   final TextEditingController _messageController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       
       backgroundColor: HexColor('4D8D6E'),
@@ -148,16 +150,16 @@ print(chatId);
     var messageContent = messages[index]['content'];
     var messageSender = messages[index]['sender'];
     var imageUrl = messages[index]['image']; // Add this line
-    var messageTime = (messages[index]['timestamp'] as Timestamp).toDate(); // Get the DateTime from Timestamp
+    var messageTime = messages[index]['timestamp'] as Timestamp?;
 
-    return ChatBubble(
-    currentuser: messageSender,
-    message: messageContent,
-    isSentByMe: messageSender == currentUser,
-    imageUrl: imageUrl,
-      time: messageTime, // Pass the DateTime object
-// Add this line
+    return  ChatBubble(
+      currentuser: messageSender,
+      message: messageContent,
+      isSentByMe: messageSender == currentUser,
+      imageUrl: imageUrl,
+      time: messageTime != null ? messageTime.toDate() : DateTime.now(),
     );
+
     },
     );
     },
@@ -255,16 +257,23 @@ class ChatBubble extends StatelessWidget {
     required this.time, // Add this line
 
   });
+  void _showFullScreenImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (context) => FullScreenImage(imageUrl: imageUrl),
+    );
+  }
   Widget _buildTimeStamp() {
-    String hourMinute = DateFormat('hh:mm a').format(time); // Format the time
+    String formattedTime = DateFormat('hh:mm a').format(time);
     return Text(
-      hourMinute,
+      formattedTime,
       style: TextStyle(
         fontSize: 12,
         color: Colors.grey[600],
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -299,11 +308,16 @@ class ChatBubble extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (imageUrl != null) // Display the image if it exists
-                Image.network(
-                  imageUrl!,
-                  width: 200,
-                  height: 200,
+              if (imageUrl != null && imageUrl != 'https://workdonecorp.com/images/' && imageUrl != '')
+                GestureDetector(
+                  onTap: () {
+                    _showFullScreenImage(context, imageUrl!);
+                  },
+                  child: Image.network(
+                    imageUrl!,
+                    width: 200,
+                    height: 200,
+                  ),
                 ),
               if (message
                   .isNotEmpty) // Display the text message if it's not an empty string
@@ -440,5 +454,23 @@ class _SendMessageFieldState extends State<SendMessageField> {
   void dispose() {
     _messageController.dispose();
     super.dispose();
+  }
+}
+
+class FullScreenImage extends StatelessWidget {
+  final String imageUrl;
+
+  FullScreenImage({required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Container(
+        padding: EdgeInsets.all(16),
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: Image.network(imageUrl),
+      ),
+    );
   }
 }

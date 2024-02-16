@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterClientApiClient {
-  final String baseUrl = "https://workdonecorp.com";
+  final String baseUrl;
+
+  RegisterClientApiClient({required this.baseUrl});
 
   Future<Map<String, dynamic>> registerClient({
     required String firstName,
@@ -18,28 +21,29 @@ class RegisterClientApiClient {
     required String state,
     required String addressZip,
   }) async {
-    final url = Uri.parse('$baseUrl/api/register_client');
-
-    // Define the request body using form data
-    final body = {
-      'firstname': firstName,
-      'lastname': lastName,
-      'email': email,
-      'password': password,
-      'phone': phone,
-      'language': language,
-      'street1': street1,
-      'street2': street2,
-      'city': city,
-      'state': state,
-      'address_zip': addressZip,
-    };
-
     try {
-      final response = await http.post(
-        url,
-        body: body,
-      );
+      final url = Uri.parse('$baseUrl/api/register_client');
+
+      final request = http.MultipartRequest('POST', url)
+        ..fields.addAll({
+          'firstname': firstName,
+          'lastname': lastName,
+          'email': email,
+          'password': password,
+          'phone': phone,
+          'language': language,
+          'street1': street1,
+          'street2': street2,
+          'city': city,
+          'state': state,
+          'address_zip': addressZip,
+        });
+
+      // Explicitly set the 'Content-Type' header
+      request.headers['Content-Type'] = 'multipart/form-data';
+
+
+      final response = await http.Response.fromStream(await request.send());
 
       if (response.statusCode == 200) {
         // Decode the response body
@@ -51,7 +55,7 @@ class RegisterClientApiClient {
         return responseBody;
       } else {
         // If the status code is not 200, throw an exception with the error message
-        throw Exception('Failed to register worker. Status Code: ${response.statusCode}');
+        throw Exception('Failed to register Client. Status Code: ${response.statusCode}');
       }
     } catch (error) {
       // If an error occurs during the API call, throw an exception with the error message

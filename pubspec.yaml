@@ -79,6 +79,8 @@ dependencies:
   fluentui_system_icons: ^1.1.225
   persistent_bottom_nav_bar_v2: ^4.2.8
   blurry_modal_progress_hud: ^1.1.1
+  url_launcher: ^6.2.4
+  workmanager: ^0.5.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
