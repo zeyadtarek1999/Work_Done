@@ -219,6 +219,8 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
   }
   int _currentIndex = 0;
   final CarouselController _carouselController = CarouselController();
+  int _currentPageIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -998,40 +1000,79 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
   }
   Widget buildListItem2(Item item) {
 
-    return GestureDetector(onTap: (){Get.to(bidDetailsClient(projectId: item.projectId));},
+    return GestureDetector(
+      onTap: () {
+        Get.to(bidDetailsClient(projectId: item.projectId));
+      },
       child: Stack(
-            children: [
-              CarouselSlider(
-                options: CarouselOptions(
-                  height: 170,
-                  aspectRatio: 16/9,
-                  viewportFraction: 1.0,
-                  initialPage: 0,
-                  enableInfiniteScroll: true,
-                  reverse: false,
-                  autoPlay: false,
-                  autoPlayInterval: Duration(seconds: 3),
-                  autoPlayAnimationDuration: Duration(milliseconds: 800),
-                  autoPlayCurve: Curves.fastOutSlowIn,
-                  scrollDirection: Axis.horizontal,
-                ),
-                items: item.imageUrl.map((imageUrl) {
-                  return Builder(
-                    builder: (BuildContext context) {
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(30),
-                        child: Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          width: MediaQuery.of(context).size.width,
-                          height: double.infinity,
-                        ),
-                      );
-                    },
+        children: [
+          CarouselSlider(
+            options: CarouselOptions(
+              height: 170,
+              aspectRatio: 16 / 9,
+              viewportFraction: 1.0,
+              initialPage: 0,
+              enableInfiniteScroll: true,
+              reverse: false,
+              autoPlay: false,
+              autoPlayInterval: Duration(seconds: 3),
+              autoPlayAnimationDuration: Duration(milliseconds: 800),
+              autoPlayCurve: Curves.fastOutSlowIn,
+              scrollDirection: Axis.horizontal,
+              onPageChanged: (index, reason) {
+                // Update the current page index
+                setState(() {
+                  _currentPageIndex = index;
+                });
+              },
+            ),
+            carouselController: _carouselController,
+            items: item.imageUrl.map((imageUrl) {
+              return Builder(
+                builder: (BuildContext context) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      width: MediaQuery.of(context).size.width,
+                      height: double.infinity,
+                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return LinearProgressIndicator(
+                          color: Colors.white,
+                          value: null,
+                          backgroundColor: Colors.grey[300],
+                          minHeight: 3,
+                        );
+                      },
+                    ),
                   );
-                }).toList(),
-              ),
-              Padding(
+                },
+              );
+            }).toList(),
+          ),
+// Add the dots indicator
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: item.imageUrl.asMap().entries.map((entry) {
+              return GestureDetector(
+                onTap: () {
+                  _carouselController.animateToPage(entry.key);
+                },
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentPageIndex == entry.key ? Colors.white : Colors.grey[300],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -1211,27 +1252,73 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
           children: [
             Stack(
               children: [
-                Container(
-                  width: double.infinity,
-                  height: 170.0,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20.0),
-                    child: PageView.builder(
-                      pageSnapping: true
-                      ,
-
-                      itemCount: item.imageUrl.length, // The count of total images
-                      controller: PageController(viewportFraction: 1), // PageController for full-page scrolling
-                      itemBuilder: (_, index) {
-                        return Image.network(
-                          item.imageUrl[index], // Access each image by index
-                          fit: BoxFit.cover, // Cover the entire area of the container
-                        );
-                      },
-                    ),
-                  ),
+        CarouselSlider(
+        options: CarouselOptions(
+          height: 180,
+          aspectRatio: 16 / 9,
+          viewportFraction: 1.0,
+          initialPage: 0,
+          enableInfiniteScroll: true,
+          reverse: false,
+          autoPlay: false,
+          autoPlayInterval: Duration(seconds: 3),
+          autoPlayAnimationDuration: Duration(milliseconds: 800),
+          autoPlayCurve: Curves.fastOutSlowIn,
+          scrollDirection: Axis.horizontal,
+          onPageChanged: (index, reason) {
+            // Update the current page index
+            setState(() {
+              _currentPageIndex = index;
+            });
+          },
+        ),
+        carouselController: _carouselController,
+        items: item.imageUrl.map((imageUrl) {
+          return Builder(
+            builder: (BuildContext context) {
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  width: MediaQuery.of(context).size.width,
+                  height: double.infinity,
+                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return LinearProgressIndicator(
+                      color: Colors.white,
+                      value: null,
+                      backgroundColor: Colors.grey[300],
+                      minHeight: 3,
+                    );
+                  },
                 ),
-                Padding(
+              );
+            },
+          );
+        }).toList(),
+      ),
+// Add the dots indicator
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: item.imageUrl.asMap().entries.map((entry) {
+          return GestureDetector(
+            onTap: () {
+              _carouselController.animateToPage(entry.key);
+            },
+            child: Container(
+              width: 10,
+              height: 10,
+              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _currentPageIndex == entry.key ? Colors.white : Colors.grey[300],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+                              Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,

@@ -117,6 +117,12 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
   final reviewcontroller = TextEditingController();
   String selectedworkername = '';
   String selectedworkerimage = '';
+
+  bool isLoading = false;
+
+
+
+
   Future<void> completeproject() async {
     print('Fetching user token from SharedPreferences...');
 
@@ -167,6 +173,10 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
     print('Request files: ${request.files.length}');
     print('Sending request...');
     try {
+      setState(() {
+        isLoading = true;
+      });
+
       _toggleUploadingState(true); // Start loading
 
       print('Request fields: ${request.fields}');
@@ -177,6 +187,9 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
       var response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
+        setState(() {
+          isLoading = false;
+        });
         print('Success: ${response.body}');
         setState(() {
           _toggleUploadingState(false);
@@ -197,8 +210,9 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
       }
     } catch (e) {
       print('An exception occurred: $e');
-      // Handle exception
-    }
+      setState(() {
+        isLoading = false;
+      });    }
   }
   late Future<ProjectData> futureProjects;
 
@@ -699,12 +713,8 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
                                 loadingIcon: SizedBox(
                                     width: 55,
                                     child: Center(
-                                        child: SizedBox(
-                                          width: 24.0,
-                                          height: 24.0,
-                                          child: CircularProgressIndicator(
-                                              strokeWidth: 2.0, color: Colors.white),
-                                        ))),
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2.0, color: Colors.white))),
                                 successIcon: const SizedBox(
                                     width: 55,
                                     child: Center(
@@ -720,15 +730,13 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
                                           color: Colors.white,
                                         ))),
                                 action: (controller) async {
-                                  controller.loading();
-                                  completeproject(); // Call your function here
-
-                                  await Future.delayed(const Duration(seconds: 3));
-
-                                  controller.success();
-
-                                  await Future.delayed(const Duration(seconds: 1));
-                                  controller.reset(); //resets the slider
+                                  if (!isLoading) {
+                                    controller.loading();
+                                    await completeproject();
+                                    controller.success();
+                                    await Future.delayed(const Duration(seconds: 1));
+                                    controller.reset();
+                                  }
                                 },
                                 child: const Text('Swipe To Confirm'),
                               ),

@@ -245,7 +245,7 @@ double total =0;
                 padding: const EdgeInsets.only(top: 20,left: 20,right: 20),
                 child: Container(
                 width: double.infinity,
-                height: 270, // Set the height as needed
+                height: 300, // Set the height as needed
                 decoration: BoxDecoration(
                   color: HexColor('4D8D6E'), // Color
                   borderRadius: BorderRadius.circular(30.0), // Circular radius
@@ -495,7 +495,22 @@ double total =0;
                       ),
                     ),
 
-
+SizedBox(height: 3,),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text('(What you will recieve) ',style: GoogleFonts.openSans(
+                            textStyle: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),),
+                        ],
+                      ),
+                    ),
 
 
 
@@ -503,21 +518,6 @@ double total =0;
                 );}}),
               ),),
           SizedBox(height: 10,),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text('(What you will recieve) ',style: GoogleFonts.openSans(
-                  textStyle: TextStyle(
-                    color: HexColor('9A9D9C'),
-                    fontSize: 14,
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),),
-              ],
-            ),
-          ),
                 SizedBox(height: 15,),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 35.0),
@@ -531,7 +531,25 @@ double total =0;
                       ),
 
                       ),
-
+SizedBox(width: 6,),
+                      IconButton(
+                        icon: Icon(
+                          Icons.info_outline, // "i" icon
+                          color: Colors.grey,
+                          size: 22, // Red color
+                        ),
+                        onPressed: () {
+                          Fluttertoast.showToast(
+                            msg: 'Comment is Required',
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            timeInSecForIosWeb: 1,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                            fontSize: 16.0,
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -540,7 +558,7 @@ double total =0;
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal:25.0),
                   child: Container(
-                    height: 100,
+                    height: 150,
                     width: double.infinity, // Set the desired width
                     decoration: BoxDecoration(
                       color: Colors.grey [100],
@@ -551,21 +569,33 @@ double total =0;
                       child: TextFormField(controller: commentController,
                         maxLines: null, // Allows the text to take up multiple lines
                         decoration: InputDecoration(
-                          hintText: 'Please write a Comment (Optional)',
+                          hintText:
+                          "Kindly provide detailed comments regarding your project, including insights into your envisioned materials, preferences, and any specific requirements you may have for the upcoming work......",
                           border: InputBorder.none,
-                          hintMaxLines: 3, // Allows the hint text to take up multiple lines
+                          hintMaxLines: 5, // Allows the hint text to take up multiple lines
                           hintStyle: TextStyle(
                             color: Colors.grey,
-                            fontSize: 16.0,
+                            fontSize: 14.0,
                           ),
+
                         ),
+                        validator: (value) {
+                          // Validate the entered value
+                          if (value == null || value.isEmpty) {
+                            return 'Please write a comment';
+                          }
+                          // Add additional validation as needed
+
+                          // If the validation passes, return null
+                          return null;
+                        },
                       ),
                     ),
                   ),
                 )
                 ,
                 Padding(
-                  padding: const EdgeInsets.only(top: 150,left: 25,right: 25),
+                  padding: const EdgeInsets.only(top: 120,left: 25,right: 25),
                   child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -587,7 +617,7 @@ double total =0;
                         // Handle button tap
 
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        padding: const EdgeInsets.symmetric(vertical: 13.0),
                         child: Center(
                           child: Text(
                             'Add Bid',
@@ -601,8 +631,8 @@ double total =0;
                       ),
                     ),
                   ),
-                )
-
+                ),
+SizedBox(height: 12,),
               ]),
           ),
         ),

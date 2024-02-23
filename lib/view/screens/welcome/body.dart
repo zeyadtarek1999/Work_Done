@@ -50,8 +50,11 @@ class _BodyState extends State<Body> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-
-            SizedBox(height: size.height * 0.05),
+            SvgPicture.asset(
+              'assets/images/Logo.svg',
+              width: 120.0,
+              height: 120.0,
+            ),
             SvgPicture.asset(
               "assets/images/welcomescreen.svg",
               height: size.height * 0.45,
@@ -91,7 +94,6 @@ class _BodyState extends State<Body> {
               ),
             ),
             Container(
-              color: Colors.white,
               width: ScreenUtil.buttonscreenwidth,
               height: 45,
               margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 24.0),

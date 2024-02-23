@@ -623,12 +623,16 @@ print(widget.userId.toString(),);
                               shape: BoxShape.circle,
                               border: Border.all(color: Colors.grey.shade300, width: 5),
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(300),
-                              child: (profile_pic != null && profile_pic.isNotEmpty && profile_pic.startsWith('http'))
-                                  ? Image.network(profile_pic)
-                                  : Image.asset('assets/images/default.png'),
+                            child:
+                            CircleAvatar(
+                              radius: 65,
+                              backgroundColor: Colors.transparent,
+                              backgroundImage: profile_pic != '' && profile_pic.isNotEmpty
+                                  && profile_pic== "https://workdonecorp.com/images/"
+                                  ? AssetImage('assets/images/default.png') as ImageProvider
+                                  : NetworkImage(profile_pic?? 'assets/images/default.png'),
                             ),
+
                           ),
                         ),
                         SizedBox(height: 20,),

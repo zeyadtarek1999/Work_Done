@@ -278,11 +278,13 @@ bool isSearchBarVisible =false;
   }
 
   void _onChanged(String value) {
+    final email = emailController2.text;
     setState(() {
-      _isEmailValid = _formKey.currentState!.validate();
+      _isEmailValid = RegExp(
+          r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$')
+          .hasMatch(email);
     });
   }
-
 
 
 
@@ -876,8 +878,14 @@ bool isSearchBarVisible =false;
                                     child: TextFormField(
                                       controller: zipcodeController,
                                       inputFormatters: [
-                                        LengthLimitingTextInputFormatter(5), // Limit the input length to 5 characters
+                                        LengthLimitingTextInputFormatter(5), // Limit the input to 5 characters
                                       ],
+                                      onEditingComplete: () {
+                                        final form = _formKey.currentState;
+                                        if (form != null) {
+                                          form.validate();
+                                        }
+                                      },
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
                                           return 'Zip Code';
@@ -887,15 +895,10 @@ bool isSearchBarVisible =false;
                                         }
                                         return null; // Return null if the input is valid
                                       },
-                                      // Apply the custom formatter
-
                                       keyboardType: TextInputType.number,
-
                                       decoration: InputDecoration(
                                         hintText: 'Enter your ZIP Code ',
                                         contentPadding: EdgeInsets.all(0), // Remove content padding
-
-                                        // Replace with the desired hint text
                                         border: InputBorder.none,
                                       ),
                                     ),

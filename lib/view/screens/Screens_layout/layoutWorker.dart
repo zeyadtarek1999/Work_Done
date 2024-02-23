@@ -4,6 +4,7 @@ import 'package:persistent_bottom_nav_bar_v2/persistent-tab-view.dart';
 import 'package:workdone/view/screens/Screens_layout/projects%20CLient.dart';
 
 
+import '../InboxwithChat/inbox.dart';
 import '../InboxwithChat/inboxWorker.dart';
 import '../homescreen/homeWorker.dart';
 import '../InboxwithChat/inboxClient.dart';
@@ -49,7 +50,7 @@ class _layoutworkerState extends State<layoutworker> with SingleTickerProviderSt
   List<Widget> _screens = [
     Homescreenworker(),
     projectsWorker(),
-    InboxClient(),
+    inboxtest(),
     Moreworker(),
   ];
 

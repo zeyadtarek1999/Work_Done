@@ -394,29 +394,30 @@ class _projectsWorkerState extends State<projectsWorker> with SingleTickerProvid
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 80.0),
-                          child: Container(
-                            width: ScreenUtil.buttonscreenwidth,
-                            height: 45,
-                            margin:
-                            EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Get.offAll(layoutworker());
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: HexColor('#4D8D6E'),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                  // Adjust the value to change the corner radius
-                                  side: BorderSide(
-                                      width:
-                                      130 // Adjust the value to change the width of the narrow edge
+                          child: Center(
+                            child: Container(
+                              width: ScreenUtil.buttonscreenwidth,
+                              height: 45,
+
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Get.offAll(layoutworker());
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: HexColor('#4D8D6E'),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30.0),
+                                    // Adjust the value to change the corner radius
+                                    side: BorderSide(
+                                        width:
+                                        130 // Adjust the value to change the width of the narrow edge
+                                    ),
                                   ),
                                 ),
-                              ),
-                              child: Text(
-                                'Find a Project',
-                                style: TextStyle(fontSize: 16.0, color: Colors.white),
+                                child: Text(
+                                  'Find a Project',
+                                  style: TextStyle(fontSize: 16.0, color: Colors.white),
+                                ),
                               ),
                             ),
                           ),

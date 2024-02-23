@@ -209,6 +209,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.10"
+  dotted_border:
+    dependency: "direct main"
+    description:
+      name: dotted_border
+      sha256: "108837e11848ca776c53b30bc870086f84b62ed6e01c503ed976e8f8c7df9c04"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   easy_date_timeline:
     dependency: "direct main"
     description:
@@ -430,6 +438,38 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.5"
+  flutter_background_service:
+    dependency: "direct main"
+    description:
+      name: flutter_background_service
+      sha256: "7b9f15ab7d1a5784850ecfde722be4ace4dbcf1072a1fe33b7f9cbe871241e53"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.6"
+  flutter_background_service_android:
+    dependency: transitive
+    description:
+      name: flutter_background_service_android
+      sha256: "57fd631d800f7e56ca5bfadcfc00c8903eb721b23506b1a387342039521883ec"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.3"
+  flutter_background_service_ios:
+    dependency: transitive
+    description:
+      name: flutter_background_service_ios
+      sha256: d3f1dc009137c1ac19f5e3d88668836f088a7e078396733547339765d46ff12f
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.0"
+  flutter_background_service_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_background_service_platform_interface
+      sha256: "5f0480ee8378984f718d640abbe09b4d6d024d58a72b2d8b86bdedb3cf095ff8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.0"
   flutter_credit_card:
     dependency: "direct main"
     description:
@@ -510,6 +550,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.1"
+  flutter_sequence_animation:
+    dependency: "direct main"
+    description:
+      name: flutter_sequence_animation
+      sha256: "48f28a8395e410f5b4a47a86fe77974ee8fbab3db935d22933dbb3af27447d01"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
   flutter_sliding_up_panel:
     dependency: "direct main"
     description:
@@ -816,6 +864,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.8.3"
+  path_drawing:
+    dependency: transitive
+    description:
+      name: path_drawing
+      sha256: a19347362f85a45aadf6bdfa3c04f18ff6676c445375eecd6251f9e09b9db551
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   path_parsing:
     dependency: transitive
     description:

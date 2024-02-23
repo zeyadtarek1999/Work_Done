@@ -131,11 +131,63 @@ Future<List<Item>> fetchchatusers() async {
 }
 
 class _InboxClientState extends State<InboxClient> with SingleTickerProviderStateMixin {
+String? usertype;
+  Future<void> _getusertype() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_user_type';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('user_type')) {
+            String userType = responseData['user_type'];
+
+            // Navigate based on user type
+            if (userType == 'client') {
+setState(() {
+  usertype == 'client';
+});
+            } else if (userType == 'worker') {
+              usertype == 'worker';
+
+            } else {
+              print('Error: Unknown user type.');
+
+            }
+          } else {
+            print('Error: Response data does not contain user_type.');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      } else {
+        // No token in SharedPreferences, navigate to WelcomeScreen
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _getUserProfile();
+    _getusertype();
     ciruclaranimation = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
@@ -344,7 +396,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
 
               seconduserimage: item.other_side_image,
               chatId: item.chat_id,
-              currentUser: '${firstname}',
+              currentUser: '${usertype}',
               secondUserName: "${item.other_side_firstname}",
               userId: '${item.chat_id}',
             ));

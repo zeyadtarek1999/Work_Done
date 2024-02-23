@@ -475,13 +475,24 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                         padding: EdgeInsets.all(16),
                         child: Row(
                           children: [
-                            CircleAvatar(
-                              backgroundImage: NetworkImage(widget.workerimage ==
-                                      ''
-                                  ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
-                                  : widget.workerimage),
-                              radius: 25,
+                            GestureDetector(
+                              onTap: (){
+
+                                Get.to(Workerprofileother(userId: widget.workerId.toString()));
+
+
+                              },
+                              child: CircleAvatar(
+                                radius: 25,
+                                backgroundColor: Colors.transparent,
+                                backgroundImage: widget.workerimage == '' || widget.workerimage.isNotEmpty
+                                    || widget.workerimage== "https://workdonecorp.com/images/"
+                                    ? AssetImage('assets/images/default.png') as ImageProvider
+                                    : NetworkImage(widget.workerimage?? 'assets/images/default.png'),
+                              ),
+
                             ),
+
                             SizedBox(width: 5),
                             TextButton(
                               onPressed: () {
