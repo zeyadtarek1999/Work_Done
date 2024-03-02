@@ -31,29 +31,38 @@ class editProfileworker extends StatefulWidget {
 
 class _editProfileworkerState extends State<editProfileworker> {
   List<String> americanPhoneCodes = ['+1', '+20', '+30', '+40']; // Add more if needed
-  List<String> languages = [
-    'English',
-    'Arabic',
-    'Spanish',
-    'French',
-    'German',
-    'Chinese (Mandarin)',
-    'Hindi',
-    'Russian',
-    'Japanese',
-    'Portuguese',
-    'Italian',
-    'Korean',
-    'Dutch',
-    'Turkish',
-    'Swedish',
-    'Polish',
-    'Vietnamese',
-    'Greek',
-    'Hebrew',
-    'Thai',
-  ];
+  List<Map<String, dynamic>> languages = [];
+  List<int> selectedLanguages = [];
+
+
+
+
+  Future<void> Languagedata() async {
+    const String url = "https://workdonecorp.com/api/get_all_languages";
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+
+      if (jsonResponse['status'] == 'success') {
+        final List data = jsonResponse['data'];
+        // Process the fetched language data as needed
+        print(data);
+        setState(() {
+          languages = data.map((lang) => {'id': lang['id'], 'name': lang['name']}).toList();
+        });
+      } else {
+        print('Error: ${jsonResponse['msg']}');
+      }
+    } else {
+      print('Error: ${response.statusCode}');
+    }
+  }
+
+
   String ? selectedLanguage;
+  List <int>  selectedLanguageids=[];
   List<String> jobtypes = ['plumber', 'painting', ];
   String ? selectedjobtype;
 
@@ -140,7 +149,7 @@ class _editProfileworkerState extends State<editProfileworker> {
   }
   String firstname = '';
   String secondname = '';
-  String experience = '';
+  int experience = 0;
   String paypal = '';
   String email = '';
   String password = '';
@@ -151,8 +160,8 @@ class _editProfileworkerState extends State<editProfileworker> {
   @override
   void initState() {
     super.initState();
-    selectedLanguage = languages.first; // Set the initial value of selectedLanguage
-
+    // selectedLanguage = languages.first; // Set the initial value of selectedLanguage
+    Languagedata();
     _getUserToken();
 // setState(() {
 //   firstNameController.text = firstname;
@@ -193,10 +202,14 @@ class _editProfileworkerState extends State<editProfileworker> {
       } else {
         request.fields['paypal'] = paypal;
       }
-      if (selectedLanguage != '' ||selectedLanguage != null ) {
-        request.fields['language'] = selectedLanguage.toString();
-      } else {
-        request.fields['language'] = selectedLanguage .toString();
+      if (selectedLanguages .isNotEmpty) {
+        for (var i = 0; i < selectedLanguages.length; i++) {
+          request.fields['language[$i]'] = selectedLanguages[i].toString();
+        }
+      }else {
+        for (var i = 0; i < selectedLanguageids.length; i++) {
+          request.fields['language[$i]'] = selectedLanguageids[i].toString();
+        }
       }
       if (selectedjobtype != '' ||selectedjobtype != null ) {
         request.fields['job_type'] = selectedjobtype.toString();
@@ -211,7 +224,7 @@ class _editProfileworkerState extends State<editProfileworker> {
       if (experiencecontroller.text.isNotEmpty) {
         request.fields['experience'] = experiencecontroller.text;
       } else {
-        request.fields['experience'] = experience;
+        request.fields['experience'] = experience.toString();
       }
       if (phoneController.text.isNotEmpty) {
         request.fields['phone'] = phoneController.text;
@@ -261,7 +274,7 @@ class _editProfileworkerState extends State<editProfileworker> {
           // Navigate to the layout screen
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => layoutworker()),
+            MaterialPageRoute(builder: (context) => layoutworker(showCase: false,)),
           );
         } else if (responseBody['status'] == 'success') {
           // Check the specific error message
@@ -319,35 +332,45 @@ class _editProfileworkerState extends State<editProfileworker> {
 
         final response = await http.post(
           Uri.parse(apiUrl),
-          headers: {'Authorization': 'Bearer $userToken'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $userToken',
+          },
+
         );
 
         if (response.statusCode == 200) {
-          Map<String, dynamic> responseData = json.decode(response.body);
+          Map<dynamic, dynamic> responseData = json.decode(response.body);
 
           if (responseData.containsKey('data')) {
-            Map<String, dynamic> profileData = responseData['data'];
+            Map<dynamic, dynamic> profileData = responseData['data'];
+
+            String languageString;
 
             setState(() {
               firstname = profileData['firstname'] ?? '';
               secondname = profileData['lastname'] ?? '';
               email = profileData['email'] ?? '';
-              paypal = profileData['paypal'] ?? '';
               profile_pic = profileData['profile_pic'] ?? '';
               phonenumber = profileData['phone'] ?? '';
-              experience = profileData['experience'].toString() ?? '';
-              selectedLanguage = profileData['language'] ?? 'Select Language';
+              paypal = profileData['paypal'] ?? 'no paypal number';
+              // license_number = profileData['license_number'] ?? 'No license number';
+              // license_pic = profileData['license_pic'] ?? 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png';
+              experience = profileData['experience'] ?? '';
               selectedjobtype = profileData['job_type'] ?? 'Select Job type';
-              // Set the selected language to the retrieved language
-                          });
-            // setState(() {
-            //   firstNameController.text = firstname;
-            //   lastNameController.text=  secondname;
-            //   emailController.text= email;
-            //   phoneController.text = phonenumber;
-            // });
+              List<dynamic> languages = profileData['language'] ?? [];
+              List<String> languageNames = languages.map<String>((language) => language['name']).toList();
+              languageString = languageNames.join(', ');
+              selectedLanguage = languageString;
+              List<dynamic> languagesnumber = profileData['language'] ?? [];
+              selectedLanguageids = languagesnumber.map<int>((language) => language['id']).toList();
+
+              // Add this line
+            });
+print('selected language  :: ${selectedLanguage}');
+print('selected languageid  :: ${selectedLanguageids}');
             print('Response: $profileData');
-            print('prifole pic: $profile_pic');
+            print('profile pic: $profile_pic');
           } else {
             print(
                 'Error: Response data does not contain the expected structure.');
@@ -485,7 +508,7 @@ class _editProfileworkerState extends State<editProfileworker> {
                             fit: BoxFit.cover,
                             image: FileImage(_image!),
                           )
-                              : profile_pic.isNotEmpty
+                              : profile_pic.isNotEmpty && profile_pic != 'https://workdonecorp.com/images/'
                               ? DecorationImage(
                             fit: BoxFit.cover,
                             image: NetworkImage(profile_pic),
@@ -651,7 +674,7 @@ class _editProfileworkerState extends State<editProfileworker> {
                                 child: TextField(
                                   controller: experiencecontroller,
                                   decoration: InputDecoration(
-                                    hintText: experience,
+                                    hintText: experience.toString(),
                                     border:
                                     InputBorder.none, // Remove default border
                                   ),
@@ -663,131 +686,196 @@ class _editProfileworkerState extends State<editProfileworker> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
-                            child: Text('Language'),
-                          ),
-                          Container(
-                            width: size.width * 0.90,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200], // Background color
-                              borderRadius: BorderRadius.circular(
-                                  20), // Circular border radius
-                            ),
-                            child:                                             Stack(
-                              children: [
-                                TextFormField(
-                                  readOnly: true, // Set this to true to disable editing
-                                  style: TextStyle(color: HexColor('#4D8D6E')),
-                                  decoration: InputDecoration(
-                                    hintText: selectedLanguage ?? 'Select language', // Use selectedState or 'Select State' if it's null
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide.none,
-                                      borderRadius: BorderRadius.circular(20.0),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide.none,
-                                      borderRadius: BorderRadius.circular(20.0),
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: SingleChildScrollView(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0, vertical: 10),
+                                child: Text('language'),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    isLanguageListVisible = !isLanguageListVisible;
+                                    isSearchBarVisible = isLanguageListVisible;
+                                    // Remove the condition to update filteredLanguages regardless of the search bar visibility
+                                    filteredLanguages = languages;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 5,
+                                  ),
+                                  height: size.height * 0.09,
+                                  width: size.width * 0.93,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(29),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      selectedLanguage!=' ' ?
+                                      Text(
+                                        '${selectedLanguage?? 'select language'}',
+                                        style: TextStyle(
+                                            fontSize: 16, color: Colors.grey[700]),
+                                      )
+                                      :Text(
+                                        'Select language',
+                                        style: TextStyle(
+                                            fontSize: 16, color: Colors.grey[700]),
+                                      )
+                                      ,
+                                      Spacer(),
+                                      Icon(
+                                        isLanguageListVisible
+                                            ? Icons.arrow_drop_up
+                                            : Icons.arrow_drop_down,
+                                        size: 18,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              // Validation error message
+                              // if (isLanguageListVisible && selectedLanguages.isEmpty)
+                              //   Padding(
+                              //     padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+                              //     child: Text(
+                              //       'Please select a language',
+                              //       style: TextStyle(color: Colors.red),
+                              //     ),
+                              //   ),
+
+                              // Search bar
+                              Visibility(
+                                visible: isSearchBarVisible,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: TextField(
+                                    onChanged: (query) {
+                                      setState(() {
+                                        filteredLanguages = languages
+                                            .where((language) =>
+                                            language['lang']
+                                                .toLowerCase()
+                                                .contains(query.toLowerCase()))
+                                            .toList();
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText: 'Search languages...',
+                                      prefixIcon: Icon(Icons.search),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
                                     ),
                                   ),
                                 ),
-                                Positioned.fill(
-                                  child: InkWell(
-                                    onTap: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return StateSelectorPopup(
-                                            states: languages,
-                                            onSelect: (newlySelectedjob) {
-                                              // Update selectedState when a state is selected
+                              ),
+
+                              // List of filtered languages
+                              Visibility(
+                                visible: isLanguageListVisible,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: filteredLanguages.map((language) {
+                                    final langName = language['name'];
+                                    final langId = language['id'];
+
+                                    return Column(
+                                      children: [
+                                        ListTile(
+                                          title: Text(langName),
+                                          leading: Checkbox(
+                                            activeColor: HexColor('#4D8D6E'),
+                                            value: selectedLanguages.contains(langId),
+                                            onChanged: (value) {
                                               setState(() {
-                                                selectedLanguage = newlySelectedjob;
+                                                if (value!) {
+                                                  selectedLanguages.add(langId);
+                                                  print('selected languages add ${selectedLanguages}'); // Print the selected language IDs
+
+
+                                                } else {
+                                                  print('selected languages remove ${selectedLanguages}'); // Print the selected language IDs
+
+                                                  selectedLanguages.remove(langId);
+                                                }
                                               });
-                                              print('Selected jobtype : $newlySelectedjob');
+                                            },
+                                          ),
+                                        ),
+                                        Divider(),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+                                child: Text('Job Type'),
+                              ),
+
+                              Container(
+                                width: size.width * 0.90,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200], // Background color
+                                  borderRadius: BorderRadius.circular(
+                                      20), // Circular border radius
+                                ),
+                                child:                                             Stack(
+                                  children: [
+                                    TextFormField(
+                                      readOnly: true, // Set this to true to disable editing
+                                      style: TextStyle(color: HexColor('#4D8D6E')),
+                                      decoration: InputDecoration(
+                                        hintText: selectedjobtype ?? 'Select Job type', // Use selectedState or 'Select State' if it's null
+                                        enabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide.none,
+                                          borderRadius: BorderRadius.circular(20.0),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide.none,
+                                          borderRadius: BorderRadius.circular(20.0),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned.fill(
+                                      child: InkWell(
+                                        onTap: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return StateSelectorPopup(
+                                                states: jobtypes,
+                                                onSelect: (newlySelectedjob) {
+                                                  // Update selectedState when a state is selected
+                                                  setState(() {
+                                                    selectedjobtype = newlySelectedjob;
+                                                  });
+                                                  print('Selected jobtype : $newlySelectedjob');
+                                                },
+                                              );
                                             },
                                           );
                                         },
-                                      );
-                                    },
-                                    splashColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                          ),
-
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
-                            child: Text('Job Type'),
-                          ),
-
-                          Container(
-                            width: size.width * 0.90,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200], // Background color
-                              borderRadius: BorderRadius.circular(
-                                  20), // Circular border radius
-                            ),
-                            child:                                             Stack(
-                              children: [
-                                TextFormField(
-                                  readOnly: true, // Set this to true to disable editing
-                                  style: TextStyle(color: HexColor('#4D8D6E')),
-                                  decoration: InputDecoration(
-                                    hintText: selectedjobtype ?? 'Select Job type', // Use selectedState or 'Select State' if it's null
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide.none,
-                                      borderRadius: BorderRadius.circular(20.0),
+                                        splashColor: Colors.transparent,
+                                        highlightColor: Colors.transparent,
+                                      ),
                                     ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide.none,
-                                      borderRadius: BorderRadius.circular(20.0),
-                                    ),
-                                  ),
+                                  ],
                                 ),
-                                Positioned.fill(
-                                  child: InkWell(
-                                    onTap: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return StateSelectorPopup(
-                                            states: jobtypes,
-                                            onSelect: (newlySelectedjob) {
-                                              // Update selectedState when a state is selected
-                                              setState(() {
-                                                selectedjobtype = newlySelectedjob;
-                                              });
-                                              print('Selected jobtype : $newlySelectedjob');
-                                            },
-                                          );
-                                        },
-                                      );
-                                    },
-                                    splashColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
-                                  ),
-                                ),
-                              ],
-                            ),
 
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                              ),
+                            ]))),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Row(
@@ -798,7 +886,7 @@ class _editProfileworkerState extends State<editProfileworker> {
                           Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10.0, vertical: 10),
-                            child: Text('Bank Number'),
+                            child: Text('PayPal Email'),
                           ),
                           Container(
                               width: size.width * 0.90,

@@ -2,7 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_paypal_native/flutter_paypal_native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/view/screens/onBoard/OnboardClient.dart';
+import 'package:workdone/view/screens/onBoard/onboardWorker.dart';
+import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
+import 'package:workdone/view/screens/welcome/welcome_screen.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,6 +21,8 @@ import 'view/screens/splashscreen.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_admin/firebase_admin.dart';
+
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
 
@@ -139,26 +147,86 @@ void startPeriodicSync() {
   });
 }
 
+
+Future<void> _firebaseMessagingBackgroundHandler(
+    RemoteMessage message) async {
+  print("Handling background message: ${message.notification?.body}");
+
+    // showLocalNotification('${message.notification?.body}');
+}
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(false);
 
+  final notificationSettings = await FirebaseMessaging.instance.requestPermission(provisional: true);
+  final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+  if (apnsToken != null) {
+print ('token :: ${apnsToken}' ) ; }
+  await FirebaseMessaging.instance.setAutoInitEnabled(true);
+
+  Future<void> initFirebaseMessaging() async {
+    try {
+      await FirebaseMessaging.instance.setAutoInitEnabled(true);
+
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+      // Request permission for iOS devices
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      print("Notification settings: $settings");
+
+      // Get the token
+      String? token = await messaging.getToken();
+      print("Firebase Messaging Token: $token");
+
+      // Handle incoming messages
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        print("Received foreground message: ${message.notification?.body}");
+        // You can handle the message as needed
+        // For example, show a local notification using Awesome Notifications
+        // showLocalNotification(message.notification?.body ?? '');
+      });
+
+      FirebaseMessaging.onMessageOpenedApp
+          .listen((RemoteMessage message) {
+        print("Opened app from notification: ${message.notification?.body}");
+        // Handle navigation or additional logic when the app is opened from a notification
+      });
+
+      // Define the background message handler function here
+
+
+      // Set the background message handler
+    } catch (e) {
+      print('Error initializing Firebase Messaging: $e');
+    }
+  }
+  await initFirebaseMessaging();
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
   await AwesomeNotifications().initialize(
     null,
     [
       NotificationChannel(
-          channelGroupKey: 'basick group channel',
-          channelKey: 'postProject',
-          channelName: 'basic notification',
-          channelDescription: 'hello test only test',
+        channelGroupKey: 'basick group channel',
+        channelKey: 'postProject',
+        channelName: 'basic notification',
+        channelDescription: 'hello test only test',
       ),
-
       NotificationChannel(
-          channelGroupKey: 'basick group channel',
-          channelKey: 'support',
-          channelName: 'basic notification',
-          channelDescription: 'hello test only test'),
+        channelGroupKey: 'basick group channel',
+        channelKey: 'support',
+        channelName: 'basic notification',
+        channelDescription: 'hello test only test',
+      ),
       NotificationChannel(
         channelKey: 'background_channel',
         channelName: 'Background Notifications',
@@ -169,9 +237,36 @@ void main() async {
     ],
     channelGroups: [
       NotificationChannelGroup(
-          channelGroupKey: 'basic', channelGroupName: 'basic group'),
+        channelGroupKey: 'basic',
+        channelGroupName: 'basic group',
+      ),
     ],
   );
+
+
+
+
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print("Received foreground message: ${message.notification?.body}");
+    // Extract data and perform actions
+    String title = message.notification?.title ?? '';
+    String body = message.notification?.body ?? '';
+    showLocalNotification(body);
+    // You can customize the handling based on your notification payload
+  });
+
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    print("Opened app from notification: ${message.notification?.body}");
+    // Extract data and perform actions when the app is opened from a notification
+  });
+
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    print("Opened app from notification: ${message.notification?.body}");
+    // Extract data and navigate to a specific screen
+    Get.toNamed('/WelcomeScreen', arguments: message.data);
+  });
+
+  // Add the background message handler function
   Workmanager().initialize(
     callbackDispatcher,
     isInDebugMode: false, // Disable debug notifications
@@ -181,13 +276,16 @@ void main() async {
     "1", // unique task name
     "backgroundFetchTask",
   );
+
   await _getUserProfile();
   startPeriodicSync();
 
-  bool isAllowedToSendNotification = await AwesomeNotifications().isNotificationAllowed();
+  bool isAllowedToSendNotification =
+  await AwesomeNotifications().isNotificationAllowed();
   if (!isAllowedToSendNotification) {
     AwesomeNotifications().requestPermissionToSendNotifications();
   }
+
   const Duration fetchInterval = Duration(minutes: 15);
   Timer.periodic(fetchInterval, (Timer timer) {
     callbackDispatcher();
@@ -195,6 +293,9 @@ void main() async {
 
   runApp(MyApp());
 }
+
+
+
 class NotificationModel {
   int id;
   String channelKey;
@@ -217,33 +318,53 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context);
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
+    return     WillPopScope(
+      onWillPop: () async {
+        return await Get.defaultDialog(
+          title: 'Exit App?',
+          content: Text('Do you want to close the app?'),
+          confirm: TextButton(
+            onPressed: () => Get.back(result: true),
+            child: Text('Close'),
+          ),
+          cancel: TextButton(
+            onPressed: () => Get.back(result: false),
+            child: Text('Stay'),
+          ),
+        ) ?? false;
+      },
 
-      title: 'Work Done',
+      child: GetMaterialApp(
+        debugShowCheckedModeBanner: false,
 
-      theme: ThemeData(
-        primaryColorLight: HexColor('#4D8D6E'),
-        appBarTheme: AppBarTheme(color: HexColor('#4D8D6E')),
-        buttonTheme: ButtonThemeData(buttonColor: HexColor('#4D8D6E')),
-        scaffoldBackgroundColor: HexColor('#F5F5F5'),
-        primaryTextTheme: TextTheme(
-          headlineMedium: TextStyle(color: HexColor('#292929')),
+        title: 'Work Done',
+
+        theme: ThemeData(
+          primaryColorLight: HexColor('#4D8D6E'),
+          appBarTheme: AppBarTheme(color: HexColor('#4D8D6E')),
+          buttonTheme: ButtonThemeData(buttonColor: HexColor('#4D8D6E')),
+          scaffoldBackgroundColor: HexColor('#F5F5F5'),
+          primaryTextTheme: TextTheme(
+            headlineMedium: TextStyle(color: HexColor('#292929')),
+          ),
         ),
+
+
+        initialRoute: '/CustomSplashScreen',
+        // You can define your initial route here
+
+        getPages: [
+          GetPage(name: '/Moreworker', page: () => Moreworker()),
+          GetPage(name: '/CustomSplashScreen', page: () => CustomSplashScreen()),
+          GetPage(name: '/OnBoardingClient', page: () => OnBoardingClient()),
+          GetPage(name: '/OnBoardingWorker', page: () => OnBoardingWorker()),
+          GetPage(name: '/projectPost', page: () => projectPost()),
+          GetPage(name: '/WelcomeScreen', page: () => WelcomeScreen()),
+
+          // GetPage(name: '/Homescreen', page: () => Homescreen()),
+          // GetPage(name: '/From firstpage', page: () => Firstpage()),
+        ],
       ),
-
-
-      initialRoute: '/CustomSplashScreen',
-      // You can define your initial route here
-
-      getPages: [
-        GetPage(name: '/layoutclient', page: () => layoutclient()),
-        GetPage(name: '/Moreworker', page: () => Moreworker()),
-        GetPage(name: '/CustomSplashScreen', page: () => CustomSplashScreen()),
-
-        // GetPage(name: '/Homescreen', page: () => Homescreen()),
-        // GetPage(name: '/From firstpage', page: () => Firstpage()),
-      ],
     );
 
   }

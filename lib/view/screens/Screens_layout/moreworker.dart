@@ -132,251 +132,260 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
       Screenshot(
         controller:screenshotController ,
         child:Padding(
-          padding: const EdgeInsets.only(top: 50.0, left: 20, right: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 35,
-                    backgroundColor: Colors.transparent,
-                    backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                        && profile_pic == "https://workdonecorp.com/images/"
-                        ? AssetImage('assets/images/default.png') as ImageProvider
-                        : NetworkImage(profile_pic?? 'assets/images/default.png'),
-                  )
-
-,
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${firstname}',
-                          style: GoogleFonts.encodeSans(
-                            textStyle: TextStyle(
-                                color: HexColor('3A3939'),
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 6,
-                        ),
-                        Text(
-                          '${email}',
-                          style: GoogleFonts.encodeSans(
-                            textStyle: TextStyle(
-                                color: HexColor('3A3939'),
-                                fontSize: 15,
-                                fontWeight: FontWeight.normal),
-                          ),
-                        ),
-                      ],
+          padding: const EdgeInsets.only(top: 50.0, left: 10, right: 10),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: MediaQuery.of(context).size.width * 0.1,
+                      backgroundColor: Colors.transparent,
+                      backgroundImage: profile_pic != '' &&
+                          profile_pic.isNotEmpty &&
+                          profile_pic == "https://workdonecorp.com/images/"
+                          ? AssetImage('assets/images/default.png') as ImageProvider
+                          : NetworkImage(profile_pic ?? 'assets/images/default.png'),
                     ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 30.0),
-                child: Container(
-                  width: double.infinity,
-                  height: 46,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: HexColor('6CA78A'),
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                        BorderRadius.circular(20.0), // Set circular border
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width * 0.03,
+                        // Adjust the multiplication factor based on your preference
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${firstname}',
+                            style: GoogleFonts.encodeSans(
+                              textStyle: TextStyle(
+                                color: HexColor('3A3939'),
+                                fontSize: MediaQuery.of(context).size.width * 0.072,
+                                // Adjust the multiplication factor based on your preference
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.width * 0.012,
+                            // Adjust the multiplication factor based on your preference
+                          ),
+                          Text(
+                            '${email}',
+                            style: GoogleFonts.encodeSans(
+                              textStyle: TextStyle(
+                                color: HexColor('3A3939'),
+                                fontSize: MediaQuery.of(context).size.width * 0.041,
+                                // Adjust the multiplication factor based on your preference
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    onPressed: () {
-                      Get.to(ProfileScreenworker());
-                    },
-                    child: Text(
-                      'View Profile',
-                      style: GoogleFonts.encodeSans(
-                        textStyle: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 30.0),
+                  child: Container(
+                    width: double.infinity,
+                    height: 46,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: HexColor('6CA78A'),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                          BorderRadius.circular(20.0), // Set circular border
+                        ),
+                      ),
+                      onPressed: () {
+                        Get.to(ProfileScreenworker());
+                      },
+                      child: Text(
+                        'View Profile',
+                        style: GoogleFonts.encodeSans(
+                          textStyle: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              Row(
-                children: [
-                  Icon(
-                    Ionicons.location_outline,
-                    color: Colors.grey[800],
-                    size: 27,
-                  ),
-                  SizedBox(
-                    width: 9,
-                  ),
-                  TextButton(
-                      onPressed: () {
-                        Get.to(editAddressClient());
+                SizedBox(
+                  height: 15,
+                ),
+                Row(
+                  children: [
+                    Icon(
+                      Ionicons.location_outline,
+                      color: Colors.grey[800],
+                      size: 27,
+                    ),
+                    SizedBox(
+                      width: 9,
+                    ),
+                    TextButton(
+                        onPressed: () {
+                          Get.to(editAddressClient());
 
-                      },
-                      child: Text(
-                        'Address',
-                        style: GoogleFonts.encodeSans(
-                          textStyle: TextStyle(
-                              color: HexColor('454545'),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      )),
-                ],
-              ),
-              SizedBox(
-                height: 8,
-              ),
-              Row(
-                children: [
-                  Icon(
-                    Ionicons.card_outline,
-                    color: Colors.grey[800],
-                    size: 27,
-                  ),
-                  SizedBox(
-                    width: 9,
-                  ),
-                  TextButton(
-                      onPressed: () {
-                        launchUrl(Uri.parse('https://www.paypal.com/signin'),mode: LaunchMode.inAppWebView);
-                      },
-                      child: Text(
-                        'Payment method',
-                        style: GoogleFonts.encodeSans(
-                          textStyle: TextStyle(
-                              color: HexColor('454545'),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      )),
-
-                ],
-              ),
-              SizedBox(
-                height: 8,
-              ),
-              // Row(
-              //   children: [
-              //     Icon(
-              //       Ionicons.help_circle_outline,
-              //       color: Colors.grey[800],
-              //       size: 27,
-              //     ),
-              //     SizedBox(
-              //       width: 9,
-              //     ),
-              //     TextButton(
-              //         onPressed: () {},
-              //         child: Text(
-              //           'Help',
-              //           style: GoogleFonts.encodeSans(
-              //             textStyle: TextStyle(
-              //                 color: HexColor('454545'),
-              //                 fontSize: 14,
-              //                 fontWeight: FontWeight.w600),
-              //           ),
-              //         )),
-              //   ],
-              // ),
-              SizedBox(
-                height: 8,
-              ),
-              // Row(
-              //   children: [
-              //     Icon(
-              //       Ionicons.settings_outline,
-              //       color: Colors.grey[800],
-              //       size: 27,
-              //     ),
-              //     SizedBox(
-              //       width: 9,
-              //     ),
-              //     TextButton(
-              //         onPressed: () {},
-              //         child: Text(
-              //           'Setting',
-              //           style: GoogleFonts.encodeSans(
-              //             textStyle: TextStyle(
-              //                 color: HexColor('454545'),
-              //                 fontSize: 14,
-              //                 fontWeight: FontWeight.w600),
-              //           ),
-              //         )),
-              //   ],
-              // ),
-              SizedBox(
-                height: 8,
-              ),
-              Row(
-                children: [
-                  TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        'About',
-                        style: GoogleFonts.encodeSans(
-                          textStyle: TextStyle(
-                              color: HexColor('454545'),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      )),
-
-                ],
-              ),
-
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: () async {
-                      await clearSharedPreferences(); // Add this line to clear SharedPreferences
-
-                      Get.offAll(WelcomeScreen());
-
-                    },
-                    child:  Text('Log Out',
-                        style: GoogleFonts.encodeSans(
-                          textStyle: TextStyle(
-                              color: Colors.red,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600),
+                        },
+                        child: Text(
+                          'Address',
+                          style: GoogleFonts.encodeSans(
+                            textStyle: TextStyle(
+                                color: HexColor('454545'),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600),
+                          ),
                         )),
-                  )
-                ],
-              ),
-              // ElevatedButton(
-              //   onPressed: () async {
-              //     await clearClientID(); // Call the function to clear client_id
-              //     Navigator.pushReplacement(
-              //       context,
-              //       MaterialPageRoute(builder: (context) => WelcomeScreen()),
-              //     );
-              //   },
-              //   style: ElevatedButton.styleFrom(
-              //     primary: Colors.red, // Set the button color to red
-              //     shape: RoundedRectangleBorder(
-              //       borderRadius:
-              //           BorderRadius.circular(20.0), // Set circular border
-              //     ),
-              //   ),
-              //   child: Text(
-              //     'Logout',
-              //     style: TextStyle(color: Colors.white),
-              //   ),
-              // ),
-            ],
+                  ],
+                ),
+                SizedBox(
+                  height: 8,
+                ),
+                Row(
+                  children: [
+                    Icon(
+                      Ionicons.card_outline,
+                      color: Colors.grey[800],
+                      size: 27,
+                    ),
+                    SizedBox(
+                      width: 9,
+                    ),
+                    TextButton(
+                        onPressed: () {
+                          launchUrl(Uri.parse('https://www.paypal.com/signin'),mode: LaunchMode.inAppWebView);
+                        },
+                        child: Text(
+                          'Payment method',
+                          style: GoogleFonts.encodeSans(
+                            textStyle: TextStyle(
+                                color: HexColor('454545'),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        )),
+
+                  ],
+                ),
+                SizedBox(
+                  height: 8,
+                ),
+                // Row(
+                //   children: [
+                //     Icon(
+                //       Ionicons.help_circle_outline,
+                //       color: Colors.grey[800],
+                //       size: 27,
+                //     ),
+                //     SizedBox(
+                //       width: 9,
+                //     ),
+                //     TextButton(
+                //         onPressed: () {},
+                //         child: Text(
+                //           'Help',
+                //           style: GoogleFonts.encodeSans(
+                //             textStyle: TextStyle(
+                //                 color: HexColor('454545'),
+                //                 fontSize: 14,
+                //                 fontWeight: FontWeight.w600),
+                //           ),
+                //         )),
+                //   ],
+                // ),
+                SizedBox(
+                  height: 8,
+                ),
+                // Row(
+                //   children: [
+                //     Icon(
+                //       Ionicons.settings_outline,
+                //       color: Colors.grey[800],
+                //       size: 27,
+                //     ),
+                //     SizedBox(
+                //       width: 9,
+                //     ),
+                //     TextButton(
+                //         onPressed: () {},
+                //         child: Text(
+                //           'Setting',
+                //           style: GoogleFonts.encodeSans(
+                //             textStyle: TextStyle(
+                //                 color: HexColor('454545'),
+                //                 fontSize: 14,
+                //                 fontWeight: FontWeight.w600),
+                //           ),
+                //         )),
+                //   ],
+                // ),
+                SizedBox(
+                  height: 8,
+                ),
+                Row(
+                  children: [
+                    TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          'About',
+                          style: GoogleFonts.encodeSans(
+                            textStyle: TextStyle(
+                                color: HexColor('454545'),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        )),
+
+                  ],
+                ),
+
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () async {
+                        await clearSharedPreferences(); // Add this line to clear SharedPreferences
+
+                        Get.offAll(WelcomeScreen());
+
+                      },
+                      child:  Text('Log Out',
+                          style: GoogleFonts.encodeSans(
+                            textStyle: TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600),
+                          )),
+                    )
+                  ],
+                ),
+                // ElevatedButton(
+                //   onPressed: () async {
+                //     await clearClientID(); // Call the function to clear client_id
+                //     Navigator.pushReplacement(
+                //       context,
+                //       MaterialPageRoute(builder: (context) => WelcomeScreen()),
+                //     );
+                //   },
+                //   style: ElevatedButton.styleFrom(
+                //     primary: Colors.red, // Set the button color to red
+                //     shape: RoundedRectangleBorder(
+                //       borderRadius:
+                //           BorderRadius.circular(20.0), // Set circular border
+                //     ),
+                //   ),
+                //   child: Text(
+                //     'Logout',
+                //     style: TextStyle(color: Colors.white),
+                //   ),
+                // ),
+              ],
+            ),
           ),
         ),
       ),

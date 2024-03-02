@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -180,21 +181,27 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                           padding: EdgeInsets.symmetric(horizontal: 0,vertical: 10),
                           child: TabBarView(
                               children: [
-                                ListView.builder(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  itemCount: Newprojectitems.length,
-                                  itemBuilder: (context, index) {
-                                    return buildListproject( Newprojectitems[index]);
-                                  },
+                                Animate(
+                                  effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                  child: ListView.builder(
+                                    physics: NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemCount: Newprojectitems.length,
+                                    itemBuilder: (context, index) {
+                                      return buildListproject( Newprojectitems[index]);
+                                    },
+                                  ),
                                 ),
-                                ListView.builder(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  itemCount: reviewsitems2.length,
-                                  itemBuilder: (context, index) {
-                                    return buildListReviews( reviewsitems2[index]);
-                                  },
+                                Animate(
+                                  effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                  child: ListView.builder(
+                                    physics: NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemCount: reviewsitems2.length,
+                                    itemBuilder: (context, index) {
+                                      return buildListReviews( reviewsitems2[index]);
+                                    },
+                                  ),
                                 ),
                               ]
                           )

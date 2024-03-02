@@ -10,6 +10,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_neat_and_clean_calendar/flutter_neat_and_clean_calendar.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_sliding_up_panel/sliding_up_panel_widget.dart';
@@ -109,12 +110,14 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => bidDetailsWorker(projectId: widget.projectId),
-        ),
+
+      Get.off(
+        bidDetailsWorker(projectId: widget.projectId),
+        transition: Transition.leftToRight, // You can choose a different transition
+        duration: Duration(milliseconds: 1100), // Set the duration of the transition
       );
+
+
       print(responseBody);
     } else {
       // Handle the error; the server didn't return a 200 OK response.
@@ -181,12 +184,12 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
               SizedBox(height: 30),
               ElevatedButton(
                 onPressed: () async{
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => bidDetailsWorker(projectId: widget.projectId),
-                    ),
+                  Get.off(
+                    bidDetailsWorker(projectId: widget.projectId),
+                    transition: Transition.leftToRight, // You can choose a different transition
+                    duration: Duration(milliseconds: 1100), // Set the duration of the transition
                   );
+
 
                   if (isSuccess) {
                     // Navigate to the next page or perform an action if necessary
@@ -455,7 +458,21 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
   String? buttonsValue;
   String? visableofplacebid;
-  Future<void> fetchData() async {
+  bool visableplacebid = false;
+  Future<void> visablityofplacebid() async {
+    final ProjectData projectData = await fetchProjectDetails(widget.projectId);
+    visableofplacebid= projectData.status;
+    if (visableofplacebid == 'under_bidding'){
+      setState(() {
+        visableplacebid =true;
+
+      });
+    }
+
+
+  }
+
+    Future<void> fetchData() async {
     // Assuming you have a function to fetch project details
     final ProjectData projectData = await fetchProjectDetails(widget.projectId);
 
@@ -468,6 +485,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
   Future<void> fetchvideo() async {
     // Assuming you have a function to fetch project details
     final ProjectData projectData = await fetchProjectDetails(widget.projectId);
+
     if (projectData.pageContent.scheduleStatus == "pending") {
       showModalBottomSheet(
         context: context,
@@ -604,7 +622,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     }
 
     video = projectData.video;
-    visableofplacebid= projectData.status;
     print('this is url'+video);
 
     _controller = VideoPlayerController.networkUrl(Uri.parse(
@@ -631,9 +648,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
   @override
   void initState() {
     super.initState();
+
     int projectId =widget.projectId;
       futureProjects = fetchProjectDetails(projectId);
-
+    visablityofplacebid();
     scrollController = ScrollController();
     scrollController.addListener(() {
       if (scrollController.offset >=
@@ -729,7 +747,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     return Stack(children: <Widget>[
       WillPopScope(
         onWillPop: () async {
-          Get.offAll(layoutworker()); // Navigate to the layoutworker screen
+          Get.offAll(layoutworker(showCase: false),
+            transition: Transition.zoom, // You can choose a different transition
+            duration: Duration(milliseconds: 1100), ); // Navigate to the layoutworker screen
           return false; // Return false to indicate that the back button was handled
         },
         child: Scaffold(
@@ -756,7 +776,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
             toolbarHeight: 60,
             leading: IconButton(
               onPressed: () {
-        Get.to(layoutworker());
+        Get.to(layoutworker(showCase: false),
+          transition: Transition.zoom, // You can choose a different transition
+          duration: Duration(milliseconds: 1100), );
 
         },
               icon: Icon(Icons.arrow_back_sharp),
@@ -1039,15 +1061,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                 ),                           SizedBox(
                                   height: 12,
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                                  child: Text(
-                                    projectData.title,
-                                    style: GoogleFonts.openSans(
-                                      textStyle: TextStyle(
-                                        color: HexColor('454545'),
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
+                                Animate(
+                                  effects: [FadeEffect(duration: Duration(milliseconds: 500),),],
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                                    child: Text(
+                                      projectData.title,
+                                      style: GoogleFonts.openSans(
+                                        textStyle: TextStyle(
+                                          color: HexColor('454545'),
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -1080,7 +1105,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                           Get.to(ProfilePageClient(
                                               userId: projectData
                                                   .clientData!.clientId
-                                                  .toString()));
+                                                  .toString())
+                                            ,
+                                            transition: Transition.leftToRightWithFade, // You can choose a different transition
+                                            duration: Duration(milliseconds: 1100), );
                                         },
                                         style: TextButton.styleFrom(
                                           fixedSize: Size(50, 30),
@@ -1187,21 +1215,25 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                 SizedBox(
                                   height: 8,
                                 ),
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 5.0),
-                                  child: Text(
-                                    projectData.desc,
-                                    textAlign: TextAlign.left,
-                                    style: GoogleFonts.roboto(
-                                      textStyle: TextStyle(
-                                        color: HexColor('706F6F'),
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.normal,
+                                Animate(
+                                  effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                  child: Padding(
+                                    padding:
+                                    const EdgeInsets.symmetric(horizontal: 5.0),
+                                    child: Text(
+                                      projectData.desc,
+                                      textAlign: TextAlign.left,
+                                      style: GoogleFonts.roboto(
+                                        textStyle: TextStyle(
+                                          color: HexColor('706F6F'),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.normal,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
+
                                 SizedBox(
                                   height: 16,
                                 ),
@@ -1272,7 +1304,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             (
                                                               userId: projectData
                                                                   .selectworkerbid!.worker_id
-                                                                  .toString()));
+                                                                  .toString())
+                                                            ,
+                                                            transition: Transition.leftToRight, // You can choose a different transition
+                                                            duration: Duration(milliseconds: 1100),
+                                                          );
                                                         },
                                                         child: Text(
                                                           projectData.selectworkerbid.worker_firstname,
@@ -1956,15 +1992,19 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               ),
                                             ),
                                             SizedBox(height: 12,),
-                                                  ListView.builder(
-                                    physics: NeverScrollableScrollPhysics(),
-                                    shrinkWrap: true,
-                                    itemCount: projectData.bids.length,
-                                    itemBuilder: (context, index) {
-                                    Bid bid = projectData.bids[index];
-                                    return buildListItem(bid);
-                                    },
-                                    ),
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
+                                            ),
+
                                           ],
                                         );
                                       }
@@ -2223,12 +2263,12 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             setState(() {
                                                               changeScheduleStatus(widget.projectId, 'accepted');
 
-                                                              Navigator.pushReplacement(
-                                                                context,
-                                                                MaterialPageRoute(
-                                                                  builder: (context) => bidDetailsWorker(projectId: widget.projectId),
-                                                                ),
+                                                              Get.off(
+                                                                bidDetailsWorker(projectId: widget.projectId),
+                                                                transition: Transition.leftToRight, // You can choose a different transition
+                                                                duration: Duration(milliseconds: 1100), // Set the duration of the transition
                                                               );
+
                                                             });
                                                           },
                                                           style: ElevatedButton.styleFrom(
@@ -2611,14 +2651,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               ),
                                             ),
                                             SizedBox(height: 12,),
-                                            ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: projectData.bids.length,
-                                              itemBuilder: (context, index) {
-                                                Bid bid = projectData.bids[index];
-                                                return buildListItem(bid);
-                                              },
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
                                             ),
 
 
@@ -3192,14 +3235,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               ),
                                             ),
                                             SizedBox(height: 12,),
-                                            ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: projectData.bids.length,
-                                              itemBuilder: (context, index) {
-                                                Bid bid = projectData.bids[index];
-                                                return buildListItem(bid);
-                                              },
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
                                             ),
 
 
@@ -3756,16 +3802,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               ),
                                             ),
                                             SizedBox(height: 12,),
-                                            ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: projectData.bids.length,
-                                              itemBuilder: (context, index) {
-                                                Bid bid = projectData.bids[index];
-                                                return buildListItem(bid);
-                                              },
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
                                             ),
-
 
                                           ],
                                         );
@@ -4344,16 +4392,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               ),
                                             ),
                                             SizedBox(height: 12,),
-                                            ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: projectData.bids.length,
-                                              itemBuilder: (context, index) {
-                                                Bid bid = projectData.bids[index];
-                                                return buildListItem(bid);
-                                              },
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
                                             ),
-
 
                                           ],
                                         );
@@ -4961,14 +5011,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                       ),
                     ),
                     SizedBox(height: 12,),
-                    ListView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: projectData.bids.length,
-                      itemBuilder: (context, index) {
-              Bid bid = projectData.bids[index];
-              return buildListItem(bid);
-                      },
+                    Animate(
+                      effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                      child: ListView.builder(
+                        physics: NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: projectData.bids.length,
+                        itemBuilder: (context, index) {
+                          Bid bid = projectData.bids[index];
+                          return buildListItem(bid);
+                        },
+                      ),
                     ),
 
 
@@ -5143,14 +5196,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               children: [
                                                 CircleAvatar(
                                                   radius: 23,
-                                                  backgroundImage: NetworkImage(
-                                                    projectData.clientData?.profileImage ==
-                                                        'https://workdonecorp.com/images/'
-                                                        ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
-                                                        : projectData
-                                                        .clientData?.profileImage ??
-                                                        'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                                  ),
+                                                  backgroundColor: Colors.transparent,
+                                                  backgroundImage: projectData.clientData?.profileImage== 'https://workdonecorp.com/images/' ||projectData.clientData?.profileImage== ''
+                                                      ? AssetImage('assets/images/default.png') as ImageProvider
+                                                      : NetworkImage(projectData.clientData?.profileImage?? 'assets/images/default.png'),
                                                 ),
                                                 SizedBox(width: 11),
                                                 TextButton(
@@ -5158,7 +5207,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     Get.to(ProfilePageClient(
                                                         userId: projectData
                                                             .clientData!.clientId
-                                                            .toString()));
+                                                            .toString()),
+                                                      transition: Transition.leftToRight, // You can choose a different transition
+                                                      duration: Duration(milliseconds: 1100), );
                                                   },
                                                   style: TextButton.styleFrom(
                                                     fixedSize: Size(50, 30),
@@ -5308,7 +5359,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         (
                                                           userId: projectData
                                                               .selectworkerbid.worker_id
-                                                              .toString()));
+                                                              .toString()),
+                                                        transition: Transition.leftToRight, // You can choose a different transition
+                                                        duration: Duration(milliseconds: 1100), );
                                                     },
                                                     style: TextButton.styleFrom(
                                                       fixedSize: Size(50, 30),
@@ -5405,21 +5458,12 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                           Row(
                                                                             mainAxisAlignment: MainAxisAlignment.center,
                                                                             children: [
-                                                                              Container(
-                                                                                height: 56,
-                                                                                width: 56,
-                                                                                decoration: BoxDecoration(
-                                                                                  shape: BoxShape.circle,
-                                                                                  image: DecorationImage(
-                                                                                    fit: BoxFit.cover,
-                                                                                    image: NetworkImage(
-                                                                                      projectData.clientData.profileImage != 'https://workdonecorp.com/images/' &&
-                                                                                          projectData.clientData.profileImage.isNotEmpty
-                                                                                          ? projectData.clientData.profileImage
-                                                                                          : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
+                                                                              CircleAvatar(
+                                                                                radius: 23,
+                                                                                backgroundColor: Colors.transparent,
+                                                                                backgroundImage: projectData.clientData.profileImage== 'https://workdonecorp.com/images/' ||projectData.clientData.profileImage == ''
+                                                                                    ? AssetImage('assets/images/default.png') as ImageProvider
+                                                                                    : NetworkImage(projectData.clientData.profileImage ?? 'assets/images/default.png'),
                                                                               ),
                                                                               SizedBox(width: 10),
                                                                               Column(
@@ -5528,12 +5572,12 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                             if (!isLoading) {
                                                                               controller.loading();
                                                                               await    Reviewproject();
-                                                                              Navigator.pushReplacement(
-                                                                                context,
-                                                                                MaterialPageRoute(
-                                                                                  builder: (context) => bidDetailsWorker(projectId: widget.projectId),
-                                                                                )
+                                                                              Get.off(
+                                                                                bidDetailsWorker(projectId: widget.projectId),
+                                                                                transition: Transition.leftToRight, // You can choose a different transition
+                                                                                duration: Duration(milliseconds: 1100), // Set the duration of the transition
                                                                               );
+
                                                                               controller.success();
                                                                               await Future.delayed(const Duration(seconds: 1));
                                                                               controller.reset();
@@ -5613,14 +5657,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 ),
                                               ),
                                             ),
-                                            ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: projectData.bids.length,
-                                              itemBuilder: (context, index) {
-                                                Bid bid = projectData.bids[index];
-                                                return buildListItem(bid);
-                                              },
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
                                             ),
 
                                           ],
@@ -5770,14 +5817,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
                                             SizedBox(height: 8,),
 
-                                            ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: projectData.bids.length,
-                                              itemBuilder: (context, index) {
-                                                Bid bid = projectData.bids[index];
-                                                return buildListItem(bid);
-                                              },
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
                                             ),
                                           ],
                                         );
@@ -5949,7 +5999,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
 
-          if (visableofplacebid == 'under_bidding') // Add this conditional check
+          if (visableplacebid == true)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 7.0),
@@ -5980,7 +6030,12 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                     onPressed: () {
                       Get.to(Placebid(
                         projectId: widget.projectId,
-                      ));
+                      )
+                        ,
+                        transition: Transition.upToDown, // You can choose a different transition
+                        duration: Duration(milliseconds: 1100), // Set the duration of the transition
+
+                      );
                     },
                     style: ButtonStyle(
                       backgroundColor:
@@ -6046,7 +6101,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                       // You can replace this with your navigation logic
                       Get.to(
                           Workerprofileother
-                            (userId: item.workerId.toString()));
+                            (userId: item.workerId.toString()),
+                        transition: Transition.leftToRightWithFade, // You can choose a different transition
+                        duration: Duration(milliseconds: 1100), // Set the duration of the transition
+                      );
                     },
                     child: Text(
                       item.workerFirstname.length > 7
@@ -6301,8 +6359,7 @@ class ClientData {
       avg_rating: json['avg_rating'] ?? '0',
       lastname: json['lastname'] ?? '',
       profileImage: json['profle_image'] ??
-          'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // corrected typo from 'profle_image' to 'profile_image'
-    );
+'',    );
   }
 }
 

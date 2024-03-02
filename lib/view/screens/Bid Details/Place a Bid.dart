@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -111,16 +112,21 @@ double total =0;
     receive.dispose();
     super.dispose();
   }
-
+bool _isLoading =false;
   Future<void> insertBid() async {
+    // Show a loading indicator
+    setState(() {
+      _isLoading = true;
+    });
+
     final url = Uri.parse('https://www.workdonecorp.com/api/insert_bid');
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String userToken = prefs.getString('user_token') ?? '';
-      print (userToken);
+      print(userToken);
+
       // Prepare the request body
       String commentText = commentController.text.isEmpty ? 'No comment' : commentController.text;
-
 
       // Make the API request
       final response = await http.post(
@@ -132,9 +138,13 @@ double total =0;
           'project_id': widget.projectId.toString(),
           'amount': total.toString(),
           'comment': commentText ?? 'no comment',
-
         },
       );
+
+      // Hide the loading indicator
+      setState(() {
+        _isLoading = false;
+      });
 
       // Check the response status
       if (response.statusCode == 200) {
@@ -142,8 +152,19 @@ double total =0;
 
         // Check the status in the response
         if (responseBody['status'] == 'success') {
-          print('Bid inserted successfully');
-          Get.off(bidDetailsWorker(projectId: widget.projectId));
+          Fluttertoast.showToast(
+            msg: 'Bid inserted successfully',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.black,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          Get.off(bidDetailsWorker(projectId: widget.projectId),
+              transition: Transition.zoom, // You can choose a different transition
+              duration: Duration(milliseconds: 1100), // Set the duration of the transition
+    );
         } else if (responseBody['status'] == 'success') {
           // Check the specific error message
           String errorMsg = responseBody['msg'];
@@ -155,15 +176,17 @@ double total =0;
                 content: Text(errorMsg),
               ),
             );
-            Get.offAll(bidDetailsWorker(projectId: widget.projectId));
+            Get.offAll(bidDetailsWorker(projectId: widget.projectId),
+    transition: Transition.zoom, // You can choose a different transition
+    duration: Duration(milliseconds: 1100), // Set the duration of the transition
+    );
 
           } else {
             // Handle other error cases as needed
             print('Error: $errorMsg');
           }
         }
-      }
-    else {
+      } else {
         print(widget.projectId.toString());
         print(widget.projectId.toString());
         print(total.toString());
@@ -171,9 +194,16 @@ double total =0;
         print(userToken);
         print('Failed to insert bid. Status code: ${response.statusCode}');
 
+        // Show a toast message for the error
+        Fluttertoast.showToast(
+          msg: 'Failed to insert bid. Status code: ${response.statusCode}',
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+
         // Print the response body for more details
         print('Response body: ${response.body}');
-
       }
     } catch (e) {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -183,10 +213,18 @@ double total =0;
       print(commentController.text);
       print(userToken);
       print('Error inserting bid: $e');
+
+      // Show a toast message for the error
+      Fluttertoast.showToast(
+        msg: 'Error inserting bid: $e',
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+
       // Handle errors as needed
     }
-  }
-  final _formKey = GlobalKey<FormState>();
+  }  final _formKey = GlobalKey<FormState>();
 
   String unique= 'placebid' ;
   void _navigateToNextPage(BuildContext context) async {
@@ -271,77 +309,83 @@ double total =0;
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'You are about to place a bid for ',
-                            style: GoogleFonts.openSans(
-                              textStyle: TextStyle(
-                                color: HexColor('FFFFFF'),
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                projecttitle,
-                                style: GoogleFonts.openSans(
-                                  textStyle: TextStyle(
-                                    color: HexColor('FFFFFF'),
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                      child: Animate(
+                        effects: [ScaleEffect(duration: Duration(milliseconds: 500),),],
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'You are about to place a bid for ',
+                              style: GoogleFonts.openSans(
+                                textStyle: TextStyle(
+                                  color: HexColor('FFFFFF'),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              SizedBox(width: 4),
-                              Row(
-                                children: [
-                                  Text(
-                                    'by',
-                                    style: GoogleFonts.openSans(
-                                      textStyle: TextStyle(
-                                        color: HexColor('FFFFFF'),
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  projecttitle,
+                                  style: GoogleFonts.openSans(
+                                    textStyle: TextStyle(
+                                      color: HexColor('FFFFFF'),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  Container(
-                                    height: 30,
-                                    width: 50,
-                                    padding: EdgeInsets.zero,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Get.to(ProfilePageClient(userId: projectData.clientData!.clientId.toString()));
-                                      },
-                                      style: TextButton.styleFrom(
-                                        fixedSize: Size(50, 30), // Adjust the size as needed
-                                        padding: EdgeInsets.zero,
-                                      ),
-                                      child: Text(
-                                        projectData.clientData!.firstname,
-                                        style: TextStyle(
-                                          color: Colors.white,
+                                ),
+                                SizedBox(width: 4),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'by',
+                                      style: GoogleFonts.openSans(
+                                        textStyle: TextStyle(
+                                          color: HexColor('FFFFFF'),
                                           fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                          decoration: TextDecoration.underline,
-                                          ),
-                                          ),
-              ),
-              )
-              ],
-              ),
-              ],
-              ),
-              ],
-              ),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 30,
+                                      width: 50,
+                                      padding: EdgeInsets.zero,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: TextButton(
+                                        onPressed: () {
+                                          Get.to(ProfilePageClient(userId: projectData.clientData!.clientId.toString()),
+                                            transition: Transition.leftToRightWithFade, // You can choose a different transition
+                                            duration: Duration(milliseconds: 1100), // Set the duration of the transition
+                                          );
+                                        },
+                                        style: TextButton.styleFrom(
+                                          fixedSize: Size(50, 30), // Adjust the size as needed
+                                          padding: EdgeInsets.zero,
+                                        ),
+                                        child: Text(
+                                          projectData.clientData!.firstname,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            decoration: TextDecoration.underline,
+                                            ),
+                                            ),
+                                      ),
+                                      )
+                                      ],
+                                      ),
+                                      ],
+                                      ),
+                                      ],
+                                      ),
+                      ),
               ),
 
 
@@ -595,34 +639,38 @@ SizedBox(width: 6,),
                 )
                 ,
                 Padding(
-                  padding: const EdgeInsets.only(top: 120,left: 25,right: 25),
-                  child: Container(
+                  padding: const EdgeInsets.only(top: 120, left: 25, right: 25),
+                  child: _isLoading
+                      ? Center(child: CircularProgressIndicator(color: HexColor('4D8D6E'),))  // Show CircularProgressIndicator if isLoading is true
+                      : Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: HexColor('4D8D6E'),
-                      borderRadius: BorderRadius.circular(12.0), // Adjust the radius as needed
+                      borderRadius: BorderRadius.circular(12.0),
                     ),
                     child: InkWell(
-                      onTap: () {
-    if (_formKey.currentState!.validate()) {
-    insertBid();
-    } else {
-    Fluttertoast.showToast(
-    msg:
-    "Please Enter a bid value.");
-    }
-    },
-
-
-                        // Handle button tap
-
+                      onTap: () async {
+                        if (_formKey.currentState!.validate()) {
+                          setState(() {
+                            _isLoading = true;
+                          });
+                          await insertBid();
+                          setState(() {
+                            _isLoading = false;
+                          });
+                        } else {
+                          Fluttertoast.showToast(
+                            msg: "Please Enter a bid value.",
+                          );
+                        }
+                      },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 13.0),
                         child: Center(
                           child: Text(
                             'Add Bid',
                             style: TextStyle(
-                              color: Colors.white, // Text color
+                              color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),

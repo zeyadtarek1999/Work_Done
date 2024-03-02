@@ -5,6 +5,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:blurry_modal_progress_hud/blurry_modal_progress_hud.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -73,23 +74,22 @@ class _projectPostState extends State<projectPost>
       }
     }
   }
-  Future<void> _pickVideo() async {
+  Future<void> _pickVideo(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
-    final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
+    final XFile? video = await picker.pickVideo(source: source);
 
     if (video != null) {
       File videoFile = File(video.path); // Convert to File
       _videoFile = video; // Keep the XFile if you need it for later use
 
       _videoController =
-          VideoPlayerController.file(videoFile) // Use File instead of XFile
-            ..initialize().then((_) {
-              setState(() {});
-              _videoController!.play();
-            });
+      VideoPlayerController.file(videoFile) // Use File instead of XFile
+        ..initialize().then((_) {
+          setState(() {});
+          _videoController!.play();
+        });
     }
   }
-
   // This function is triggered when the button is clicked
 
   @override
@@ -361,16 +361,16 @@ class _projectPostState extends State<projectPost>
           ),
           centerTitle: true,
           elevation: 0,
-          leading: IconButton(
-            onPressed: () {
-              Get.back();
-            },
-            icon: Icon(
-              Ionicons.arrow_back,
-              size: 30,
-              color: HexColor('1A1D1E'),
-            ),
-          ),
+          // leading: IconButton(
+          //   onPressed: () {
+          //     Get.back();
+          //   },
+          //   icon: Icon(
+          //     Ionicons.arrow_back,
+          //     size: 30,
+          //     color: HexColor('1A1D1E'),
+          //   ),
+          // ),
         ),
         body: Screenshot(
           controller: screenshotController,
@@ -379,762 +379,842 @@ class _projectPostState extends State<projectPost>
               padding: const EdgeInsets.only(top: 12.0, left: 10, right: 10),
               child: Form(
                 key: _formKey,
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            _imageFiles.isEmpty
-                                ? 'Upload Photo'
-                                : 'Selected Photo',
-                            style: GoogleFonts.poppins(
-                              textStyle: TextStyle(
-                                color: HexColor('1A1D1E'),
-                                fontSize: 17,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 6,
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.info_outline, // "i" icon
-                              color: Colors.grey,
-                              size: 22, // Red color
-                            ),
-                            onPressed: () {
-                              Fluttertoast.showToast(
-                                msg: _imageFiles.isEmpty
-                                    ? 'Upload photo is Required'
-                                    : 'Selected photo information',
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                timeInSecForIosWeb: 1,
-                                backgroundColor: Colors.red,
-                                textColor: Colors.white,
-                                fontSize: 16.0,
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 7,
-                      ),
-                      Column(children: [
-                        GestureDetector(
-                          onTap: () {
-                            showModalBottomSheet(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    ListTile(
-                                      leading: Icon(Icons.camera_alt),
-                                      title: Text('Take a photo'),
-                                      onTap: () {
-                                        _pickImages(isCamera: true);
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                    ListTile(
-                                      leading: Icon(Icons.photo),
-                                      title: Text('Select from gallery'),
-                                      onTap: () {
-                                        _pickImages();
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          child: Center(
-                            child: Container(
-                              height: 220,
-                              width: 350,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(15),
-                                color: Colors.white,
-                              ),
-                              child: _imageFiles.isEmpty
-                                  ? Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.file_upload,
-                                            color: HexColor('4D8D6E'),
-                                            size: 30,
-                                          ),
-                                          SizedBox(height: 8),
-                                          Text(
-                                            'Upload Here',
-                                            style: TextStyle(
-                                              color: HexColor('4D8D6E'),
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          SizedBox(height: 8),
-                                          Padding(
-                                            padding:
-                                                const EdgeInsets.symmetric(
-                                                    horizontal: 12.0),
-                                            child: Text(
-                                              'Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color: Colors.grey[600],
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  : Column(
-                                children: [
-                                  Expanded(
-                                    child: Scrollbar(
-                                      controller: ScrollController(),
-                                      child: ListView.builder(
-                                        scrollDirection: Axis.horizontal,
-                                        itemCount: _imageFiles!.length,
-                                        itemBuilder: (BuildContext context, int index) {
-                                          return GestureDetector(
-                                            onTap: () {
-                                              showDialog(
-                                                context: context,
-                                                builder: (BuildContext context) {
-                                                  return Dialog(
-                                                    child: InteractiveViewer(
-                                                      panEnabled: true,
-                                                      // Set it to false to prevent panning.
-                                                      boundaryMargin: EdgeInsets.all(20),
-                                                      minScale: 0.5,
-                                                      maxScale: 2,
-                                                      child: Image.file(_imageFiles[index]!),
-                                                    ),
-                                                  );
-                                                },
-                                              );
-                                            },
-                                            child: Stack(
-                                              children: [
-                                                Padding(
-                                                  padding: EdgeInsets.only(
-                                                    left: 8.0,
-                                                    right: index == _imageFiles!.length - 1 ? 8.0 : 0,
-                                                  ),
-                                                  child: Image.file(
-                                                    _imageFiles[index]!,
-                                                    height: 150,
-                                                    width: 150,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                ),
-                                                Positioned(
-                                                  top: 0,
-                                                  right: 0,
-                                                  child: GestureDetector(
-                                                    onTap: () {
-                                                      showDialog(
-                                                        context: context,
-                                                        builder: (BuildContext context) {
-                                                          return AlertDialog(
-                                                            title: Text('Delete Image'),
-                                                            content: Text('Are you sure you want to delete this image?'),
-                                                            actions: [
-                                                              TextButton(
-                                                                onPressed: () {
-                                                                  Navigator.pop(context);
-                                                                },
-                                                                child: Text('Cancel'),
-                                                              ),
-                                                              TextButton(
-                                                                onPressed: () {
-                                                                  setState(() {
-                                                                    _imageFiles!.removeAt(index);
-                                                                  });
-                                                                  Navigator.pop(context);
-                                                                },
-                                                                child: Text('Delete'),
-                                                              ),
-                                                            ],
-                                                          );
-                                                        },
-                                                      );
-                                                    },
-                                                    child: Container(
-                                                      decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        color: Colors.red,
-                                                      ),
-                                                      padding: EdgeInsets.all(3),
-                                                      child: Icon(Icons.delete, color: Colors.white),
-                                                    ),
-                                                  ),
-                                                ),                                            ],
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: (){
-                                      showModalBottomSheet(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              ListTile(
-                                                leading: Icon(Icons.camera_alt),
-                                                title: Text('Take a photo'),
-                                                onTap: () {
-                                                  _pickImages(isCamera: true);
-                                                  Navigator.pop(context);
-                                                },
-                                              ),
-                                              ListTile(
-                                                leading: Icon(Icons.photo),
-                                                title: Text('Select from gallery'),
-                                                onTap: () {
-                                                  _pickImages();
-                                                  Navigator.pop(context);
-                                                },
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    },
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.add_circle_outlined, size: 40, color: Colors.grey[400],),
-                                        Text('Add More Photos',style: TextStyle(fontSize: 12,color: Colors.grey[500]),),
-                                        SizedBox(height: 5,),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              )
-                            ),
-                          ),
-                        ),
-                      ]),
-                      SizedBox(
-                        height: 14,
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            _videoFile == null
-                                ? 'Upload Video'
-                                : 'Selected Video',
-                            // Corrected conditional expression
-                            style: GoogleFonts.poppins(
-                              textStyle: TextStyle(
-                                color: HexColor('1A1D1E'),
-                                fontSize: 17,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 6),
-                          IconButton(
-                            icon: Icon(
-                              Icons.info_outline,
-                              color: Colors.grey,
-                              size: 22,
-                            ),
-                            onPressed: () {
-                              Fluttertoast.showToast(
-                                msg: _videoFile ==
-                                        null // Corrected conditional expression
-                                    ? 'Upload video is required'
-                                    : 'Selected video information',
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                timeInSecForIosWeb: 1,
-                                backgroundColor: Colors.red,
-                                textColor: Colors.white,
-                                fontSize: 16.0,
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 7),
-                      Column(
-                        children: [
-                          Stack(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  if (_videoController == null || !_videoController!.value.isInitialized) {
-                                    _pickVideo();
-                                  }
-                                },
-                                child: _videoController != null && _videoController!.value.isInitialized
-                                    ? AspectRatio(
-                                  aspectRatio: _videoController!.value.aspectRatio,
-                                  child: Stack(
-                                    children: [
-                                      VideoPlayer(_videoController!),
-                                      Positioned(
-                                        top: 10,
-                                        right: 10,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return AlertDialog(
-                                                  title: Text('Delete Video'),
-                                                  content: Text('Are you sure you want to delete this video?'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Text('Cancel'),
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        setState(() {
-                                                          _videoFile = null;
-                                                          _videoController = null;
-                                                        });
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Text('Delete'),
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          },
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Colors.red,
-                                            ),
-                                            padding: EdgeInsets.all(8),
-                                            child: Icon(
-                                              Icons.delete,
-                                              color: Colors.white,
-                                              size: 20,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                    : Container(
-                                  height: 150,
-                                  width: 350,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(15),
-                                    color: Colors.white,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.video_camera_back,
-                                        color: HexColor('4D8D6E'),
-                                        size: 30,
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        'Upload Here',
-                                        style: TextStyle(
-                                          color: HexColor('4D8D6E'),
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 8),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                        child: Text(
-                                          'Please upload a clear video of the project (from all sides, if applicable) to help the worker place an accurate bid!',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),                      ],
-                      ),
-                      SizedBox(
-                        height: 14,
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            'Title of Project',
-                            style: GoogleFonts.poppins(
-                              textStyle: TextStyle(
+                child:  Animate(
+                  effects: [MoveEffect(duration: Duration(milliseconds: 500),),],
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              _imageFiles.isEmpty
+                                  ? 'Upload Photo'
+                                  : 'Selected Photo',
+                              style: GoogleFonts.poppins(
+                                textStyle: TextStyle(
                                   color: HexColor('1A1D1E'),
                                   fontSize: 17,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 6,
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.info_outline, // "i" icon
-                              color: Colors.grey,
-                              size: 22, // Red color
-                            ),
-                            onPressed: () {
-                              Fluttertoast.showToast(
-                                msg: 'Title is Required',
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                timeInSecForIosWeb: 1,
-                                backgroundColor: Colors.red,
-                                textColor: Colors.white,
-                                fontSize: 16.0,
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 8,
-                      ),
-                      Container(
-                        height: 55,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              controller: titleController,
-                              decoration: InputDecoration(
-                                hintText: 'Write a Project Title',
-                                hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w500,
                                 ),
-                                border: InputBorder.none, // Remove the underline
-                                contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 16.0,
-                                    vertical: 15.0), // Adjust padding
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {}
-                                return null;
+                            ),
+                            SizedBox(
+                              width: 6,
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.info_outline, // "i" icon
+                                color: Colors.grey,
+                                size: 22, // Red color
+                              ),
+                              onPressed: () {
+                                Fluttertoast.showToast(
+                                  msg: _imageFiles.isEmpty
+                                      ? 'Upload photo is Required'
+                                      : 'Selected photo information',
+                                  toastLength: Toast.LENGTH_SHORT,
+                                  gravity: ToastGravity.BOTTOM,
+                                  timeInSecForIosWeb: 1,
+                                  backgroundColor: Colors.red,
+                                  textColor: Colors.white,
+                                  fontSize: 16.0,
+                                );
                               },
                             ),
                           ],
                         ),
-                      ),
-                      SizedBox(
-                        height: 14,
-                      ),
-                      Text(
-                        'Project Type',
-                        style: GoogleFonts.poppins(
-                          textStyle: TextStyle(
-                              color: HexColor('1A1D1E'),
-                              fontSize: 17,
-                              fontWeight: FontWeight.w500),
+                        SizedBox(
+                          height: 7,
                         ),
-                      ),
-                      SizedBox(
-                        height: 8,
-                      ),
-                      Container(
-                        height: 55,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Row(
-                            children: [
-                              Text(
-                                'Select Project Type',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 16.0,
+                        Column(children: [
+                          GestureDetector(
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      ListTile(
+                                        leading: Icon(Icons.camera_alt),
+                                        title: Text('Take a photo'),
+                                        onTap: () {
+                                          _pickImages(isCamera: true);
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                      ListTile(
+                                        leading: Icon(Icons.photo),
+                                        title: Text('Select from gallery'),
+                                        onTap: () {
+                                          _pickImages();
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                      SizedBox(height: 55,)
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: Center(
+                              child: Container(
+                                height: 220,
+                                width: 350,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(15),
+                                  color: Colors.white,
                                 ),
+                                child: _imageFiles.isEmpty
+                                    ? Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.file_upload,
+                                              color: HexColor('4D8D6E'),
+                                              size: 30,
+                                            ),
+                                            SizedBox(height: 8),
+                                            Text(
+                                              'Upload Here',
+                                              style: TextStyle(
+                                                color: HexColor('4D8D6E'),
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(height: 8),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 12.0),
+                                              child: Text(
+                                                'Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  color: Colors.grey[600],
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : Column(
+                                  children: [
+                                    Expanded(
+                                      child: Scrollbar(
+                                        controller: ScrollController(),
+                                        child: Animate(
+                                          effects: [FadeEffect(duration: Duration(milliseconds: 500),),],
+                                          child: ListView.builder(
+                                            scrollDirection: Axis.horizontal,
+                                            itemCount: _imageFiles!.length,
+                                            itemBuilder: (BuildContext context, int index) {
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (BuildContext context) {
+                                                      return Dialog(
+                                                        child: InteractiveViewer(
+                                                          panEnabled: true,
+                                                          // Set it to false to prevent panning.
+                                                          boundaryMargin: EdgeInsets.all(20),
+                                                          minScale: 0.5,
+                                                          maxScale: 2,
+                                                          child: Image.file(_imageFiles[index]!),
+                                                        ),
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                                child: Stack(
+                                                  children: [
+                                                    Padding(
+                                                      padding: EdgeInsets.only(
+                                                        left: 8.0,
+                                                        right: index == _imageFiles!.length - 1 ? 8.0 : 0,
+                                                      ),
+                                                      child: Image.file(
+                                                        _imageFiles[index]!,
+                                                        height: 150,
+                                                        width: 150,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                    ),
+                                                    Positioned(
+                                                      top: 0,
+                                                      right: 0,
+                                                      child: GestureDetector(
+                                                        onTap: () {
+                                                          showDialog(
+                                                            context: context,
+                                                            builder: (BuildContext context) {
+                                                              return AlertDialog(
+                                                                title: Text('Delete Image'),
+                                                                content: Text('Are you sure you want to delete this image?'),
+                                                                actions: [
+                                                                  TextButton(
+                                                                    onPressed: () {
+                                                                      Navigator.pop(context);
+                                                                    },
+                                                                    child: Text('Cancel'),
+                                                                  ),
+                                                                  TextButton(
+                                                                    onPressed: () {
+                                                                      setState(() {
+                                                                        _imageFiles!.removeAt(index);
+                                                                      });
+                                                                      Navigator.pop(context);
+                                                                    },
+                                                                    child: Text('Delete'),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
+                                                        },
+                                                        child: Container(
+                                                          decoration: BoxDecoration(
+                                                            shape: BoxShape.circle,
+                                                            color: Colors.red,
+                                                          ),
+                                                          padding: EdgeInsets.all(3),
+                                                          child: Icon(Icons.delete, color: Colors.white),
+                                                        ),
+                                                      ),
+                                                    ),                                            ],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: (){
+                                        showModalBottomSheet(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                ListTile(
+                                                  leading: Icon(Icons.camera_alt),
+                                                  title: Text('Take a photo'),
+                                                  onTap: () {
+                                                    _pickImages(isCamera: true);
+                                                    Navigator.pop(context);
+                                                  },
+                                                ),
+                                                ListTile(
+                                                  leading: Icon(Icons.photo),
+                                                  title: Text('Select from gallery'),
+                                                  onTap: () {
+                                                    _pickImages();
+                                                    Navigator.pop(context);
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      },
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.add_circle_outlined, size: 40, color: Colors.grey[400],),
+                                          Text('Add More Photos',style: TextStyle(fontSize: 12,color: Colors.grey[500]),),
+                                          SizedBox(height: 5,),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                )
                               ),
-                              Spacer(),
-                              Column(
-                                children: [
-                                  DropdownButton<Map<String, String>>(
-                                    underline: SizedBox(),
-                                    // Remove the underline
-                                    icon: Icon(Icons.arrow_drop_down,
-                                        color: Colors.black54),
-                                    value: selectedProjectType,
-                                    // Track the selected value
-                                    items: projectTypes.map<
-                                            DropdownMenuItem<
-                                                Map<String, String>>>(
-                                        (Map<String, String> type) {
-                                      return DropdownMenuItem<
-                                          Map<String, String>>(
-                                        value: type,
-                                        child: Text(type['name']!),
-                                      );
-                                    }).toList(),
-                                    onChanged: (Map<String, String>? newValue) {
-                                      setState(() {
-                                        selectedProjectType = newValue;
-                                      });
-                                      // Handle dropdown value change, you can use the selectedProjectType
-                                      // to get the selected project type ID and send it to the API
-                                      if (selectedProjectType != null) {
-                                        String projectId =
-                                            selectedProjectType!['id']!;
-                                        selectedprojectid = projectId;
-                                        String projectName =
-                                            selectedProjectType!['name']!;
-                                        print('Selected Project ID: $projectId');
-                                        print(
-                                            'Selected Project Name: $projectName');
-                                      }
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
+                            ),
                           ),
+                        ]),
+                        SizedBox(
+                          height: 14,
                         ),
-                      ),
-                      SizedBox(
-                        height: 14,
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            'Preferred Time Frame',
-                            style: GoogleFonts.poppins(
-                              textStyle: TextStyle(
+                        Row(
+                          children: [
+                            Text(
+                              _videoFile == null
+                                  ? 'Upload Video'
+                                  : 'Selected Video',
+                              // Corrected conditional expression
+                              style: GoogleFonts.poppins(
+                                textStyle: TextStyle(
                                   color: HexColor('1A1D1E'),
                                   fontSize: 17,
-                                  fontWeight: FontWeight.w500),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
-                          ),
-                          SizedBox(
-                            width: 6,
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.info_outline, // "i" icon
-                              color: Colors.grey,
-                              size: 22, // Red color
-                            ),
-                            onPressed: () {
-                              // Show a Snackbar with the required text
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
+                            SizedBox(width: 6),
+                            IconButton(
+                              icon: Icon(
+                                Icons.info_outline,
+                                color: Colors.grey,
+                                size: 22,
+                              ),
+                              onPressed: () {
+                                Fluttertoast.showToast(
+                                  msg: _videoFile ==
+                                          null // Corrected conditional expression
+                                      ? 'Upload video is required'
+                                      : 'Selected video information',
+                                  toastLength: Toast.LENGTH_SHORT,
+                                  gravity: ToastGravity.BOTTOM,
+                                  timeInSecForIosWeb: 1,
                                   backgroundColor: Colors.red,
-                                  content: Text(
-                                    'Time frame is Required',
-                                    style: TextStyle(
-                                        color: Colors.white), // Red text color
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          RangeSlider(
-                            values: RangeValues(_startValue, _endValue),
-                            onChanged: (RangeValues values) {
-                              setState(() {
-                                _startValue = values.start;
-                                _endValue = values.end;
-                                timeframeControllerstart.text =
-                                    _startValue.toInt().toString();
-                                timeframeControllerend.text =
-                                    _endValue.toInt().toString();
-                              });
-                            },
-                            min: 0,
-                            max: 100,
-                            divisions: 100,
-                            // Divisions set to 1 for two thumbs
-                            labels: RangeLabels(
-                              _startValue.toInt().toString(),
-                              _endValue.toInt().toString(),
+                                  textColor: Colors.white,
+                                  fontSize: 16.0,
+                                );
+                              },
                             ),
-                            activeColor: Color(0xFF4D8D6E),
-                            inactiveColor: Colors.grey,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Project period (Range): ',
-                                style: TextStyle(
-                                  color: Colors.grey[700],
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                '${_startValue.toInt()} - ${_endValue.toInt()} days',
-                                style: TextStyle(
-                                  color: Color(0xFF4D8D6E),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Text(
-                            'Job Description',
-                            style: GoogleFonts.poppins(
-                              textStyle: TextStyle(
-                                  color: HexColor('1A1D1E'),
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 6,
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.info_outline, // "i" icon
-                              color: Colors.grey,
-                              size: 22, // Red color
-                            ),
-                            onPressed: () {
-                              Fluttertoast.showToast(
-                                msg: 'Job Description is Required ',
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                timeInSecForIosWeb: 1,
-                                backgroundColor: Colors.red,
-                                textColor: Colors.white,
-                                fontSize: 16.0,
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 8,
-                      ),
-                      Container(
-                        height: 100,
-                        width: double.infinity, // Set the desired width
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
+                          ],
                         ),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16.0,
+                        SizedBox(height: 7),
+                        Column(
+                          children: [
+                            Stack(
+                              children: [
+                        GestureDetector(
+                        onTap: () {
+                              showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                              return AlertDialog(
+                                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                title: Center(
+                  child: Text(
+                    'Choose Video Source',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,color: Colors.black
+                    ),
+                  ),
+                                ),
+                                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickVideo(ImageSource.camera);
+                      },
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.camera_alt,
+                            color: HexColor('4D8D6E'),
+                            size: 24,
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            'Camera',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickVideo(ImageSource.gallery);
+                      },
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.photo_library,
+                            color: HexColor('4D8D6E'),
+                            size: 24,
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            'Gallery',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                                ),
+                              );
+                              },
+                              );
+                              },
+                  child: _videoController != null && _videoController!.value.isInitialized
+                      ?  Animate(
+                    effects: [FadeEffect(duration: Duration(milliseconds: 500),),],
+                        child: AspectRatio(
+                                          aspectRatio: _videoController!.value.aspectRatio,
+                                          child: Stack(
+                        children: [
+                          VideoPlayer(_videoController!),
+                          Positioned(
+                            top: 10,
+                            right: 10,
+                            child: GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text('Delete Video'),
+                                      content: Text('Are you sure you want to delete this video?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              _videoFile = null;
+                                              _videoController = null;
+                                            });
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text('Delete'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.red,
+                                ),
+                                padding: EdgeInsets.all(8),
+                                child: Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                                          ),
+                                        ),
+                      )
+                      : Container(
+                    height: 150,
+                    width: 350,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.white,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.video_camera_back,
+                          color: HexColor('4D8D6E'),
+                          size: 30,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Upload Here',
+                          style: TextStyle(
+                            color: HexColor('4D8D6E'),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          child: Text(
+                            'Please upload a clear video of the project (from all sides, if applicable) to help the worker place an accurate bid!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                        ),
+                      ],
+                            ),                      ],
+                        ),
+                        SizedBox(
+                          height: 14,
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              'Title of Project',
+                              style: GoogleFonts.poppins(
+                                textStyle: TextStyle(
+                                    color: HexColor('1A1D1E'),
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 6,
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.info_outline, // "i" icon
+                                color: Colors.grey,
+                                size: 22, // Red color
+                              ),
+                              onPressed: () {
+                                Fluttertoast.showToast(
+                                  msg: 'Title is Required',
+                                  toastLength: Toast.LENGTH_SHORT,
+                                  gravity: ToastGravity.BOTTOM,
+                                  timeInSecForIosWeb: 1,
+                                  backgroundColor: Colors.red,
+                                  textColor: Colors.white,
+                                  fontSize: 16.0,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Container(
+                          height: 55,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
                           ),
                           child: Column(
                             children: [
                               TextFormField(
-                                controller: descController,
-                                maxLines: null,
-                                // Allows the text to take up multiple lines
+                                controller: titleController,
                                 decoration: InputDecoration(
-                                  hintText:
-                                      'Please write a detailed description to help the worker place an accurate bid!',
-                                  border: InputBorder.none,
-                                  hintMaxLines: 3,
-                                  // Allows the hint text to take up multiple lines
+                                  hintText: 'Write a Project Title',
                                   hintStyle: TextStyle(
                                     color: Colors.grey,
                                     fontSize: 16.0,
                                   ),
+                                  border: InputBorder.none, // Remove the underline
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                      vertical: 15.0), // Adjust padding
                                 ),
                                 validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Description is required';
-                                  }
+                                  if (value == null || value.isEmpty) {}
                                   return null;
                                 },
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      SizedBox(
-                        height: 14,
-                      ),
-                      Center(
-                        child: _isUploading
-                            ? Center(
-                                child: RotationTransition(
-                                  turns: ciruclaranimation,
-                                  child: SvgPicture.asset(
-                                    'assets/images/Logo.svg',
-                                    semanticsLabel: 'Your SVG Image',
-                                    width: 100,
-                                    height: 130,
+                        SizedBox(
+                          height: 14,
+                        ),
+                        Text(
+                          'Project Type',
+                          style: GoogleFonts.poppins(
+                            textStyle: TextStyle(
+                                color: HexColor('1A1D1E'),
+                                fontSize: 17,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Container(
+                          height: 55,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'Select Project Type',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 16.0,
                                   ),
                                 ),
-                              )
-                            // Show loading indicator when uploading
-                            : Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  RoundedButton(
-                                    text: 'Post',
-                                    press: () {
-                                      if (_formKey.currentState!.validate()&& _videoFile!= null &&_imageFiles.isNotEmpty&&titleController!= '') {
-                                        submitProject();
-                                      } else {
-                                        Fluttertoast.showToast(
-                                            msg:
-                                                "Please fill in all required fields.");
-                                      }
-                                    },
-                                  ),
-                                ],
+                                Spacer(),
+                                Column(
+                                  children: [
+                                    DropdownButton<Map<String, String>>(
+                                      underline: SizedBox(),
+                                      // Remove the underline
+                                      icon: Icon(Icons.arrow_drop_down,
+                                          color: Colors.black54),
+                                      value: selectedProjectType,
+                                      // Track the selected value
+                                      items: projectTypes.map<
+                                              DropdownMenuItem<
+                                                  Map<String, String>>>(
+                                          (Map<String, String> type) {
+                                        return DropdownMenuItem<
+                                            Map<String, String>>(
+                                          value: type,
+                                          child: Text(type['name']!),
+                                        );
+                                      }).toList(),
+                                      onChanged: (Map<String, String>? newValue) {
+                                        setState(() {
+                                          selectedProjectType = newValue;
+                                        });
+                                        // Handle dropdown value change, you can use the selectedProjectType
+                                        // to get the selected project type ID and send it to the API
+                                        if (selectedProjectType != null) {
+                                          String projectId =
+                                              selectedProjectType!['id']!;
+                                          selectedprojectid = projectId;
+                                          String projectName =
+                                              selectedProjectType!['name']!;
+                                          print('Selected Project ID: $projectId');
+                                          print(
+                                              'Selected Project Name: $projectName');
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 14,
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              'Preferred Time Frame',
+                              style: GoogleFonts.poppins(
+                                textStyle: TextStyle(
+                                    color: HexColor('1A1D1E'),
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w500),
                               ),
-                      ),
-                      SizedBox(
-                        height: 60,
-                      ),
-                    ]),
+                            ),
+                            SizedBox(
+                              width: 6,
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.info_outline, // "i" icon
+                                color: Colors.grey,
+                                size: 22, // Red color
+                              ),
+                              onPressed: () {
+                                // Show a Snackbar with the required text
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: Colors.red,
+                                    content: Text(
+                                      'Time frame is Required',
+                                      style: TextStyle(
+                                          color: Colors.white), // Red text color
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            RangeSlider(
+                              values: RangeValues(_startValue, _endValue),
+                              onChanged: (RangeValues values) {
+                                setState(() {
+                                  _startValue = values.start;
+                                  _endValue = values.end;
+                                  timeframeControllerstart.text =
+                                      _startValue.toInt().toString();
+                                  timeframeControllerend.text =
+                                      _endValue.toInt().toString();
+                                });
+                              },
+                              min: 0,
+                              max: 100,
+                              divisions: 100,
+                              // Divisions set to 1 for two thumbs
+                              labels: RangeLabels(
+                                _startValue.toInt().toString(),
+                                _endValue.toInt().toString(),
+                              ),
+                              activeColor: Color(0xFF4D8D6E),
+                              inactiveColor: Colors.grey,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Project period (Range): ',
+                                  style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  '${_startValue.toInt()} - ${_endValue.toInt()} days',
+                                  style: TextStyle(
+                                    color: Color(0xFF4D8D6E),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Text(
+                              'Job Description',
+                              style: GoogleFonts.poppins(
+                                textStyle: TextStyle(
+                                    color: HexColor('1A1D1E'),
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 6,
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.info_outline, // "i" icon
+                                color: Colors.grey,
+                                size: 22, // Red color
+                              ),
+                              onPressed: () {
+                                Fluttertoast.showToast(
+                                  msg: 'Job Description is Required ',
+                                  toastLength: Toast.LENGTH_SHORT,
+                                  gravity: ToastGravity.BOTTOM,
+                                  timeInSecForIosWeb: 1,
+                                  backgroundColor: Colors.red,
+                                  textColor: Colors.white,
+                                  fontSize: 16.0,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Container(
+                          height: 100,
+                          width: double.infinity, // Set the desired width
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                            ),
+                            child: Column(
+                              children: [
+                                TextFormField(
+                                  controller: descController,
+                                  maxLines: null,
+                                  // Allows the text to take up multiple lines
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        'Please write a detailed description to help the worker place an accurate bid!',
+                                    border: InputBorder.none,
+                                    hintMaxLines: 3,
+                                    // Allows the hint text to take up multiple lines
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Description is required';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 14,
+                        ),
+                        Center(
+                          child: _isUploading
+                              ? Center(
+                                  child: RotationTransition(
+                                    turns: ciruclaranimation,
+                                    child: SvgPicture.asset(
+                                      'assets/images/Logo.svg',
+                                      semanticsLabel: 'Your SVG Image',
+                                      width: 100,
+                                      height: 130,
+                                    ),
+                                  ),
+                                )
+                              // Show loading indicator when uploading
+                              : Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    RoundedButton(
+                                      text: 'Post',
+                                      press: () {
+                                        if (_formKey.currentState!.validate()&& _videoFile!= null &&_imageFiles.isNotEmpty&&titleController!= '') {
+                                          submitProject();
+                                        } else {
+                                          Fluttertoast.showToast(
+                                              msg:
+                                                  "Please fill in all required fields.");
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                        ),
+                        SizedBox(
+                          height: 60,
+                        ),
+                      ]),
+                ),
               ),
             ),
           ),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:blurry_modal_progress_hud/blurry_modal_progress_hud.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -26,6 +27,7 @@ import '../widgets/rounded_password_field.dart';
 import 'Screens_layout/layoutclient.dart';
 import 'login_screen_client.dart';
 import 'login_screen_worker.dart';
+import 'onBoard/OnboardClient.dart';
 
 class SignUpScreen2 extends StatefulWidget {
 
@@ -36,18 +38,46 @@ class SignUpScreen2 extends StatefulWidget {
 class _SignUpScreen2State extends State<SignUpScreen2> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final formkeyaddress = GlobalKey<FormState>();
-  List<Map<String, dynamic>> languages = [
-    {'lang_id': '1', 'lang': 'English'},
-    {'lang_id': '2', 'lang': 'Arabic'},
-    {'lang_id': '3', 'lang': 'French'},
-  ];
+
   String addressLine = '';
   String addressSt2 = '';
   String city = '';
   String state = '';
 
 
-  String selectedLanguage = 'Select Language';
+  List<Map<String, dynamic>> languages = [];
+  List<int> selectedLanguages = [];
+  List<Map<String, dynamic>> filteredLanguages = [];
+
+
+
+
+  bool isSearchBarVisible = false;
+  Future<void> Languagedata() async {
+    const String url = "https://workdonecorp.com/api/get_all_languages";
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+
+      if (jsonResponse['status'] == 'success') {
+        final List data = jsonResponse['data'];
+        // Process the fetched language data as needed
+        print(data);
+        setState(() {
+          languages = data.map((lang) => {'id': lang['id'], 'name': lang['name']}).toList();
+          filteredLanguages = languages;
+
+        });
+      } else {
+        print('Error: ${jsonResponse['msg']}');
+      }
+    } else {
+      print('Error: ${response.statusCode}');
+    }
+  }
+
   final addressLineController = TextEditingController();
   final addressst2Controller = TextEditingController();
   final cityController = TextEditingController();
@@ -85,7 +115,6 @@ class _SignUpScreen2State extends State<SignUpScreen2> with SingleTickerProvider
     'Duplicate values found in statesOfAmerica list');
   }
 
-bool isSearchBarVisible =false;
   bool isLanguageListVisible = false; // Add this variable
   String selectedCountryCode = '+1'; // Default country code for the United States
 
@@ -153,7 +182,6 @@ bool isSearchBarVisible =false;
 
 
   TextEditingController searchController = TextEditingController();
-  List<Map<String, dynamic>> filteredLanguages = [];
 
 
   final TextEditingController phoneNumberController = TextEditingController();
@@ -185,12 +213,13 @@ bool isSearchBarVisible =false;
   bool hasLowercase = false;
 
   bool hasNumber = false;
-
+bool charater12 =false;
   void checkPassword(String password) {
     setState(() {
       hasUppercase = RegExp(r'[A-Z]').hasMatch(password);
       hasLowercase = RegExp(r'[a-z]').hasMatch(password);
       hasNumber = RegExp(r'[0-9]').hasMatch(password);
+      charater12 = password.length >= 12;
     });
   }
 
@@ -226,7 +255,23 @@ bool isSearchBarVisible =false;
   //
   //   return true;
   // }
+  bool _isValidPassword(String password) {
+    if (password.length < 12) {
+      return false;
+    }
 
+    final uppercaseRegExp = RegExp(r'[A-Z]');
+    final lowercaseRegExp = RegExp(r'[a-z]');
+    final digitRegExp = RegExp(r'\d');
+
+    if (!uppercaseRegExp.hasMatch(password) ||
+        !lowercaseRegExp.hasMatch(password) ||
+        !digitRegExp.hasMatch(password)) {
+      return false;
+    }
+
+    return true;
+  }
   bool _validatePasswords() {
     String password = passwordController.text;
     String confirmPassword = confirmPasswordController.text;
@@ -264,6 +309,8 @@ bool isSearchBarVisible =false;
   @override
   void initState() {
     super.initState();
+    Languagedata();
+
     ciruclaranimation = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
@@ -304,13 +351,13 @@ bool isSearchBarVisible =false;
     String email = emailController2.text;
     String password = passwordController.text;
     String phone = phoneNumberController.text;
-    String language = selectedLanguage;
     String street1 = addressLineController.text;
-    String street2 = addressst2Controller.text;
+    String street2 = addressst2Controller.text.isEmpty ? 'no addressline 2' : addressst2Controller.text;
     String city = cityController.text;
     String state = selectedState;
     String address_zip = zipcodeController.text;
 
+    print('selected languages ${selectedLanguages}'); // Print the selected language IDs
 
     // Show the circular progress indicator
     setState(() {
@@ -329,14 +376,15 @@ bool isSearchBarVisible =false;
         city: city,
         street2: street2,
         street1: street1,
-        language: language,
+        languageIds: selectedLanguages,
         addressZip: address_zip,
       );
 
       print('Registration Response: $registrationResponse');
 
       // Check if the registration response contains the token
-      if (registrationResponse.containsKey('status') &&
+      if (registrationResponse != null &&
+          registrationResponse.containsKey('status') &&
           registrationResponse.containsKey('msg') &&
           registrationResponse.containsKey('token')) {
         final String user_token = registrationResponse['token'];
@@ -356,13 +404,13 @@ bool isSearchBarVisible =false;
           fontSize: 16.0,
         );
 
-        Get.offAll(layoutclient());
-        // Navigate to the next screen (you may want to do this based on certain conditions)
-        // Example: Get.to(layoutworker());
-      } else {
+        Get.offAll(OnBoardingClient(),
+          transition: Transition.leftToRight, // You can choose a different transition
+          duration: Duration(milliseconds: 1100), fullscreenDialog: true, );
+            } else {
         // Display a toast message with the error message
         Fluttertoast.showToast(
-          msg: "Registration failed: ${registrationResponse['msg']}",
+          msg: "Registration failed: ${registrationResponse != null ? registrationResponse['msg'] : 'Unknown error'}",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           timeInSecForIosWeb: 1,
@@ -422,146 +470,187 @@ bool isSearchBarVisible =false;
       final formattedPhoneNumber = phoneNumber.replaceAll(RegExp(r'\D'), ''); // Remove non-digit characters
       return formattedPhoneNumber.length == 10;
     }
+
+    var addresstext = '';
+
+    if (addressLineController.text.isNotEmpty) {
+      addresstext += 'Your Address : \n'+ addressLineController.text +', ';
+      addresstext += '\n';
+    } else {
+      addresstext += addressLineController.text;
+      addresstext += 'Enter Address';
+    }
+    if (addressst2Controller.text.isNotEmpty) {
+      addresstext += addressst2Controller.text+', ';
+      addresstext += '';
+    }
+    if (cityController.text.isNotEmpty) {
+      addresstext += cityController.text+', ';
+      addresstext += '';
+
+    }
+    if (selectedState != 'Select State') {
+      addresstext += selectedState +',';
+      addresstext += '';
+    }
+
+    double? containerHeight = size.height * 0.09;
+    if (addresstext != 'Enter Address') {
+      containerHeight = null;
+    }
     return Form(
+
+      autovalidateMode: AutovalidateMode.onUserInteraction, // Enable auto-validation
+
       key: _formKey,
       child: SafeArea(
-        child: Scaffold(
-          body: SizedBox(
-            width: size.width,
-            height: size.height,
-            child: SingleChildScrollView(
-              child: Stack(
-                children: [
-                  const Upside(
-                    imgUrl: "assets/images/signup.png",
-                  ),
-                  const PageTitleBar(title: 'Create New Account'),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 320.0),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(50),
-                          topRight: Radius.circular(50),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const SizedBox(
-                            height: 15,
+        child: BlurryModalProgressHUD(
+          inAsyncCall: _isLoading,
+          blurEffectIntensity: 7,
+          progressIndicator: Center(child: RotationTransition(
+            turns: ciruclaranimation,
+            child: SvgPicture.asset(
+              'assets/images/Logo.svg',
+              semanticsLabel: 'Your SVG Image',
+              width: 100,
+              height: 130,
+            ),
+          )),
+
+
+          dismissible: false,
+          opacity: 0.4,
+          child: Scaffold(
+            body: SizedBox(
+              width: size.width,
+              height: size.height,
+              child: SingleChildScrollView(
+                child: Stack(
+                  children: [
+                    const Upside(
+                      imgUrl: "assets/images/signup.png",
+                    ),
+                    const PageTitleBar(title: 'Create New Account'),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 320.0),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(50),
+                            topRight: Radius.circular(50),
                           ),
-                          Column(children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  margin:
-                                  const EdgeInsets.symmetric(vertical: 10),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 5),
-                                  width: size.width * 0.45,
-                                  decoration: BoxDecoration(
-                                    color: HexColor('#F5F5F5'),
-                                    borderRadius: BorderRadius.circular(29),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 15,
+                            ),
+                            Column(children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 5),
+                                    width: size.width * 0.45,
+                                    decoration: BoxDecoration(
+                                      color: HexColor('#F5F5F5'),
+                                      borderRadius: BorderRadius.circular(29),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/icons/firstsecondicon.svg',
+                                          width: 33.0,
+                                          height: 33.0,
+                                        ),
+                                        SizedBox(width: 7),
+                                        Expanded(
+                                          child: TextFormField(
+                                            controller: firstnameController,
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Enter first name';
+                                              }
+                                              return null;
+                                            },
+                                            keyboardType: TextInputType.text,
+                                            decoration: InputDecoration(
+                                              hintText: 'First Name',
+                                              contentPadding: EdgeInsets.all(0), // Remove content padding
+
+                                              border: InputBorder.none,
+                                              errorStyle: TextStyle(
+                                                color: Colors.red,
+                                                // Customize error message color
+                                                fontSize:
+                                                12, // Customize error message font size
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  child: Row(
-                                    children: [
+                                  SizedBox(width: ScreenUtil.sizeboxheight4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 5),
+                                    width: size.width * 0.45,
+                                    decoration: BoxDecoration(
+                                      color: HexColor('#F5F5F5'),
+                                      borderRadius: BorderRadius.circular(29),
+                                    ),
+                                    child: Row(children: [
                                       SvgPicture.asset(
                                         'assets/icons/firstsecondicon.svg',
+                                        // Replace with the path to your SVG file
                                         width: 33.0,
-                                        height: 33.0,
+                                        // Replace with the desired width of the icon
+                                        height:
+                                        33.0, // Replace with the desired height of the icon                      // Replace with the path to your SVG file
                                       ),
-                                      SizedBox(width: 7),
-                                      Expanded(
-                                        child: TextFormField(
-                                          controller: firstnameController,
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return 'Enter first name';
-                                            }
-                                            return null;
-                                          },
-                                          keyboardType: TextInputType.text,
-                                          decoration: InputDecoration(
-                                            hintText: 'First Name',
-                                            contentPadding: EdgeInsets.all(0), // Remove content padding
+                                      SizedBox(width: 5,),
+                                      // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
+                                      Container(
+                                        child: Expanded(
+                                          child: TextFormField(
+                                            controller: lastnameController,
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Enter Last Name';
+                                              }
+                                              return null; // Return null if the input is valid
+                                            },
+                                            // Apply the custom formatter
 
-                                            border: InputBorder.none,
-                                            errorStyle: TextStyle(
-                                              color: Colors.red,
-                                              // Customize error message color
-                                              fontSize:
-                                              12, // Customize error message font size
+                                            keyboardType: TextInputType.text,
+
+                                            decoration: InputDecoration(
+                                              hintText: 'Last Name',
+                                              contentPadding: EdgeInsets.all(0), // Remove content padding
+
+                                              // Replace with the desired hint text
+                                              border: InputBorder.none,
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ],
+                                    ]),
                                   ),
-                                ),
-                                SizedBox(width: ScreenUtil.sizeboxheight4),
-                                Container(
-                                  margin:
-                                  const EdgeInsets.symmetric(vertical: 10),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 5),
-                                  width: size.width * 0.45,
-                                  decoration: BoxDecoration(
-                                    color: HexColor('#F5F5F5'),
-                                    borderRadius: BorderRadius.circular(29),
-                                  ),
-                                  child: Row(children: [
-                                    SvgPicture.asset(
-                                      'assets/icons/firstsecondicon.svg',
-                                      // Replace with the path to your SVG file
-                                      width: 33.0,
-                                      // Replace with the desired width of the icon
-                                      height:
-                                      33.0, // Replace with the desired height of the icon                      // Replace with the path to your SVG file
-                                    ),
-                                    SizedBox(width: 5,),
-                                    // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
-                                    Container(
-                                      child: Expanded(
-                                        child: TextFormField(
-                                          controller: lastnameController,
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return 'Enter Last Name';
-                                            }
-                                            return null; // Return null if the input is valid
-                                          },
-                                          // Apply the custom formatter
-
-                                          keyboardType: TextInputType.text,
-
-                                          decoration: InputDecoration(
-                                            hintText: 'Last Name',
-                                            contentPadding: EdgeInsets.all(0), // Remove content padding
-
-                                            // Replace with the desired hint text
-                                            border: InputBorder.none,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ]),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: ScreenUtil.sizeboxheight,
-                            ),
-
-                            Center(
-                              child: Container(
+                                ],
+                              ),
+                              SizedBox(
+                                height: ScreenUtil.sizeboxheight,
+                              ),
+                              Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 5),
+                                    horizontal: 20,),
                                 height: size.height * 0.09,
                                 width: size.width * 0.93,
                                 decoration: BoxDecoration(
@@ -608,415 +697,438 @@ bool isSearchBarVisible =false;
                                   ],
                                 ),
                               ),
-                            ),
-                            SizedBox(
-                              height: ScreenUtil.sizeboxheight,
-                            ),
-                            InkWell(
-                              onTap: () async {
-                                await showDialog(
+                              SizedBox(
+                                height: ScreenUtil.sizeboxheight,
+                              ),
+                              InkWell(
+                                onTap: () async {
+                                  await showDialog(
 
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (context) => AlertDialog(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20.0),
-                                      ),
-                                      content: SingleChildScrollView(
-                                        child: StatefulBuilder(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) => AlertDialog(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(20.0),
+                                        ),
+                                        content: SingleChildScrollView(
+                                          child: StatefulBuilder(
 
-                                            builder: (BuildContext context, StateSetter setState) {
-                                              return Form(
-                                                key: formkeyaddress,
-                                                child: Column(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    Row(
-                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                      children: [
+                                              builder: (BuildContext context, StateSetter setState) {
+                                                return Form(
+                                                  key: formkeyaddress,
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: [
 
-                                                        Text('Write Your Address',
-                                                          style: GoogleFonts.encodeSans(
-                                                            textStyle: TextStyle(
-                                                                color: HexColor('454545'),
-                                                                fontSize: 22,
-                                                                fontWeight: FontWeight.bold),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    SizedBox(height: 10,),
-                                                    Stack(
-                                                      children: [
-                                                        TextFormField(
-                                                          readOnly: true, // Set this to true to disable editing
-                                                          style: TextStyle(color: HexColor('#4D8D6E')),
-                                                          decoration: InputDecoration(
-                                                            hintText: selectedState ?? 'Select State', // Use selectedState or 'Select State' if it's null
-                                                            hintStyle: TextStyle(color: HexColor('#4D8D6E')),
-                                                            enabledBorder: OutlineInputBorder(
-                                                              borderSide: BorderSide(color: HexColor('#707070')),
-                                                              borderRadius: BorderRadius.circular(15.0),
-                                                            ),
-                                                            focusedBorder: OutlineInputBorder(
-                                                              borderSide: BorderSide(color: HexColor('#4D8D6E')),
-                                                              borderRadius: BorderRadius.circular(15.0),
+                                                          Text('Write Your Address',
+                                                            style: GoogleFonts.encodeSans(
+                                                              textStyle: TextStyle(
+                                                                  color: HexColor('454545'),
+                                                                  fontSize: 22,
+                                                                  fontWeight: FontWeight.bold),
                                                             ),
                                                           ),
+                                                        ],
+                                                      ),
+
+                                                      SizedBox(height: 10),
+                                                    Text('Address ',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15,color: Colors.black54),),
+          SizedBox(height: 2,),
+                                                    TextFormField(
+                                                      controller: addressLineController,
+                                                      style: TextStyle(color: HexColor('#4D8D6E')),
+                                                      decoration: InputDecoration(
+                                                        hintText: 'Street address or P.O. Box',
+
+                                                        hintStyle: TextStyle(color: HexColor('#707070')),
+                                                        enabledBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: HexColor('#707070')),
+                                                          borderRadius: BorderRadius.circular(15.0),
                                                         ),
-                                                        Positioned.fill(
-                                                          child: InkWell(
-                                                            onTap: () {
-                                                              showDialog(
-                                                                context: context,
-                                                                builder: (BuildContext context) {
-                                                                  return StateSelectorPopup(
-                                                                    states: statesOfAmerica,
-                                                                    onSelect: (newlySelectedState) {
-                                                                      // Update selectedState when a state is selected
-                                                                      setState(() {
-                                                                        selectedState = newlySelectedState;
-                                                                      });
-                                                                      print('Selected State: $newlySelectedState');
-                                                                    },
-                                                                  );
-                                                                },
-                                                              );
-                                                            },
-                                                            splashColor: Colors.transparent,
-                                                            highlightColor: Colors.transparent,
-                                                          ),
+                                                        focusedBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: HexColor('#4D8D6E')),
+                                                          borderRadius: BorderRadius.circular(15.0),
                                                         ),
-                                                      ],
+                                                      ),
+                                                      validator: (value) {
+                                                        if (value == null || value.isEmpty) {
+                                                          return 'Enter address line';
+                                                        }
+                                                        return null;
+                                                      },
                                                     ),
                                                     SizedBox(height: 10),
-
-                                                  TextFormField(
-                                                    controller: addressLineController,
-                                                    style: TextStyle(color: HexColor('#4D8D6E')),
-                                                    decoration: InputDecoration(
-                                                      hintText: 'Address Line',
-
-                                                      hintStyle: TextStyle(color: HexColor('#707070')),
-                                                      enabledBorder: OutlineInputBorder(
-                                                        borderSide: BorderSide(color: HexColor('#707070')),
-                                                        borderRadius: BorderRadius.circular(15.0),
-                                                      ),
-                                                      focusedBorder: OutlineInputBorder(
-                                                        borderSide: BorderSide(color: HexColor('#4D8D6E')),
-                                                        borderRadius: BorderRadius.circular(15.0),
-                                                      ),
-                                                    ),
-                                                    validator: (value) {
-                                                      if (value == null || value.isEmpty) {
-                                                        return 'Enter address line';
-                                                      }
-                                                      return null;
-                                                    },
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  TextFormField(
-                                                    controller: addressst2Controller,
-                                                    style: TextStyle(color: HexColor('#4D8D6E')),
-                                                    decoration: InputDecoration(
-                                                      hintText: 'Address Line 2',
-                                                      hintStyle: TextStyle(color: HexColor('#707070')),
-                                                      enabledBorder: OutlineInputBorder(
-                                                        borderSide: BorderSide(color: HexColor('#707070')),
-                                                        borderRadius: BorderRadius.circular(15.0),
-                                                      ),
-                                                      focusedBorder: OutlineInputBorder(
-                                                        borderSide: BorderSide(color: HexColor('#4D8D6E')),
-                                                        borderRadius: BorderRadius.circular(15.0),
-                                                      ),
-                                                    ),
-                                                    validator: (value) {
-                                                      if (value == null || value.isEmpty) {
-                                                        return 'Please enter your address line 2';
-                                                      }
-                                                      return null;
-                                                    },
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  TextFormField(
-                                                    controller: cityController,
-                                                    style: TextStyle(color: HexColor('#4D8D6E')),
-                                                    decoration: InputDecoration(
-                                                      hintText: 'City',
-                                                      hintStyle: TextStyle(color: HexColor('#707070')),
-                                                      enabledBorder: OutlineInputBorder(
-                                                        borderSide: BorderSide(color: HexColor('#707070')),
-                                                        borderRadius: BorderRadius.circular(15.0),
-                                                      ),
-                                                      focusedBorder: OutlineInputBorder(
-                                                        borderSide: BorderSide(color: HexColor('#4D8D6E')),
-                                                        borderRadius: BorderRadius.circular(15.0),
-                                                      ),
-                                                    ),
-                                                    validator: (value) {
-                                                      if (value == null || value.isEmpty) {
-                                                        return 'Please enter your city';
-                                                      }
-                                                      return null;
-                                                    },
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                    Row(
-                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                      children: [
-                                                        ElevatedButton(
-                                                          onPressed: () {
-
-                                                            Navigator.pop(context);
-                                                          } ,
-                                                          child: Text(
-                                                            'close',
-                                                            style: TextStyle(color: Colors.white),
-                                                          ),
-                                                          style: ElevatedButton.styleFrom(
-                                                            primary: Colors.red,
-                                                          ),
+                                                    TextFormField(
+                                                      controller: addressst2Controller,
+                                                      style: TextStyle(color: HexColor('#4D8D6E')),
+                                                      decoration: InputDecoration(
+                                                        hintText: 'Apt ,suite ,unit ,building, floor ,etc.',
+                                                        hintStyle: TextStyle(color: HexColor('#707070')),
+                                                        enabledBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: HexColor('#707070')),
+                                                          borderRadius: BorderRadius.circular(15.0),
                                                         ),
-                                                        SizedBox(width: 15,),
-                                                        ElevatedButton(
-                                                          onPressed: () {
-                                                            if (formkeyaddress.currentState!.validate() &&
-                                                                selectedState != 'Select State') {
-                                                              // Call the onDonePressed function and pass the values
-                                                              setState(() {
-                                                                _isFormFilled = true;
-                                                              });
+                                                        focusedBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: HexColor('#4D8D6E')),
+                                                          borderRadius: BorderRadius.circular(15.0),
+                                                        ),
+                                                      ),
+
+                                                    ),
+                                                    SizedBox(height: 10),
+                                                      Text('City ',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15,color: Colors.black54),),
+                                                      SizedBox(height: 2,),
+                                                    TextFormField(
+                                                      controller: cityController,
+                                                      style: TextStyle(color: HexColor('#4D8D6E')),
+                                                      decoration: InputDecoration(
+                                                        hintText: 'City',
+                                                        hintStyle: TextStyle(color: HexColor('#707070')),
+                                                        enabledBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: HexColor('#707070')),
+                                                          borderRadius: BorderRadius.circular(15.0),
+                                                        ),
+                                                        focusedBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: HexColor('#4D8D6E')),
+                                                          borderRadius: BorderRadius.circular(15.0),
+                                                        ),
+                                                      ),
+                                                      validator: (value) {
+                                                        if (value == null || value.isEmpty) {
+                                                          return 'Please enter your city';
+                                                        }
+                                                        return null;
+                                                      },
+                                                    ),
+                                                      SizedBox(height: 10,),
+                                                      Text('State ',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15,color: Colors.black54),),
+                                                      SizedBox(height: 2,),
+                                                      Stack(
+                                                        children: [
+                                                          TextFormField(
+                                                            readOnly: true, // Set this to true to disable editing
+                                                            style: TextStyle(color: HexColor('#4D8D6E')),
+                                                            decoration: InputDecoration(
+                                                              hintText: selectedState ?? 'Select State', // Use selectedState or 'Select State' if it's null
+                                                              hintStyle: TextStyle(color: HexColor('#4D8D6E')),
+                                                              enabledBorder: OutlineInputBorder(
+                                                                borderSide: BorderSide(color: HexColor('#707070')),
+                                                                borderRadius: BorderRadius.circular(15.0),
+                                                              ),
+                                                              focusedBorder: OutlineInputBorder(
+                                                                borderSide: BorderSide(color: HexColor('#4D8D6E')),
+                                                                borderRadius: BorderRadius.circular(15.0),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Positioned.fill(
+                                                            child: InkWell(
+                                                              onTap: () {
+                                                                showDialog(
+                                                                  context: context,
+                                                                  builder: (BuildContext context) {
+                                                                    return StateSelectorPopup(
+                                                                      states: statesOfAmerica,
+                                                                      onSelect: (newlySelectedState) {
+                                                                        // Update selectedState when a state is selected
+                                                                        setState(() {
+                                                                          selectedState = newlySelectedState;
+                                                                        });
+                                                                        print('Selected State: $newlySelectedState');
+                                                                      },
+                                                                    );
+                                                                  },
+                                                                );
+                                                              },
+                                                              splashColor: Colors.transparent,
+                                                              highlightColor: Colors.transparent,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    SizedBox(height: 10),
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: [
+                                                          ElevatedButton(
+                                                            onPressed: () {
+
                                                               Navigator.pop(context);
-                                                            } else {
-                                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                                SnackBar(
-                                                                  content: Text('Please fill in all fields.'),
-                                                                  backgroundColor: Colors.red,
-                                                                ),
-                                                              );
-                                                            }
-
-                                                          },
-                                                          child: Text(
-                                                            'Done',
-                                                            style: TextStyle(color: Colors.white),
+                                                            } ,
+                                                            child: Text(
+                                                              'close',
+                                                              style: TextStyle(color: Colors.white),
+                                                            ),
+                                                            style: ElevatedButton.styleFrom(
+                                                              primary: Colors.red,
+                                                            ),
                                                           ),
-                                                          style: ElevatedButton.styleFrom(
-                                                            primary: HexColor('#4D8D6E'),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
+                                                          SizedBox(width: 15,),
+                                                          ElevatedButton(
+                                                            onPressed: () {
+                                                              if (formkeyaddress.currentState!.validate() &&
+                                                                  selectedState != 'Select State') {
+                                                                // Call the onDonePressed function and pass the values
+                                                                setState(() {
+                                                                  _isFormFilled = true;
+                                                                });
+                                                                Navigator.pop(context);
+                                                              } else {
+                                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                                  SnackBar(
+                                                                    content: Text('Please fill in all fields.'),
+                                                                    backgroundColor: Colors.red,
+                                                                  ),
+                                                                );
+                                                              }
 
-                                                  ],
-                                              ),
-                                            );
-                                          }
+                                                            },
+                                                            child: Text(
+                                                              'Done',
+                                                              style: TextStyle(color: Colors.white),
+                                                            ),
+                                                            style: ElevatedButton.styleFrom(
+                                                              primary: HexColor('#4D8D6E'),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+
+                                                    ],
+                                                ),
+                                              );
+                                            }
+                                          ),
                                         ),
-                                      ),
-                                    ));
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                      ));
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                  height: containerHeight,
+                                  width: size.width * 0.93,
+                                  decoration: BoxDecoration(
+                                    color: HexColor('#F5F5F5'),
+                                    borderRadius: BorderRadius.circular(29),
+                                  ),
+                                  child: IntrinsicHeight(
+                                    child: Row(
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/icons/addressicon.svg',
+                                          width: 33.0,
+                                          height: 33.0,
+                                        ),
+                                        SizedBox(width: 15.0),
+                                        Expanded(
+                                          child: Text(
+                                            addresstext,
+                                            style: TextStyle(color: HexColor('#707070'), fontSize: 16, fontWeight: FontWeight.w500),
+                                          ),
+                                        ),
+                                        Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 18,
+                                          color: Colors.grey,
+                                        ),
+                                        SizedBox(width: 8,),
+                                        if (_isFormFilled == true)
+                                          Icon(Icons.check, color: Colors.green),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: ScreenUtil.sizeboxheight,
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 5),
                                 height: size.height * 0.09,
                                 width: size.width * 0.93,
                                 decoration: BoxDecoration(
                                   color: HexColor('#F5F5F5'),
                                   borderRadius: BorderRadius.circular(29),
                                 ),
-                                child: Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                      'assets/icons/addressicon.svg',
-                                      width: 33.0,
-                                      height: 33.0,
-                                    ),
-                                    SizedBox(width: 15.0),
-                                    Text(
-                                      ' Address',
-                                      style: TextStyle(color: HexColor('#707070'), fontSize: 16, fontWeight: FontWeight.w500),
-                                    ),
-                                    Spacer(),
-                                    Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 18,
-                                      color: Colors.grey,
-                                    ),
-                                    SizedBox(width: 8,),
-                                    if (_isFormFilled == true)
-                                      Icon(Icons.check, color: Colors.green),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: ScreenUtil.sizeboxheight,
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 5),
-                              height: size.height * 0.09,
-                              width: size.width * 0.93,
-                              decoration: BoxDecoration(
-                                color: HexColor('#F5F5F5'),
-                                borderRadius: BorderRadius.circular(29),
-                              ),
-                              child: Row(children: [
-                                SvgPicture.asset(
-                                  'assets/icons/zipcode.svg',
-                                  // Replace with the path to your SVG file
-                                  width: 33.0,
-                                  // Replace with the desired width of the icon
-                                  height:
-                                  33.0, // Replace with the desired height of the icon                      // Replace with the path to your SVG file
-                                ),
-                                // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
-                                SizedBox(width: 20.0),
+                                child: Row(children: [
+                                  SvgPicture.asset(
+                                    'assets/icons/zipcode.svg',
+                                    // Replace with the path to your SVG file
+                                    width: 33.0,
+                                    // Replace with the desired width of the icon
+                                    height:
+                                    33.0, // Replace with the desired height of the icon                      // Replace with the path to your SVG file
+                                  ),
+                                  // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
+                                  SizedBox(width: 20.0),
 
-                                Container(
-                                  child: Expanded(
-                                    child: TextFormField(
-                                      controller: zipcodeController,
-                                      inputFormatters: [
-                                        LengthLimitingTextInputFormatter(5), // Limit the input to 5 characters
-                                      ],
-                                      onEditingComplete: () {
-                                        final form = _formKey.currentState;
-                                        if (form != null) {
-                                          form.validate();
-                                        }
-                                      },
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Zip Code';
-                                        }
-                                        if (value.length != 5) {
-                                          return 'Zip Code should be 5 digits';
-                                        }
-                                        return null; // Return null if the input is valid
-                                      },
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        hintText: 'Enter your ZIP Code ',
-                                        contentPadding: EdgeInsets.all(0), // Remove content padding
-                                        border: InputBorder.none,
+                                  Container(
+                                    child: Expanded(
+                                      child: TextFormField(
+                                        controller: zipcodeController,
+                                        inputFormatters: [
+                                          LengthLimitingTextInputFormatter(5), // Limit the input to 5 characters
+                                        ],
+                                        onEditingComplete: () {
+                                          final form = _formKey.currentState;
+                                          if (form != null) {
+                                            form.validate();
+                                          }
+                                        },
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Zip Code';
+                                          }
+                                          if (value.length != 5) {
+                                            return 'Zip Code should be 5 digits';
+                                          }
+                                          return null; // Return null if the input is valid
+                                        },
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          hintText: 'Enter your ZIP Code ',
+                                          contentPadding: EdgeInsets.all(0), // Remove content padding
+                                          border: InputBorder.none,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ]),
-                            ),
-                            SizedBox(
-                              height: ScreenUtil.sizeboxheight,
-                            ),
+                                ]),
+                              ),
+                              SizedBox(
+                                height: ScreenUtil.sizeboxheight,
+                              ),
 
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: SingleChildScrollView(
+                        Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: SingleChildScrollView(
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          isLanguageListVisible = !isLanguageListVisible;
-                                          isSearchBarVisible = isLanguageListVisible;
-                                          // Remove the condition to update filteredLanguages regardless of the search bar visibility
-                                          filteredLanguages = languages;
-                                        });
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                          vertical: 5,
-                                        ),
-                                        height: size.height * 0.09,
-                                        width: size.width * 0.93,
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey[200],
-                                          borderRadius: BorderRadius.circular(29),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.language),
-                                            SizedBox(width: 10),
-                                            Text(
-                                              selectedLanguage ?? 'Select Language', // Use selectedLanguage as the hint text if it's not null
-                                              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                                            ),
-                                            Spacer(),
-                                            Icon(
-                                              isLanguageListVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                                              size: 18,
-                                            ),
-                                          ],
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            isLanguageListVisible = !isLanguageListVisible;
+                                            isSearchBarVisible = isLanguageListVisible;
+                                            // Remove the condition to update filteredLanguages regardless of the search bar visibility
+                                            filteredLanguages = languages;
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 5,
+                                          ),
+                                          height: size.height * 0.09,
+                                          width: size.width * 0.93,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[200],
+                                            borderRadius: BorderRadius.circular(29),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.language),
+                                              SizedBox(width: 10),
+                                              Text(
+                                                'Select Language',
+                                                style: TextStyle(
+                                                    fontSize: 16, color: Colors.grey[700]),
+                                              ),
+                                              Spacer(),
+                                              Icon(
+                                                isLanguageListVisible
+                                                    ? Icons.arrow_drop_up
+                                                    : Icons.arrow_drop_down,
+                                                size: 18,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
 
-                                    // Search bar
-                                    Visibility(
-                                      visible: isSearchBarVisible,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                        child: TextField(
-                                          onChanged: (query) {
-                                            setState(() {
-                                              filteredLanguages = languages
-                                                  .where((language) => language['lang']
-                                                  .toLowerCase()
-                                                  .contains(query.toLowerCase()))
-                                                  .toList();
-                                            });
-                                          },
-                                          decoration: InputDecoration(
-                                            hintText: 'Search languages...',
-                                            prefixIcon: Icon(Icons.search),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(10),
+                                      // Validation error message
+                                      if (isLanguageListVisible && selectedLanguages.isEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+                                          child: Text(
+                                            'Please select a language',
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ),
+
+                                      // Search bar
+                                      Visibility(
+                                        visible: isSearchBarVisible,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          child: TextField(
+                                            onChanged: (query) {
+                                              setState(() {
+                                                filteredLanguages = languages
+                                                    .where((language) =>
+                                                    language['name']
+                                                        .toLowerCase()
+                                                        .contains(query.toLowerCase()))
+                                                    .toList();
+                                              });
+                                            },
+
+
+                                            decoration: InputDecoration(
+                                              hintText: 'Search languages...',
+                                              prefixIcon: Icon(Icons.search),
+                                              border: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
 
-                                    // List of filtered languages
-                                    Visibility(
-                                      visible: isLanguageListVisible,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: filteredLanguages.map((language) {
-                                          final langName = language['lang'];
+                                      // List of filtered languages
+                                      Visibility(
+                                        visible: isLanguageListVisible,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: filteredLanguages.map((language) {
+                                            final langName = language['name'];
+                                            final langId = language['id'];
 
-                                          return ListTile(
-                                            title: Text(langName),
-
-                                            leading: Radio(
-                                              activeColor: HexColor('#4D8D6E'), // Set the color when the radio button is selected
-                                              value: langName,
-                                              groupValue: selectedLanguage, // Provide a proper group value here
-                                              onChanged: (value) {
-                                                setState(() {
-
-                                                  selectedLanguage = value as String;
-                                                  isLanguageListVisible = false; // Hide the list after selecting a language
-                                                  isSearchBarVisible = false; // Hide the search bar after selecting a language
-                                                });
-                                              },
-                                            ),
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )                   ,SizedBox(
-                      height: ScreenUtil.sizeboxheight,
-                    ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20.0 ,vertical: 10),
-                              child: Container(
+                                            return Column(
+                                              children: [
+                                                ListTile(
+                                                  title: Text(langName),
+                                                  leading: Checkbox(
+                                                    activeColor: HexColor('#4D8D6E'),
+                                                    value: selectedLanguages.contains(langId),
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        if (value!) {
+                                                          selectedLanguages.add(langId);
+                                                          print('selected languages add ${selectedLanguages}'); // Print the selected language IDs
+                                                        } else {
+                                                          print('selected languages remove ${selectedLanguages}'); // Print the selected language IDs
+                                                          selectedLanguages.remove(langId);
+                                                        }
+                                                      });
+                                                    },
+                                                  ),
+                                                ),
+                                                Divider(),
+                                              ],
+                                            );
+                                          }).toList(),
+                                        ),
+                                      )
+                                    ]))),
+                              SizedBox(
+                        height: ScreenUtil.sizeboxheight,
+                      ),
+                              Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
                                 height: size.height * 0.103,
                                 width: size.width * 0.93,
@@ -1072,7 +1184,7 @@ bool isSearchBarVisible =false;
                                                     selection: TextSelection.collapsed(offset: formattedPhoneNumber.length),
 
                                                   );
-// Add +1 prefix to the formatted phone number
+                              // Add +1 prefix to the formatted phone number
                                                   phoneNumberController.text = '$formattedPhoneNumber';
 
                                                   // Ensure the cursor position is at the end
@@ -1113,12 +1225,82 @@ bool isSearchBarVisible =false;
                                   ],
                                 ),
                               ),
-                            ),
 
-                            SizedBox(
-                              height: ScreenUtil.sizeboxheight,
-                            ),
-                            Center(
+                              SizedBox(
+                                height: ScreenUtil.sizeboxheight,
+                              ),
+                              Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 5),
+                                    height: size.height * 0.099,
+                                    width: size.width * 0.93,
+                                    decoration: BoxDecoration(
+                                      color: HexColor('#F5F5F5'),
+                                      borderRadius: BorderRadius.circular(29),
+                                    ),
+                                    child: Row(children: [
+                                      SvgPicture.asset(
+                                        'assets/icons/password.svg',
+                                        // Replace with the path to your SVG file
+                                        width: 33.0,
+                                        // Replace with the desired width of the icon
+                                        height:
+                                        33.0, // Replace with the desired height of the icon
+                                      ),
+                                      // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
+                                      SizedBox(width: 20.0),
+                                      Container(
+                                        child: Expanded(
+                                          child: TextFormField(
+                                            inputFormatters: [
+                                              EnglishTextInputFormatter()
+                                            ],
+                                            // Apply the custom formatter
+
+                                            keyboardType: TextInputType.text,
+                                            controller: passwordController,
+                                            obscureText: _isObscured,
+                                            validator: (value) {
+                                              if (value == null || value.isEmpty) {
+                                                return 'Please enter a password';
+                                              }
+
+                                              else if (!_isValidPassword(value)) {
+                                                return 'required At least 12 characters long,uppercase & lowercase letters,'
+                                                    ' numbers, and symbols.';
+                                              }
+                                              return null;
+                                            },
+                                            onSaved: (value) {
+                                              _password = value!;
+                                            },
+                                            onChanged: (value) {
+                                              checkPassword(value);
+                                            },
+                                            decoration: InputDecoration(
+                                              suffixIcon: GestureDetector(
+                                                onTap: _togglePasswordVisibility,
+                                                // Call the _togglePasswordVisibility function here
+                                                child: Icon(
+                                                  _isObscured
+                                                      ? Icons.visibility
+                                                      : Icons.visibility_off,
+                                                ),
+                                              ),
+                                              hintText: 'Password',
+                                              // Replace with the desired hint text
+                                              border: InputBorder.none,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ]),
+                                  )),
+                              SizedBox(
+                                height: ScreenUtil.sizeboxheight,
+                              ),
+                              Center(
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 20, vertical: 5),
@@ -1128,263 +1310,218 @@ bool isSearchBarVisible =false;
                                     color: HexColor('#F5F5F5'),
                                     borderRadius: BorderRadius.circular(29),
                                   ),
-                                  child: Row(children: [
-                                    SvgPicture.asset(
-                                      'assets/icons/password.svg',
-                                      // Replace with the path to your SVG file
-                                      width: 33.0,
-                                      // Replace with the desired width of the icon
-                                      height:
-                                      33.0, // Replace with the desired height of the icon
-                                    ),
-                                    // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
-                                    SizedBox(width: 20.0),
-                                    Container(
-                                      child: Expanded(
-                                        child: TextFormField(
-                                          inputFormatters: [
-                                            EnglishTextInputFormatter()
-                                          ],
-                                          // Apply the custom formatter
+                                  child: Row(
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/icons/password.svg',
+                                        // Replace with the path to your SVG file
+                                        width: 33.0,
+                                        // Replace with the desired width of the icon
+                                        height:
+                                        33.0, // Replace with the desired height of the icon
+                                      ),
+                                      // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
+                                      SizedBox(width: 20.0),
+                                      Container(
+                                        child: Expanded(
+                                          child: TextFormField(
+                                            inputFormatters: [
+                                              EnglishTextInputFormatter()
+                                            ],
+                                            // Apply the custom formatter
 
-                                          keyboardType: TextInputType.text,
-                                          controller: passwordController,
-                                          obscureText: _isObscured,
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return 'Please enter a password';
-                                            }
+                                            keyboardType: TextInputType.text,
+                                            controller: confirmPasswordController,
+                                            obscureText: _isObscured,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _passwordsMatch =
+                                                    _validatePasswords();
+                                              });
+                                            },
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Please confirm your password';
+                                              } else if (value !=
+                                                  passwordController.text) {
+                                                return 'Passwords do not match';
+                                              }
+                                              return null;
+                                            },
+                                            onSaved: (value) {
+                                              _password = value!;
+                                            },
+                                            decoration: InputDecoration(
+                                              errorText: _passwordsMatch
+                                                  ? null
+                                                  : 'Passwords do not match',
 
-                                            // else if (!_isValidPassword(value)) {
-                                            //   return 'required At least 12 characters long,uppercase & lowercase letters,'
-                                            //       ' numbers, and symbols.';
-                                            // }
-                                            return null;
-                                          },
-                                          onSaved: (value) {
-                                            _password = value!;
-                                          },
-                                          onChanged: (value) {
-                                            checkPassword(value);
-                                          },
-                                          decoration: InputDecoration(
-                                            suffixIcon: GestureDetector(
-                                              onTap: _togglePasswordVisibility,
-                                              // Call the _togglePasswordVisibility function here
-                                              child: Icon(
-                                                _isObscured
-                                                    ? Icons.visibility
-                                                    : Icons.visibility_off,
+                                              suffixIcon: GestureDetector(
+                                                onTap: _togglePasswordVisibility,
+                                                // Call the _togglePasswordVisibility function here
+                                                child: Icon(
+                                                  color: HexColor('#509372'),
+                                                  _isObscured
+                                                      ? Icons.visibility
+                                                      : Icons.visibility_off,
+                                                ),
                                               ),
+                                              hintText: 'Confirm Password',
+                                              // Replace with the desired hint text
+                                              border: InputBorder.none,
                                             ),
-                                            hintText: 'Password',
-                                            // Replace with the desired hint text
-                                            border: InputBorder.none,
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ]),
-                                )),
-                            SizedBox(
-                              height: ScreenUtil.sizeboxheight,
-                            ),
-                            Center(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 5),
-                                height: size.height * 0.099,
-                                width: size.width * 0.93,
-                                decoration: BoxDecoration(
-                                  color: HexColor('#F5F5F5'),
-                                  borderRadius: BorderRadius.circular(29),
-                                ),
-                                child: Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                      'assets/icons/password.svg',
-                                      // Replace with the path to your SVG file
-                                      width: 33.0,
-                                      // Replace with the desired width of the icon
-                                      height:
-                                      33.0, // Replace with the desired height of the icon
-                                    ),
-                                    // Icon(Icons.lock, color: HexColor('#292929')), // Replace with the desired icon
-                                    SizedBox(width: 20.0),
-                                    Container(
-                                      child: Expanded(
-                                        child: TextFormField(
-                                          inputFormatters: [
-                                            EnglishTextInputFormatter()
-                                          ],
-                                          // Apply the custom formatter
-
-                                          keyboardType: TextInputType.text,
-                                          controller: confirmPasswordController,
-                                          obscureText: _isObscured,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _passwordsMatch =
-                                                  _validatePasswords();
-                                            });
-                                          },
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return 'Please confirm your password';
-                                            } else if (value !=
-                                                passwordController.text) {
-                                              return 'Passwords do not match';
-                                            }
-                                            return null;
-                                          },
-                                          onSaved: (value) {
-                                            _password = value!;
-                                          },
-                                          decoration: InputDecoration(
-                                            errorText: _passwordsMatch
-                                                ? null
-                                                : 'Passwords do not match',
-
-                                            suffixIcon: GestureDetector(
-                                              onTap: _togglePasswordVisibility,
-                                              // Call the _togglePasswordVisibility function here
-                                              child: Icon(
-                                                color: HexColor('#509372'),
-                                                _isObscured
-                                                    ? Icons.visibility
-                                                    : Icons.visibility_off,
-                                              ),
-                                            ),
-                                            hintText: 'Confirm Password',
-                                            // Replace with the desired hint text
-                                            border: InputBorder.none,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start, // Adjusted this line
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.start, // Adjusted this line
-                                      children: [
-                                        Icon(
-                                          hasUppercase ? Icons.check_circle : Icons.cancel,
-                                          color: hasUppercase ? Colors.green : Colors.red,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'Uppercase letter',
-                                          style: TextStyle(
-                                            color: hasUppercase ? Colors.green : Colors.red,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.start, // Adjusted this line
-                                      children: [
-                                        Icon(
-                                          hasLowercase ? Icons.check_circle : Icons.cancel,
-                                          color: hasLowercase ? Colors.green : Colors.red,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'Lowercase letter',
-                                          style: TextStyle(
-                                            color: hasLowercase ? Colors.green : Colors.red,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.start, // Adjusted this line
-                                      children: [
-                                        Icon(
-                                          hasNumber ? Icons.check_circle : Icons.cancel,
-                                          color: hasNumber ? Colors.green : Colors.red,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'Number',
-                                          style: TextStyle(
-                                            color: hasNumber ? Colors.green : Colors.red,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: ScreenUtil.sizeboxheight,
-                            ),
-
-                            Center(
-                              child: _isLoading
-                                  ? Center(
-                                child: RotationTransition(
-                                  turns: ciruclaranimation,
-                                  child: SvgPicture.asset(
-                                    'assets/images/Logo.svg',
-                                    semanticsLabel: 'Your SVG Image',
-                                    width: 100,
-                                    height: 130,
+                                    ],
                                   ),
                                 ),
-                              )
-                              // Show loading indicator when uploading
-                                  : Column(
+                              ),
+                              SizedBox(height: 12),
+                              Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  RoundedButton(
-                                    text: 'Register',
-                                    press: () {
-                                      if (_formKey.currentState!.validate() && selectedLanguage != 'select language') {
-                                        _registerClient();
-                                      } else {
-                                        Fluttertoast.showToast(msg: "Please fill in all required fields.");
-                                      }
-                                    },
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            hasUppercase ? Icons.check_circle : Icons.cancel,
+                                            color: hasUppercase ? Colors.green : Colors.red,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Uppercase letter',
+                                            style: TextStyle(
+                                              color: hasUppercase ? Colors.green : Colors.red,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            hasLowercase ? Icons.check_circle : Icons.cancel,
+                                            color: hasLowercase ? Colors.green : Colors.red,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Lowercase letter',
+                                            style: TextStyle(
+                                              color: hasLowercase ? Colors.green : Colors.red,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            hasNumber ? Icons.check_circle : Icons.cancel,
+                                            color: hasNumber ? Colors.green : Colors.red,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Number',
+                                            style: TextStyle(
+                                              color: hasNumber ? Colors.green : Colors.red,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            charater12?  Icons.check_circle : Icons.cancel,
+                                            color: charater12?  Colors.green : Colors.red,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'At least 12 characters',
+                                            style: TextStyle(
+                                              color: charater12? Colors.green : Colors.red,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ),
+                              SizedBox(
+                                height: ScreenUtil.sizeboxheight,
+                              ),
 
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            UnderPart(
-                              title: "Already have an account?",
-                              navigatorText: "Login here",
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            LoginScreenclient()));
-                              },
-                            ),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                          ]),
-                          iconButton(context)
-                        ],
+                              Center(
+                                child: _isLoading
+                                    ? Center(
+                                  child: RotationTransition(
+                                    turns: ciruclaranimation,
+                                    child: SvgPicture.asset(
+                                      'assets/images/Logo.svg',
+                                      semanticsLabel: 'Your SVG Image',
+                                      width: 100,
+                                      height: 130,
+                                    ),
+                                  ),
+                                )
+                                // Show loading indicator when uploading
+                                    : Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    RoundedButton(
+                                      text: 'Register',
+                                      press: () {
+                                        if (_formKey.currentState!.validate()) {
+                                          if (selectedLanguages.isNotEmpty) {
+                                            if (addressLineController.text.isNotEmpty) {
+                                              _registerClient();
+                                            } else {
+                                              Fluttertoast.showToast(msg: "Please fill  the address.");
+                                            }
+                                          } else {
+                                            Fluttertoast.showToast(msg: "Please select a language.");
+                                          }
+                                        } else {
+                                          Fluttertoast.showToast(msg: "Please fill in all required fields.");
+                                        }
+
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              UnderPart(
+                                title: "Already have an account?",
+                                navigatorText: "Login here",
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              LoginScreenclient()));
+                                },
+                              ),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                            ]),
+                            iconButton(context)
+                          ],
+                        ),
                       ),
-                    ),
-                  )
-                ],
+                    )
+                  ],
+                ),
               ),
             ),
           ),
@@ -1394,187 +1531,3 @@ bool isSearchBarVisible =false;
   }
 }
 
-// class AddressPickerPopup extends StatefulWidget {
-//   final Function(String, String, String, String) onDonePressed;
-//
-//   AddressPickerPopup({
-//     required this.onDonePressed,
-//
-//   });
-//
-//   @override
-//   State<AddressPickerPopup> createState() => _AddressPickerPopupState();
-// }
-//
-// class _AddressPickerPopupState extends State<AddressPickerPopup> {
-//   GlobalKey<FormState> formKey = GlobalKey<FormState>();
-//   String selectedState = 'Alabama'; // or any other valid state from your list
-//
-//   bool _isFormFilled = false; // Initialize as false
-//   // List of states of America
-//   List<String> statesOfAmerica = [
-//     'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
-//     'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts',
-//     'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey',
-//     'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island',
-//     'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
-//     'Wisconsin', 'Wyoming',
-//   ];
-//   _AddressPickerPopupState() {
-//     assert(statesOfAmerica.toSet().length == statesOfAmerica.length,
-//     'Duplicate values found in statesOfAmerica list');
-//   }
-//   // Define a callback function to pass data back to SignUpScreen2
-//   void _onDonePressed(String addressLine, String addressLine2, String city, String state) {
-//     widget.onDonePressed(addressLine, addressLine2, city, state);
-//   }
-//   @override
-//   Widget build(BuildContext context) {
-//     // Define TextEditingController variables
-//     TextEditingController addressLineController = TextEditingController();
-//     TextEditingController addressst2Controller = TextEditingController();
-//     TextEditingController cityController = TextEditingController();
-//     TextEditingController stateController = TextEditingController();
-//
-//     return AlertDialog(
-//       shape: RoundedRectangleBorder(
-//         borderRadius: BorderRadius.circular(20.0),
-//       ),
-//       content: Form(
-//         key: formKey,
-//         child: SingleChildScrollView(
-//           child: Column(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               DropdownButtonFormField<String>(
-//                 value: selectedState,
-//                 onChanged: (newValue) {
-//                   setState(() {
-//                     selectedState = newValue!;
-//                   });
-//                 },
-//                 items: statesOfAmerica.map((state) {
-//                   return DropdownMenuItem<String>(
-//                     value: state,
-//                     child: Text(state),
-//                   );
-//                 }).toList(),
-//                 decoration: InputDecoration(
-//                   hintText: 'State',
-//                   hintStyle: TextStyle(color: HexColor('#707070')),
-//                   enabledBorder: OutlineInputBorder(
-//                     borderSide: BorderSide(color: HexColor('#707070')),
-//                     borderRadius: BorderRadius.circular(15.0),
-//                   ),
-//                   focusedBorder: OutlineInputBorder(
-//                     borderSide: BorderSide(color: HexColor('#4D8D6E')),
-//                     borderRadius: BorderRadius.circular(15.0),
-//                   ),
-//                 ),
-//                 validator: (value) {
-//                   if (value == null || value.isEmpty) {
-//                     return 'Select a state';
-//                   }
-//                   return null;
-//                 },
-//               ),
-//               SizedBox(height: 10),
-//
-//               TextFormField(
-//                 controller: addressLineController,
-//                 style: TextStyle(color: HexColor('#4D8D6E')),
-//                 decoration: InputDecoration(
-//                   hintText: 'Address Line',
-//                   hintStyle: TextStyle(color: HexColor('#707070')),
-//                   enabledBorder: OutlineInputBorder(
-//                     borderSide: BorderSide(color: HexColor('#707070')),
-//                     borderRadius: BorderRadius.circular(15.0),
-//                   ),
-//                   focusedBorder: OutlineInputBorder(
-//                     borderSide: BorderSide(color: HexColor('#4D8D6E')),
-//                     borderRadius: BorderRadius.circular(15.0),
-//                   ),
-//                 ),
-//                 validator: (value) {
-//                   if (value == null || value.isEmpty) {
-//                     return 'Enter address line';
-//                   }
-//                   return null;
-//                 },
-//               ),
-//               SizedBox(height: 10),
-//               TextFormField(
-//                 controller: addressst2Controller,
-//                 style: TextStyle(color: HexColor('#4D8D6E')),
-//                 decoration: InputDecoration(
-//                   hintText: 'Address Line 2',
-//                   hintStyle: TextStyle(color: HexColor('#707070')),
-//                   enabledBorder: OutlineInputBorder(
-//                     borderSide: BorderSide(color: HexColor('#707070')),
-//                     borderRadius: BorderRadius.circular(15.0),
-//                   ),
-//                   focusedBorder: OutlineInputBorder(
-//                     borderSide: BorderSide(color: HexColor('#4D8D6E')),
-//                     borderRadius: BorderRadius.circular(15.0),
-//                   ),
-//                 ),
-//
-//               ),
-//               SizedBox(height: 10),
-//               TextFormField(
-//                 controller: cityController,
-//                 style: TextStyle(color: HexColor('#4D8D6E')),
-//                 decoration: InputDecoration(
-//                   hintText: 'City',
-//                   hintStyle: TextStyle(color: HexColor('#707070')),
-//                   enabledBorder: OutlineInputBorder(
-//                     borderSide: BorderSide(color: HexColor('#707070')),
-//                     borderRadius: BorderRadius.circular(15.0),
-//                   ),
-//                   focusedBorder: OutlineInputBorder(
-//                     borderSide: BorderSide(color: HexColor('#4D8D6E')),
-//                     borderRadius: BorderRadius.circular(15.0),
-//                   ),
-//                 ),
-//                 validator: (value) {
-//                   if (value == null || value.isEmpty) {
-//                     return 'Enter city';
-//                   }
-//                   return null;
-//                 },
-//               ),
-//
-//
-//               SizedBox(height: 10),
-//     ElevatedButton(
-//     onPressed: () {
-//     if (formKey.currentState!.validate()) {
-//     String addressLine = addressLineController.text;
-//     String addressLine2 = addressst2Controller.text;
-//     String city = cityController.text;
-//     String state = selectedState;
-//
-//     // Call the onDonePressed function and pass the values
-//     _onDonePressed(addressLine, addressLine2, city, state);
-//     setState(() {
-//     _isFormFilled = true;
-//     });
-//     Navigator.pop(context);
-//     }
-//     },
-//     child: Text(
-//     'Done',
-//     style: TextStyle(color: Colors.white),
-//     ),
-//     style: ElevatedButton.styleFrom(
-//     primary: HexColor('#4D8D6E'),
-//     ),
-//     ),
-//               ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-//

@@ -14,7 +14,7 @@ class RegisterClientApiClient {
     required String email,
     required String password,
     required String phone,
-    required String language,
+    List<int>? languageIds,
     required String street1,
     required String street2,
     required String city,
@@ -31,7 +31,6 @@ class RegisterClientApiClient {
           'email': email,
           'password': password,
           'phone': phone,
-          'language': language,
           'street1': street1,
           'street2': street2,
           'city': city,
@@ -42,7 +41,11 @@ class RegisterClientApiClient {
       // Explicitly set the 'Content-Type' header
       request.headers['Content-Type'] = 'multipart/form-data';
 
-
+      if (languageIds != null) {
+        for (var i = 0; i < languageIds.length; i++) {
+          request.fields['language[$i]'] = languageIds[i].toString();
+        }
+      }
       final response = await http.Response.fromStream(await request.send());
 
       if (response.statusCode == 200) {

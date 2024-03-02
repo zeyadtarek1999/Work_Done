@@ -34,7 +34,25 @@ class ChooseRoleBottomSheet extends StatelessWidget {
             ),
           ),
           SizedBox(height: 20),
-          GestureDetector(onTap: () => Get.to(SignUpScreen2()),
+          GestureDetector(onTap: () =>  Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+                return SignUpScreen2();
+              },
+              transitionsBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 1),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                );
+              },
+            ),
+          )
+
+            ,
             child: Container(
               color: Colors.white,
               height: ScreenUtil.cardheight,
@@ -90,7 +108,25 @@ class ChooseRoleBottomSheet extends StatelessWidget {
             ),
           ),
           SizedBox(height: 14),
-          GestureDetector(onTap: () => Get.to(SignUpScreen(addressLine: '', addressSt2: '', city: '', state: '',)),
+          GestureDetector(onTap: () =>  Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+                return SignUpScreen();
+              },
+              transitionsBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 1),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                );
+              },
+            ),
+          )
+
+            ,
             child: Container(
               color: Colors.white,
               height: ScreenUtil.cardheight,

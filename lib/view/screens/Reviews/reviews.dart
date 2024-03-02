@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -234,6 +235,7 @@ class _ReviewsState extends State<Reviews> {
 
         if (responseData.containsKey('user_data')) {
           Map<dynamic, dynamic> profileData = responseData['user_data'];
+          String languageString;
 
           setState(() {
             firstname = profileData['firstname'] ?? '';
@@ -241,10 +243,14 @@ class _ReviewsState extends State<Reviews> {
             email = profileData['email'] ?? '';
             profile_pic = profileData['profile_pic'] ?? '';
             phone = profileData['phone'] ?? '';
-            language = profileData['language'] ?? '';
+            List<dynamic> languages = profileData['language'] ?? [];
+            List<String> languageNames = languages.map<String>((language) => language['name']).toList();
+            languageString = languageNames.join(', ');
+            language = languageString;
+
           });
 
-          print('Response: $profileData');
+          print('Response profile: $profileData');
           print('profile pic: $profile_pic');
         } else {
           print(
@@ -395,25 +401,31 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
         
                                       return Text('No projects found.');
                                     } else {
-                                      return ListView.builder(
-                                        physics: NeverScrollableScrollPhysics(),
-                                        shrinkWrap: true,
-                                        itemCount: snapshot.data!.length,
-                                        itemBuilder: (context, index) {
-                                          return buildListproject( snapshot.data![index]);
-                                        },
+                                      return Animate(
+                                        effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                        child: ListView.builder(
+                                          physics: NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true,
+                                          itemCount: snapshot.data!.length,
+                                          itemBuilder: (context, index) {
+                                            return buildListproject( snapshot.data![index]);
+                                          },
+                                        ),
                                       );
                                     }
                                   },
                                 ),
-        
-                                ListView.builder(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  itemCount: reviewsitems2.length,
-                                  itemBuilder: (context, index) {
-                                    return buildListReviews( reviewsitems2[index]);
-                                  },
+
+                                Animate(
+                                  effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                  child: ListView.builder(
+                                    physics: NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemCount: reviewsitems2.length,
+                                    itemBuilder: (context, index) {
+                                      return buildListReviews( reviewsitems2[index]);
+                                    },
+                                  ),
                                 ),
                               ]
                           )
@@ -797,9 +809,7 @@ class ClientData {
       clientId: json['client_id'],
       firstname: json['firstname'],
       lastname: json['lastname'],
-      profileImage: json['profle_image'] ??
-          'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-    );
+      profileImage: json['profle_image'] ??'');
   }
 }
 
@@ -809,8 +819,7 @@ class ProjectData {
   final String email;
   final String profile_pic;
   final String phone;
-  final String language;
-
+  List<dynamic> languages;
 
   // Include the client data
 
@@ -820,7 +829,7 @@ class ProjectData {
     required this.email,
     required this.phone,
     required this.profile_pic,
-    required this.language,
+    required this.languages,
     r
   });
 

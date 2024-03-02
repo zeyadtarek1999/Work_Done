@@ -18,7 +18,7 @@ import '../../../controller/DrawerControllerworker.dart';
 import '../../../model/mediaquery.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
-import '../editProfile/editProfile.dart';
+import '../editProfile/editProfileClient.dart';
 
 class ProfileScreenClient2 extends StatefulWidget {
   @override
@@ -117,14 +117,20 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
 
         final response = await http.post(
           Uri.parse(apiUrl),
-          headers: {'Authorization': 'Bearer $userToken'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $userToken',
+          },
+
         );
 
         if (response.statusCode == 200) {
-          Map<String, dynamic> responseData = json.decode(response.body);
+          Map<dynamic, dynamic> responseData = json.decode(response.body);
 
           if (responseData.containsKey('data')) {
-            Map<String, dynamic> profileData = responseData['data'];
+            Map<dynamic, dynamic> profileData = responseData['data'];
+
+            String languageString;
 
             setState(() {
               firstname = profileData['firstname'] ?? '';
@@ -132,11 +138,14 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
               email = profileData['email'] ?? '';
               profile_pic = profileData['profile_pic'] ?? '';
               phonenumber = profileData['phone'] ?? '';
-              language = profileData['language'] ?? '';
+              List<dynamic> languages = profileData['language'] ?? [];
+              List<String> languageNames = languages.map<String>((language) => language['name']).toList();
+              languageString = languageNames.join(', ');
+              language = languageString; // Add this line
             });
 
             print('Response: $profileData');
-            print('prifole pic: $profile_pic');
+            print('profile pic: $profile_pic');
           } else {
             print(
                 'Error: Response data does not contain the expected structure.');
@@ -153,7 +162,6 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
       print('Error getting profile information: $error');
     }
   }
-
 
 
   final ScreenshotController screenshotController = ScreenshotController();
@@ -341,11 +349,10 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                         ),
                         child: CircleAvatar(
                           radius: 35,
-                          backgroundImage: (profile_pic != null && profile_pic.isNotEmpty)
-                              ? (profile_pic == "https://workdonecorp.com/images/"
-                              ? NetworkImage("http://s3.amazonaws.com/37assets/svn/765-default-avatar.png")
-                              : NetworkImage(profile_pic ,))
-                              : AssetImage('assets/images/profileimage.png') as ImageProvider,
+                          backgroundColor: Colors.transparent,
+                          backgroundImage: profile_pic== 'https://workdonecorp.com/images/' ||profile_pic== ''
+                              ? AssetImage('assets/images/default.png') as ImageProvider
+                              : NetworkImage(profile_pic?? 'assets/images/default.png'),
                         ),
 
                       ),
@@ -372,6 +379,7 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
                         padding: EdgeInsets.only(
@@ -457,26 +465,30 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                               ),
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
-                                child: Text(
-                                  'Language Spoken:',
-                                  style: TextStyle(
-                                    color: HexColor('#4D8D6E'),
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 17,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text(
+                                    'Language Spoken:',
+                                    style: TextStyle(
+                                      color: HexColor('#4D8D6E'),
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 17,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              SizedBox(width: ScreenUtil.sizeboxwidth3),
-                              Text(
-                                '$language',
-                                style: TextStyle(
-                                    color: HexColor('#404040'), fontSize: 15),
-                              )
-                            ],
+                                SizedBox(width: ScreenUtil.sizeboxwidth3),
+                                Text(
+                                  '$language',
+                                  style: TextStyle(
+                                      color: HexColor('#404040'), fontSize: 15),
+                                )
+                              ],
+                            ),
                           )),
                       Container(
                         height: 50,

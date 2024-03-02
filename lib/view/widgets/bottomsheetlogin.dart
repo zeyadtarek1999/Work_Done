@@ -33,7 +33,24 @@ class ChooseRoleBottomSheetlogin extends StatelessWidget {
             ),
           ),
           SizedBox(height: 20),
-          GestureDetector(onTap: () => Get.to(LoginScreenclient()),
+          GestureDetector(onTap: () =>  Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+                return LoginScreenclient();
+              },
+              transitionsBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 1),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                );
+              },
+            ),
+          )
+          ,
             child: Container(
               color: Colors.white,
               height: ScreenUtil.cardheight,
@@ -88,7 +105,27 @@ class ChooseRoleBottomSheetlogin extends StatelessWidget {
             ),
           ),
           SizedBox(height: 14),
-          GestureDetector(onTap: () => Get.to(LoginScreenworker()),
+          GestureDetector(onTap: () =>  Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+                return LoginScreenworker();
+              },
+              transitionsBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 1),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                );
+              },
+            ),
+          )
+
+
+
+            ,
             child: Container(
               color: Colors.white,
               height: ScreenUtil.cardheight,

@@ -42,15 +42,15 @@ class checkOutClient extends StatefulWidget {
 
   checkOutClient(
       {required this.userId,
-      required this.workerimage,
-      required this.projectimage,
-      required this.selectedworkerrating,
-      required this.project_id,
-      required this.workerId,
-      required this.currentbid,
-      required this.projecttitle,
-      required this.projectdesc,
-      required this.workername});
+        required this.workerimage,
+        required this.projectimage,
+        required this.selectedworkerrating,
+        required this.project_id,
+        required this.workerId,
+        required this.currentbid,
+        required this.projecttitle,
+        required this.projectdesc,
+        required this.workername});
 
   @override
   State<checkOutClient> createState() => _checkOutClientState();
@@ -79,11 +79,11 @@ class _checkOutClientState extends State<checkOutClient> {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final userToken = prefs.getString('user_token') ?? '';
       print(userToken);
-       fee = 3.0; // Replace this with your actual fee
-       currentBidAmount = double.parse(widget.currentbid);
+      fee = 3.0; // Replace this with your actual fee
+      currentBidAmount = double.parse(widget.currentbid);
 
 // Calculate the total by adding the current bid and fee
-       total= currentBidAmount + fee;
+      total= currentBidAmount + fee;
       final response = await http.post(
         Uri.parse('https://workdonecorp.com/api/accept_worker_bid'),
         headers: {
@@ -226,7 +226,7 @@ class _checkOutClientState extends State<checkOutClient> {
     double currentBidAmount = double.parse(widget.currentbid);
 
 // Calculate the total by adding the current bid and fee
-     total = currentBidAmount + fee;
+    total = currentBidAmount + fee;
     return Scaffold(
       floatingActionButton:
       FloatingActionButton(    heroTag: 'workdone_${unique}',
@@ -238,7 +238,7 @@ class _checkOutClientState extends State<checkOutClient> {
 
         },
         backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        shape: CircleBorder(), // Make the button circular
+        child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        shape: CircleBorder(), // Make the button circular
       ),
       backgroundColor: HexColor('FFFFFF'),
       appBar: AppBar(
@@ -402,6 +402,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                                       projectImages.isNotEmpty ? projectImages[0] :  'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
 
                                     ),
+
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -415,14 +416,14 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
 
                                   Text(
                                     widget.projecttitle.toString().length > 20 ? widget.projecttitle.toString().substring(0, 20) + '...' : widget.projecttitle.toString(),                                    style: GoogleFonts.roboto(
-                                      textStyle: TextStyle(
-                                        color: HexColor('030302'),
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    textStyle: TextStyle(
+                                      color: HexColor('030302'),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
                                     ),
+                                  ),
                                   )
-,
+                                  ,
                                   SizedBox(
                                     height: 6,
                                   ),
@@ -728,8 +729,8 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                   child: RoundedButton(
                       text: 'Pay Now',
                       press: () async {
-print(total);
-int projectIdAsInt = int.parse(widget.project_id);
+                        print(total);
+                        int projectIdAsInt = int.parse(widget.project_id);
 
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -751,7 +752,7 @@ int projectIdAsInt = int.parse(widget.project_id);
                                     }
                                   },
                                   "description":
-                                      "The payment transaction description.",
+                                  "The payment transaction description.",
                                   // "payment_options": {
                                   //   "allowed_payment_method":
                                   //       "INSTANT_FUNDING_SOURCE"
@@ -766,7 +767,7 @@ int projectIdAsInt = int.parse(widget.project_id);
                                       },
 
                                     ],
-        
+
                                     // shipping address is not required though
                                     //   "shipping_address": {
                                     //     "recipient_name": "Raman Singh",
@@ -794,9 +795,9 @@ int projectIdAsInt = int.parse(widget.project_id);
                                         TextButton(
                                           onPressed: () {
                                             // Close the dialog
-Get.off(bidDetailsClient(projectId: projectIdAsInt));
+                                            Get.off(bidDetailsClient(projectId: projectIdAsInt));
 
-},
+                                          },
                                           child: Text('Okay'),
                                         ),
                                       ],

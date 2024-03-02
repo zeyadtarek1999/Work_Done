@@ -14,6 +14,7 @@ import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:showcaseview/showcaseview.dart';
 import 'package:workdone/view/screens/Explore/Explore%20Worker.dart';
 import '../Bid Details/Bid details Worker.dart';
 import '../Explore/Explore Client.dart';
@@ -25,15 +26,18 @@ import 'package:http/http.dart' as http;
 import '../Reviews/reviews.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
-import '../editProfile/editProfile.dart';
+import '../editProfile/editProfileClient.dart';
 import '../editProfile/editprofileworker.dart';
+import '../notifications/notificationScreen.dart';
 import '../view profile screens/Client profile view.dart';
 import '../view profile screens/Reviews profile .dart';
 import '../welcome/welcome_screen.dart';
 import 'home screenClient.dart';
 
 class Homescreenworker extends StatefulWidget {
-  Homescreenworker({Key? key}) : super(key: key);
+  final bool showCase;
+
+  Homescreenworker({Key? key, required this.showCase}) : super(key: key);
 
   @override
   State<Homescreenworker> createState() => _HomescreenworkerState();
@@ -303,11 +307,20 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
   }
 
 
+  final GlobalKey _one = GlobalKey();
+  final GlobalKey _two = GlobalKey();
   @override
   void initState() {
     super.initState();
     initializeProjects();
     _getUserProfile();
+    print('the show case work == ${widget.showCase}');
+    if (widget.showCase == true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ShowCaseWidget.of(context).startShowCase([_two, _one]);
+      });
+    }
+
     ciruclaranimation = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
@@ -585,7 +598,12 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                     ),
                     TextButton(
                       onPressed: () {
-                        Get.to(editProfileworker());
+                        Get.to(editProfileworker()
+                          ,
+                          transition: Transition.leftToRightWithFade, // You can choose a different transition
+                          duration: Duration(milliseconds: 1100),
+
+                        );
                       },
                       child: Text(
                         'Edit Profile',
@@ -640,7 +658,9 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                       width: 8,
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Get.to(NotificationsPage());
+                      },
                       child: Text(
                         'Notifications',
                         style: GoogleFonts.poppins(
@@ -669,7 +689,9 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                 TextButton(
 
 
-                  onPressed: () {Get.to(reviewprofile());},
+                  onPressed: () {Get.to(reviewprofile(),
+                    transition: Transition.leftToRightWithFade, // You can choose a different transition
+                    duration: Duration(milliseconds: 1100), );},
                   child: Text(
                     'Review',
                     style: GoogleFonts.poppins(
@@ -688,7 +710,9 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                     TextButton(
                       onPressed: () async {
                         await clearSharedPreferences(); // Call the function to clear client_id
-                        Get.offAll(WelcomeScreen());
+                        Get.offAll(WelcomeScreen(),
+                          transition: Transition.downToUp, // You can choose a different transition
+                          duration: Duration(milliseconds: 1100), );
 
                       },
                       child:  Text('Log Out',
@@ -737,12 +761,27 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
         ),
         child: Scaffold(
           floatingActionButton:
-          FloatingActionButton(
+          widget.showCase ==true
+
+              ?Showcase(
+            key: _one,
+            title: 'Support',
+            description: 'If you have issue click here to send a support ticket',
+
+            child: FloatingActionButton(
+              onPressed: () {
+                _navigateToNextPage(context);
+              },
+              backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+              child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
+              shape: CircleBorder(), // Make the button circular
+            ),
+          ):FloatingActionButton(
             onPressed: () {
               _navigateToNextPage(context);
-              },
+            },
             backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-    child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
+            child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
             shape: CircleBorder(), // Make the button circular
           ),
           backgroundColor: HexColor('F0EEEE'),
@@ -802,7 +841,9 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                               Spacer(),
                               InkWell(
                                 onTap: () {
-                                  Get.to(ProfileScreenworker());
+                                  Get.to(ProfileScreenworker(),
+                                    transition: Transition.leftToRightWithFade, // You can choose a different transition
+                                    duration: Duration(milliseconds: 1100), );
                                   // Handle the tap event here
                                 },
                            child:     CircleAvatar(
@@ -835,11 +876,13 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                               TextButton(
                                 onPressed: () {
 
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => exploreWorker()),
+                                  Get.to(
+                                    exploreWorker(),
+                                    transition: Transition.downToUp, // You can choose a different transition
+                                    duration: Duration(milliseconds: 1100), // Set the duration of the transition
                                   );
+
+
 
                                 },
                                 child: Text(
@@ -893,7 +936,14 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                                 // If projects list is empty, reset current page to 0 and refresh
                                 currentPage = 1;
                                 refreshProjects();
-                                return Text('No projects found.');
+                                return Center(
+                                  child: SvgPicture.asset(
+                                    'assets/images/empty.svg',
+                                    semanticsLabel: 'Your SVG Image',
+                                    width: 150,
+                                    height: 200,
+                                  ),
+                                );
                               } else {
                                 return ListView.builder(
                                   physics: BouncingScrollPhysics(),
@@ -929,14 +979,15 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                               Spacer(),
                               TextButton(
                                 onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => exploreWorker()),
+                                  Get.to(
+                                    exploreWorker(),
+                                    transition: Transition.downToUp, // You can choose a different transition
+                                    duration: Duration(milliseconds: 1100), // Set the duration of the transition
                                   );
 
 
-                                  },
+
+                                },
                                 child: Text(
                                   'See all',
                                   style: GoogleFonts.openSans(
@@ -982,17 +1033,40 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                               // If projects list is empty, reset current page to 0 and refresh
                               currentPage = 1;
                               refreshProjects();
-                              return Text('No projects found.');
-                            } else {
-                              return ListView.builder(
-                                physics: NeverScrollableScrollPhysics(),
-                                shrinkWrap: true, // Set shrinkWrap to true
-                                itemCount: snapshot.data!.length,
-                                itemBuilder: (context, index) {
-                                  return buildListItemNewProjects(
-                                      snapshot.data![index]);
-                                },
+                              return Center(
+                                child: SvgPicture.asset(
+                                  'assets/images/empty.svg',
+                                  semanticsLabel: 'Your SVG Image',
+                                  width: 150,
+                                  height: 200,
+                                ),
                               );
+                            } else {
+                              return
+                                widget.showCase ==true
+
+                              ?  Showcase(
+                                key: _two,
+                                title: 'Explore Projects',
+                                description: 'Explore and discover new projects to initiate your first work',
+                                child: ListView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true, // Set shrinkWrap to true
+                                  itemCount: snapshot.data!.length,
+                                  itemBuilder: (context, index) {
+                                    return buildListItemNewProjects(
+                                        snapshot.data![index]);
+                                  },
+                                ),
+                              ):ListView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true, // Set shrinkWrap to true
+                                  itemCount: snapshot.data!.length,
+                                  itemBuilder: (context, index) {
+                                    return buildListItemNewProjects(
+                                        snapshot.data![index]);
+                                  },
+                                );
                             }
                           },
                         ),
@@ -1083,7 +1157,10 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
   Widget buildListItem(Item project) {
     return GestureDetector(
       onTap: () {
-        Get.to(Get.to(() => bidDetailsWorker(projectId: project.projectId)));
+        Get.to(Get.to(() => bidDetailsWorker(projectId: project.projectId))
+          ,
+          transition: Transition.leftToRight, // You can choose a different transition
+          duration: Duration(milliseconds: 1100), );
       },
       child: Container(
         height: 130,
@@ -1314,7 +1391,9 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                           // Adjust the maximum width as needed
                           child: TextButton(
                               onPressed: () {
-                                Get.to(ProfilePageClient(userId:project.client_id.toString()));
+                                Get.to(ProfilePageClient(userId:project.client_id.toString()),
+                                  transition: Transition.leftToRightWithFade, // You can choose a different transition
+                                  duration: Duration(milliseconds: 1100), );
                               },
                               child: Text(
                                 project.client_firstname,
@@ -1370,6 +1449,8 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                             Get.to(
                               () => bidDetailsWorker(
                                   projectId: project.projectId),
+                              transition: Transition.leftToRight, // You can choose a different transition
+                              duration: Duration(milliseconds: 1100),
                             );
                           },
                           child: Text(
@@ -1399,6 +1480,8 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
       onTap: () {
         Get.to(
           () => bidDetailsWorker(projectId: item.projectId),
+          transition: Transition.leftToRight, // You can choose a different transition
+          duration: Duration(milliseconds: 1100),
         );
       },
       child: Container(
@@ -1619,7 +1702,10 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                         ),
                         child: TextButton(
                           onPressed: () {
-                            Get.to(ProfilePageClient(userId:item.client_id.toString()));
+                            Get.to(ProfilePageClient(userId:item.client_id.toString())
+                              ,
+                              transition: Transition.leftToRightWithFade, // You can choose a different transition
+                              duration: Duration(milliseconds: 1100), );
 
                           },
                           style: TextButton.styleFrom(
@@ -1735,6 +1821,8 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                           onPressed: () {
                             Get.to(
                               () => bidDetailsWorker(projectId: item.projectId),
+                              transition: Transition.leftToRight, // You can choose a different transition
+                              duration: Duration(milliseconds: 1100),
                             );
                             // Handle button press
                           },

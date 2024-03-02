@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -403,7 +404,7 @@ class _projectsClientState extends State<projectsClient> with SingleTickerProvid
 
                               child: ElevatedButton(
                                 onPressed: () {
-                                  Get.offAll(layoutclient());
+                                  Get.offAll(layoutclient(showCase: false,));
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: HexColor('#4D8D6E'),
@@ -429,13 +430,16 @@ class _projectsClientState extends State<projectsClient> with SingleTickerProvid
                   );
 
                 } else {
-                  return ListView.builder(
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return buildListItem(snapshot.data![index]);
-                    },
+                  return Animate(
+                    effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                    child: ListView.builder(
+                      physics: NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        return buildListItem(snapshot.data![index]);
+                      },
+                    ),
                   );
                 }
               },

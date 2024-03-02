@@ -10,6 +10,7 @@ import 'package:easy_stepper/easy_stepper.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_neat_and_clean_calendar/flutter_neat_and_clean_calendar.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_sliding_up_panel/sliding_up_panel_widget.dart';
@@ -409,7 +410,7 @@ setState(() {
     final ProjectData projectData = await fetchProjectDetails(widget.projectId);
 
   video = projectData.video;
-    if (projectData.pageContent.scheduleStatus == "rejected") {
+    if (projectData.pageContent.scheduleStatus == "reject") {
       showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
@@ -610,7 +611,7 @@ setState(() {
     return Stack(children: <Widget>[
       WillPopScope(
         onWillPop: () async {
-          Get.offAll(layoutclient()); // Navigate to the layoutworker screen
+          Get.offAll(layoutclient(showCase: false,)); // Navigate to the layoutworker screen
           return false; // Return false to indicate that the back button was handled
         },
         child: Scaffold(
@@ -635,7 +636,7 @@ setState(() {
             toolbarHeight: 60,
             leading: IconButton(
               onPressed: () {
-        Get.to(layoutclient());            },
+        Get.to(layoutclient(showCase: false,));            },
               icon: Icon(Icons.arrow_back_sharp),
               color: Colors.black,
             ),
@@ -713,7 +714,7 @@ setState(() {
                                     reverse: false,
                                     autoPlay: false,
                                     autoPlayInterval: Duration(seconds: 3),
-                                    autoPlayAnimationDuration: Duration(milliseconds: 800),
+                                    autoPlayAnimationDuration: Duration(milliseconds: 500),
                                     autoPlayCurve: Curves.fastOutSlowIn,
                                     scrollDirection: Axis.horizontal,
                                     onPageChanged: (index, reason) {
@@ -920,15 +921,18 @@ setState(() {
                                 ),                            SizedBox(
                                   height: 12,
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                                  child: Text(
-                                    projectData.title,
-                                    style: GoogleFonts.openSans(
-                                      textStyle: TextStyle(
-                                        color: HexColor('454545'),
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
+                        Animate(
+                        effects: [FadeEffect(duration: Duration(milliseconds: 500),),],
+                                                          child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                                    child: Text(
+                                      projectData.title,
+                                      style: GoogleFonts.openSans(
+                                        textStyle: TextStyle(
+                                          color: HexColor('454545'),
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -1075,17 +1079,20 @@ setState(() {
                                 SizedBox(
                                   height: 8,
                                 ),
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 5.0),
-                                  child: Text(
-                                    projectData.desc,
-                                    textAlign: TextAlign.left,
-                                    style: GoogleFonts.roboto(
-                                      textStyle: TextStyle(
-                                        color: HexColor('706F6F'),
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.normal,
+                                Animate(
+                                  effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(horizontal: 5.0),
+                                    child: Text(
+                                      projectData.desc,
+                                      textAlign: TextAlign.left,
+                                      style: GoogleFonts.roboto(
+                                        textStyle: TextStyle(
+                                          color: HexColor('706F6F'),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.normal,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -2268,25 +2275,12 @@ setState(() {
                                                                           mainAxisAlignment: MainAxisAlignment
                                                                               .center,
                                                                           children: [
-                                                                            Container(
-                                                                              height: 56,
-                                                                              width: 56,
-                                                                              decoration: BoxDecoration(
-                                                                                shape: BoxShape
-                                                                                    .circle,
-                                                                                image: DecorationImage(
-                                                                                  fit: BoxFit
-                                                                                      .cover,
-                                                                                  image: NetworkImage(
-                                                                                    selectedworkerimage !=
-                                                                                        null &&
-                                                                                        selectedworkerimage
-                                                                                            .isNotEmpty
-                                                                                        ? selectedworkerimage
-                                                                                        : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                                                                  ),
-                                                                                ),
-                                                                              ),
+                                                                            CircleAvatar(
+                                                                              radius: 50,
+                                                                              backgroundColor: Colors.transparent,
+                                                                              backgroundImage: selectedworkerimage== 'https://workdonecorp.com/images/' ||selectedworkerimage== ''
+                                                                                  ? AssetImage('assets/images/default.png') as ImageProvider
+                                                                                  : NetworkImage(selectedworkerimage?? 'assets/images/default.png'),
                                                                             ),
                                                                             SizedBox(
                                                                               width: 10,),
@@ -2562,14 +2556,17 @@ setState(() {
                                                 ],
                                               ),
                                               SizedBox(height: 12,),
-                                              ListView.builder(
-                                                physics: NeverScrollableScrollPhysics(),
-                                                shrinkWrap: true,
-                                                itemCount: projectData.bids.length,
-                                                itemBuilder: (context, index) {
-                                                  Bid bid = projectData.bids[index];
-                                                  return buildListItem(bid);
-                                                },
+                                              Animate(
+                                                effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                                child: ListView.builder(
+                                                  physics: NeverScrollableScrollPhysics(),
+                                                  shrinkWrap: true,
+                                                  itemCount: projectData.bids.length,
+                                                  itemBuilder: (context, index) {
+                                                    Bid bid = projectData.bids[index];
+                                                    return buildListItem(bid);
+                                                  },
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -3864,21 +3861,12 @@ setState(() {
                                                                       Row(
                                                                         mainAxisAlignment: MainAxisAlignment.center,
                                                                         children: [
-                                                                          Container(
-                                                                            height: 56,
-                                                                            width: 56,
-                                                                            decoration: BoxDecoration(
-                                                                              shape: BoxShape.circle,
-                                                                              image: DecorationImage(
-                                                                                fit: BoxFit.cover,
-                                                                                image: NetworkImage(
-                                                                                  selectedworkerimage != null &&
-                                                                                      selectedworkerimage.isNotEmpty
-                                                                                      ? selectedworkerimage
-                                                                                      : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                                                                ),
-                                                                              ),
-                                                                            ),
+                                                                          CircleAvatar(
+                                                                            radius: 50,
+                                                                            backgroundColor: Colors.transparent,
+                                                                            backgroundImage: selectedworkerimage== 'https://workdonecorp.com/images/' ||selectedworkerimage== ''
+                                                                                ? AssetImage('assets/images/default.png') as ImageProvider
+                                                                                : NetworkImage(selectedworkerimage?? 'assets/images/default.png'),
                                                                           ),
                                                                           SizedBox(width: 10,),
                                                                           Column(
@@ -4034,14 +4022,17 @@ setState(() {
                                               ),
                                             ),
                                             SizedBox(height: 12,),
-                                            ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: projectData.bids.length,
-                                              itemBuilder: (context, index) {
-                                                Bid bid = projectData.bids[index];
-                                                return buildListItem(bid);
-                                              },
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
                                             ),
                                           ],
                                         );
@@ -5335,21 +5326,12 @@ setState(() {
                                                                       Row(
                                                                         mainAxisAlignment: MainAxisAlignment.center,
                                                                         children: [
-                                                                          Container(
-                                                                            height: 56,
-                                                                            width: 56,
-                                                                            decoration: BoxDecoration(
-                                                                              shape: BoxShape.circle,
-                                                                              image: DecorationImage(
-                                                                                fit: BoxFit.cover,
-                                                                                image: NetworkImage(
-                                                                                  selectedworkerimage != null &&
-                                                                                      selectedworkerimage.isNotEmpty
-                                                                                      ? selectedworkerimage
-                                                                                      : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                                                                ),
-                                                                              ),
-                                                                            ),
+                                                                          CircleAvatar(
+                                                                            radius: 50,
+                                                                            backgroundColor: Colors.transparent,
+                                                                            backgroundImage: selectedworkerimage== 'https://workdonecorp.com/images/' ||selectedworkerimage== ''
+                                                                                ? AssetImage('assets/images/default.png') as ImageProvider
+                                                                                : NetworkImage(selectedworkerimage?? 'assets/images/default.png'),
                                                                           ),
                                                                           SizedBox(width: 10,),
                                                                           Column(
@@ -5505,14 +5487,17 @@ setState(() {
                                               ),
                                             ),
                                             SizedBox(height: 12,),
-                                            ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: projectData.bids.length,
-                                              itemBuilder: (context, index) {
-                                                Bid bid = projectData.bids[index];
-                                                return buildListItem(bid);
-                                              },
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
                                             ),
                                           ],
                                         );
@@ -6651,21 +6636,12 @@ setState(() {
                                                                       Row(
                                                                         mainAxisAlignment: MainAxisAlignment.center,
                                                                         children: [
-                                                                          Container(
-                                                                            height: 56,
-                                                                            width: 56,
-                                                                            decoration: BoxDecoration(
-                                                                              shape: BoxShape.circle,
-                                                                              image: DecorationImage(
-                                                                                fit: BoxFit.cover,
-                                                                                image: NetworkImage(
-                                                                                  selectedworkerimage != null &&
-                                                                                      selectedworkerimage.isNotEmpty
-                                                                                      ? selectedworkerimage
-                                                                                      : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                                                                ),
-                                                                              ),
-                                                                            ),
+                                                                          CircleAvatar(
+                                                                            radius: 50,
+                                                                            backgroundColor: Colors.transparent,
+                                                                            backgroundImage: selectedworkerimage== 'https://workdonecorp.com/images/' ||selectedworkerimage== ''
+                                                                                ? AssetImage('assets/images/default.png') as ImageProvider
+                                                                                : NetworkImage(selectedworkerimage?? 'assets/images/default.png'),
                                                                           ),
                                                                           SizedBox(width: 10,),
                                                                           Column(
@@ -6821,14 +6797,17 @@ setState(() {
                                               ),
                                             ),
                                             SizedBox(height: 12,),
-                                            ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: projectData.bids.length,
-                                              itemBuilder: (context, index) {
-                                                Bid bid = projectData.bids[index];
-                                                return buildListItem(bid);
-                                              },
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
                                             ),
                                           ],
                                         );
@@ -7836,14 +7815,17 @@ setState(() {
                                               ),
                                             ),
                                             SizedBox(height: 12,),
-                                            ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: projectData.bids.length,
-                                              itemBuilder: (context, index) {
-                                                Bid bid = projectData.bids[index];
-                                                return buildListItem(bid);
-                                              },
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
                                             ),
                                           ],
                                         );
@@ -8011,14 +7993,10 @@ setState(() {
                                               children: [
                                                 CircleAvatar(
                                                   radius: 23,
-                                                  backgroundImage: NetworkImage(
-                                                    projectData.clientData?.profileImage ==
-                                                        'https://workdonecorp.com/images/'
-                                                        ? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
-                                                        : projectData
-                                                        .clientData?.profileImage ??
-                                                        'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-                                                  ),
+                                                  backgroundColor: Colors.transparent,
+                                                  backgroundImage: projectData.clientData.profileImage== 'https://workdonecorp.com/images/' ||projectData.clientData.profileImage == ''
+                                                      ? AssetImage('assets/images/default.png') as ImageProvider
+                                                      : NetworkImage(projectData.clientData.profileImage ?? 'assets/images/default.png'),
                                                 ),
                                                 SizedBox(width: 11),
                                                 TextButton(
@@ -8208,14 +8186,17 @@ setState(() {
                                                 ),
                                               ),
                                             ),
-                                            ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: projectData.bids.length,
-                                              itemBuilder: (context, index) {
-                                                Bid bid = projectData.bids[index];
-                                                return buildListItem(bid);
-                                              },
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
                                             ),
 
                                           ],
@@ -8365,14 +8346,17 @@ setState(() {
                                               ],
                                             ),
                                             SizedBox(height: 8,),
-                                            ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: projectData.bids.length,
-                                              itemBuilder: (context, index) {
-                                                Bid bid = projectData.bids[index];
-                                                return buildListItem(bid);
-                                              },
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
                                             ),
                                           ],
                                         );
@@ -8922,7 +8906,7 @@ class ClientData {
       firstname: json['firstname'] ?? '',
       avg_rating: json['avg_rating'] ?? '',
       lastname: json['lastname'] ?? '',
-      profileImage: json['profle_image'] ?? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // corrected typo from 'profle_image' to 'profile_image'
+      profileImage: json['profle_image'] ?? '', // corrected typo from 'profle_image' to 'profile_image'
     );
   }
 }

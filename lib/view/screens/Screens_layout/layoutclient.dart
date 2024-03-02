@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:persistent_bottom_nav_bar_v2/persistent-tab-view.dart';
 import '../InboxwithChat/inbox.dart';
 import '../InboxwithChat/inboxClient.dart';
 import '../check out client/payment.dart';
@@ -10,113 +13,129 @@ import '../post a project/project post.dart';
 import 'moreclient.dart';
 import 'projects CLient.dart';
 
-class layoutclient extends StatefulWidget {
-  const layoutclient({super.key});
+class layoutclient  extends StatefulWidget {
+
+  final bool showCase;
+
+  const layoutclient({Key? key, required this.showCase}) : super(key: key);
 
   @override
-  State<layoutclient> createState() => _layoutclientState();
+  _layoutclientState  createState() => _layoutclientState ();
 }
 
-class _layoutclientState extends State<layoutclient> {
-  void navigateToScreen(BuildContext context, String screenName) {
-    // Navigation logic here
-  }
-
+class _layoutclientState  extends State<layoutclient > {
   int _currentIndex = 0;
   List<Widget> _screens = [
-    Homeclient(),
-    projectsClient(),
-    inboxtest(),
-    Moreclient(),
+
   ];
+
+  List<PersistentBottomNavBarItem> _navBarItems = [
+    PersistentBottomNavBarItem(
+      icon: FaIcon(FontAwesomeIcons.home),
+      title: ("Home"),
+      activeColorPrimary: HexColor('#4D8D6E'),
+      inactiveColorPrimary: Colors.grey[700]!,
+    ),
+    PersistentBottomNavBarItem(
+      icon: FaIcon(FontAwesomeIcons.briefcase),
+      title: ("Projects"),
+      activeColorPrimary: HexColor('#4D8D6E'),
+      inactiveColorPrimary: Colors.grey[700]!,
+    ),
+    PersistentBottomNavBarItem(
+      icon: Center(
+        child: FaIcon(
+
+          FontAwesomeIcons.add,
+          color: Colors.white,
+        ),
+      ),
+      title: ("Post"),
+      activeColorPrimary: HexColor('#4D8D6E'),
+      inactiveColorPrimary: Colors.grey[700]!,
+      activeColorSecondary: HexColor('#4D8D6E'), // Icon color when active
+      inactiveColorSecondary: Colors.grey[700]!, // Icon color when inactive
+      textStyle: TextStyle(fontSize: 14), // Adjust the title font size
+    )
+,
+    PersistentBottomNavBarItem(
+      icon: FaIcon(FontAwesomeIcons.inbox),
+
+      title: ("Inbox"),
+      activeColorPrimary: HexColor('#4D8D6E'),
+      inactiveColorPrimary: Colors.grey[700]!,
+    ),
+    PersistentBottomNavBarItem(
+      icon: FaIcon(FontAwesomeIcons.bars),
+      title: ("More"),
+      activeColorPrimary: HexColor('#4D8D6E'),
+      inactiveColorPrimary: Colors.grey[700]!,
+    ),
+  ];
+
+  final PersistentTabController navigationController = PersistentTabController(initialIndex: 0);
+
+  void initState() {
+
+    super.initState();
+
+    ;
+    _screens = [
+      Homeclient(showCase: widget.showCase),
+      projectsClient(),
+      projectPost(),
+      inboxtest(),
+      Moreclient(),
+    ];
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
-      floatingActionButton: Container(
-        width: 55.0,
-        height: 55.0,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [HexColor('#4D8D6E'), HexColor('#4D8D6E')],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          shape: BoxShape.circle,
+      body: PersistentTabView(
+
+        context,
+        controller: navigationController,
+        screens: _screens,
+
+        items: _navBarItems,
+        confineInSafeArea: true,
+
+        navBarHeight: 63,
+        backgroundColor: Colors.white,
+        handleAndroidBackButtonPress: true, // Default is true.
+        resizeToAvoidBottomInset: true,
+        stateManagement: true,
+        hideNavigationBarWhenKeyboardShows: true,
+        decoration: NavBarDecoration(
+            borderRadius: BorderRadius.circular(10.0),
+            colorBehindNavBar: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: HexColor('#4D8D6E').withOpacity(0.4),
-              offset: Offset(0, 2),
-              blurRadius: 6.0,
+              color: Colors.black.withOpacity(0.2), // Increased opacity for more shadow
+              blurRadius: 20, // Increased blur radius
+              spreadRadius: 10, // Increased spread radius
+              offset: Offset(0, 4), // Adjusted offset
             ),
-          ],
+          ],      ),
+      popAllScreensOnTapOfSelectedTab: true,
+        popActionScreens: PopActionScreensType.all,
+        itemAnimationProperties: ItemAnimationProperties(
+          duration: Duration(milliseconds: 300),
+          curve: Curves.ease,
         ),
-        child: FloatingActionButton(
-          onPressed: () {
-            Get.to(projectPost());
-            // FAB onPressed action
-          },
-          child: Icon(Icons.add, color: Colors.white),
-          backgroundColor: Colors.transparent,
-          elevation: 0, // No shadow on the FloatingActionButton
+        screenTransitionAnimation: ScreenTransitionAnimation(
+          animateTabTransition: true,
+          curve: Curves.ease,
+          duration: Duration(milliseconds: 300),
         ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
-        notchMargin: 6.0,
-        color: Colors.white,
-        elevation: 5,
-        height: 75.0,
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            // Add padding to the left and right of the Row widget
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: buildBottomNavItem(0, Icons.home, 'Home'),
-            ),
-            buildBottomNavItem(1, Icons.check_circle, 'My Projects'),
-            buildBottomNavItem(2, Icons.inbox, 'Inbox'),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: buildBottomNavItem(3, Icons.more_vert, 'More'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildBottomNavItem(int index, IconData icon, String label) {
-    return Expanded(
-      child: InkWell(
-        onTap: () {
+        navBarStyle: NavBarStyle.style16,
+        onItemSelected: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3.0),
-              child: Icon(
-                icon,
-                color: _currentIndex == index ? HexColor('#4D8D6E') : Colors.grey[700],
-              ),
-            ),
-            Text(
-              label,
-              style: TextStyle(
-                color: _currentIndex == index ? HexColor('#4D8D6E') : Colors.grey[700],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+        ));
   }
 }

@@ -13,6 +13,7 @@ import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:showcaseview/showcaseview.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Explore/Explore Client.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
@@ -22,13 +23,16 @@ import 'package:flutter/services.dart'; // For SystemNavigator.pop
 
 import '../Reviews/reviews.dart';
 import '../Support Screen/Support.dart';
-import '../editProfile/editProfile.dart';
+import '../editProfile/editProfileClient.dart';
+import '../notifications/notificationScreen.dart';
 import '../view profile screens/Client profile view.dart';
 import '../view profile screens/Reviews profile .dart';
 import '../welcome/welcome_screen.dart';
 
 class Homeclient extends StatefulWidget {
-  const Homeclient({super.key});
+  final bool showCase;
+
+  Homeclient({Key? key, required this.showCase}) : super(key: key);
 
   @override
   State<Homeclient> createState() => _HomeclientState();
@@ -221,11 +225,19 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
   final CarouselController _carouselController = CarouselController();
   int _currentPageIndex = 0;
 
+  final GlobalKey _one = GlobalKey();
+ final GlobalKey _two = GlobalKey();
   @override
   void initState() {
     super.initState();
     initializeProjects();
     _getUserProfile();
+    if (widget.showCase == true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ShowCaseWidget.of(context).startShowCase([_two, _one]);
+      });
+    }
+
     likedProjectsMap= {};
     ciruclaranimation = AnimationController(
       vsync: this,
@@ -408,7 +420,6 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
       statusBarIconBrightness:
           Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
-
     return AdvancedDrawer(
 
       openRatio: 0.6,
@@ -491,7 +502,10 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                     width: 8,
                   ),
                   TextButton(
-                    onPressed: () {Get.to(editProfile());},
+                    onPressed: () {Get.to(editProfile(),
+                      transition: Transition.circularReveal, // You can choose a different transition
+                      duration: Duration(milliseconds: 1100), // Set the duration of the transition
+                    );},
                     child: Text(
                       'Edit Profile',
                       style: GoogleFonts.poppins(
@@ -504,33 +518,6 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                   )
                 ],
               ),
-              // SizedBox(
-              //   height: 12,
-              // ),
-              // Row(
-              //   children: [
-              //     SvgPicture.asset(
-              //       'assets/icons/time.svg',
-              //       width: 35.0,
-              //       height: 35.0,
-              //     ),
-              //     SizedBox(
-              //       width: 8,
-              //     ),
-              //     TextButton(
-              //       onPressed: () {},
-              //       child: Text(
-              //         'Projects',
-              //         style: GoogleFonts.poppins(
-              //           textStyle: TextStyle(
-              //               color: HexColor('1A1D1E'),
-              //               fontSize: 15,
-              //               fontWeight: FontWeight.normal),
-              //         ),
-              //       ),
-              //     )
-              //   ],
-              // ),
               SizedBox(
                 height: 12,
               ),
@@ -545,7 +532,14 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                     width: 8,
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+
+                      Get.to(NotificationsPage(),
+                        transition: Transition.topLevel, // You can choose a different transition
+                        duration: Duration(milliseconds: 1100),
+
+                      );
+                    },
                     child: Text(
                       'Notifications',
                       style: GoogleFonts.poppins(
@@ -574,7 +568,13 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                   TextButton(
 
 
-                    onPressed: () {Get.to(reviewprofile());},
+                    onPressed: () {Get.to(  reviewprofile()
+
+                      ,
+                      transition: Transition.leftToRightWithFade, // You can choose a different transition
+                      duration: Duration(milliseconds: 1100), // Set the duration of the transition
+
+                    );},
                     child: Text(
                       'Review',
                       style: GoogleFonts.poppins(
@@ -593,7 +593,12 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                   TextButton(
                     onPressed: () async {
                       await clearSharedPreferences(); // Call the function to clear client_id
-                      Get.offAll(WelcomeScreen());
+                      Get.offAll(WelcomeScreen()
+                        ,
+                        transition: Transition.upToDown, // You can choose a different transition
+                        duration: Duration(milliseconds: 1100), // Set the duration of the transition
+
+                      );
 
                     },
                     child:  Text('Log Out',
@@ -642,367 +647,464 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
       ),
 
       child:  WillPopScope(
-        onWillPop: () async {
-          // Call showConfirmDialog and await its return value
-          final confirmed = await showConfirmDialog(context);
-          return confirmed; // Return the dialog's confirmation result
-        },
-        child: Scaffold(
-            backgroundColor: HexColor('F0EEEE'),
-            floatingActionButton:
-            FloatingActionButton(    heroTag: 'workdone_${unique}',
-
-
-
-              onPressed: () {
-                _navigateToNextPage(context);
-
-              },
-              backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-            child: Icon(Icons.help ,color: Colors.white,), // Use the support icon            shape: CircleBorder(), // Make the button circular
+        onWillPop:()  async {
+          return await Get.defaultDialog(
+            title: 'Exit App?',
+            content: Text('Do you want to close the app?'),
+            confirm: TextButton(
+              onPressed: () => Get.back(result: true),
+              child: Text('Close'),
             ),
+            cancel: TextButton(
+              onPressed: () => Get.back(result: false),
+              child: Text('Stay'),
+            ),
+          ) ?? false;      } ,
+        child:
+                   Scaffold(
+                      backgroundColor: HexColor('F0EEEE'),
+                      floatingActionButton:
 
-            body: Screenshot(
-              controller:screenshotController ,
-              child: RefreshIndicator(
-        color: HexColor('4D8D6E'),
-                backgroundColor: Colors.white,
+                      widget.showCase ==true
 
-                onRefresh: () async {
-                  setState(() {
-                    futureProjects = fetchProjects();
-                  });
-                },
+                          ?Showcase(
+                        key: _one,
+                        title: 'Support',
+                        description: 'If you have issue click here to send a support ticket',
 
-                child: SingleChildScrollView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  child: SafeArea(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 15, vertical: 11),
-                          child: Row(
-                            children: [
-                              InkWell(
-                                borderRadius: BorderRadius.circular(12),
-                                onTap: () {
-                                  drawerControl();
-                                },
-                                child: Container(
-                                  height: 55,
-                                  width: 55,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    color:HexColor('4d8d6e'),
-                                  ),
-                                  child:
-                                  Icon(
-                                    Ionicons.menu_outline,size: 30,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              Spacer(),
-                              Text(
-                                'Home',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color:
-                                      Colors.grey[700], // Change the color as needed
-                                ),
-                              ),
-                              Spacer(),
-                              InkWell(
-                                onTap: () {
-                                  Get.to(ProfileScreenClient2());
-                                  // Handle the tap event here
-                                },
-                                child:  CircleAvatar(
-                                  radius: 27,
-                                  backgroundColor: Colors.transparent,
-                                  backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                                      && profile_pic == "https://workdonecorp.com/images/"
-                                      ? AssetImage('assets/images/default.png') as ImageProvider
-                                      : NetworkImage(profile_pic?? 'assets/images/default.png'),
-                                )
-                              ),
-                            ],
-                          ),
+                        child: FloatingActionButton(
+                          onPressed: () {
+                            _navigateToNextPage(context);
+                          },
+                          backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+                          child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
+                          shape: CircleBorder(), // Make the button circular
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 23.0,
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                'Browse Popular Projects',
-                                style: GoogleFonts.openSans(
-                                  textStyle: TextStyle(
-                                      color: Colors.grey[700],
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              Spacer(),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => exploreClient()),
-                                  );
-
-
-
-                                  },
-                                child: Text(
-                                  'See all',
-                                  style: GoogleFonts.openSans(
-                                    textStyle: TextStyle(
-                                        color: HexColor('4F815A'),
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: 14,
-                        ),
-                  Column(
-                    children: [
-                      FutureBuilder<List<Item>>(
-                        future: futureProjects,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            // Replace CircularProgressIndicator with Shimmer.fromColors
-                            return    Center(child: RotationTransition(
-                              turns: ciruclaranimation,
-                              child: SvgPicture.asset(
-                                'assets/images/Logo.svg',
-                                semanticsLabel: 'Your SVG Image',
-                                width: 100,
-                                height: 130,
-                              ),
-                            ));
-                          } else if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
-                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return Text('No data found.');
-                          } else {
-                            // Update the items list
-                            items = snapshot.data!;
-
-                            return CarouselSlider.builder(
-                              carouselController: _carouselController,
-                              itemCount: items.length,
-                              itemBuilder: (BuildContext context, int index, int realIndex) {
-                                Item currentItem = items[index];
-                                return buildListItem2(currentItem);
-                              },
-                              options: CarouselOptions(
-                                height: 230,
-                                aspectRatio: 16 / 7,
-                                viewportFraction: 0.84,
-                                enableInfiniteScroll: false,
-                                autoPlay: true,
-                                animateToClosest: true,
-                                enlargeFactor: 0.27,
-                                padEnds: true,
-                                enlargeCenterPage: true,
-                                autoPlayInterval: Duration(seconds: 5),
-                                autoPlayAnimationDuration: Duration(milliseconds: 1000),
-                                autoPlayCurve: Curves.fastOutSlowIn,
-                                onPageChanged: (index, reason) {
-                                  setState(() {
-                                    _currentIndex = index;
-                                  });
-                                },
-                              ),
-                            );
-                          }
+                      ):FloatingActionButton(
+                        onPressed: () {
+                          _navigateToNextPage(context);
                         },
+                        backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+                        child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
+                        shape: CircleBorder(), // Make the button circular
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 1.0),
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: items.map((item) {
-                              int itemIndex = items.indexOf(item);
-                              return CircularIndicator(
-                                itemIndex: itemIndex,
-                                currentIndex: _currentIndex,
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                        SizedBox(
-                          height: 15,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 25.0,
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                'Projects Around You',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[700], // Change the color as needed
-                                ),
-                              ),
-                              Spacer(),
-                              TextButton(
-                                onPressed: () {
+                      body: Screenshot(
+                        controller: screenshotController,
+                        child: RefreshIndicator(
+                          color: HexColor('4D8D6E'),
+                          backgroundColor: Colors.white,
 
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => exploreClient()),
-                                  );
+                          onRefresh: () async {
+                            setState(() {
+                              futureProjects = fetchProjects();
+                            });
+                          },
 
-                                  },
-                                child: Text(
-                                  'See all',
-                                  style: GoogleFonts.openSans(
-                                    textStyle: TextStyle(
-                                        color: HexColor('4F815A'),
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                ),
-                              )
-
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: 7,
-                        ),
-                        Column(
-                          children: [
-                            FutureBuilder<List<Item>>(
-                              future: futureProjects,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return Column(
-                                    children: [
-                             SizedBox(height: 80,),       Center(child: RotationTransition(
-                                        turns: ciruclaranimation,
-                                        child: SvgPicture.asset(
-                                          'assets/images/Logo.svg',
-                                          semanticsLabel: 'Your SVG Image',
-                                          width: 100,
-                                          height: 130,
+                          child: SingleChildScrollView(
+                            physics: AlwaysScrollableScrollPhysics(),
+                            child: SafeArea(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 15, vertical: 11),
+                                    child: Row(
+                                      children: [
+                                        InkWell(
+                                          borderRadius: BorderRadius.circular(
+                                              12),
+                                          onTap: () {
+                                            drawerControl();
+                                          },
+                                          child: Container(
+                                            height: 55,
+                                            width: 55,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius
+                                                  .circular(20.0),
+                                              color: HexColor('4d8d6e'),
+                                            ),
+                                            child:
+                                            Icon(
+                                              Ionicons.menu_outline, size: 30,
+                                              color: Colors.white,
+                                            ),
+                                          ),
                                         ),
-                                      ))
-                                      ,SizedBox(height: 80,)
+                                        Spacer(),
+                                        Text(
+                                          'Home',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color:
+                                            Colors
+                                                .grey[700], // Change the color as needed
+                                          ),
+                                        ),
+                                        Spacer(),
+                                        InkWell(
+                                            onTap: () {
+                                              Get.to(ProfileScreenClient2()
+
+                                                ,
+                                                transition: Transition
+                                                    .circularReveal,
+                                                // You can choose a different transition
+                                                duration: Duration(
+                                                    milliseconds: 1100), // Set the duration of the transition
+
+                                              );
+                                              // Handle the tap event here
+                                            },
+                                            child: CircleAvatar(
+                                              radius: 27,
+                                              backgroundColor: Colors
+                                                  .transparent,
+                                              backgroundImage: profile_pic !=
+                                                  null && profile_pic.isNotEmpty
+                                                  && profile_pic ==
+                                                      "https://workdonecorp.com/images/"
+                                                  ? AssetImage(
+                                                  'assets/images/default.png') as ImageProvider
+                                                  : NetworkImage(profile_pic ??
+                                                  'assets/images/default.png'),
+                                            )
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 23.0,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          'Browse Popular Projects',
+                                          style: GoogleFonts.openSans(
+                                            textStyle: TextStyle(
+                                                color: Colors.grey[700],
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                        Spacer(),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      exploreClient()),
+                                            );
+                                          },
+                                          child: Text(
+                                            'See all',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                  color: HexColor('4F815A'),
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 14,
+                                  ),
+                                  Column(
+                                    children: [
+                                      FutureBuilder<List<Item>>(
+                                        future: futureProjects,
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            // Replace CircularProgressIndicator with Shimmer.fromColors
+                                            return Center(
+                                                child: RotationTransition(
+                                                  turns: ciruclaranimation,
+                                                  child: SvgPicture.asset(
+                                                    'assets/images/Logo.svg',
+                                                    semanticsLabel: 'Your SVG Image',
+                                                    width: 100,
+                                                    height: 130,
+                                                  ),
+                                                ));
+                                          } else if (snapshot.hasError) {
+                                            return Text(
+                                                'Error: ${snapshot.error}');
+                                          } else if (!snapshot.hasData ||
+                                              snapshot.data!.isEmpty) {
+                                            return Center(
+                                              child: SvgPicture.asset(
+                                                'assets/images/empty.svg',
+                                                semanticsLabel: 'Your SVG Image',
+                                                width: 150,
+                                                height: 200,
+                                              ),
+                                            );
+                                          } else {
+                                            // Update the items list
+                                            items = snapshot.data!;
+
+                                            return CarouselSlider.builder(
+                                              carouselController: _carouselController,
+                                              itemCount: items.length,
+                                              itemBuilder: (
+                                                  BuildContext context,
+                                                  int index, int realIndex) {
+                                                Item currentItem = items[index];
+                                                return buildListItem2(
+                                                    currentItem);
+                                              },
+                                              options: CarouselOptions(
+                                                height: 230,
+                                                aspectRatio: 16 / 7,
+                                                viewportFraction: 0.84,
+                                                enableInfiniteScroll: false,
+                                                autoPlay: true,
+                                                animateToClosest: true,
+                                                enlargeFactor: 0.27,
+                                                padEnds: true,
+                                                enlargeCenterPage: true,
+                                                autoPlayInterval: Duration(
+                                                    seconds: 5),
+                                                autoPlayAnimationDuration: Duration(
+                                                    milliseconds: 1000),
+                                                autoPlayCurve: Curves
+                                                    .fastOutSlowIn,
+                                                onPageChanged: (index, reason) {
+                                                  setState(() {
+                                                    _currentIndex = index;
+                                                  });
+                                                },
+                                              ),
+                                            );
+                                          }
+                                        },
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: 1.0),
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment
+                                                .center,
+                                            children: items.map((item) {
+                                              int itemIndex = items.indexOf(
+                                                  item);
+                                              return CircularIndicator(
+                                                itemIndex: itemIndex,
+                                                currentIndex: _currentIndex,
+                                              );
+                                            }).toList(),
+                                          ),
+                                        ),
+                                      ),
                                     ],
-
-                                  );
-                                } else if (snapshot.hasError) {
-                                  return Text('Error: ${snapshot.error}');
-                                } else if (snapshot.data != null && snapshot.data!.isEmpty) {
-                                  // If projects list is empty, reset current page to 0 and refresh
-                                  currentPage = 0;
-                                  refreshProjects();
-                                  return Text('No projects found.');
-                                } else {
-                                  return ListView.builder(
-                                    physics: NeverScrollableScrollPhysics(),
-                                    shrinkWrap: true,
-                                    itemCount: snapshot.data!.length,
-                                    itemBuilder: (context, index) {
-                                      return buildListItem(snapshot.data![index]);
-                                    },
-                                  );
-                                }
-                              },
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                if (currentPage > 1)
-                                  TextButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        currentPage--;
-                                        refreshProjects(); // Use refreshProjects instead of fetchProjects
-                                      });
-                                    },
-                                    style: TextButton.styleFrom(
-
-                                      foregroundColor: Colors.redAccent,
-
+                                  ),
+                                  SizedBox(
+                                    height: 15,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 25.0,
                                     ),
-                                    child: Text(
-                                      'Previous Page',
-                                      style: TextStyle(fontSize: 16, ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          'Projects Around You',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors
+                                                .grey[700], // Change the color as needed
+                                          ),
+                                        ),
+                                        Spacer(),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      exploreClient()),
+                                            );
+                                          },
+                                          child: Text(
+                                            'See all',
+                                            style: GoogleFonts.openSans(
+                                              textStyle: TextStyle(
+                                                  color: HexColor('4F815A'),
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                          ),
+                                        )
+
+                                      ],
                                     ),
                                   ),
-                                TextButton(
-                                  onPressed: () async {
-                                    setState(() {
-                                      currentPage++;
-                                      refreshProjects();
-                                    });
-
-                                    // Fetch the projects for the next page
-                                    List<Item>? nextPageProjects = await fetchProjects();
-
-                                    // Check if the next page is empty or no data and hide the button accordingly
-                                    if (!shouldShowNextButton(nextPageProjects)) {
-                                      setState(() {
-                                        currentPage = 1;
-                                        refreshProjects();
-                                      });
-                                    } else {
-                                      // Update the futureProjects with the fetched projects
-                                      futureProjects = Future.value(nextPageProjects);
-                                    }
-                                  },
-                                  style: TextButton.styleFrom(
-
-                                    primary: Colors.black45,
-
+                                  SizedBox(
+                                    height: 7,
                                   ),
-                                  child: Text(
-                                    'Next Page',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ),
-                              ],
+                                  Column(
+                                    children: [
+                                      FutureBuilder<List<Item>>(
+                                        future: futureProjects,
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return Column(
+                                              children: [
+                                                SizedBox(height: 80,),
+                                                Center(
+                                                    child: RotationTransition(
+                                                      turns: ciruclaranimation,
+                                                      child: SvgPicture.asset(
+                                                        'assets/images/Logo.svg',
+                                                        semanticsLabel: 'Your SVG Image',
+                                                        width: 100,
+                                                        height: 130,
+                                                      ),
+                                                    ))
+                                                ,
+                                                SizedBox(height: 80,)
+                                              ],
+
+                                            );
+                                          } else if (snapshot.hasError) {
+                                            return Text(
+                                                'Error: ${snapshot.error}');
+                                          } else if (snapshot.data != null &&
+                                              snapshot.data!.isEmpty) {
+                                            // If projects list is empty, reset current page to 0 and refresh
+                                            currentPage = 0;
+                                            refreshProjects();
+                                            return Center(
+                                              child: SvgPicture.asset(
+                                                'assets/images/empty.svg',
+                                                semanticsLabel: 'Your SVG Image',
+                                                width: 150,
+                                                height: 200,
+                                              ),
+                                            );
+                                          } else {
+                                            return                                 widget.showCase ==true
+                                                ?  Showcase(
+                                          key: _two,
+                                          title: 'Explore Projects',
+                                          description: 'Explore and discover new projects to initiate your first work',
+                                          child: ListView.builder(
+                                          physics: NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true, // Set shrinkWrap to true
+                                          itemCount: snapshot.data!.length,
+                                          itemBuilder: (context, index) {
+                                          return buildListItem(
+                                          snapshot.data![index]);
+                                          },
+                                          ),
+                                          ):ListView.builder(
+                                          physics: NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true, // Set shrinkWrap to true
+                                          itemCount: snapshot.data!.length,
+                                          itemBuilder: (context, index) {
+                                          return buildListItem(
+                                          snapshot.data![index]);
+                                          },
+
+                                            );
+                                          }
+                                        },
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment
+                                            .spaceAround,
+                                        children: [
+                                          if (currentPage > 1)
+                                            TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  currentPage--;
+                                                  refreshProjects(); // Use refreshProjects instead of fetchProjects
+                                                });
+                                              },
+                                              style: TextButton.styleFrom(
+
+                                                foregroundColor: Colors
+                                                    .redAccent,
+
+                                              ),
+                                              child: Text(
+                                                'Previous Page',
+                                                style: TextStyle(fontSize: 16,),
+                                              ),
+                                            ),
+                                          TextButton(
+                                            onPressed: () async {
+                                              setState(() {
+                                                currentPage++;
+                                                refreshProjects();
+                                              });
+
+                                              // Fetch the projects for the next page
+                                              List<
+                                                  Item>? nextPageProjects = await fetchProjects();
+
+                                              // Check if the next page is empty or no data and hide the button accordingly
+                                              if (!shouldShowNextButton(
+                                                  nextPageProjects)) {
+                                                setState(() {
+                                                  currentPage = 1;
+                                                  refreshProjects();
+                                                });
+                                              } else {
+                                                // Update the futureProjects with the fetched projects
+                                                futureProjects = Future.value(
+                                                    nextPageProjects);
+                                              }
+                                            },
+                                            style: TextButton.styleFrom(
+
+                                              primary: Colors.black45,
+
+                                            ),
+                                            child: Text(
+                                              'Next Page',
+                                              style: TextStyle(fontSize: 16),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 50,)
+                                    ],
+                                  )
+                                ],
+                              ),
                             ),
-                            SizedBox(height: 50,)
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
+                          ),
+
+                      )
                 ),
               ),
-            )),
-      ),
+              ),
     );
+
   }
   Widget buildListItem2(Item item) {
 
     return GestureDetector(
       onTap: () {
-        Get.to(bidDetailsClient(projectId: item.projectId));
+        Get.to(bidDetailsClient(projectId: item.projectId)
+          ,
+          transition: Transition.leftToRight, // You can choose a different transition
+          duration: Duration(milliseconds: 1100), // Set the duration of the transition
+        );
       },
       child: Stack(
         children: [
@@ -1031,30 +1133,48 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
               return Builder(
                 builder: (BuildContext context) {
                   return ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      width: MediaQuery.of(context).size.width,
-                      height: double.infinity,
-                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return LinearProgressIndicator(
-                          color: Colors.white,
-                          value: null,
-                          backgroundColor: Colors.grey[300],
-                          minHeight: 3,
-                        );
-                      },
+                    borderRadius: BorderRadius.circular(27),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.4),
+                            spreadRadius: 5,
+                            blurRadius: 7,
+                            offset: Offset(3, 3),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          width: MediaQuery.of(context).size.width,
+                          height: double.infinity,
+                          loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return LinearProgressIndicator(
+                              color: Colors.white,
+                              value: null,
+                              backgroundColor: Colors.grey[300],
+                              minHeight: 3,
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   );
+
                 },
               );
             }).toList(),
           ),
-// Add the dots indicator
+    // Add the dots indicator
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
+
             children: item.imageUrl.asMap().entries.map((entry) {
               return GestureDetector(
                 onTap: () {
@@ -1073,42 +1193,42 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
             }).toList(),
           ),
           Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Spacer(), // Pushes the container to the right
-                    Container(
-                      height: 50,
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(20),
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Spacer(),
+                Container(
+                  height: 50,
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0, left: 5),
+                        child: Text(
+                          "${item.numbers_of_likes}",
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0, left: 5),
-                            child: Text(
-                              "${item.numbers_of_likes}",
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          IconButton(
-                            iconSize: 22,
-                            icon: Icon(
-                              likedProjectsMap[item.projectId] ?? item.liked == "true"
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: likedProjectsMap[item.projectId] ?? item.liked == "true"
-                                  ? Colors.red
-                                  : Colors.grey,
-                            ),
+                      SizedBox(width: 8),
+                      IconButton(
+                        iconSize: 22,
+                        icon: Icon(
+                          likedProjectsMap[item.projectId] ?? item.liked == "true"
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: likedProjectsMap[item.projectId] ?? item.liked == "true"
+                              ? Colors.red
+                              : Colors.grey,
+                        ),
                             onPressed: () async {
                               try {
                                 if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
@@ -1160,79 +1280,76 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                 ),
               ),
           Positioned(
-                bottom: 17,
-                left: 30,
-                right: 30,
-                child: Container(
-                  height: 122,
-                  width: 160,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                      bottomLeft: Radius.circular(30),
-                      bottomRight: Radius.circular(30),
-                    ),
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 4,
-                        blurRadius: 5,
-                        offset: Offset(3, 2),
+            bottom: 17,
+            left: 30,
+            right: 30,
+            child: Container(
+              height: 122,
+              width: 160,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 4,
+                    blurRadius: 5,
+                    offset: Offset(3, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 20,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      item.title.length > 18
+                          ? item.title.substring(0, 18) + '...' // Display first 14 letters and add ellipsis
+                          : item.title,
+                      style: GoogleFonts.openSans(
+                        textStyle: TextStyle(
+                          color: HexColor('398048'),
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0,
-                      vertical: 20,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          item.title.length > 18
-                              ? item.title.substring(0, 18) + '...' // Display first 14 letters and add ellipsis
-                              : item.title,
-                          style: GoogleFonts.openSans(
-                            textStyle: TextStyle(
-                              color: HexColor('398048'),
-                              fontSize: 19,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-
-                        SizedBox(
-                          height: 7,
-                        ),
-                        Text(
-                          item.description,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: HexColor('#706F6F'),
-                          ),
-                          maxLines: 2, // Set the maximum number of lines
-                          overflow: TextOverflow.ellipsis, // Display ellipsis (...) for overflow
-                        ),
-
-                      ],
+                    SizedBox(
+                      height: 7,
                     ),
-                  ),
+                    Text(
+                      item.description,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: HexColor('#706F6F'),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
+        ],
+      ),
     );
-      }
+  }
 
   Widget buildListItem(Item item) {
     return GestureDetector(
       onTap: () {
         Get.to(
-                () => bidDetailsClient(projectId: item.projectId),  );    },
+                () => bidDetailsClient(projectId: item.projectId),
+
+            transition: Transition.leftToRight, // You can choose a different transition
+            duration: Duration(milliseconds: 1100), // Set the duration of the transition
+        );    },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
         padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
@@ -1251,6 +1368,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
         child: Column(
           children: [
             Stack(
+
               children: [
         CarouselSlider(
         options: CarouselOptions(
@@ -1272,141 +1390,150 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
             });
           },
         ),
-        carouselController: _carouselController,
-        items: item.imageUrl.map((imageUrl) {
-          return Builder(
-            builder: (BuildContext context) {
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(30),
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  width: MediaQuery.of(context).size.width,
-                  height: double.infinity,
-                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return LinearProgressIndicator(
-                      color: Colors.white,
-                      value: null,
-                      backgroundColor: Colors.grey[300],
-                      minHeight: 3,
-                    );
-                  },
-                ),
-              );
-            },
-          );
-        }).toList(),
-      ),
-// Add the dots indicator
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: item.imageUrl.asMap().entries.map((entry) {
-          return GestureDetector(
-            onTap: () {
-              _carouselController.animateToPage(entry.key);
-            },
-            child: Container(
-              width: 10,
-              height: 10,
-              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _currentPageIndex == entry.key ? Colors.white : Colors.grey[300],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-                              Padding(
-                  padding: const EdgeInsets.all(8.0),
+          carouselController: _carouselController,
+          items: item.imageUrl.map((imageUrl) {
+            return Builder(
+              builder: (BuildContext context) {
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(30),
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    width: MediaQuery.of(context).size.width,
+                    height: double.infinity,
+                    loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return LinearProgressIndicator(
+                        color: Colors.white,
+                        value: null,
+                        backgroundColor: Colors.grey[300],
+                        minHeight: 3,
+                      );
+                    },
+                  ),
+                );
+              },
+            );
+          }).toList(),
+        ),
+                // Dots indicator
+                Positioned(
+                  bottom: 10,
+                  left: 0,
+                  right: 0,
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Spacer(), // Pushes the container to the right
-                      Container(
-                        height: 50,
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(20),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: item.imageUrl.asMap().entries.map((entry) {
+                      return GestureDetector(
+                        onTap: () {
+                          _carouselController.animateToPage(entry.key);
+                        },
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _currentPageIndex == entry.key ? Colors.white : Colors.grey[300],
+                          ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0, left: 5),
-                              child: Text(
-                                "${item.numbers_of_likes}",
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            IconButton(
-                              iconSize: 22,
-                              icon: Icon(
-                                likedProjectsMap[item.projectId] ?? item.liked == "true"
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color: likedProjectsMap[item.projectId] ?? item.liked == "true"
-                                    ? Colors.red
-                                    : Colors.grey,
-                              ),
-                              onPressed: () async {
-                                try {
-                                  if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
-                                    // If liked, remove like
-                                    final response = await removeProjectFromLikes(item.projectId.toString());
-
-                                    if (response['status'] == 'success') {
-                                      // If successfully removed from likes
-                                      setState(() {
-                                        likedProjectsMap[item.projectId] = false;
-                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) - 1;
-                                      });
-                                      print('Project removed from likes');
-                                    } else {
-                                      // Handle the case where the project is not removed from likes
-                                      print('Error: ${response['msg']}');
-                                    }
-                                  } else {
-                                    // If not liked, add like
-                                    final response = await addProjectToLikes(item.projectId.toString());
-
-                                    if (response['status'] == 'success') {
-                                      // If successfully added to likes
-                                      setState(() {
-                                        likedProjectsMap[item.projectId] = true;
-                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) + 1;
-                                      });
-                                      print('Project added to likes');
-                                    } else if (response['msg'] == 'This Project is Already in Likes !') {
-                                      // If the project is already liked, switch to Icons.favorite_border
-                                      setState(() {
-                                        likedProjectsMap[item.projectId] = false;
-                                      });
-                                      print('Project is already liked');
-                                    } else {
-                                      // Handle the case where the project is not added to likes
-                                      print('Error: ${response['msg']}');
-                                    }
-                                  }
-                                } catch (e) {
-                                  print('Error: $e');
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-
-                      ),
-                    ],
+                      );
+                    }).toList(),
                   ),
                 ),
+                // Likes section
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  left: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Spacer(),
+                        Container(
+                          height: 50,
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0, left: 5),
+                                child: Text(
+                                  "${item.numbers_of_likes}",
+                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              IconButton(
+                                iconSize: 22,
+                                icon: Icon(
+                                  likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                      ? Colors.red
+                                      : Colors.grey,
+                                ),
+                                onPressed: () async {
+                                  try {
+                                    if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
+                                      // If liked, remove like
+                                      final response = await removeProjectFromLikes(item.projectId.toString());
 
+                                      if (response['status'] == 'success') {
+                                        // If successfully removed from likes
+                                        setState(() {
+                                          likedProjectsMap[item.projectId] = false;
+                                          item.numbers_of_likes = (item.numbers_of_likes ?? 0) - 1;
+                                        });
+                                        print('Project removed from likes');
+                                      } else {
+                                        // Handle the case where the project is not removed from likes
+                                        print('Error: ${response['msg']}');
+                                      }
+                                    } else {
+                                      // If not liked, add like
+                                      final response = await addProjectToLikes(item.projectId.toString());
+
+                                      if (response['status'] == 'success') {
+                                        // If successfully added to likes
+                                        setState(() {
+                                          likedProjectsMap[item.projectId] = true;
+                                          item.numbers_of_likes = (item.numbers_of_likes ?? 0) + 1;
+                                        });
+                                        print('Project added to likes');
+                                      } else if (response['msg'] == 'This Project is Already in Likes !') {
+                                        // If the project is already liked, switch to Icons.favorite_border
+                                        setState(() {
+                                          likedProjectsMap[item.projectId] = false;
+                                        });
+                                        print('Project is already liked');
+                                      } else {
+                                        // Handle the case where the project is not added to likes
+                                        print('Error: ${response['msg']}');
+                                      }
+                                    }
+                                  } catch (e) {
+                                    print('Error: $e');
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
             SizedBox(height: 10.0),
@@ -1452,7 +1579,12 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                         ),
                         child: TextButton(
                           onPressed: () {
-                            Get.to(ProfilePageClient(userId:item.client_id.toString()));
+                            Get.to(ProfilePageClient(userId:item.client_id.toString(),
+                            ),
+                              transition: Transition.leftToRightWithFade, // You can choose a different transition
+                              duration: Duration(milliseconds: 1100), // Set the duration of the transition
+
+                            );
                           },
                           style: TextButton.styleFrom(
                             fixedSize: Size(50, 30), // Adjust the size as needed
@@ -1477,22 +1609,21 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                   SizedBox(height: 6),
                   Row(
                     children: [
-                      Expanded(
-                        child: Text.rich(
-                          TextSpan(
-                            children: _buildTextSpans(item.description, searchController.text),
-                          ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.openSans(
-                            textStyle: TextStyle(
-                              color: HexColor('393B3E'),
-                              fontSize: 15,
-                              fontWeight: FontWeight.normal,
-                            ),
+                      Text.rich(
+                        TextSpan(
+                          children: _buildTextSpans(item.description, searchController.text),
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                            color: HexColor('393B3E'),
+                            fontSize: 15,
+                            fontWeight: FontWeight.normal,
                           ),
                         ),
                       ),
+                      Spacer(),
                       SizedBox(width: 7,),
                       Column(
                         children: [
@@ -1530,7 +1661,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                       ),
                     ],
                   )
-,
+    ,
                   SizedBox(height: 9),
                   Row(
                     children: [
@@ -1562,7 +1693,12 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                         child: ElevatedButton(
                           onPressed: () {
                             Get.to(
-                                  () => bidDetailsClient(projectId: item.projectId),  );
+                                  () => bidDetailsClient(projectId: item.projectId),
+
+                                transition: Transition.leftToRight, // You can choose a different transition
+                                duration: Duration(milliseconds: 1100), // Set the duration of the transition
+
+                            );
                             // Handle button press
                           },
                           child: Text('Details',style: TextStyle(color: Colors.white),),

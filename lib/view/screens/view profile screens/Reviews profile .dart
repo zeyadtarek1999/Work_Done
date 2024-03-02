@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -182,6 +183,12 @@ double widthofbar = 150;
   // }
 
 
+  String firstname = '';
+  String secondname = '';
+  String password = '';
+  String profile_pic = '';
+  String language = '';
+
 
   List<Item> filteredItems = [];
   List<InlineSpan> _buildTextSpans(String text, String query) {
@@ -237,6 +244,7 @@ double widthofbar = 150;
   super.initState();
 
   futureProjects = fetchUserProfile();
+  _getUserProfile();
 
   initializeProjects();
   // _getUserProfile();
@@ -249,12 +257,8 @@ double widthofbar = 150;
   get_review();
   }
 
-  String firstname = '';
-  String secondname = '';
   String email = '';
-  String profile_pic = '';
   String phone = '';
-  String language = '';
   String usertype = '';
   int projectnumber = 0;
   dynamic stars_5 = 0;
@@ -380,6 +384,64 @@ double widthofbar = 150;
     }
   }
 
+  Future<void> _getUserProfile() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_profile_info';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $userToken',
+          },
+
+        );
+
+        if (response.statusCode == 200) {
+          Map<dynamic, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('data')) {
+            Map<dynamic, dynamic> profileData = responseData['data'];
+
+            String languageString;
+
+            setState(() {
+              firstname = profileData['firstname'] ?? '';
+              secondname = profileData['lastname'] ?? '';
+              email = profileData['email'] ?? '';
+              profile_pic = profileData['profile_pic'] ?? '';
+              phone = profileData['phone'] ?? '';
+              List<dynamic> languages = profileData['language'] ?? [];
+              List<String> languageNames = languages.map<String>((language) => language['name']).toList();
+              languageString = languageNames.join(', ');
+              language = languageString; // Add this line
+            });
+
+            print('Response: $profileData');
+            print('profile pic: $profile_pic');
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
 
   Future<UserProfile> fetchUserProfile() async {
     try {
@@ -581,7 +643,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
             } else if (snapshot.data != null) {
               UserProfile userProfile = snapshot.data!;
 
-              return Text("${userProfile.userData.firstname} Profile", style: TextStyle(color: Colors.black),);
+              return Text("${firstname} Profile", style: TextStyle(color: Colors.black),);
 
             } else {
               return Column(
@@ -1007,56 +1069,118 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
           body:                     SingleChildScrollView(
             child: Column(
               children: [
-              FutureBuilder<UserProfile>(
-              future: futureProjects,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                } else if (snapshot.data != null) {
-                  UserProfile userProfile = snapshot.data!;
-                  return ListView.builder(
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: userProfile.projects.length,
-                    itemBuilder: (context, index) {
+            //   FutureBuilder<UserProfile>(
+            //   future: futureProjects,
+            //   builder: (context, snapshot) {
+            //     if (snapshot.connectionState == ConnectionState.waiting) {
+            //       return Center(
+            //         child: CircularProgressIndicator(),
+            //       );
+            //     } else if (snapshot.hasError) {
+            //       return Text('Error: ${snapshot.error}');
+            //     } else if (snapshot.data == null) {
+            //       UserProfile userProfile = snapshot.data!;
+            //       return Animate(
+            //         effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+            //         child: ListView.builder(
+            //           physics: NeverScrollableScrollPhysics(),
+            //           shrinkWrap: true,
+            //           itemCount: userProfile.projects.length,
+            //           itemBuilder: (context, index) {
+            //
+            //             return buildProjectItem(userProfile.projects[index]);
+            //           },
+            //         ),
+            //       );
+            //     } else {
+            //       return                   Column(
+            //         mainAxisAlignment: MainAxisAlignment.center,
+            //         children: [
+            //           Padding(
+            //             padding: const EdgeInsets.symmetric(vertical: 12.0),
+            //             child: SvgPicture.asset(
+            //               'assets/images/nothing.svg',
+            //               width: 100.0, // Set the width you want
+            //               height: 100.0, // Set the height you want
+            //             ),
+            //           ),
+            //           SizedBox(
+            //             height: 20,
+            //           ),
+            //           Text(
+            //             'No Projects yet',
+            //             style: GoogleFonts.encodeSans(
+            //               textStyle: TextStyle(
+            //                   color: HexColor('BBC3CE'),
+            //                   fontSize: 18,
+            //                   fontWeight: FontWeight.normal),
+            //             ),
+            //           ),
+            //         ],
+            //       )
+            //     ;
+            //     }
+            //   },
+            // ),
+                FutureBuilder<UserProfile>(
+                  future: futureProjects,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
 
-                      return buildProjectItem(userProfile.projects[index]);
-                    },
-                  );
-                } else {
-                  return                   Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: SvgPicture.asset(
-                          'assets/images/nothing.svg',
-                          width: 100.0, // Set the width you want
-                          height: 100.0, // Set the height you want
+
+                    } else if (snapshot.hasError) {
+                      return Text(
+                          'Error: ${snapshot.error}');
+                    } else if (snapshot.data != null ) {
+                      // If projects list is empty, reset current page to 0 and refresh
+                      return                   Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                      child: SvgPicture.asset(
+                                        'assets/images/nothing.svg',
+                                        width: 100.0, // Set the width you want
+                                        height: 100.0, // Set the height you want
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+                                    Text(
+                                      'No Projects yet',
+                                      style: GoogleFonts.encodeSans(
+                                        textStyle: TextStyle(
+                                            color: HexColor('BBC3CE'),
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.normal),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ;
+                    } else {
+                      UserProfile userProfile = snapshot.data!;
+                      return Animate(
+                        effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                        child: ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: userProfile.projects.length,
+                          itemBuilder: (context, index) {
+
+                            return buildProjectItem(userProfile.projects[index]);
+                          },
                         ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        'No Projects yet',
-                        style: GoogleFonts.encodeSans(
-                          textStyle: TextStyle(
-                              color: HexColor('BBC3CE'),
-                              fontSize: 18,
-                              fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                    ],
-                  )
-                ;
-                }
-              },
-            ),
+                      );
+                    }
+                  },
+                ),
 
                 SizedBox(height: 50,)
               ],
@@ -1438,7 +1562,7 @@ class UserData {
   final String email;
   final String profilePic;
   final String phone;
-  final String language;
+  List<dynamic> languages;
   final String license_number;
   final String license_pic;
   final String job_type;
@@ -1452,7 +1576,7 @@ class UserData {
     required this.email,
     required this.profilePic,
     required this.phone,
-    required this.language,
+    required this.languages,
   });
 
   factory UserData.fromJson(Map<String, dynamic> json) {
@@ -1465,7 +1589,7 @@ class UserData {
       phone: json['phone']??'',
       license_number: json['license_number']??'',
       license_pic: json['license_pic']??'',
-      language: json['language']??' No Language',
+      languages: json['language'] ?? [],
 
     );
   }

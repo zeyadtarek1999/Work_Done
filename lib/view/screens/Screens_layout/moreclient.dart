@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -136,46 +137,58 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 35,
-                    backgroundColor: Colors.transparent,
-                    backgroundImage: profile_pic != '' && profile_pic.isNotEmpty
-                        && profile_pic == "https://workdonecorp.com/images/"
-                        ? AssetImage('assets/images/default.png') as ImageProvider
-                        : NetworkImage(profile_pic?? 'assets/images/default.png'),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${firstname}',
-                          style: GoogleFonts.encodeSans(
-                            textStyle: TextStyle(
-                                color: HexColor('3A3939'),
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 6,
-                        ),
-                        Text(
-                          '${email}',
-                          style: GoogleFonts.encodeSans(
-                            textStyle: TextStyle(
-                                color: HexColor('3A3939'),
-                                fontSize: 15,
-                                fontWeight: FontWeight.normal),
-                          ),
-                        ),
-                      ],
+              Animate(
+                effects: [ShimmerEffect(duration: Duration(milliseconds: 500),),],
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: MediaQuery.of(context).size.width * 0.1,
+                      backgroundColor: Colors.transparent,
+                      backgroundImage: profile_pic != '' &&
+                          profile_pic.isNotEmpty &&
+                          profile_pic == "https://workdonecorp.com/images/"
+                          ? AssetImage('assets/images/default.png') as ImageProvider
+                          : NetworkImage(profile_pic ?? 'assets/images/default.png'),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width * 0.03,
+                        // Adjust the multiplication factor based on your preference
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${firstname}',
+                            style: GoogleFonts.encodeSans(
+                              textStyle: TextStyle(
+                                color: HexColor('3A3939'),
+                                fontSize: MediaQuery.of(context).size.width * 0.072,
+                                // Adjust the multiplication factor based on your preference
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.width * 0.012,
+                            // Adjust the multiplication factor based on your preference
+                          ),
+                          Text(
+                            '${email}',
+                            style: GoogleFonts.encodeSans(
+                              textStyle: TextStyle(
+                                color: HexColor('3A3939'),
+                                fontSize: MediaQuery.of(context).size.width * 0.041,
+                                // Adjust the multiplication factor based on your preference
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 30.0),

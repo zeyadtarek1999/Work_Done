@@ -50,7 +50,7 @@ dependencies:
   lottie: ^2.6.0
   flutter_paypal_checkout: ^1.0.1
   flutter_local_notifications: ^16.1.0
-  firebase_core: ^2.24.0
+  firebase_core: ^2.25.5
   firebase_auth: ^4.15.0
   cloud_firestore: ^4.13.3
   firebase_database: ^10.3.6
@@ -82,6 +82,14 @@ dependencies:
   url_launcher: ^6.2.4
   workmanager: ^0.5.2
   flutter_background_service: ^2.4.6
+  flutter_paypal_native: ^2.1.0
+  flutter_animate: ^4.5.0
+  flutter_onboarding_slider: ^1.0.11
+  showcaseview: ^2.0.3
+  firebase_admin: ^0.2.0
+  firebase_analytics: ^10.8.7
+
+  firebase_messaging: ^14.7.17
 
   dotted_border: ^2.1.0
   flutter_sequence_animation: ^4.0.0

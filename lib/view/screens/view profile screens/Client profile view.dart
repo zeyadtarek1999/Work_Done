@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -1027,13 +1028,16 @@ print(widget.userId.toString(),);
                           ),
                         );
                       } else {
-                        return ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: userProfile.projects.length,
-                          itemBuilder: (context, index) {
-                            return buildProjectItem(userProfile.projects[index]);
-                          },
+                        return Animate(
+                          effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                          child: ListView.builder(
+                            physics: NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: userProfile.projects.length,
+                            itemBuilder: (context, index) {
+                              return buildProjectItem(userProfile.projects[index]);
+                            },
+                          ),
                         );
                       }
                     },
@@ -1419,7 +1423,7 @@ class UserData {
   final String email;
   final String profilePic;
   final String phone;
-  final String language;
+  List<dynamic> languages;
 
   UserData({
     required this.firstname,
@@ -1427,7 +1431,7 @@ class UserData {
     required this.email,
     required this.profilePic,
     required this.phone,
-    required this.language,
+    required this.languages,
   });
 
   factory UserData.fromJson(Map<String, dynamic> json) {
@@ -1437,7 +1441,7 @@ class UserData {
       email: json['email'],
       profilePic: json['profile_pic'],
       phone: json['phone'],
-      language: json['language'],
+      languages: json['language'],
     );
   }
 }

@@ -94,8 +94,10 @@ class _LoginScreenclientState extends State<LoginScreenclient>  with SingleTicke
               textColor: Colors.white,
             );
           } else {
-            // Navigate to layoutworker() for non-client accounts
-            Get.offAll(layoutclient(), fullscreenDialog: true);
+
+            Get.offAll(layoutclient(showCase: false),
+              transition: Transition.zoom, // You can choose a different transition
+              duration: Duration(milliseconds: 1100), fullscreenDialog: true, );
           }
         } else {
           // Handle the case when 'token' is null or not present in the response
@@ -234,6 +236,8 @@ class _LoginScreenclientState extends State<LoginScreenclient>  with SingleTicke
     double containerheight = screenHeight * 0.1;
     Size size = MediaQuery.of(context).size;
     return Form(
+      autovalidateMode: AutovalidateMode.onUserInteraction, // Enable auto-validation
+
       key: formKey,
       child: SafeArea(
         child: BlurryModalProgressHUD(

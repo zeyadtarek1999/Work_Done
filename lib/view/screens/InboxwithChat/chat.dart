@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -167,33 +168,36 @@ class _chatState extends State<chat> {
                               ),
                             );
                           }
-                          return ListView.builder(
-                            reverse: true,
-                            itemCount: messages.length,
-                            itemBuilder: (context, index) {
-                              var messageContent = messages[index]['content'];
-                              var messageSender = messages[index]['sender'];
-                              var imageUrl =
-                                  messages[index]['image']; // Add this line
-                              var messageTime =
-                                  messages[index]['timestamp'] as Timestamp?;
+                          return Animate(
+                            effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                            child: ListView.builder(
+                              reverse: true,
+                              itemCount: messages.length,
+                              itemBuilder: (context, index) {
+                                var messageContent = messages[index]['content'];
+                                var messageSender = messages[index]['sender'];
+                                var imageUrl =
+                                    messages[index]['image']; // Add this line
+                                var messageTime =
+                                    messages[index]['timestamp'] as Timestamp?;
 
-                              return ChatBubble(
-                                myimage: widget.myside_image,
-                                otherimage: widget.seconduserimage,
-                                usertype: widget.currentUser,
-                                clientid: widget.client_id,
-                                workerid: widget.worker_id,
-                                currentuser: messageSender,
-                                message: messageContent,
-                                isSentByMe:
-                                    messageSender == widget.myside_firstname,
-                                imageUrl: imageUrl,
-                                time: messageTime != null
-                                    ? messageTime.toDate()
-                                    : DateTime.now(),
-                              );
-                            },
+                                return ChatBubble(
+                                  myimage: widget.myside_image,
+                                  otherimage: widget.seconduserimage,
+                                  usertype: widget.currentUser,
+                                  clientid: widget.client_id,
+                                  workerid: widget.worker_id,
+                                  currentuser: messageSender,
+                                  message: messageContent,
+                                  isSentByMe:
+                                      messageSender == widget.myside_firstname,
+                                  imageUrl: imageUrl,
+                                  time: messageTime != null
+                                      ? messageTime.toDate()
+                                      : DateTime.now(),
+                                );
+                              },
+                            ),
                           );
                         },
                       ),

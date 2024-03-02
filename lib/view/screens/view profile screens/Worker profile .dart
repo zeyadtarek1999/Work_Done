@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -956,6 +957,12 @@ SizedBox(height: 10,),
                                                         return Text('Error: ${snapshot.error}');
                                                       } else if (snapshot.data != null) {
                                                         UserProfile userProfile = snapshot.data!;
+                                                        String languageString;
+
+                                                        List <dynamic> languagelist = userProfile.userData.languages;
+                                                        List<String> languageNames = languagelist.map<String>((language) => language['name']).toList();
+                                                        languageString = languageNames.join(', ');
+                                                        language = languageString;
 
                                                         return                                                              Column(
                                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -999,7 +1006,8 @@ SizedBox(height: 10,),
                                                                           ),
                                                                           SizedBox(width: ScreenUtil.sizeboxwidth3),
                                                                           Text(
-                                                                            '${userProfile.userData.language}',
+
+                                                                            '${language}',
                                                                             style: TextStyle(
                                                                                 color: HexColor('#404040'), fontSize: 15),
                                                                           )
@@ -1274,13 +1282,16 @@ SizedBox(height: 10,),
                           ],
                         );
                       } else {
-                        return ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: userProfile.projects.length,
-                          itemBuilder: (context, index) {
-                            return buildProjectItem(userProfile.projects[index]);
-                          },
+                        return Animate(
+                          effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                          child: ListView.builder(
+                            physics: NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: userProfile.projects.length,
+                            itemBuilder: (context, index) {
+                              return buildProjectItem(userProfile.projects[index]);
+                            },
+                          ),
                         );
                       }
                     } else {
@@ -1669,7 +1680,7 @@ class UserData {
   final String profilePic;
   final int experience;
   final String phone;
-  final String language;
+  List<dynamic> languages;
   final String license_number;
   final String license_pic;
   final String job_type;
@@ -1684,10 +1695,11 @@ class UserData {
     required this.email,
     required this.profilePic,
     required this.phone,
-    required this.language,
+    required this.languages,
   });
 
   factory UserData.fromJson(Map<String, dynamic> json) {
+
     return UserData(
       firstname: json['firstname']??'',
       lastname: json['lastname']??'',
@@ -1697,10 +1709,11 @@ class UserData {
       phone: json['phone']??'',
       license_number: json['license_number']??'',
       license_pic: json['license_pic']??'',
-      language: json['language']??' No Language',
+      languages: json['language']?? [],
       experience: json['experience']??'0',
 
     );
+
   }
 }
 

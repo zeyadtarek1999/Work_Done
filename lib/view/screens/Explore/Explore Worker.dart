@@ -15,6 +15,7 @@ import '../Bid Details/Bid details Client.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
+import '../notifications/notificationScreen.dart';
 import '../view profile screens/Client profile view.dart';
 import 'package:http/http.dart' as http;
 
@@ -225,7 +226,7 @@ class _exploreWorkerState extends State<exploreWorker> with SingleTickerProvider
               padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: GestureDetector(
                 onTap: (){
-
+Get.to(NotificationsPage());
                 },
                 child:
                 SvgPicture.asset(
@@ -381,7 +382,14 @@ class _exploreWorkerState extends State<exploreWorker> with SingleTickerProvider
                           // If projects list is empty, reset current page to 0 and refresh
                           currentPage = 0;
                           refreshProjects();
-                          return Text('No projects found.');
+                          return Center(
+                            child: SvgPicture.asset(
+                              'assets/images/empty.svg',
+                              semanticsLabel: 'Your SVG Image',
+                              width: 150,
+                              height: 200,
+                            ),
+                          );
                         } else {
                           return ListView.builder(
                             physics: NeverScrollableScrollPhysics(),

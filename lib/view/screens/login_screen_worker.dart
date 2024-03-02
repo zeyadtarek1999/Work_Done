@@ -18,6 +18,8 @@ import '../components/upside.dart';
 import 'Screens_layout/layoutWorker.dart';
 import '../widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
+
+import 'forshowcaseExplain/showcaseWorker.dart';
 class LoginScreenworker extends StatefulWidget {
   const LoginScreenworker({Key? key}) : super(key: key);
 
@@ -94,8 +96,10 @@ class _LoginScreenworkerState extends State<LoginScreenworker> with SingleTicker
             );
           } else {
             // Navigate to layoutworker() for non-client accounts
-            Get.offAll(layoutworker(), transition: Transition.fadeIn );
-          }
+
+            Get.offAll(layoutworker(showCase: false),
+              transition: Transition.zoom, // You can choose a different transition
+              duration: Duration(milliseconds: 1100), );          }
         } else {
           // Handle the case when 'token' is null or not present in the response
           print('Login failed. Token is null or not present in the response.');
@@ -222,6 +226,8 @@ class _LoginScreenworkerState extends State<LoginScreenworker> with SingleTicker
     double containerheight = screenHeight * 0.1;
     Size size = MediaQuery.of(context).size;
     return Form(
+      autovalidateMode: AutovalidateMode.onUserInteraction, // Enable auto-validation
+
       key: formKey,
       child: SafeArea(
         child:  BlurryModalProgressHUD(
@@ -367,6 +373,7 @@ class _LoginScreenworkerState extends State<LoginScreenworker> with SingleTicker
                                                       _togglePasswordVisibility,
                                                   // Call the _togglePasswordVisibility function here
                                                   child: Icon(
+
                                                     _isObscured
                                                         ? Icons.visibility
                                                         : Icons.visibility_off,

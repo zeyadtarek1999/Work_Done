@@ -50,12 +50,9 @@ class _AppLauncherState extends State<AppLauncher> {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final userToken = prefs.getString('user_token') ?? '';
-      print(userToken);
 
       if (userToken.isNotEmpty) {
-        // Replace the API endpoint with your actual endpoint
         final String apiUrl = 'https://workdonecorp.com/api/get_user_type';
-        print(userToken);
 
         final response = await http.post(
           Uri.parse(apiUrl),
@@ -68,35 +65,48 @@ class _AppLauncherState extends State<AppLauncher> {
           if (responseData.containsKey('user_type')) {
             String userType = responseData['user_type'];
 
-            // Navigate based on user type
             if (userType == 'client') {
-              Get.off(layoutclient());
+              Get.offAll(
+                layoutclient(showCase: false),
+                transition: Transition.zoom, // You can choose a different transition
+                duration: Duration(milliseconds: 1100), // Set the duration of the transition
+              );
             } else if (userType == 'worker') {
-              Get.off(layoutworker());
+              Get.offAll(layoutworker(showCase: false),
+                transition: Transition.zoom, // You can choose a different transition
+                duration: Duration(milliseconds: 1100), );
             } else {
               print('Error: Unknown user type.');
-              Get.off(WelcomeScreen());
-
+              Get.off(WelcomeScreen(),
+                transition: Transition.upToDown, // You can choose a different transition
+                duration: Duration(milliseconds: 1100), );
             }
           } else {
             print('Error: Response data does not contain user_type.');
-            Get.off(WelcomeScreen());
-          }
+            Get.off(WelcomeScreen(),
+              transition: Transition.upToDown, // You can choose a different transition
+              duration: Duration(milliseconds: 1500), );          }
         } else {
           // Handle error response
           print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          Get.off(WelcomeScreen(),
+            transition: Transition.upToDown, // You can choose a different transition
+            duration: Duration(milliseconds: 1500), );
           throw Exception('Failed to load profile information');
+
         }
       } else {
         // No token in SharedPreferences, navigate to WelcomeScreen
-        Get.off(WelcomeScreen());
-      }
+        Get.off(WelcomeScreen(),
+          transition: Transition.upToDown, // You can choose a different transition
+          duration: Duration(milliseconds: 1500), );      }
     } catch (error) {
       // Handle errors
       print('Error getting profile information: $error');
-    }
-  }
-  Future<void> _handleRefresh() async {
+      Get.off(WelcomeScreen(),
+        transition: Transition.upToDown, // You can choose a different transition
+        duration: Duration(milliseconds: 1500), );    }
+  }  Future<void> _handleRefresh() async {
     await checkConnectivity();
     if (connectionStatus == 'Connected') {
       _getusertype();

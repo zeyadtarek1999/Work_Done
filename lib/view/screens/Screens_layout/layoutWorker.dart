@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent-tab-view.dart';
 import 'package:workdone/view/screens/Screens_layout/projects%20CLient.dart';
@@ -13,32 +14,36 @@ import 'moreworker.dart';
 import 'projects Worker.dart';
 
 class layoutworker extends StatefulWidget {
-  const layoutworker({super.key});
+
+  final bool showCase;
+
+  const layoutworker({Key? key, required this.showCase}) : super(key: key);
+
 
   @override
   State<layoutworker> createState() => _layoutworkerState();
 }
 final List<PersistentBottomNavBarItem> _navBarItems = [
   PersistentBottomNavBarItem(
-    icon: Icon(Icons.home),
+    icon: Icon(FontAwesomeIcons.home,),
     title: ('Home'),
     activeColorPrimary: HexColor('#4D8D6E'),
     inactiveColorPrimary: Colors.grey[700],
   ),
   PersistentBottomNavBarItem(
-    icon: Icon(Icons.check_circle),
+    icon: Icon(FontAwesomeIcons.briefcase,),
     title: ('My Projects'),
     activeColorPrimary: HexColor('#4D8D6E'),
     inactiveColorPrimary: Colors.grey[700],
   ),
   PersistentBottomNavBarItem(
-    icon: Icon(Icons.inbox),
+    icon: Icon(FontAwesomeIcons.inbox,),
     title: ('Inbox'),
     activeColorPrimary: HexColor('#4D8D6E'),
     inactiveColorPrimary: Colors.grey[700],
   ),
   PersistentBottomNavBarItem(
-    icon: Icon(Icons.more_vert),
+    icon: Icon(FontAwesomeIcons.bars,),
     title: ('More'),
     activeColorPrimary: HexColor('#4D8D6E'),
     inactiveColorPrimary: Colors.grey[700],
@@ -48,15 +53,23 @@ class _layoutworkerState extends State<layoutworker> with SingleTickerProviderSt
   int _selectedIndex = 0;
   late PersistentTabController _tabController;
   List<Widget> _screens = [
-    Homescreenworker(),
-    projectsWorker(),
-    inboxtest(),
-    Moreworker(),
+
   ];
+  bool _showCase =false;
 
   @override
   void initState() {
+
     super.initState();
+
+    ;
+    _screens = [
+
+      Homescreenworker(showCase: widget.showCase ),
+      projectsWorker(),
+      inboxtest(),
+      Moreworker(),
+    ];
     _tabController = PersistentTabController(initialIndex: 0);
   }
   @override

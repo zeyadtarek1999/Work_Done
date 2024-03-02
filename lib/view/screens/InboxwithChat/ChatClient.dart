@@ -65,12 +65,9 @@ class ChatScreen extends StatelessWidget {
             CircleAvatar(
               radius: 20,
               backgroundColor: Colors.transparent,
-              backgroundImage: NetworkImage(
-                seconduserimage != null &&
-                    seconduserimage.isNotEmpty
-                    ? seconduserimage
-                    : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-              ),
+              backgroundImage: seconduserimage== 'https://workdonecorp.com/images/' ||seconduserimage== ''
+                  ? AssetImage('assets/images/default.png') as ImageProvider
+                  : NetworkImage(seconduserimage?? 'assets/images/default.png'),
             ),
       Center(
         child: TextButton(onPressed: () {

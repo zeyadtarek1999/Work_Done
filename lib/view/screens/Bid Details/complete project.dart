@@ -844,7 +844,7 @@ class ClientData {
       clientId: json['client_id'] as int? ?? 0,
       firstname: json['firstname'] ?? '',
       lastname: json['lastname'] ?? '',
-      profileImage: json['profle_image'] ?? 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png', // corrected typo from 'profle_image' to 'profile_image'
+      profileImage: json['profle_image'] ?? '', // corrected typo from 'profle_image' to 'profile_image'
     );
   }
 }
