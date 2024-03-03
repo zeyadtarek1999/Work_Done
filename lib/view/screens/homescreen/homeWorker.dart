@@ -620,6 +620,8 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                 SizedBox(
                   height: 12,
                 ),
+
+
                 // Row(
                 //   children: [
                 //     SvgPicture.asset(
@@ -644,9 +646,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                 //     // )
                 //   ],
                 // ),
-                SizedBox(
-                  height: 12,
-                ),
+
                 Row(
                   children: [
                     SvgPicture.asset(

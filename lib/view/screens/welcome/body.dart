@@ -28,11 +28,11 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
     // Set up the animation controller
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 400),
     );
 
     // Create a custom curve for a smoother vibration effect
-    _animation = Tween<double>(begin: -10.0, end: 10.0).animate(
+    _animation = Tween<double>(begin: -8.0, end: 8.0).animate(
       CurvedAnimation(
         parent: _controller,
         curve: Curves.easeInOut,
@@ -152,6 +152,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+
             GestureDetector(
               onTap: _startVibratingAnimation,
               child: Transform.translate(
@@ -169,7 +170,10 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
             ),
             Container(
               height: 30,
-              child: AnimatedTextKit(
+              child: AnimatedTextKit(isRepeatingAnimation: true,
+                repeatForever: true,
+                stopPauseOnTap: false,
+
                 animatedTexts: [
                   FadeAnimatedText(
                     'Work Made Easy!',
@@ -179,7 +183,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                       fontSize: 25,
                       color: Colors.grey[700],
                     ),
-                    duration:  const Duration(seconds: 3),
+                    duration:   Duration(seconds: 1),
                    ),
                   ScaleAnimatedText(
                     'WorkDone ',
@@ -188,9 +192,11 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                       fontStyle: FontStyle.italic,
                       fontSize: 25,
                       color: Colors.grey[700],
+
                     ),
 
-                    duration:  const Duration(seconds: 3),
+
+                    duration:  const Duration(seconds: 2),
                   ),
                 ],
               ),

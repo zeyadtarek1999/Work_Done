@@ -38,6 +38,7 @@ final List<PersistentBottomNavBarItem> _navBarItems = [
   ),
   PersistentBottomNavBarItem(
     icon: Icon(FontAwesomeIcons.inbox,),
+
     title: ('Inbox'),
     activeColorPrimary: HexColor('#4D8D6E'),
     inactiveColorPrimary: Colors.grey[700],
@@ -81,11 +82,11 @@ class _layoutworkerState extends State<layoutworker> with SingleTickerProviderSt
       items: _navBarItems,
       confineInSafeArea: true,
 
-      navBarHeight: 70,
       backgroundColor: Colors.white,
       handleAndroidBackButtonPress: true, // Default is true.
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       stateManagement: true,
+      navBarHeight:  MediaQuery.of(context).size.height * 0.08,
       hideNavigationBarWhenKeyboardShows: true,
       decoration: NavBarDecoration(
         borderRadius: BorderRadius.circular(10.0),

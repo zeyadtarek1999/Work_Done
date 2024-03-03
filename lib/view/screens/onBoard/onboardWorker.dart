@@ -50,7 +50,7 @@ class OnBoardingWorker extends StatelessWidget {
           'Skip',
           style: TextStyle(
             color: Color(0xFF4D8D6E),
-            fontSize: 14,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -59,7 +59,7 @@ class OnBoardingWorker extends StatelessWidget {
           'Skip',
           style: TextStyle(
             color: Color(0xFF4D8D6E),
-            fontSize: 14,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -127,7 +127,7 @@ class OnBoardingWorker extends StatelessWidget {
                   width: double.infinity,
                 ),
                 Animate(
-                  effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                  effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
                   child: Text(
                     'Welcome to WorkDone! ',
                     textAlign: TextAlign.center,
@@ -144,7 +144,7 @@ class OnBoardingWorker extends StatelessWidget {
                 ),
                 Flexible(
                   child: Animate(
-                    effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                    effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
                     child: Text(
                       'The platform that connects clients with the right workers for their projects. With WorkDone, you can easily post a project, receive bids from workers, and manage the entire project from start to finish.',
                       textAlign: TextAlign.center,
@@ -173,7 +173,7 @@ class OnBoardingWorker extends StatelessWidget {
                   width: double.infinity,
                 ),
                 Animate(
-                  effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                  effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
                   child: Text(
                     'Discover Opportunities with WorkDone',
                     textAlign: TextAlign.center,
@@ -189,7 +189,7 @@ class OnBoardingWorker extends StatelessWidget {
                 ),
                 Flexible(
                   child: Animate(
-                    effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                    effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
                     child: Text(
                     'WorkDone is also the perfect solution for workers who are looking for new projects. With WorkDone, you can browse through available projects, place bids, and communicate with clients. With WorkDone,',                    textAlign: TextAlign.center,
                       style: TextStyle(
@@ -216,7 +216,7 @@ class OnBoardingWorker extends StatelessWidget {
                   width: double.infinity,
                 ),
                 Animate(
-                  effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                  effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
                                     child: Text(
                     'Join the Competition \n Show off your skills!',
                     textAlign: TextAlign.center,
@@ -233,7 +233,7 @@ class OnBoardingWorker extends StatelessWidget {
                 ),
                 Flexible(
                   child: Animate(
-                    effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                    effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
                     child: Text(
                     'Are You A Skilled Professional Looking For New Opportunities? Showcase Your Skills, Receive Project Requests, And Place Bids To Win Jobs. Manage Your Work And Connect With Clients Directly Through The App.',                    textAlign: TextAlign.center,
                       style: TextStyle(
@@ -262,7 +262,7 @@ class OnBoardingWorker extends StatelessWidget {
                   width: double.infinity,
                 ),
                 Animate(
-                  effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                  effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
                   child: Text(
                     'Ready To Get Started?',
                     textAlign: TextAlign.center,
@@ -279,7 +279,7 @@ class OnBoardingWorker extends StatelessWidget {
                 ),
                 Flexible(
                   child: Animate(
-                    effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                    effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
                     child: Text(
                       'Start your project journey with WorkDone. Whether you\'re a client or a skilled worker, post projects, place bids, and bring your ideas to life!',
                       textAlign: TextAlign.center,

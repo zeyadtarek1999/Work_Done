@@ -16,6 +16,7 @@ import 'package:get/get_navigation/src/routes/transitions_type.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:ionicons/ionicons.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
 import '../../model/PhoneNumberFormatter.dart';
@@ -200,9 +201,7 @@ class _SignUpScreenState extends State<SignUpScreen>
 
   List<String> americanPhoneCodes = [
     '+1',
-    '+20',
-    '+30',
-    '+40'
+
   ]; // Add more if needed
   String formatPhoneNumber(String input) {
     if (input.isEmpty) return '';
@@ -286,14 +285,14 @@ class _SignUpScreenState extends State<SignUpScreen>
   bool hasLowercase = false;
 
   bool hasNumber = false;
-  bool charater12 = false;
+  bool charater8 = false;
 
   void checkPassword(String password) {
     setState(() {
       hasUppercase = RegExp(r'[A-Z]').hasMatch(password);
       hasLowercase = RegExp(r'[a-z]').hasMatch(password);
       hasNumber = RegExp(r'[0-9]').hasMatch(password);
-      charater12 = password.length >= 12;
+      charater8 = password.length >= 8;
     });
   }
 
@@ -320,7 +319,7 @@ class _SignUpScreenState extends State<SignUpScreen>
   bool _isObscured = true;
 
   bool _isValidPassword(String password) {
-    if (password.length < 12) {
+    if (password.length < 8) {
       return false;
     }
 
@@ -699,7 +698,7 @@ class _SignUpScreenState extends State<SignUpScreen>
       addresstext += ' ';
     }
     if (selectedState != 'Select State') {
-      addresstext += selectedState + ',';
+      addresstext += selectedState ;
       addresstext += '';
     }
 
@@ -891,8 +890,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                                         children: [
                                           SvgPicture.asset(
                                             'assets/icons/licenseicon.svg',
-                                            width: 33.0,
-                                            height: 33.0,
+                                            width: 25.0,
+                                            height: 25.0,
                                           ),
                                           SizedBox(
                                             width: 8,
@@ -901,7 +900,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                               style: TextStyle(
                                                   color: Colors.black54,
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: 17)),
+                                                  fontSize: 15)),
                                         ],
                                       ),
                                     ),
@@ -1157,10 +1156,13 @@ class _SignUpScreenState extends State<SignUpScreen>
                                       height: 1,
                                       color: Colors.grey[300],
                                     ),
-                                    Row(
+                                    _image == null ?
+                                      Row(
                                       children: [
                                         Checkbox(
+
                                           activeColor: HexColor('4D8D6E'),
+
                                           value: noPhotoAvailable,
                                           onChanged: (value) {
                                             setState(() {
@@ -1177,7 +1179,27 @@ class _SignUpScreenState extends State<SignUpScreen>
                                           ),
                                         ),
                                       ],
-                                    ),
+                                    ):
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.check_box_outline_blank),
+                                          SizedBox(width: 8,),
+
+                                          Text(
+                                            'No photo available',
+                                            style: TextStyle(
+                                              color: Colors.black45,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                    ,
                                     SizedBox(
                                       height: 5,
                                     ),
@@ -1185,7 +1207,9 @@ class _SignUpScreenState extends State<SignUpScreen>
                                       height: 1,
                                       color: Colors.grey[300],
                                     ),
-                                    Row(children: [
+                                    _image == null ?
+
+                                      Row(children: [
                                       Checkbox(
                                         activeColor: HexColor('4D8D6E'),
                                         value: noLicenseAvailable,
@@ -1208,7 +1232,23 @@ class _SignUpScreenState extends State<SignUpScreen>
                                           fontSize: 15,
                                         ),
                                       ),
-                                    ]),
+                                    ]):
+                                    Padding(
+                                      padding: const EdgeInsets.only(top:10.0),
+                                      child: Row(children: [
+                                      Icon(Icons.check_box_outline_blank),
+SizedBox(width: 8,),
+                                        Text(
+                                          'No License Available',
+                                          style: TextStyle(
+                                            color: Colors.black45,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                      ]),
+                                    )
+                                    ,
                                     SizedBox(
                                       height: 5,
                                     ),
@@ -1380,7 +1420,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                                         decoration:
                                                             InputDecoration(
                                                           hintText:
-                                                              'Apt ,suite ,unit ,building, floor ,etc.',
+                                                              'Apt ,suite ,unit ,building',
                                                           hintStyle: TextStyle(
                                                               color: HexColor(
                                                                   '#707070')),
@@ -1854,7 +1894,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                               ),
                               Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(horizontal: 16.0),
+                                    const EdgeInsets.symmetric(horizontal: 16.0,vertical: 8),
                                 child: SingleChildScrollView(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1991,27 +2031,38 @@ class _SignUpScreenState extends State<SignUpScreen>
                                         width: 33.0,
                                         height: 33.0,
                                       ),
-                                      SizedBox(width: 20.0),
+                                      SizedBox(width: 10.0),
                                       Expanded(
                                         child: Row(
                                           children: [
-                                            DropdownButton<String>(
-                                              value: selectedPhoneCode,
-                                              onChanged: (newValue) {
-                                                setState(() {
-                                                  // Update the selected phone code
-                                                  selectedPhoneCode = newValue!;
-                                                });
-                                              },
-                                              items:
-                                                  americanPhoneCodes.map((code) {
-                                                return DropdownMenuItem<String>(
-                                                  value: code,
-                                                  child: Text(code),
-                                                );
-                                              }).toList(),
+                                            Container(
+
+                                              decoration: BoxDecoration(
+
+                                                color: Colors.grey[200],
+                                                borderRadius: BorderRadius.circular(5.0),
+                                              ),
+                                              child: DecoratedBox(
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5.0),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    SvgPicture.asset(
+                                                      'assets/icons/uslogo.svg',
+                                                      width: 27.0,
+                                                      height: 27.0,
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Text(
+                                                      '+1',
+                                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
                                             ),
-                                            SizedBox(width: 8),
+                                            SizedBox(width: 10),
                                             // Add some spacing between the dropdown and the text field
                                             Expanded(
                                               child: TextFormField(
@@ -2240,8 +2291,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                                           if (value == null || value.isEmpty) {
                                             return 'Please enter a password';
                                           } else if (!_isValidPassword(value)) {
-                                            return 'required At least 12 characters long,uppercase & lowercase letters,'
-                                                ' numbers, and symbols.';
+                                            return 'required At least 8 characters long,uppercase & lowercase letters,'
+                                                ' numbers,';
                                           }
                                           return null;
                                         },
@@ -2435,18 +2486,18 @@ class _SignUpScreenState extends State<SignUpScreen>
                                             MainAxisAlignment.start,
                                         children: [
                                           Icon(
-                                            charater12
+                                            charater8
                                                 ? Icons.check_circle
                                                 : Icons.cancel,
-                                            color: charater12
+                                            color: charater8
                                                 ? Colors.green
                                                 : Colors.red,
                                           ),
                                           SizedBox(width: 4),
                                           Text(
-                                            'At least 12 characters',
+                                            'At least 8 characters',
                                             style: TextStyle(
-                                              color: charater12
+                                              color: charater8
                                                   ? Colors.green
                                                   : Colors.red,
                                             ),

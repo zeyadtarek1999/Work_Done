@@ -209,7 +209,12 @@ print ('token :: ${apnsToken}' ) ; }
     }
   }
   await initFirebaseMessaging();
+  const Duration fetchdata = Duration(seconds: 15);
+  Timer.periodic(fetchdata, (Timer timer) {
+    // Fetch data at each interval
+    fetchDataAndShowNotifications();
 
+  });
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   await AwesomeNotifications().initialize(
