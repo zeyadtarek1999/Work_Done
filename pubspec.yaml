@@ -90,6 +90,7 @@ dependencies:
   firebase_analytics: ^10.8.7
 
   firebase_messaging: ^14.7.17
+  badges: ^3.1.2
 
   dotted_border: ^2.1.0
   flutter_sequence_animation: ^4.0.0

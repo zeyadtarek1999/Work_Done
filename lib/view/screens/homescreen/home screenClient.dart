@@ -20,6 +20,7 @@ import '../Profile (client-worker)/profilescreenClient.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart'; // For SystemNavigator.pop
+import 'package:badges/badges.dart';
 
 import '../Reviews/reviews.dart';
 import '../Support Screen/Support.dart';
@@ -28,6 +29,7 @@ import '../notifications/notificationScreen.dart';
 import '../view profile screens/Client profile view.dart';
 import '../view profile screens/Reviews profile .dart';
 import '../welcome/welcome_screen.dart';
+import 'package:badges/badges.dart' as badges;
 
 class Homeclient extends StatefulWidget {
   final bool showCase;
@@ -227,14 +229,64 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
 
   final GlobalKey _one = GlobalKey();
  final GlobalKey _two = GlobalKey();
+ final GlobalKey _three = GlobalKey();
+ final GlobalKey _four = GlobalKey();
+ final GlobalKey _five = GlobalKey();
+  int? userId;
+  Future<void> _getUserid() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+      print ('fetching user id');
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://www.workdonecorp.com/api/get_user_id_by_token';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+          print ('done  user id');
+
+          if (responseData.containsKey('user_id')) {
+
+            userId = responseData['user_id'];
+
+            // Now, userId contains the extracted user_id value
+            print('User ID: $userId');
+
+            // Optionally, save the user_id to SharedPreferences
+            prefs.setInt('user_id', userId ?? 0);
+          } else {
+            print('Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     initializeProjects();
+    _getUserid();
     _getUserProfile();
     if (widget.showCase == true) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ShowCaseWidget.of(context).startShowCase([_two, _one]);
+        ShowCaseWidget.of(context).startShowCase([_two, _one ,_three ,_four]);
       });
     }
 
@@ -439,8 +491,8 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
               CircleAvatar(
                 radius: 35,
                 backgroundColor: Colors.transparent,
-                backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                    && profile_pic == "https://workdonecorp.com/images/"
+                backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                    || profile_pic == "https://workdonecorp.com/images/"
                     ? AssetImage('assets/images/default.png') as ImageProvider
                     : NetworkImage(profile_pic?? 'assets/images/default.png'),
               ),
@@ -504,7 +556,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                   TextButton(
                     onPressed: () {Get.to(editProfile(),
                       transition: Transition.circularReveal, // You can choose a different transition
-                      duration: Duration(milliseconds: 1100), // Set the duration of the transition
+                      duration: Duration(milliseconds: 700), // Set the duration of the transition
                     );},
                     child: Text(
                       'Edit Profile',
@@ -536,7 +588,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
 
                       Get.to(NotificationsPage(),
                         transition: Transition.topLevel, // You can choose a different transition
-                        duration: Duration(milliseconds: 1100),
+                        duration: Duration(milliseconds: 700),
 
                       );
                     },
@@ -568,11 +620,11 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                   TextButton(
 
 
-                    onPressed: () {Get.to(  reviewprofile()
+                    onPressed: () {Get.to(  reviewprofile(userId: '${userId}')
 
                       ,
-                      transition: Transition.leftToRightWithFade, // You can choose a different transition
-                      duration: Duration(milliseconds: 1100), // Set the duration of the transition
+                      transition: Transition.fadeIn, // You can choose a different transition
+                      duration: Duration(milliseconds: 700), // Set the duration of the transition
 
                     );},
                     child: Text(
@@ -596,7 +648,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                       Get.offAll(WelcomeScreen()
                         ,
                         transition: Transition.upToDown, // You can choose a different transition
-                        duration: Duration(milliseconds: 1100), // Set the duration of the transition
+                        duration: Duration(milliseconds: 700), // Set the duration of the transition
 
                       );
 
@@ -668,6 +720,18 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                       widget.showCase ==true
 
                           ?Showcase(
+                        blurValue: 12,
+                        descTextStyle: TextStyle(
+                          fontSize: 19,
+                          color: HexColor ('#333333'),
+                        ),
+                        titleTextStyle: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: HexColor('#0c343d'),  // Custom title color
+                        ),
+
+                        overlayColor: Colors.black.withOpacity(0.7),
                         key: _one,
                         title: 'Support',
                         description: 'If you have issue click here to send a support ticket',
@@ -688,7 +752,186 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                         child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
                         shape: CircleBorder(), // Make the button circular
                       ),
-                      body: Screenshot(
+                     appBar: AppBar(
+                       leading: LayoutBuilder(
+                         builder: (BuildContext context, BoxConstraints constraints) {
+                           if (constraints.maxWidth > 600) {
+                             return Row(
+                               children: [
+                                 Padding(
+                                   padding: const EdgeInsets.only(left: 12.0, top: 8, bottom: 8),
+                                   child: InkWell(
+                                     borderRadius: BorderRadius.circular(12),
+                                     onTap: () {
+                                       drawerControl();
+                                     },
+                                     child: Container(
+                                       width: 72,
+                                       decoration: BoxDecoration(
+                                         borderRadius: BorderRadius.circular(20.0),
+                                         color: HexColor('4d8d6e'),
+                                       ),
+                                       child: Icon(
+                                         Ionicons.menu_outline,
+                                         size: 30,
+                                         color: Colors.white,
+                                       ),
+                                     ),
+                                   ),
+                                 ),
+                               ],
+                             );
+                           } else {
+                             return Padding(
+                               padding: const EdgeInsets.only(left: 12.0, top: 8, bottom: 8),
+                               child: InkWell(
+                                 borderRadius: BorderRadius.circular(12),
+                                 onTap: () {
+                                   drawerControl();
+                                 },
+                                 child: Container(
+                                   width: 55,
+                                   decoration: BoxDecoration(
+                                     borderRadius: BorderRadius.circular(20.0),
+                                     color: HexColor('4d8d6e'),
+                                   ),
+                                   child: Icon(
+                                     Ionicons.menu_outline,
+                                     size: 30,
+                                     color: Colors.white,
+                                   ),
+                                 ),
+                               ),
+                             );
+                           }
+                         },
+                       ),
+                       centerTitle: true,
+                       backgroundColor: HexColor('F0EEEE'),
+                       title: LayoutBuilder(
+                         builder: (BuildContext context, BoxConstraints constraints) {
+                           if (constraints.maxWidth > 600) {
+                             return Row(
+                               children: [
+                                 Expanded(
+                                   child: Text(
+                                     'Home',
+                                     style: TextStyle(
+                                       fontSize: 18,
+                                       fontWeight: FontWeight.bold,
+                                       color: Colors.grey[700],
+                                     ),
+                                   ),
+                                 ),
+                               ],
+                             );
+                           } else {
+                             return Text(
+                               'Home',
+                               style: TextStyle(
+                                 fontSize: 18,
+                                 fontWeight: FontWeight.bold,
+                                 color: Colors.grey[700],
+                               ),
+                             );
+                           }
+                         },
+                       ),
+                       elevation: 0,
+                       toolbarHeight: 72,
+                       leadingWidth: 72,
+
+                       actions: [
+                         Padding(
+                           padding: const EdgeInsets.only(right: 12.0, top: 8, bottom: 8),
+                           child: Row(
+                             children: [
+                               badges.Badge(
+                                 badgeStyle: badges.BadgeStyle(
+                                   badgeColor: Colors.red,
+                                   shape: badges.BadgeShape.circle,
+                                 ),
+                                 position: BadgePosition.topEnd(),
+                                 badgeContent: Text('10', style: TextStyle(color: Colors.white)),
+                                 badgeAnimation: badges.BadgeAnimation.rotation(
+                                   animationDuration: Duration(seconds: 1),
+                                   colorChangeAnimationDuration: Duration(seconds: 1),
+                                   loopAnimation: false,
+                                   curve: Curves.fastOutSlowIn,
+                                   colorChangeAnimationCurve: Curves.easeInCubic,
+                                 ),
+                                 child: Padding(
+                                   padding: const EdgeInsets.all(6.0),
+                                   child: GestureDetector(
+                                     child: Icon(Ionicons.notifications, size: 26),
+                                     onTap: () {
+                                       Get.to(NotificationsPage());
+                                     },
+                                   ),
+                                 ),
+                               ),
+                               SizedBox(width: 20,),
+                               widget.showCase == true
+                                   ? Padding(
+                                 padding: const EdgeInsets.only(right: 12.0, top: 8, bottom: 8),
+                                 child: Showcase(
+                                   blurValue: 12,
+                                   descTextStyle: TextStyle(
+                                     fontSize: 19,
+                                     color: HexColor('#333333'),
+                                   ),
+                                   titleTextStyle: TextStyle(
+                                     fontSize: 24,
+                                     fontWeight: FontWeight.bold,
+                                     color: HexColor('#0c343d'),
+                                   ),
+                                   key: _four,
+                                   description: 'Tap here to View & Edit Profile',
+                                   title: 'Profile',
+                                   overlayColor: Colors.black.withOpacity(0.7),
+                                   child: InkWell(
+                                     onTap: () {
+                                       Get.to(ProfileScreenClient2(),
+                                         transition: Transition.fadeIn,
+                                         duration: Duration(milliseconds: 700),
+                                       );
+                                     },
+                                     child: Padding(
+                                       padding: const EdgeInsets.only(right: 12.0, top: 8, bottom: 8),
+                                       child: CircleAvatar(
+                                         radius: 27,
+                                         backgroundColor: Colors.transparent,
+                                         backgroundImage: profile_pic != null && profile_pic.isNotEmpty
+                                             ? NetworkImage(profile_pic)
+                                             : AssetImage('assets/images/default.png') as ImageProvider,
+                                       ),
+                                     ),
+                                   ),
+                                 ),
+                               )
+                                   : InkWell(
+                                 onTap: () {
+                                   Get.to(ProfileScreenClient2(),
+                                     transition: Transition.fadeIn,
+                                     duration: Duration(milliseconds: 700),
+                                   );
+                                 },
+                                 child: CircleAvatar(
+                                   radius: 27,
+                                   backgroundColor: Colors.transparent,
+                                   backgroundImage: profile_pic != null && profile_pic.isNotEmpty
+                                       ? NetworkImage(profile_pic)
+                                       : AssetImage('assets/images/default.png') as ImageProvider,
+                                 ),
+                               ),
+                             ],
+                           ),
+                         ),
+
+                       ],
+                     ),
+
+                     body: Screenshot(
                         controller: screenshotController,
                         child: RefreshIndicator(
                           color: HexColor('4D8D6E'),
@@ -706,75 +949,6 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 15, vertical: 11),
-                                    child: Row(
-                                      children: [
-                                        InkWell(
-                                          borderRadius: BorderRadius.circular(
-                                              12),
-                                          onTap: () {
-                                            drawerControl();
-                                          },
-                                          child: Container(
-                                            height: 55,
-                                            width: 55,
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius
-                                                  .circular(20.0),
-                                              color: HexColor('4d8d6e'),
-                                            ),
-                                            child:
-                                            Icon(
-                                              Ionicons.menu_outline, size: 30,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        Spacer(),
-                                        Text(
-                                          'Home',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color:
-                                            Colors
-                                                .grey[700], // Change the color as needed
-                                          ),
-                                        ),
-                                        Spacer(),
-                                        InkWell(
-                                            onTap: () {
-                                              Get.to(ProfileScreenClient2()
-
-                                                ,
-                                                transition: Transition
-                                                    .circularReveal,
-                                                // You can choose a different transition
-                                                duration: Duration(
-                                                    milliseconds: 1100), // Set the duration of the transition
-
-                                              );
-                                              // Handle the tap event here
-                                            },
-                                            child: CircleAvatar(
-                                              radius: 27,
-                                              backgroundColor: Colors
-                                                  .transparent,
-                                              backgroundImage: profile_pic !=
-                                                  null && profile_pic.isNotEmpty
-                                                  && profile_pic ==
-                                                      "https://workdonecorp.com/images/"
-                                                  ? AssetImage(
-                                                  'assets/images/default.png') as ImageProvider
-                                                  : NetworkImage(profile_pic ??
-                                                  'assets/images/default.png'),
-                                            )
-                                        ),
-                                      ],
-                                    ),
-                                  ),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 23.0,
@@ -927,6 +1101,46 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                                           ),
                                         ),
                                         Spacer(),
+                                        widget.showCase ==true
+?
+                                        Showcase(
+
+                                          blurValue: 12,
+                                          descTextStyle: TextStyle(
+                                            fontSize: 19,
+                                            color: HexColor ('#333333'),
+                                          ),
+                                          titleTextStyle: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: HexColor('#0c343d'),  // Custom title color
+                                          ),
+                                          key: _three,
+                                          description: 'Tap here to explore more project!',
+                                          title: 'Explore',
+                                          textColor: Colors.blue, // Custom text color
+
+                                          overlayColor: Colors.black.withOpacity(0.7), // Custom overlay color
+                                          child: TextButton(
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        exploreClient()),
+                                              );
+                                            },
+                                            child: Text(
+                                              'See all',
+                                              style: GoogleFonts.openSans(
+                                                textStyle: TextStyle(
+                                                    color: HexColor('4F815A'),
+                                                    fontSize: 17,
+                                                    fontWeight: FontWeight.w500),
+                                              ),
+                                            ),
+                                          ),
+                                        ):
                                         TextButton(
                                           onPressed: () {
                                             Navigator.push(
@@ -997,9 +1211,22 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                                           } else {
                                             return                                 widget.showCase ==true
                                                 ?  Showcase(
+                                                blurValue: 12,
+                                                descTextStyle: TextStyle(
+                                                  fontSize: 19,
+                                                  color: HexColor ('#333333'),
+                                                ),
+                                                titleTextStyle: TextStyle(
+                                                  fontSize: 24,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: HexColor('#0c343d'),  // Custom title color
+                                                ),
+
+                                                overlayColor: Colors.black.withOpacity(0.7),
+
                                           key: _two,
-                                          title: 'Explore Projects',
-                                          description: 'Explore and discover new projects to initiate your first work',
+                                          title: 'Discover Projects',
+                                          description: 'Discover new projects to initiate your first work',
                                           child: ListView.builder(
                                           physics: NeverScrollableScrollPhysics(),
                                           shrinkWrap: true, // Set shrinkWrap to true
@@ -1102,8 +1329,8 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
       onTap: () {
         Get.to(bidDetailsClient(projectId: item.projectId)
           ,
-          transition: Transition.leftToRight, // You can choose a different transition
-          duration: Duration(milliseconds: 1100), // Set the duration of the transition
+          transition: Transition.fadeIn, // You can choose a different transition
+          duration: Duration(milliseconds: 700), // Set the duration of the transition
         );
       },
       child: Stack(
@@ -1347,8 +1574,8 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
         Get.to(
                 () => bidDetailsClient(projectId: item.projectId),
 
-            transition: Transition.leftToRight, // You can choose a different transition
-            duration: Duration(milliseconds: 1100), // Set the duration of the transition
+            transition: Transition.fadeIn, // You can choose a different transition
+            duration: Duration(milliseconds: 700), // Set the duration of the transition
         );    },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
@@ -1581,8 +1808,8 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                           onPressed: () {
                             Get.to(ProfilePageClient(userId:item.client_id.toString(),
                             ),
-                              transition: Transition.leftToRightWithFade, // You can choose a different transition
-                              duration: Duration(milliseconds: 1100), // Set the duration of the transition
+                              transition: Transition.fadeIn, // You can choose a different transition
+                              duration: Duration(milliseconds: 700), // Set the duration of the transition
 
                             );
                           },
@@ -1609,21 +1836,22 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                   SizedBox(height: 6),
                   Row(
                     children: [
-                      Text.rich(
-                        TextSpan(
-                          children: _buildTextSpans(item.description, searchController.text),
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                            color: HexColor('393B3E'),
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal,
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            children: _buildTextSpans(item.description, searchController.text),
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.openSans(
+                            textStyle: TextStyle(
+                              color: HexColor('393B3E'),
+                              fontSize: 15,
+                              fontWeight: FontWeight.normal,
+                            ),
                           ),
                         ),
                       ),
-                      Spacer(),
                       SizedBox(width: 7,),
                       Column(
                         children: [
@@ -1695,8 +1923,8 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                             Get.to(
                                   () => bidDetailsClient(projectId: item.projectId),
 
-                                transition: Transition.leftToRight, // You can choose a different transition
-                                duration: Duration(milliseconds: 1100), // Set the duration of the transition
+                                transition: Transition.fadeIn, // You can choose a different transition
+                                duration: Duration(milliseconds: 700), // Set the duration of the transition
 
                             );
                             // Handle button press

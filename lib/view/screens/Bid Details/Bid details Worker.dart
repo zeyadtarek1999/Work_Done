@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:action_slider/action_slider.dart';
+import 'package:badges/badges.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:chewie/chewie.dart';
 import 'package:easy_date_timeline/easy_date_timeline.dart';
@@ -28,6 +29,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:video_player/video_player.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutWorker.dart';
+import 'package:workdone/view/screens/notifications/notificationScreen.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
 import '../InboxwithChat/ChatClient.dart';
 import '../InboxwithChat/chat.dart';
@@ -41,6 +43,7 @@ import 'package:http/http.dart' as http;
 import '../view profile screens/Worker profile .dart';
 import '../view profile screens/Worker profile view.dart';
 import 'Place a Bid.dart';
+import 'package:badges/badges.dart' as badges;
 
 class bidDetailsWorker extends StatefulWidget {
   final int projectId;
@@ -110,18 +113,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
+      setState(() {
+            projectDetailsFuture = fetchProjectDetails(widget.projectId);
+      });
 
-      Get.off(
-        bidDetailsWorker(projectId: widget.projectId),
-        transition: Transition.leftToRight, // You can choose a different transition
-        duration: Duration(milliseconds: 1100), // Set the duration of the transition
-      );
 
 
       print(responseBody);
     } else {
-      // Handle the error; the server didn't return a 200 OK response.
-      print('Request failed with status: ${response.statusCode}.');
+      setState(() {
+        projectDetailsFuture = fetchProjectDetails(widget.projectId);
+      });      print('Request failed with status: ${response.statusCode}.');
     }
   }
 
@@ -183,19 +185,16 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
               ),
               SizedBox(height: 30),
               ElevatedButton(
-                onPressed: () async{
-                  Get.off(
-                    bidDetailsWorker(projectId: widget.projectId),
-                    transition: Transition.leftToRight, // You can choose a different transition
-                    duration: Duration(milliseconds: 1100), // Set the duration of the transition
-                  );
+                onPressed: () {
+                  setState(() {
+                    projectDetailsFuture = fetchProjectDetails(widget.projectId);
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  });
 
 
-                  if (isSuccess) {
-                    // Navigate to the next page or perform an action if necessary
-                  }
                 },
-                child: Text(isSuccess ? 'Let\'s Start' : 'Okay'),
+                child: Text( 'Okay' ),
               ),
             ],
           ),
@@ -390,7 +389,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       // Handle successful response
       await fetchProjectDetails(projectId); // Call fetchProjectDetails here
       setState(() {
-        futureProjects = fetchProjectDetails(widget.projectId);
+        projectDetailsFuture = fetchProjectDetails(widget.projectId);
       });
 
       print('Schedule sent successfully!');
@@ -402,7 +401,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
   }
   late Future<ProjectData> futureProjects;
   void refreshProjects() async{
-    futureProjects = fetchProjectDetails(widget.projectId);
+    projectDetailsFuture = fetchProjectDetails(widget.projectId);
   }
   Future<ProjectData> fetchProjectDetails(int projectId) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -566,7 +565,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                             setState(() {
                               changeScheduleStatus(
                                   widget.projectId, 'accepted');
-                            });                            Navigator.pop(context);
+                            });
+
+                            Navigator.pop(context);
 
 
                           },
@@ -748,8 +749,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       WillPopScope(
         onWillPop: () async {
           Get.offAll(layoutworker(showCase: false),
-            transition: Transition.zoom, // You can choose a different transition
-            duration: Duration(milliseconds: 1100), ); // Navigate to the layoutworker screen
+            transition: Transition.fadeIn, // You can choose a different transition
+            duration: Duration(milliseconds: 700), ); // Navigate to the layoutworker screen
           return false; // Return false to indicate that the back button was handled
         },
         child: Scaffold(
@@ -777,8 +778,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
             leading: IconButton(
               onPressed: () {
         Get.to(layoutworker(showCase: false),
-          transition: Transition.zoom, // You can choose a different transition
-          duration: Duration(milliseconds: 1100), );
+          transition: Transition.fadeIn, // You can choose a different transition
+          duration: Duration(milliseconds: 700), );
 
         },
               icon: Icon(Icons.arrow_back_sharp),
@@ -795,6 +796,40 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
               ),
             ),
             centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child:   badges.Badge(
+                  badgeStyle: badges.BadgeStyle(
+                    badgeColor: Colors.red,
+                    shape: badges.BadgeShape.circle,
+                  ),
+                  position: BadgePosition.topEnd(),
+                  badgeContent: Text('10',style: TextStyle(color: Colors.white),),
+                  badgeAnimation: badges.BadgeAnimation.rotation(
+                    animationDuration: Duration(seconds: 1),
+                    colorChangeAnimationDuration: Duration(seconds: 1),
+                    loopAnimation: false,
+                    curve: Curves.fastOutSlowIn,
+                    colorChangeAnimationCurve: Curves.easeInCubic,
+                  ),
+                  child: GestureDetector(
+                    onTap:
+                        (){Get.to(NotificationsPage());
+                    }
+                    ,
+                    child: SvgPicture.asset(
+                      'assets/icons/iconnotification.svg',
+                      width: 41.0,
+                      height:41.0,
+                    ),
+
+                  ),
+                ),
+
+              )
+
+            ],
           ),
           body: Screenshot(
             controller: screenshotController,
@@ -803,7 +838,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
               backgroundColor: Colors.white,
               onRefresh: () async {
                 setState(() {
-                  futureProjects = fetchProjectDetails(widget.projectId);
+                  projectDetailsFuture = fetchProjectDetails(widget.projectId);
                 });
               },
               child: SingleChildScrollView(
@@ -1093,36 +1128,28 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                     SizedBox(
                                       width: 13,
                                     ),
-                                    Container(
-                                      height: 30,
-                                      width: 70,
-                                      padding: EdgeInsets.zero,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: TextButton(
-                                        onPressed: () {
-                                          Get.to(ProfilePageClient(
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) =>  ProfilePageClient(
                                               userId: projectData
                                                   .clientData!.clientId
-                                                  .toString())
-                                            ,
-                                            transition: Transition.leftToRightWithFade, // You can choose a different transition
-                                            duration: Duration(milliseconds: 1100), );
-                                        },
-                                        style: TextButton.styleFrom(
-                                          fixedSize: Size(50, 30),
-                                          // Adjust the size as needed
-                                          padding: EdgeInsets.zero,
-                                        ),
-                                        child: Text(
-                                          projectData.clientData!.firstname,
-                                          //client first name
-                                          style: TextStyle(
-                                            color: HexColor('4D8D6E'),
-                                            fontSize: 19,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                                  .toString())),
+                                        ).then((_) {
+                                          // Fetch data here after popping the second screen
+                                          futureProjects = fetchProjectDetails(widget.projectId);
+                                        });
+
+                                      },
+
+                                      child: Text(
+                                        projectData.clientData!.firstname,
+                                        //client first name
+                                        style: TextStyle(
+                                          color: HexColor('4D8D6E'),
+                                          fontSize: MediaQuery.of(context).size.width > 400 ? 25 : 16,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ),
@@ -1306,8 +1333,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                   .selectworkerbid!.worker_id
                                                                   .toString())
                                                             ,
-                                                            transition: Transition.leftToRight, // You can choose a different transition
-                                                            duration: Duration(milliseconds: 1100),
+                                                            transition: Transition.fadeIn, // You can choose a different transition
+                                                            duration: Duration(milliseconds: 700),
                                                           );
                                                         },
                                                         child: Text(
@@ -1455,8 +1482,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                 SizedBox(
                                   height: 20,
                                 ),
-                                StreamBuilder<ProjectData>(
-                                  stream: projectDetailsController.stream,
+                                FutureBuilder<ProjectData>(
+                                  future: projectDetailsFuture,
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState == ConnectionState.waiting) {
                                       return    Center(child: RotationTransition(
@@ -1486,8 +1513,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                     } else {
                                       ProjectData projectData = snapshot.data!;
 
-                                      double ratingonclient = double.tryParse(projectData.pageContent.ratingOnClient ?? "0") ?? 0;
-                                      double ratingonworker = double.tryParse(projectData.pageContent.ratingOnWorker ?? "0") ?? 0;
+
 
 
 
@@ -1939,38 +1965,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
 
-                                            SizedBox(
-                                              height: 9,
-                                            ),
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: ElevatedButton(
-                                                    onPressed: projectData.pageContent. project_complete_button == "maftoo7"
-                                                        ? () {
-                                                      panelController.expand();
-                                                    }
-                                                        : null, // Set onPressed to null if the condition is not met
-                                                    style: ElevatedButton.styleFrom(
-                                                      primary: HexColor(('66C020')),
-                                                      onPrimary: Colors.white,
-                                                      elevation: 8,
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(8),
-                                                      ),
-                                                      fixedSize: Size(double.infinity, 50), // Set the desired height
-                                                    ),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets.symmetric(vertical: 8.0), // Adjust padding as needed
-                                                      child: Text(
-                                                        'Project Completed',
-                                                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+
               SizedBox(height: 20,),
                                             Padding(
                                               padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
@@ -2263,11 +2258,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             setState(() {
                                                               changeScheduleStatus(widget.projectId, 'accepted');
 
-                                                              Get.off(
-                                                                bidDetailsWorker(projectId: widget.projectId),
-                                                                transition: Transition.leftToRight, // You can choose a different transition
-                                                                duration: Duration(milliseconds: 1100), // Set the duration of the transition
-                                                              );
+
 
                                                             });
                                                           },
@@ -2283,6 +2274,32 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                           child: Text('Accept', style: TextStyle(color: Colors.white)),
                                                         ),
                                                       ),
+
+                                                      SizedBox(width: 7,),
+                                                      Expanded(
+                                                        child: ElevatedButton(
+                                                          onPressed: () {
+                                                            // TODO: Handle accept logic
+                                                            setState(() {
+                                                              changeScheduleStatus(
+                                                                  widget.projectId, 'reject');
+
+
+                                                            });
+                                                          },
+                                                          style: ElevatedButton.styleFrom(
+                                                            primary: HexColor('#e90404'),
+                                                            onPrimary: Colors.white,
+                                                            elevation: 5,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(12),
+                                                            ),
+                                                            fixedSize: Size(70, 50), // Set the desired width and height
+                                                          ),
+                                                          child: Text('Reject', style: TextStyle(color: Colors.white)),
+                                                        ),
+                                                      ),
+
                                                     ],
                                                   ),
                                                 ],
@@ -2795,18 +2812,43 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
                                             Padding(
                                               padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
-                                              child: Text(
-                                                'Details',
-                                                style: GoogleFonts.openSans(
-                                                  textStyle: TextStyle(
-                                                    color: HexColor('454545'),
-                                                    fontSize: 22,
-                                                    fontWeight: FontWeight.bold,
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    'Details',
+                                                    style: GoogleFonts.openSans(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('454545'),
+                                                        fontSize: 22,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
                                                   ),
-                                                ),
+                                                  SizedBox(width: 20),
+                                                  projectData.pageContent.scheduleStatus == "accepted"?
+                                                  Container(
+                                                    height: 35,
+                                                    width: 70
+                                                    ,
+                                                    decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(15),color: HexColor('#3e861f')
+
+                                                    ),
+                                                    child: Center(
+                                                      child: Text(
+                                                        'Accepted',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 14,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ):
+                                                  Container(),
+                                                ],
                                               ),
-                                            ),
-                                            SizedBox(height: 8,),
+                                            ),                                            SizedBox(height: 8,),
                                             Center(
                                               child: Container(
                                                 width: double.infinity, // Set your desired width
@@ -3533,10 +3575,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 Expanded(
                                                   child: Opacity(
                                                     // Change the opacity based on the condition
-                                                    opacity: projectData.pageContent.enter_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                    opacity: projectData.pageContent.enter_verification_code_button != "mftoo7" ? 1.0 : 0.5,
                                                     child: ElevatedButton(
                                                       // Disable or enable the button based on the condition
-                                                      onPressed: projectData.pageContent.enter_verification_code_button == "mftoo7" ? () {
+                                                      onPressed: projectData.pageContent.enter_verification_code_button != "mftoo7" ? () {
                                                         showModalBottomSheet(
                                                           context: context,
                                                           isScrollControlled: true,
@@ -5175,7 +5217,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               ),
                                             ),
                                             SizedBox(height: 17,),
-                                            projectData.pageContent.ratingOnClient != '' || projectData.pageContent.reviewOnClient != ''
+                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
 
                                                 ?  Padding(
                                               padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
@@ -5191,7 +5233,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               ),
                                             ):Container(),
                                             SizedBox(height: 10,),
-                                            projectData.pageContent.ratingOnClient != '' || projectData.pageContent.reviewOnClient != ''
+                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
                                                 ? Row(
                                               children: [
                                                 CircleAvatar(
@@ -5202,37 +5244,31 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       : NetworkImage(projectData.clientData?.profileImage?? 'assets/images/default.png'),
                                                 ),
                                                 SizedBox(width: 11),
-                                                TextButton(
-                                                  onPressed: () {
+                                                GestureDetector(
+                                                  onTap:  () {
                                                     Get.to(ProfilePageClient(
-                                                        userId: projectData
-                                                            .clientData!.clientId
-                                                            .toString()),
-                                                      transition: Transition.leftToRight, // You can choose a different transition
-                                                      duration: Duration(milliseconds: 1100), );
+                                                        userId: projectData.clientData!.clientId.toString()));
                                                   },
-                                                  style: TextButton.styleFrom(
-                                                    fixedSize: Size(50, 30),
-                                                    // Adjust the size as needed
-                                                    padding: EdgeInsets.zero,
-                                                  ),
-                                                  child: Text(
-                                                    projectData.clientData!.firstname,
-                                                    //client first name
-                                                    style: TextStyle(
-                                                      color: HexColor('4D8D6E'),
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
+
+                                                  child:                                                 Expanded(
+
+                                                    child: Text(
+                                                      projectData.clientData!.firstname,
+                                                      style: TextStyle(
+                                                        color: HexColor('4D8D6E'),
+                                                        fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
                                                 Spacer(),
-                                                RatingDisplay(rating: ratingonworker),
+                                                RatingDisplay(rating: projectData.pageContent.ratingOnWorker),
                                               ],
                                             )
                                                 : Container(),
                                             SizedBox(height: 8),
-                                            projectData.pageContent.ratingOnClient != '' || projectData.pageContent.reviewOnClient != ''
+                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
                                                 ? Padding(
                                               padding: const EdgeInsets.all(16.0), // Consistent padding
                                               child: Text(
@@ -5250,7 +5286,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             )
                                                 : SizedBox(height: 0),
                                             SizedBox(height: 8),
-                                            projectData.pageContent.ratingOnClient != '' || projectData.pageContent.reviewOnClient != ''
+                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
         ?
                                             Container(
                                               height: 140,
@@ -5325,7 +5361,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               ),
                                             ),
                                             SizedBox(height: 17,),
-                                            projectData.pageContent.ratingOnClient != '' || projectData.pageContent.reviewOnClient != ''
+                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
 
                                                 ? Padding(
                                               padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
@@ -5341,7 +5377,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               ),
                                             ): Container(),
                                             SizedBox(height: 10,),
-                                            projectData.pageContent.ratingOnClient != '' || projectData.pageContent.reviewOnClient != ''
+                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
                                                 ? Row(
                                               children: [
                                                 CircleAvatar(
@@ -5352,28 +5388,24 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
                                                 ),
                                                 SizedBox(width: 11),
-                                                Expanded(
-                                                  child: TextButton(
-                                                    onPressed: () {
-                                                      Get.to(Workerprofileother
-                                                        (
-                                                          userId: projectData
-                                                              .selectworkerbid.worker_id
-                                                              .toString()),
-                                                        transition: Transition.leftToRight, // You can choose a different transition
-                                                        duration: Duration(milliseconds: 1100), );
-                                                    },
-                                                    style: TextButton.styleFrom(
-                                                      fixedSize: Size(50, 30),
-                                                      // Adjust the size as needed
-                                                      padding: EdgeInsets.zero,
-                                                    ),
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    Get.to(Workerprofileother
+                                                      (
+                                                        userId: projectData
+                                                            .selectworkerbid.worker_id
+                                                            .toString()),
+                                                      transition: Transition.fadeIn, // You can choose a different transition
+                                                      duration: Duration(milliseconds: 700), );
+                                                  },
+
+                                                  child: Expanded(
                                                     child: Text(
                                                       projectData.selectworkerbid.worker_firstname,
                                                       //client first name
                                                       style: TextStyle(
                                                         color: HexColor('4D8D6E'),
-                                                        fontSize: 20,
+                                                        fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
                                                         fontWeight: FontWeight.bold,
                                                       ),
                                                     ),
@@ -5382,7 +5414,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                 Spacer(),
-                                                RatingDisplay(rating: ratingonclient),
+                                                RatingDisplay(rating: projectData.pageContent.ratingOnClient),
                                               ],
                                             )
                                                 : Container(),
@@ -5574,8 +5606,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                               await    Reviewproject();
                                                                               Get.off(
                                                                                 bidDetailsWorker(projectId: widget.projectId),
-                                                                                transition: Transition.leftToRight, // You can choose a different transition
-                                                                                duration: Duration(milliseconds: 1100), // Set the duration of the transition
+                                                                                transition: Transition.fadeIn, // You can choose a different transition
+                                                                                duration: Duration(milliseconds: 700), // Set the duration of the transition
                                                                               );
 
                                                                               controller.success();
@@ -6032,8 +6064,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                         projectId: widget.projectId,
                       )
                         ,
-                        transition: Transition.upToDown, // You can choose a different transition
-                        duration: Duration(milliseconds: 1100), // Set the duration of the transition
+                        transition: Transition.downToUp, // You can choose a different transition
+                        duration: Duration(milliseconds: 700), // Set the duration of the transition
 
                       );
                     },
@@ -6102,8 +6134,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                       Get.to(
                           Workerprofileother
                             (userId: item.workerId.toString()),
-                        transition: Transition.leftToRightWithFade, // You can choose a different transition
-                        duration: Duration(milliseconds: 1100), // Set the duration of the transition
+                        transition: Transition.fadeIn, // You can choose a different transition
+                        duration: Duration(milliseconds: 700), // Set the duration of the transition
                       );
                     },
                     child: Text(
@@ -6378,9 +6410,9 @@ class PageContent {
   final String schedule_vc;
   final String client_rating;
   final String reviewOnWorker;
-  final String ratingOnWorker;
+  final int ratingOnWorker;
   final String? reviewOnClient; // 'null' signifies that this field may not be present
-  final String ratingOnClient;
+  final int ratingOnClient;
   final List<String> imagesAfter;
 
   PageContent(
@@ -6423,9 +6455,9 @@ class PageContent {
       project_complete_button: json['project_complete_button'] ?? '',
       support: json['support'] ?? '',
       reviewOnWorker: json['review_on_worker'] ?? '', // Providing default value if null
-      ratingOnWorker: json['rating_on_worker'] ?? '',
+      ratingOnWorker: json['rating_on_worker'] ?? 0,
       reviewOnClient: json['review_on_client']?? '',
-      ratingOnClient: json['rating_on_client'] ?? '',
+      ratingOnClient: json['rating_on_client'] ?? 0,
       imagesAfter: imagesList,
       client_rating: json['client_rating'] ?? '',
     );
@@ -6654,14 +6686,14 @@ class ModernPopup extends StatelessWidget {
   }
 }
 class RatingDisplay extends StatelessWidget {
-  final double rating;
+  final int rating;
 
   const RatingDisplay({  required this.rating}) ;
 
   @override
   Widget build(BuildContext context) {
     final int ratingInt = rating.clamp(0.0, 5.0).toInt();
-    final double ratingFrac = rating - ratingInt;
+    final int ratingFrac = rating - ratingInt;
     return Row(
       children: List.generate(5, (index) {
         if (index < ratingInt) {

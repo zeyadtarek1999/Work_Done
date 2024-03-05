@@ -24,7 +24,8 @@ import '../homescreen/home screenClient.dart';
 
 
 class reviewprofile extends StatefulWidget {
-
+  final String userId;
+  reviewprofile( {required this.userId,});
   @override
   _reviewprofileState createState() => _reviewprofileState();
 }
@@ -449,22 +450,24 @@ double widthofbar = 150;
       final String userToken = prefs.getString('user_token') ?? '';
 
       final response = await http.post(
-        Uri.parse('https://workdonecorp.com/api/get_others_profile'),
+        Uri.parse('https://www.workdonecorp.com/api/get_review_page'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $userToken',
         },
+
         body: json.encode({
-          'filter': "completed",
+          'user_id': widget.userId,
 
         }),
       );
 
       if (response.statusCode == 200) {
         final dynamic responseData = json.decode(response.body);
-
-        if (responseData['status'] == 'success') {
+        print('response  ${responseData}');
+        if (responseData['status'] == 'success') {print('response  ${responseData}');
           return UserProfile.fromJson(responseData);
+
         } else {
           throw Exception('Failed to load data from API: ${responseData['msg']}');
         }
@@ -705,22 +708,28 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                           children: [
                             SizedBox(height: 30,),
                             Center(
-                              child: Container(
-                                height: 140,
+                              child:Container(
+                                width: ScreenUtil.profileimagewidth,
+                                height: ScreenUtil.profileimageheight,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.grey.shade300, width: 5),
+                                  border: Border.all(
+                                    color: HexColor('#B2B1B1'),
+                                    width: 5,
+                                  ),
                                 ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(300),
-                                  child: (userProfile.userData.profilePic != null && userProfile.userData.profilePic.isNotEmpty && userProfile.userData.profilePic.startsWith('http'))
-                                      ? Image.network(userProfile.userData.profilePic)
-                                      : Image.asset('assets/images/default.png'),
+                                child: CircleAvatar(
+                                  radius: 35,
+                                  backgroundColor: Colors.transparent,
+                                  backgroundImage: profile_pic== 'https://workdonecorp.com/images/' ||profile_pic== ''|| profile_pic.isEmpty
+                                      ? AssetImage('assets/images/default.png') as ImageProvider
+                                      : NetworkImage(profile_pic?? 'assets/images/default.png'),
                                 ),
+
                               ),
                             ),
                             SizedBox(height: 20,),
-                            Text("${userProfile.userData.firstname}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),),
+                            // Text("${userProfile.userData.firstname}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),),
                             SizedBox(height: 10,),
                             Text("Worker", style: TextStyle(color: Colors.grey, fontSize: 16),),
                             SizedBox(height: 16,),
@@ -971,7 +980,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
 
                                           SizedBox(height: 12,),
 
-                                          Text("${userProfile.projectCount.toString()}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                                          // Text("${userProfile.projectCount.toString()}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                                           SizedBox(height: 5,),
                                           Text("Projects", style: TextStyle(color: Colors.grey,),),
 
@@ -984,13 +993,10 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                                 )
                             ),
                             SizedBox(height: 20,),
-                            Row(
-                              children: [
-                                Expanded(child: Container(
-                                  color: Colors.black45,
-                                  height: 2,
-                                )),
-                              ],
+                            Container(
+                              width: double.infinity,
+                              color: Colors.black45,
+                              height: 2,
                             ),
                             SizedBox(height: 8,)
                             ,Container(
@@ -1021,13 +1027,10 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                             ),
                             SizedBox(height: 8,)
                             ,
-                            Row(
-                              children: [
-                                Expanded(child: Container(
-                                  color: Colors.black45,
-                                  height: 2,
-                                )),
-                              ],
+                            Container(
+                              width: double.infinity,
+                              color: Colors.black45,
+                              height: 2,
                             ),
                           ],
                         );
@@ -1135,7 +1138,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                     } else if (snapshot.hasError) {
                       return Text(
                           'Error: ${snapshot.error}');
-                    } else if (snapshot.data != null ) {
+                    } else if (snapshot.data == null ) {
                       // If projects list is empty, reset current page to 0 and refresh
                       return                   Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1197,7 +1200,6 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
   }
 
   Widget buildProjectItem(Project project) {
-    String ratingOnWorker = project.reviews.ratingOnWorker ?? 'No rate yet';
 
     return GestureDetector(
       onTap: () {
@@ -1425,7 +1427,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                             children: [
                               Icon(Icons.star,color: Colors.yellow,),
                               Text(
-                                '${ratingOnWorker}',
+                                '${project.reviews.ratingOnWorker }',
                                 style: GoogleFonts.openSans(
                                   textStyle: TextStyle(
                                     color: HexColor('393B3E'),
@@ -1533,67 +1535,67 @@ SizedBox(height: 3,),
 class UserProfile {
   final String status;
   final String msg;
-  final UserData userData;
+  // final UserData userData;
   final List<Project> projects;
-  final dynamic projectCount;
+  // final dynamic projectCount;
 
   UserProfile({
     required this.status,
     required this.msg,
-    required this.userData,
+    // required this.userData,
     required this.projects,
-    required this.projectCount,
+    // required this.projectCount,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
       status: json['status'],
       msg: json['msg'],
-      userData: UserData.fromJson(json['user_data']),
+      // userData: UserData.fromJson(json['user_data']),
       projects: List<Project>.from(json['projects'].map((project) => Project.fromJson(project))),
-      projectCount: json['project_count'],
+      // projectCount: json['project_count'],
     );
   }
 }
 
-class UserData {
-  final String firstname;
-  final String lastname;
-  final String email;
-  final String profilePic;
-  final String phone;
-  List<dynamic> languages;
-  final String license_number;
-  final String license_pic;
-  final String job_type;
-
-  UserData({
-    required this.firstname,
-    required this.license_number,
-    required this.job_type,
-    required this.license_pic,
-    required this.lastname,
-    required this.email,
-    required this.profilePic,
-    required this.phone,
-    required this.languages,
-  });
-
-  factory UserData.fromJson(Map<String, dynamic> json) {
-    return UserData(
-      firstname: json['firstname']??'',
-      lastname: json['lastname']??'',
-      email: json['email']??'',
-      profilePic: json['profile_pic']??'',
-      job_type: json['job_type']??'',
-      phone: json['phone']??'',
-      license_number: json['license_number']??'',
-      license_pic: json['license_pic']??'',
-      languages: json['language'] ?? [],
-
-    );
-  }
-}
+// class UserData {
+//   final String firstname;
+//   final String lastname;
+//   final String email;
+//   final String profilePic;
+//   final String phone;
+//   List<dynamic> languages;
+//   final String license_number;
+//   final String license_pic;
+//   final String job_type;
+//
+//   UserData({
+//     required this.firstname,
+//     required this.license_number,
+//     required this.job_type,
+//     required this.license_pic,
+//     required this.lastname,
+//     required this.email,
+//     required this.profilePic,
+//     required this.phone,
+//     required this.languages,
+//   });
+//
+//   factory UserData.fromJson(Map<String, dynamic> json) {
+//     return UserData(
+//       firstname: json['firstname']??'',
+//       lastname: json['lastname']??'',
+//       email: json['email']??'',
+//       profilePic: json['profile_pic']??'',
+//       job_type: json['job_type']??'',
+//       phone: json['phone']??'',
+//       license_number: json['license_number']??'',
+//       license_pic: json['license_pic']??'',
+//       languages: json['language'] ?? [],
+//
+//     );
+//   }
+// }
 
 class Project {
   final dynamic projectId;
@@ -1653,9 +1655,9 @@ class Project {
 
 class Reviews {
   final String? reviewOnWorker;
-  final String? ratingOnWorker;
+  final int? ratingOnWorker;
   final String? reviewOnClient;
-  final String? ratingOnClient;
+  final int? ratingOnClient;
 
   Reviews({
     required this.reviewOnWorker,
@@ -1667,9 +1669,9 @@ class Reviews {
   factory Reviews.fromJson(Map<String, dynamic> json) {
     return Reviews(
       reviewOnWorker: json['review_on_worker'],
-      ratingOnWorker: json['rating_on_worker'],
+      ratingOnWorker: json['rating_on_worker']??0,
       reviewOnClient: json['review_on_client'],
-      ratingOnClient: json['rating_on_client'],
+      ratingOnClient: json['rating_on_client']??0,
     );
   }
 }

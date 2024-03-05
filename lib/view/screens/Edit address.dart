@@ -504,7 +504,7 @@ class _editAddressClientState extends State<editAddressClient> {
 
               SizedBox(height: 20),
               RoundedButton(
-                text: 'Confirm',
+                text: 'Submit',
                 press: () async {
                   if (formKey.currentState!.validate()) {
                     // If the form is valid, call the editaddress() function
@@ -529,7 +529,8 @@ class _editAddressClientState extends State<editAddressClient> {
                     );
                   }
                 },
-              )          ],
+              )
+            ],
           ),
         ),
       ),

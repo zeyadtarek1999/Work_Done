@@ -174,7 +174,7 @@ class _projectPostState extends State<projectPost>
 
     print('Checking for files...');
     // Check if any files are null or empty before proceeding
-    if ((_imageFiles?.isEmpty ?? true) && _videoFile == null) {
+    if ((_imageFiles?.isEmpty ?? true) ||_videoFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Please pick at least one image and a video.")));
       return;
@@ -1137,7 +1137,6 @@ class _projectPostState extends State<projectPost>
                           height: 8,
                         ),
                         Container(
-                          height: 100,
                           width: double.infinity, // Set the desired width
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -1155,7 +1154,7 @@ class _projectPostState extends State<projectPost>
                                   // Allows the text to take up multiple lines
                                   decoration: InputDecoration(
                                     hintText:
-                                        'Please write a detailed description to help the worker place an accurate bid!',
+                                        'Please write a detailed description to help the worker place an accurate bid!\n\n\n\n\n',
                                     border: InputBorder.none,
                                     hintMaxLines: 3,
                                     // Allows the hint text to take up multiple lines

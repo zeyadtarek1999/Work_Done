@@ -98,8 +98,8 @@ class _LoginScreenworkerState extends State<LoginScreenworker> with SingleTicker
             // Navigate to layoutworker() for non-client accounts
 
             Get.offAll(layoutworker(showCase: false),
-              transition: Transition.zoom, // You can choose a different transition
-              duration: Duration(milliseconds: 1100), );          }
+              transition: Transition.fadeIn, // You can choose a different transition
+              duration: Duration(milliseconds: 700), );          }
         } else {
           // Handle the case when 'token' is null or not present in the response
           print('Login failed. Token is null or not present in the response.');

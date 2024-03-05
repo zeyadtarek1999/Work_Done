@@ -486,7 +486,7 @@ class _checkOutClientState extends State<checkOutClient> {
                               child: CircleAvatar(
                                 radius: 25,
                                 backgroundColor: Colors.transparent,
-                                backgroundImage: widget.workerimage == '' || widget.workerimage.isNotEmpty
+                                backgroundImage: widget.workerimage == '' || widget.workerimage.isEmpty
                                     || widget.workerimage== "https://workdonecorp.com/images/"
                                     ? AssetImage('assets/images/default.png') as ImageProvider
                                     : NetworkImage(widget.workerimage?? 'assets/images/default.png'),

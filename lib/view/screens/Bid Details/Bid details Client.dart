@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:action_slider/action_slider.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:badges/badges.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:chewie/chewie.dart';
 import 'package:easy_date_timeline/easy_date_timeline.dart';
@@ -29,6 +30,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:video_player/video_player.dart';
 import 'package:workdone/view/screens/InboxwithChat/chat.dart';
+import 'package:workdone/view/screens/notifications/notificationScreen.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
 import '../InboxwithChat/ChatClient.dart';
 import '../Screens_layout/layoutclient.dart';
@@ -42,7 +44,7 @@ import 'package:http/http.dart' as http;
 import '../view profile screens/Worker profile .dart';
 import '../view profile screens/Worker profile view.dart';
 import 'complete project.dart';
-
+import 'package:badges/badges.dart' as badges;
 class bidDetailsClient extends StatefulWidget {
   final int projectId;
 
@@ -611,7 +613,7 @@ setState(() {
     return Stack(children: <Widget>[
       WillPopScope(
         onWillPop: () async {
-          Get.offAll(layoutclient(showCase: false,)); // Navigate to the layoutworker screen
+          Get.offAll(layoutclient(showCase: false,));
           return false; // Return false to indicate that the back button was handled
         },
         child: Scaffold(
@@ -651,6 +653,40 @@ setState(() {
               ),
             ),
             centerTitle: true,
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child:   badges.Badge(
+                    badgeStyle: badges.BadgeStyle(
+                      badgeColor: Colors.red,
+                      shape: badges.BadgeShape.circle,
+                    ),
+                    position: BadgePosition.topEnd(),
+                    badgeContent: Text('10',style: TextStyle(color: Colors.white),),
+                    badgeAnimation: badges.BadgeAnimation.rotation(
+                      animationDuration: Duration(seconds: 1),
+                      colorChangeAnimationDuration: Duration(seconds: 1),
+                      loopAnimation: false,
+                      curve: Curves.fastOutSlowIn,
+                      colorChangeAnimationCurve: Curves.easeInCubic,
+                    ),
+                    child: GestureDetector(
+                      onTap:
+                          (){Get.to(NotificationsPage());
+                      }
+                      ,
+                      child: SvgPicture.asset(
+                        'assets/icons/iconnotification.svg',
+                        width: 41.0,
+                        height:41.0,
+                      ),
+
+                    ),
+                  ),
+
+                )
+
+              ],
           ),
           body: RefreshIndicator(
             color: HexColor('4D8D6E'),
@@ -941,6 +977,7 @@ setState(() {
                                   height: 10,
                                 ),
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     CircleAvatar(
                                       radius: 23,
@@ -951,42 +988,30 @@ setState(() {
                                     ),
 
                                     SizedBox(
-                                      width: 13,
+                                      width: 12,
                                     ),
-                                    Container(
-                                      height: 30,
-                                      width: 70,
-                                      padding: EdgeInsets.zero,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: TextButton(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(builder: (context) =>  ProfilePageClient(
-                                                userId: projectData
-                                                    .clientData!.clientId
-                                                    .toString())),
-                                          ).then((_) {
-                                            // Fetch data here after popping the second screen
-                                            futureProjects = fetchProjectDetails(widget.projectId);
-                                          });
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) =>  ProfilePageClient(
+                                              userId: projectData
+                                                  .clientData!.clientId
+                                                  .toString())),
+                                        ).then((_) {
+                                          // Fetch data here after popping the second screen
+                                          futureProjects = fetchProjectDetails(widget.projectId);
+                                        });
 
-                                        },
-                                        style: TextButton.styleFrom(
-                                          fixedSize: Size(50, 30),
-                                          // Adjust the size as needed
-                                          padding: EdgeInsets.zero,
-                                        ),
-                                        child: Text(
-                                          projectData.clientData!.firstname,
-                                          //client first name
-                                          style: TextStyle(
-                                            color: HexColor('4D8D6E'),
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                      },
+
+                                      child: Text(
+                                        projectData.clientData!.firstname,
+                                        //client first name
+                                        style: TextStyle(
+                                          color: HexColor('4D8D6E'),
+                                          fontSize: MediaQuery.of(context).size.width > 400 ? 25 : 16,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ),
@@ -1344,8 +1369,7 @@ setState(() {
                                       );
                                     } else {
                                       ProjectData projectData = snapshot.data!;
-                                      double ratingonclient = double.tryParse(projectData.pageContent.ratingOnClient ?? "0") ?? 0;
-                                      double ratingonWorker = double.tryParse(projectData.pageContent.ratingOnWorker ?? "0") ?? 0;
+
                                       if (projectData.status ==
                                           'bid_accepted' && projectData.pageContent.schedule ==
                                     'mftoo7' )   {
@@ -2572,10 +2596,1528 @@ setState(() {
                                           ),
                                         );
                                       }
-
                                       else if ( projectData.status ==
-                                          'scheduled'&& projectData.pageContent.schedule_vc_generate_button ==
-                                          'mftoo7' ) {
+                                          'scheduled'&& projectData.pageContent.scheduleStatus ==
+                                          'pending' ) {
+                                        activeStep =2;
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Padding(
+                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              child: Text(
+                                                'Progress',
+                                                style: GoogleFonts.openSans(
+                                                  textStyle: TextStyle(
+                                                    color: HexColor('454545'),
+                                                    fontSize: 22,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(height: 17,),
+
+                                            Container(
+                                              height:150,
+                                              child: Center(
+                                                child: Container(
+                                                  padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                                  child: EasyStepper(
+                                                    activeStepBackgroundColor:HexColor('4D8D6E') ,
+                                                    activeStepIconColor: Colors.white,
+                                                    activeStepBorderColor:HexColor('4D8D6E')  ,
+                                                    activeStepTextColor: HexColor('4D8D6E'),
+
+                                                    showScrollbar: true,
+                                                    enableStepTapping: false,
+                                                    maxReachedStep: 6,
+                                                    activeStep: activeStep,
+                                                    stepShape: StepShape.circle,
+                                                    stepBorderRadius: 15,
+                                                    borderThickness: 1,
+                                                    internalPadding: 15,
+                                                    stepRadius: 32,
+                                                    finishedStepBorderColor: HexColor('8d4d6c'),
+                                                    finishedStepTextColor: HexColor('8d4d6c'),
+                                                    finishedStepBackgroundColor: HexColor('8d4d6c'),
+                                                    finishedStepIconColor: Colors.white,
+                                                    finishedStepBorderType: BorderType.normal,
+                                                    showLoadingAnimation: false,
+                                                    showStepBorder: true,
+                                                    lineStyle: LineStyle(
+                                                      lineLength: 45,
+                                                      lineType: LineType.dashed,
+
+                                                      activeLineColor: HexColor('#8d4d6c'),
+                                                      defaultLineColor: HexColor('#8d4d6c'),
+                                                      unreachedLineColor: HexColor('#172a21'),
+                                                      lineThickness: 3,
+                                                      lineSpace: 2,
+                                                      lineWidth: 10,
+
+                                                      unreachedLineType: LineType.dashed,
+
+                                                    ),
+
+                                                    steps: [
+                                                      EasyStep(
+
+
+                                                        icon: Icon(
+                                                          FluentIcons.money_16_regular,
+                                                        ),
+                                                        title: 'Under Bidding',
+
+                                                      ),
+                                                      EasyStep(
+
+
+                                                        icon: Icon(
+                                                          Icons.check_circle,
+                                                        ),
+                                                        title: 'Accepted',
+
+                                                      ),
+                                                      EasyStep(
+
+
+                                                        icon: Icon(
+                                                          FluentIcons.calendar_12_filled ,
+                                                        ),
+                                                        title: 'Schedule',
+
+                                                      ),
+                                                      EasyStep(
+
+
+                                                        icon: Icon(
+                                                          FluentIcons.spinner_ios_16_filled ,
+                                                        ),
+                                                        title: 'Processing',
+
+                                                      ),
+                                                      EasyStep(
+
+
+                                                        icon: Icon(
+                                                          FluentIcons.checkmark_circle_square_16_filled ,
+                                                        ),
+                                                        title: 'Finilizing',
+
+                                                      ),
+                                                      EasyStep(
+
+
+                                                        icon: Icon(
+                                                          FluentIcons.flag_16_filled  ,
+                                                        ),
+                                                        title: 'Completed',
+
+                                                      ),
+
+                                                    ],
+                                                    onStepReached: (index) => setState(() => activeStep = index),
+                                                  ),
+                                                ),
+
+                                              ),
+                                            ),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                                              children: [
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+
+                                                    Row(
+                                                      children: [
+                                                        Padding(
+                                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                          child: Text(
+                                                            'Details',
+                                                            style: GoogleFonts.openSans(
+                                                              textStyle: TextStyle(
+                                                                color: HexColor('454545'),
+                                                                fontSize: 22,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+
+                                                      ],
+                                                    ),
+
+                                                    SizedBox(height: 8,),
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.start,
+
+                                                      children: [
+
+                                                        Text('Date:',
+                                                          style: GoogleFonts.roboto(
+                                                            textStyle: TextStyle(
+                                                              color: Colors.black,
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                              FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+
+                                                        SizedBox(width: 5,),
+                                                        Text(
+                                                          '${projectData.pageContent.selectedDate}',
+                                                          style: GoogleFonts.roboto(
+                                                            textStyle: TextStyle(
+                                                              color: Colors.grey [800],
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                              FontWeight.normal,
+                                                            ),
+                                                          ),
+                                                        ),
+
+                                                      ],
+                                                    ),
+                                                    SizedBox(height: 8,),
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.start,
+
+                                                      children: [
+
+                                                        Text('Time (Interval): ',
+                                                          style: GoogleFonts.roboto(
+                                                            textStyle: TextStyle(
+                                                              color: Colors.black,
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                              FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          '${projectData.pageContent.selectedInterval}',
+                                                          style: GoogleFonts.roboto(
+                                                            textStyle: TextStyle(
+                                                              color: Colors.grey [800],
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                              FontWeight.normal,
+                                                            ),
+                                                          ),
+                                                        ),
+
+
+                                                      ],),
+
+                                                  ],
+                                                ),
+                                                SizedBox(width: 3,),
+                                                ElevatedButton(
+
+                                                  onPressed: (projectData.pageContent.change == 'mftoo7')
+                                                      ? () {
+                                                    showModalBottomSheet(
+                                                      context: context,
+                                                      isScrollControlled: true,
+                                                      builder: (BuildContext context) {
+                                                        return StatefulBuilder(
+                                                          builder: (BuildContext context, StateSetter setState) {
+                                                            return Container(
+                                                              padding:
+                                                              EdgeInsets
+                                                                  .all(
+                                                                  16.0),
+                                                              child: Column(
+                                                                crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                                mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                                children: [
+                                                                  Row(
+                                                                    mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .center,
+                                                                    children: [
+                                                                      Text(
+                                                                        'Schedule',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: Colors.grey [900],
+                                                                            fontSize: 22,
+                                                                            fontWeight:
+                                                                            FontWeight.bold,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+
+                                                                  Row(
+                                                                    mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .spaceBetween,
+                                                                    children: [
+                                                                      Text(
+                                                                        'Choose a day',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: Colors.black,
+                                                                            fontSize: 20,
+                                                                            fontWeight:
+                                                                            FontWeight.bold,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      IconButton(
+                                                                        onPressed:
+                                                                            () {
+                                                                          Navigator.pop(context);
+                                                                        },
+                                                                        icon:
+                                                                        Icon(
+                                                                          Icons.cancel,
+                                                                          size:
+                                                                          25,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+
+                                                                  EasyDateTimeLine(
+                                                                    initialDate:
+                                                                    DateTime
+                                                                        .now(),
+                                                                    onDateChange:
+                                                                        (selectedDate) {
+                                                                      setState(
+                                                                              () {
+                                                                            _selectedDate =
+                                                                                selectedDate;
+                                                                          });
+                                                                    },
+                                                                    activeColor:
+                                                                    HexColor(
+                                                                        '4D8D6E'),
+                                                                    headerProps:
+                                                                    const EasyHeaderProps(
+                                                                      showSelectedDate:
+                                                                      true,
+                                                                      monthPickerType:
+                                                                      MonthPickerType.switcher,
+                                                                      selectedDateFormat:
+                                                                      SelectedDateFormat.fullDateDMY,
+                                                                    ),
+                                                                    dayProps:
+                                                                    const EasyDayProps(
+                                                                      activeDayStyle:
+                                                                      DayStyle(
+                                                                        borderRadius:
+                                                                        32.0,
+                                                                      ),
+                                                                      inactiveDayStyle:
+                                                                      DayStyle(
+                                                                        borderRadius:
+                                                                        32.0,
+                                                                      ),
+                                                                    ),
+                                                                    timeLineProps:
+                                                                    const EasyTimeLineProps(
+                                                                      hPadding:
+                                                                      16.0,
+                                                                      // padding from left and right
+                                                                      separatorPadding:
+                                                                      16.0, // padding between days
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+
+                                                                  Text(
+                                                                    'Choose Time',
+                                                                    style: GoogleFonts.roboto(
+                                                                      textStyle: TextStyle(
+                                                                        color: Colors.black,
+                                                                        fontSize: 20,
+                                                                        fontWeight:
+                                                                        FontWeight.bold,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+
+                                                                  Center(
+                                                                    child:
+                                                                    SfRangeSlider(
+                                                                      activeColor: HexColor('4D8D6E'),
+                                                                      min: DateTime(2000, 01, 01, 6, 00, 00), // Set min to 6 AM
+                                                                      max: DateTime(2000, 01, 01, 22, 00, 00), // Set max to 10 PM
+                                                                      values: _values,
+                                                                      interval: 4,
+                                                                      showLabels: true,
+                                                                      showTicks: true,
+                                                                      dateFormat: DateFormat('h a'), // Display hours in AM/PM format
+                                                                      dateIntervalType: DateIntervalType.hours,
+                                                                      onChanged: (SfRangeValues newValues) {
+                                                                        if (newValues.end.difference(newValues.start).inHours < 4) {
+                                                                          // Prevent range smaller than 4 hours
+                                                                          return;
+                                                                        }
+                                                                        setState(() {
+                                                                          _values = newValues;
+                                                                        });
+                                                                      },
+                                                                    ),                                                                ),
+                                                                  SizedBox(height: MediaQuery.of(context).size.height * 0.04),
+
+                                                                  Row(
+                                                                    children: [
+                                                                      Text(
+                                                                        'Selected Time Range:',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: Colors.grey [800],
+                                                                            fontSize: 16,
+                                                                            fontWeight:
+                                                                            FontWeight.bold,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Text(
+                                                                        ' ${formatTime(_values.start)} - ${formatTime(_values.end)}',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: HexColor('4D8D6E'),
+                                                                            fontSize: 16,
+                                                                            fontWeight:
+                                                                            FontWeight.normal,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+
+                                                                  Row(
+                                                                    children: [
+                                                                      Text(
+                                                                        'Selected Date:',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: Colors.grey [800],
+                                                                            fontSize: 16,
+                                                                            fontWeight:
+                                                                            FontWeight.bold,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Text(
+                                                                        ' ${DateFormat('EEEE,  d, MM, yyyy').format(_selectedDate.toLocal())}',
+                                                                        style: GoogleFonts.roboto(
+                                                                          textStyle: TextStyle(
+                                                                            color: HexColor('4D8D6E'),
+                                                                            fontSize: 16,
+                                                                            fontWeight:
+                                                                            FontWeight.normal,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+
+
+                                                                    ],
+                                                                  ),
+                                                                  SizedBox(
+                                                                      height: MediaQuery.of(context).size.height *
+                                                                          0.06),
+                                                                  Padding(
+                                                                    padding: const EdgeInsets
+                                                                        .symmetric(
+                                                                        horizontal:
+                                                                        20.0),
+                                                                    child:
+                                                                    Row(
+                                                                      mainAxisAlignment:
+                                                                      MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Container(
+                                                                          height: 50, // Set the desired height
+                                                                          width: 120, // Set the desired width
+                                                                          child: ElevatedButton(
+                                                                            onPressed:
+                                                                                () {
+                                                                              Navigator.pop(context);
+                                                                            },
+                                                                            style:
+                                                                            ElevatedButton.styleFrom(
+                                                                              primary: HexColor('B6212A'),
+                                                                              onPrimary: Colors.white,
+                                                                              elevation: 5,
+                                                                              shape: RoundedRectangleBorder(
+                                                                                borderRadius: BorderRadius.circular(12),
+                                                                              ),
+                                                                            ),
+                                                                            child:
+                                                                            Text('Cancel',
+                                                                                style: TextStyle(fontSize: 18)),
+                                                                          ),
+                                                                        ),
+                                                                        Container(
+                                                                          height: 50, // Set the desired height
+                                                                          width: 120, // Set the desired width
+                                                                          child: ElevatedButton(
+                                                                            onPressed: () {
+                                                                              setState(() async {
+                                                                                await scheduleProject(widget.projectId,
+                                                                                    DateFormat('EEEE,  d, MM, yyyy').format(_selectedDate.toLocal()).toString(),
+                                                                                    "${formatTime(_values.start).toString() +' - ' + formatTime(_values.end).toString()}");
+                                                                                Navigator.pop(context);
+                                                                              });
+
+                                                                            },
+                                                                            style: ElevatedButton.styleFrom(
+                                                                              primary: HexColor('4D8D6E'),
+                                                                              onPrimary: Colors.white,
+                                                                              elevation: 5,
+                                                                              shape: RoundedRectangleBorder(
+                                                                                borderRadius: BorderRadius.circular(12),
+                                                                              ),
+                                                                            ),
+                                                                            child: Text(
+                                                                              'Apply',
+                                                                              style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
+                                                                            ),
+                                                                          ),
+                                                                        ),
+
+                                                                      ],
+                                                                    ),
+                                                                  )
+                                                                ],
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                    );
+                                                  }
+                                                      : null, // Set onPressed to null when the condition is false
+                                                  style: ElevatedButton.styleFrom(
+                                                    primary:  projectData.pageContent.change == 'maftoo7' ?Colors.blueAccent.withOpacity(0.5): Colors.blueAccent,
+                                                    onPrimary: Colors.white,
+                                                    elevation: 0,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(12),
+                                                    ),
+                                                  ),
+                                                  child: Opacity(
+                                                    opacity: (projectData.pageContent.change == 'mftoo7') ? 1.0 : 1.0, // Adjust the opacity based on the condition
+                                                    child: Text(
+                                                      'Change',
+
+                                                      style: TextStyle(fontSize: 10 ,color: Colors.white),
+                                                    ),
+                                                  ),
+                                                ),
+
+                                              ],
+
+                                            ),
+                                            SizedBox(height:10,),
+
+                                            Container(
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(16),
+                                                color: Colors.white,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.1),
+                                                    blurRadius: 20,
+                                                    spreadRadius: 2,
+                                                  ),
+                                                ],
+                                              ),
+                                              padding: EdgeInsets.all(16),
+                                              child: Column(
+                                                children: [
+                                                  Text(
+                                                    'Note',
+                                                    style: GoogleFonts.roboto(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('#890C0A'),
+                                                        fontSize: MediaQuery.of(context).size.width > 400 ? 15 : 13,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontStyle: FontStyle.italic,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 4,),
+
+                                                  Text(
+                                                    'Wait the Worker to Accept or Reject the Schedule...',
+                                                    style: GoogleFonts.roboto(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor('#0c343d'),
+                                                        fontSize: MediaQuery.of(context).size.width > 400 ? 14 : 12,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontStyle: FontStyle.italic,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                                                               SizedBox(height: 10,),
+
+
+                                            Row(
+                                              children: [
+
+                                                Expanded(
+                                                  child: Container(
+                                                    width: 220.0,
+                                                    height: 50,
+                                                    // Set the desired width
+                                                    child: ElevatedButton(
+                                                      onPressed: () {
+                                                        Get.to(chat(
+                                                          worker_id:projectData
+                                                              .selectworkerbid.worker_id ,
+                                                          myside_image:projectData
+                                                              .clientData.profileImage ,
+                                                          myside_firstname: projectData
+                                                              .clientData.firstname,
+                                                          client_id: projectData
+                                                              .clientData!.clientId ,
+
+                                                          seconduserimage: projectData.selectworkerbid.worker_profile_pic,
+
+                                                          chatId: projectData
+                                                              .pageaccessdata!.chat_ID,
+                                                          currentUser:
+                                                          'client',
+                                                          secondUserName:
+                                                          projectData
+                                                              .selectworkerbid.worker_firstname,
+                                                          userId: projectData
+                                                              .clientData!
+                                                              .clientId
+                                                              .toString(),
+                                                        ));
+                                                      },
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        primary:
+                                                        HexColor('ED6F53'),
+                                                        // Background color
+                                                        onPrimary: Colors.white,
+                                                        // Text color
+                                                        elevation: 8,
+                                                        // Elevation
+                                                        shape:
+                                                        RoundedRectangleBorder(
+                                                          borderRadius:
+                                                          BorderRadius.circular(
+                                                              12), // Rounded corners
+                                                        ),
+                                                      ),
+                                                      child: Padding(
+                                                        padding:
+                                                        const EdgeInsets
+                                                            .all(12.0),
+                                                        child: Text(
+                                                          'Chat',
+                                                          style: GoogleFonts
+                                                              .roboto(
+                                                            textStyle:
+                                                            TextStyle(
+                                                              color:
+                                                              Colors.white,
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                              FontWeight
+                                                                  .bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+
+                                                SizedBox(width: 7,),
+                                                Hero(
+                                                  tag: 'workdone_${unique}',
+                                                  child: Container(
+                                                    height: 50,
+                                                    child: ElevatedButton(
+                                                      onPressed: () {
+                                                        _navigateToNextPage(
+                                                            context);
+                                                      },
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        primary: HexColor(
+                                                            '777031'),
+                                                        onPrimary:
+                                                        Colors.white,
+                                                        elevation: 8,
+                                                        shape:
+                                                        RoundedRectangleBorder(
+                                                          borderRadius:
+                                                          BorderRadius
+                                                              .circular(
+                                                              21),
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        'Support',
+                                                        style: GoogleFonts
+                                                            .roboto(
+                                                          textStyle:
+                                                          TextStyle(
+                                                            color:
+                                                            Colors.white,
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                            FontWeight
+                                                                .bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+
+                                              ],
+                                            ),  SizedBox(
+                                              height: 12,
+                                            ),
+
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: ElevatedButton(
+                                                    onPressed: (projectData.pageContent.schedule_vc_generate_button != 'mftoo7')
+                                                        ? () {
+                                                      if (projectData.pageContent.schedule_vc_generate_button != 'ma2fool') {
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (context) => ModernPopup(
+                                                            text: 'press on next button to generate verification code to access project complete.',
+                                                          ),
+                                                        );
+                                                      } else {
+                                                        showModalBottomSheet(
+                                                          context: context,
+                                                          isScrollControlled: true,
+                                                          builder: (BuildContext context) {
+                                                            return StatefulBuilder(
+                                                              builder: (BuildContext context, StateSetter setState) {
+                                                                return Container(
+                                                                  padding: EdgeInsets.all(16.0),
+                                                                  child: Column(
+                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                    mainAxisSize: MainAxisSize.min,
+                                                                    children: [
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'Your ',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: Colors.black,
+                                                                              fontSize: 27,
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'Verification Code',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: Colors.black,
+                                                                              fontSize: 27,
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(height: 25),
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'Worker Must take this code to',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: HexColor('706F6F'),
+                                                                              fontSize: 17,
+                                                                              fontWeight: FontWeight.normal,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'Start work on project',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: HexColor('706F6F'),
+                                                                              fontSize: 17,
+                                                                              fontWeight: FontWeight.normal,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(height: 25),
+                                                                      Center(
+                                                                        child: OTPDisplay(digits: '${projectData.pageaccessdata.schedule_vc}'.split('')), // Convert the integer to a string and split its digits
+                                                                      ),
+                                                                      SizedBox(height: 30),
+                                                                      Center(
+                                                                        child: Container(
+                                                                          height: 54, // Set the desired height
+                                                                          width: 170, // Set the desired width
+                                                                          child: ElevatedButton(
+                                                                            onPressed: () {
+                                                                              Navigator.pop(context); // Close the showModalBottomSheet
+                                                                            },
+                                                                            style: ElevatedButton.styleFrom(
+                                                                              primary: HexColor('4D8D6E'),
+                                                                              onPrimary: Colors.white,
+                                                                              elevation: 5,
+                                                                              shape: RoundedRectangleBorder(
+                                                                                borderRadius: BorderRadius.circular(20),
+                                                                              ),
+                                                                            ),
+                                                                            child: Text(
+                                                                              'Done',
+                                                                              style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                );
+                                                              },
+                                                            );
+                                                          },
+                                                        );
+                                                      }
+                                                    }
+                                                        : null,
+                                                    style: ElevatedButton.styleFrom(
+                                                      primary: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
+                                                      onPrimary: Colors.white,
+                                                      elevation: 3,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(12),
+                                                      ),
+                                                    ),
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.only(top: 12.0, bottom: 12),
+                                                      child: Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                        children: [
+                                                          Text(
+                                                            'With the worker. Generate the Verification Code',
+                                                            style: GoogleFonts.roboto(
+                                                              textStyle: TextStyle(
+                                                                color: Colors.white,
+                                                                fontSize: 12,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          if (projectData.pageContent.schedule_vc_generate_button == 'ma2fool')
+                                                            Icon(
+                                                              AntDesign.questioncircleo, // Replace with your preferred icon
+                                                              color: Colors.white,
+                                                              size: 15,
+                                                            ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+
+                                            SizedBox(
+                                              height: 12,
+                                            ),
+
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: ElevatedButton(
+                                                    onPressed: (projectData.pageContent.complete_vc_generate_button == 'mftoo7')
+                                                        ? () {
+                                                      if (projectData.pageContent.complete_vc_generate_button == 'ma2fool') {
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (context) => ModernPopup(
+                                                            text: 'press on with the worker button to generate verification code to access start work on project.',
+                                                          ),
+                                                        );
+                                                      } else {
+                                                        showModalBottomSheet(
+                                                          context: context,
+                                                          isScrollControlled: true,
+                                                          builder: (BuildContext context) {
+                                                            return StatefulBuilder(
+                                                              builder: (BuildContext context, StateSetter setState) {
+                                                                return Container(
+                                                                  padding: EdgeInsets.all(16.0),
+                                                                  child: Column(
+                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                    mainAxisSize: MainAxisSize.min,
+                                                                    children: [
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'Your ',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: Colors.black,
+                                                                              fontSize: 27,
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'Verification Code',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: Colors.black,
+                                                                              fontSize: 27,
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(height: 25),
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'Worker Must take this code to',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: HexColor('706F6F'),
+                                                                              fontSize: 17,
+                                                                              fontWeight: FontWeight.normal,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Center(
+                                                                        child: Text(
+                                                                          'access project Complete',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: HexColor('706F6F'),
+                                                                              fontSize: 17,
+                                                                              fontWeight: FontWeight.normal,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(height: 25),
+                                                                      Center(
+                                                                        child: OTPDisplay(digits: '${projectData.pageaccessdata.finalizing_vc}'.split('')), // Convert the integer to a string and split its digits
+                                                                      ),
+                                                                      SizedBox(height: 30),
+                                                                      Center(
+                                                                        child: Container(
+                                                                          height: 54, // Set the desired height
+                                                                          width: 170, // Set the desired width
+                                                                          child: ElevatedButton(
+                                                                            onPressed: () {
+                                                                              Navigator.pop(context); // Close the showModalBottomSheet
+                                                                            },
+                                                                            style: ElevatedButton.styleFrom(
+                                                                              primary: HexColor('4D8D6E'),
+                                                                              onPrimary: Colors.white,
+                                                                              elevation: 5,
+                                                                              shape: RoundedRectangleBorder(
+                                                                                borderRadius: BorderRadius.circular(20),
+                                                                              ),
+                                                                            ),
+                                                                            child: Text(
+                                                                              'Done',
+                                                                              style: TextStyle(fontSize: 18), // Adjust the fontSize as needed
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                );
+                                                              },
+                                                            );
+                                                          },
+                                                        );
+                                                      }
+                                                    }
+                                                        : null,
+                                                    style: ElevatedButton.styleFrom(
+                                                      primary: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
+                                                      onPrimary: Colors.white,
+                                                      elevation: 3,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(12),
+                                                      ),
+                                                    ),
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.only(top: 12.0, bottom: 12),
+                                                      child: Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                        children: [
+                                                          Text(
+                                                            'Generate the Code to access project complete',
+                                                            style: GoogleFonts.roboto(
+                                                              textStyle: TextStyle(
+                                                                color: Colors.white,
+                                                                fontSize: 12,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          if (projectData.pageContent.complete_vc_generate_button == 'ma2fool')
+                                                            Icon(
+                                                              AntDesign.questioncircleo, // Replace with your preferred icon
+                                                              color: Colors.white,
+                                                              size: 15,
+                                                            ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+
+                                            SizedBox(
+                                              height: 12,
+                                            ),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: ElevatedButton(
+                                                    onPressed: projectData.pageContent. project_complete_button == "maftoo7"
+                                                        ? () {
+                                                      showModalBottomSheet(
+                                                        elevation: 5,
+
+                                                        context: context,
+                                                        isScrollControlled: true, //Add this for full screen modal
+                                                        backgroundColor: Colors.white,
+                                                        builder: (context) {
+                                                          // Here, you can include your custom slider content
+                                                          return Container(
+                                                            margin: EdgeInsets.symmetric(horizontal: 15.0),
+                                                            decoration: ShapeDecoration(
+                                                              color: Colors.white,
+                                                              shadows: [
+                                                                BoxShadow(
+                                                                    blurRadius: 5.0,
+                                                                    spreadRadius: 2.0,
+                                                                    color: const Color(0x11000000))
+                                                              ],
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.only(
+                                                                  topLeft: Radius.circular(10.0),
+                                                                  topRight: Radius.circular(10.0),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            child: Column(
+                                                              mainAxisSize: MainAxisSize.min,
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              children: [
+                                                                SizedBox(
+                                                                  height: screenheight * 0.02,
+                                                                ),
+                                                                Row(
+                                                                  children: [
+                                                                    IconButton(
+                                                                        onPressed: () {
+                                                                          Navigator.pop(context);
+                                                                        },
+                                                                        icon: Icon(
+                                                                          Icons.expand_circle_down,
+                                                                          color: Colors.grey[700],
+                                                                        )),
+                                                                    Text(
+                                                                      'End Project',
+                                                                      style: GoogleFonts.roboto(
+                                                                        textStyle: TextStyle(
+                                                                          color: Colors.grey[900],
+                                                                          fontSize: 23,
+                                                                          fontWeight: FontWeight.bold,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                                Row(
+                                                                  children: [
+                                                                    Text(
+                                                                      _imageFiles == null ? 'Upload Photo' : 'Selected Photo',
+                                                                      style: GoogleFonts.poppins(
+                                                                        textStyle: TextStyle(
+                                                                          color: HexColor('1A1D1E'),
+                                                                          fontSize: 17,
+                                                                          fontWeight: FontWeight.w500,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(
+                                                                      width: 6,
+                                                                    ),
+                                                                    IconButton(
+                                                                      icon: Icon(
+                                                                        Icons.info_outline, // "i" icon
+                                                                        color: Colors.grey,
+                                                                        size: 22, // Red color
+                                                                      ),
+                                                                      onPressed: () {
+                                                                        // Show a Snackbar with the required text
+                                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                                          SnackBar(
+                                                                            backgroundColor: Colors.red,
+                                                                            content: Text(
+                                                                              _imageFiles == null
+                                                                                  ? 'Upload photo is Required'
+                                                                                  : 'Selected photo information',
+                                                                              style:
+                                                                              TextStyle(color: Colors.white), // Red text color
+                                                                            ),
+                                                                          ),
+                                                                        );
+                                                                      },
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                                SizedBox(
+                                                                  height: 7,
+                                                                ),
+                                                                Column(children: [
+                                                                  GestureDetector(
+                                                                    onTap: () {
+                                                                      showModalBottomSheet(
+                                                                        context: context,
+                                                                        builder: (BuildContext context) {
+                                                                          return Column(
+                                                                            mainAxisSize: MainAxisSize.min,
+                                                                            children: [
+                                                                              ListTile(
+                                                                                leading: Icon(Icons.camera_alt),
+                                                                                title: Text('Take a photo'),
+                                                                                onTap: () {
+                                                                                  _pickImages(isCamera: true);
+                                                                                  Navigator.pop(context);
+                                                                                },
+                                                                              ),
+                                                                              ListTile(
+                                                                                leading: Icon(Icons.photo),
+                                                                                title: Text('Select from gallery'),
+                                                                                onTap: () {
+                                                                                  _pickImages();
+                                                                                  Navigator.pop(context);
+                                                                                },
+                                                                              ),
+                                                                            ],
+                                                                          );
+                                                                        },
+                                                                      );
+                                                                    },
+                                                                    child: Center(
+                                                                      child: Container(
+                                                                          height: 220,
+                                                                          width: 350,
+                                                                          decoration: BoxDecoration(
+                                                                            borderRadius: BorderRadius.circular(15),
+                                                                            color: Colors.white,
+                                                                          ),
+                                                                          child: _imageFiles.isEmpty
+                                                                              ? Center(
+                                                                            child: Column(
+                                                                              mainAxisAlignment:
+                                                                              MainAxisAlignment.center,
+                                                                              children: [
+                                                                                Icon(
+                                                                                  Icons.file_upload,
+                                                                                  color: HexColor('4D8D6E'),
+                                                                                  size: 30,
+                                                                                ),
+                                                                                SizedBox(height: 8),
+                                                                                Text(
+                                                                                  'Upload Here',
+                                                                                  style: TextStyle(
+                                                                                    color: HexColor('4D8D6E'),
+                                                                                    fontSize: 16,
+                                                                                    fontWeight: FontWeight.bold,
+                                                                                  ),
+                                                                                ),
+                                                                                SizedBox(height: 8),
+                                                                                Padding(
+                                                                                  padding:
+                                                                                  const EdgeInsets.symmetric(
+                                                                                      horizontal: 12.0),
+                                                                                  child: Text(
+                                                                                    'Please upload clear photos of the project (from all sides, if applicable) to help the worker place an accurate bid!',
+                                                                                    textAlign: TextAlign.center,
+                                                                                    style: TextStyle(
+                                                                                      color: Colors.grey[600],
+                                                                                      fontSize: 12,
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ],
+                                                                            ),
+                                                                          )
+                                                                              : Column(
+                                                                            children: [
+                                                                              Expanded(
+                                                                                child: Scrollbar(
+                                                                                  controller: ScrollController(),
+                                                                                  child: ListView.builder(
+                                                                                    scrollDirection: Axis.horizontal,
+                                                                                    itemCount: _imageFiles!.length,
+                                                                                    itemBuilder: (BuildContext context, int index) {
+                                                                                      return GestureDetector(
+                                                                                        onTap: () {
+                                                                                          showDialog(
+                                                                                            context: context,
+                                                                                            builder: (BuildContext context) {
+                                                                                              return Dialog(
+                                                                                                child: InteractiveViewer(
+                                                                                                  panEnabled: true,
+                                                                                                  // Set it to false to prevent panning.
+                                                                                                  boundaryMargin: EdgeInsets.all(20),
+                                                                                                  minScale: 0.5,
+                                                                                                  maxScale: 2,
+                                                                                                  child: Image.file(_imageFiles[index]!),
+                                                                                                ),
+                                                                                              );
+                                                                                            },
+                                                                                          );
+                                                                                        },
+                                                                                        child: Stack(
+                                                                                          children: [
+                                                                                            Padding(
+                                                                                              padding: EdgeInsets.only(
+                                                                                                left: 8.0,
+                                                                                                right: index == _imageFiles!.length - 1 ? 8.0 : 0,
+                                                                                              ),
+                                                                                              child: Image.file(
+                                                                                                _imageFiles[index]!,
+                                                                                                height: 150,
+                                                                                                width: 150,
+                                                                                                fit: BoxFit.cover,
+                                                                                              ),
+                                                                                            ),
+                                                                                            Positioned(
+                                                                                              top: 0,
+                                                                                              right: 0,
+                                                                                              child: GestureDetector(
+                                                                                                onTap: () {
+                                                                                                  showDialog(
+                                                                                                    context: context,
+                                                                                                    builder: (BuildContext context) {
+                                                                                                      return AlertDialog(
+                                                                                                        title: Text('Delete Image'),
+                                                                                                        content: Text('Are you sure you want to delete this image?'),
+                                                                                                        actions: [
+                                                                                                          TextButton(
+                                                                                                            onPressed: () {
+                                                                                                              Navigator.pop(context);
+                                                                                                            },
+                                                                                                            child: Text('Cancel'),
+                                                                                                          ),
+                                                                                                          TextButton(
+                                                                                                            onPressed: () {
+                                                                                                              setState(() {
+                                                                                                                _imageFiles!.removeAt(index);
+                                                                                                              });
+                                                                                                              Navigator.pop(context);
+                                                                                                            },
+                                                                                                            child: Text('Delete'),
+                                                                                                          ),
+                                                                                                        ],
+                                                                                                      );
+                                                                                                    },
+                                                                                                  );
+                                                                                                },
+                                                                                                child: Container(
+                                                                                                  decoration: BoxDecoration(
+                                                                                                    shape: BoxShape.circle,
+                                                                                                    color: Colors.red,
+                                                                                                  ),
+                                                                                                  padding: EdgeInsets.all(3),
+                                                                                                  child: Icon(Icons.delete, color: Colors.white),
+                                                                                                ),
+                                                                                              ),
+                                                                                            ),                                            ],
+                                                                                        ),
+                                                                                      );
+                                                                                    },
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                              GestureDetector(
+                                                                                onTap: (){
+                                                                                  showModalBottomSheet(
+                                                                                    context: context,
+                                                                                    builder: (BuildContext context) {
+                                                                                      return Column(
+                                                                                        mainAxisSize: MainAxisSize.min,
+                                                                                        children: [
+                                                                                          ListTile(
+                                                                                            leading: Icon(Icons.camera_alt),
+                                                                                            title: Text('Take a photo'),
+                                                                                            onTap: () {
+                                                                                              _pickImages(isCamera: true);
+                                                                                              Navigator.pop(context);
+                                                                                            },
+                                                                                          ),
+                                                                                          ListTile(
+                                                                                            leading: Icon(Icons.photo),
+                                                                                            title: Text('Select from gallery'),
+                                                                                            onTap: () {
+                                                                                              _pickImages();
+                                                                                              Navigator.pop(context);
+                                                                                            },
+                                                                                          ),
+                                                                                        ],
+                                                                                      );
+                                                                                    },
+                                                                                  );
+                                                                                },
+                                                                                child: Column(
+                                                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                                                  children: [
+                                                                                    Icon(Icons.add_circle_outlined, size: 40, color: Colors.grey[400],),
+                                                                                    Text('Add More Photos',style: TextStyle(fontSize: 12,color: Colors.grey[500]),),
+                                                                                    SizedBox(height: 5,),
+                                                                                  ],
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          )
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ]),
+                                                                SizedBox(
+                                                                  height: screenheight * 0.02,
+                                                                ),
+                                                                ListTile(
+                                                                  title: Text(
+                                                                    'Rating',
+                                                                    style: GoogleFonts.roboto(
+                                                                      textStyle: TextStyle(
+                                                                        color: HexColor('424347'),
+                                                                        fontSize: 18,
+                                                                        fontWeight: FontWeight.bold,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                ListTile(
+                                                                  title: Column(
+                                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                                    children: [
+                                                                      Row(
+                                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                                        children: [
+                                                                          CircleAvatar(
+                                                                            radius: 50,
+                                                                            backgroundColor: Colors.transparent,
+                                                                            backgroundImage: selectedworkerimage== 'https://workdonecorp.com/images/' ||selectedworkerimage== ''
+                                                                                ? AssetImage('assets/images/default.png') as ImageProvider
+                                                                                : NetworkImage(selectedworkerimage?? 'assets/images/default.png'),
+                                                                          ),
+                                                                          SizedBox(width: 10,),
+                                                                          Column(
+                                                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                                                            children: [
+                                                                              Text('${selectedworkername}',
+                                                                                style: GoogleFonts.roboto(
+                                                                                  textStyle: TextStyle(
+                                                                                    color: HexColor('706F6F'),
+                                                                                    fontSize: 17,
+                                                                                    fontWeight: FontWeight.bold,
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                              SizedBox(width: 8),
+                                                                              // Replace the following with a RatingBar widget
+                                                                              RatingBar.builder(
+                                                                                initialRating: 0,
+                                                                                minRating: 1,
+                                                                                direction: Axis.horizontal,
+                                                                                allowHalfRating: true,
+                                                                                itemCount: 5,
+                                                                                itemPadding: EdgeInsets.symmetric(horizontal: 2.0), // Adjust padding as needed
+                                                                                itemBuilder: (context, _) => Icon(
+                                                                                  Icons.star,
+                                                                                  color: HexColor('4D8D6E'),
+                                                                                  size: 14, // Adjust the size of the star icon
+                                                                                ),
+                                                                                onRatingUpdate: (rating) {
+                                                                                  print(rating);
+                                                                                },
+                                                                              )
+
+                                                                            ],
+                                                                          ),
+                                                                        ],
+                                                                      )
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                SizedBox(
+                                                                  height: screenheight * 0.02,
+                                                                ),
+                                                                Padding(
+                                                                  padding: const EdgeInsets.symmetric(
+                                                                    horizontal: 12.0,
+                                                                  ),
+                                                                  child: Container(
+                                                                    decoration: BoxDecoration(
+                                                                      borderRadius: BorderRadius.circular(15),
+                                                                      color: Colors.grey[100],
+                                                                    ),
+                                                                    child: Padding(
+                                                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                                                      child: TextFormField(
+                                                                        decoration: InputDecoration(
+                                                                          hintText: 'Write a Review ...',
+                                                                          hintStyle: TextStyle(color: Colors.grey[500]),
+                                                                          border: InputBorder.none,
+                                                                        ),
+                                                                        maxLines: 4,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Padding(
+                                                                  padding:
+                                                                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
+                                                                  child: Center(
+                                                                    child: ActionSlider.standard(
+                                                                      sliderBehavior: SliderBehavior.stretch,
+                                                                      rolling: false,
+                                                                      width: double.infinity,
+                                                                      backgroundColor: Colors.white,
+                                                                      toggleColor: HexColor('4D8D6E'),
+                                                                      iconAlignment: Alignment.centerRight,
+                                                                      loadingIcon: SizedBox(
+                                                                          width: 55,
+                                                                          child: Center(
+                                                                              child: SizedBox(
+                                                                                width: 24.0,
+                                                                                height: 24.0,
+                                                                                child: CircularProgressIndicator(
+                                                                                    strokeWidth: 2.0, color: Colors.white),
+                                                                              ))),
+                                                                      successIcon: const SizedBox(
+                                                                          width: 55,
+                                                                          child: Center(
+                                                                              child: Icon(
+                                                                                Icons.check_rounded,
+                                                                                color: Colors.white,
+                                                                              ))),
+                                                                      icon: const SizedBox(
+                                                                          width: 55,
+                                                                          child: Center(
+                                                                              child: Icon(
+                                                                                Icons.keyboard_double_arrow_right,
+                                                                                color: Colors.white,
+                                                                              ))),
+                                                                      action: (controller) async {
+                                                                        controller.loading(); //starts loading animation
+                                                                        await Future.delayed(const Duration(seconds: 3));
+                                                                        controller.success(); //starts success animation
+                                                                        await Future.delayed(const Duration(seconds: 1));
+                                                                        controller.reset(); //resets the slider
+                                                                      },
+                                                                      child: const Text('Swipe To Confirm'),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                SizedBox(
+                                                                  height: screenheight * 0.01,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          );
+                                                        },
+                                                      );
+                                                    }
+                                                        : null, // Set onPressed to null if the condition is not met
+                                                    style: ElevatedButton.styleFrom(
+                                                      primary: HexColor(('66C020')),
+                                                      onPrimary: Colors.white,
+                                                      elevation: 8,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(8),
+                                                      ),
+                                                      fixedSize: Size(double.infinity, 50), // Set the desired height
+                                                    ),
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.symmetric(vertical: 8.0), // Adjust padding as needed
+                                                      child: Text(
+                                                        'Project Completed',
+                                                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(height: 17,),
+                                            Padding(
+                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              child: Text(
+                                                'Workers Bids',
+                                                style: GoogleFonts.openSans(
+                                                  textStyle: TextStyle(
+                                                    color: HexColor('454545'),
+                                                    fontSize: 22,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(height: 12,),
+                                            Animate(
+                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                shrinkWrap: true,
+                                                itemCount: projectData.bids.length,
+                                                itemBuilder: (context, index) {
+                                                  Bid bid = projectData.bids[index];
+                                                  return buildListItem(bid);
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      }
+                                      else if ( projectData.status ==
+                                          'scheduled'&& projectData.pageContent.scheduleStatus ==
+                                          'accepted' ) {
                                         activeStep =2;
                                         return Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2709,15 +4251,41 @@ setState(() {
                                                   children: [
                                                     Padding(
                                                       padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
-                                                      child: Text(
-                                                        'Details',
-                                                        style: GoogleFonts.openSans(
-                                                          textStyle: TextStyle(
-                                                            color: HexColor('454545'),
-                                                            fontSize: 22,
-                                                            fontWeight: FontWeight.bold,
+                                                      child: Row(
+                                                        children: [
+                                                          Text(
+                                                            'Details',
+                                                            style: GoogleFonts.openSans(
+                                                              textStyle: TextStyle(
+                                                                color: HexColor('454545'),
+                                                                fontSize: 22,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
                                                           ),
-                                                        ),
+                                                          SizedBox(width: 20),
+                                                          projectData.pageContent.scheduleStatus == "accepted"?
+                                                          Container(
+                                                            height: 35,
+                                                            width: 70
+                                                            ,
+                                                            decoration: BoxDecoration(
+                                                             borderRadius: BorderRadius.circular(15),color: HexColor('#3e861f')
+
+                                                            ),
+                                                            child: Center(
+                                                              child: Text(
+                                                                'Accepted',
+                                                                style: TextStyle(
+                                                                  color: Colors.white,
+                                                                  fontSize: 14,
+                                                                  fontWeight: FontWeight.bold,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ):
+                                                          Container(),
+                                                        ],
                                                       ),
                                                     ),
                                                     SizedBox(height: 8,),
@@ -4039,7 +5607,7 @@ setState(() {
                                       }
                                       else if ( projectData.status ==
                                           'scheduled'&& projectData.pageContent.scheduleStatus ==
-                                          'rejected' ) {
+                                          'reject' ) {
                                         activeStep =2;
                                         return Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -4172,18 +5740,43 @@ setState(() {
                                                 Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    Padding(
-                                                      padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
-                                                      child: Text(
-                                                        'Details',
-                                                        style: GoogleFonts.openSans(
-                                                          textStyle: TextStyle(
-                                                            color: HexColor('454545'),
-                                                            fontSize: 22,
-                                                            fontWeight: FontWeight.bold,
+                                                    Row(
+                                                      children: [
+                                                        Padding(
+                                                          padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                          child: Text(
+                                                            'Details',
+                                                            style: GoogleFonts.openSans(
+                                                              textStyle: TextStyle(
+                                                                color: HexColor('454545'),
+                                                                fontSize: 22,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
                                                           ),
                                                         ),
-                                                      ),
+                                                        projectData.pageContent.scheduleStatus == "reject"?
+                                                        Container(
+                                                          height: 35,
+                                                          width: 70
+                                                          ,
+                                                          decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(15),color: HexColor('#890C0A')
+
+                                                          ),
+                                                          child: Center(
+                                                            child: Text(
+                                                              'Rejected',
+                                                              style: TextStyle(
+                                                                color: Colors.white,
+                                                                fontSize: 14,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ):
+                                                        Container(),
+                                                      ],
                                                     ),
                                                     SizedBox(height: 8,),
                                                     Row(
@@ -7972,7 +9565,7 @@ setState(() {
                                               ),
                                             ),
                                             SizedBox(height: 17,),
-                                            projectData.pageContent.ratingOnWorker != '' || projectData.pageContent.reviewOnWorker != ''
+                                            projectData.pageContent.ratingOnWorker != 0 || projectData.pageContent.reviewOnWorker != ''
 
                                           ?  Padding(
                                               padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
@@ -7988,8 +9581,9 @@ setState(() {
                                               ),
                                             ):Container(),
                                             SizedBox(height: 10,),
-                                            projectData.pageContent.ratingOnWorker != '' || projectData.pageContent.reviewOnWorker != ''
+                                            projectData.pageContent.ratingOnWorker != 0 || projectData.pageContent.reviewOnWorker != ''
                                                 ? Row(
+                                              mainAxisAlignment: MainAxisAlignment.start,
                                               children: [
                                                 CircleAvatar(
                                                   radius: 23,
@@ -7999,30 +9593,26 @@ setState(() {
                                                       : NetworkImage(projectData.clientData.profileImage ?? 'assets/images/default.png'),
                                                 ),
                                                 SizedBox(width: 11),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Get.to(ProfilePageClient(
-                                                        userId: projectData
-                                                            .clientData!.clientId
-                                                            .toString()));
-                                                  },
-                                                  style: TextButton.styleFrom(
-                                                    fixedSize: Size(50, 30),
-                                                    // Adjust the size as needed
-                                                    padding: EdgeInsets.zero,
-                                                  ),
+                                    GestureDetector(
+                                      onTap:  () {
+                                        Get.to(ProfilePageClient(
+                                            userId: projectData.clientData!.clientId.toString()));
+                                      },
+
+                                                  child:                                                 Expanded(
+
                                                   child: Text(
-                                                    projectData.clientData!.firstname,
-                                                    //client first name
-                                                    style: TextStyle(
-                                                      color: HexColor('4D8D6E'),
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
+                                                      projectData.clientData!.firstname,
+                                                      style: TextStyle(
+                                                        color: HexColor('4D8D6E'),
+                                                        fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
                                                 Spacer(),
-                                                RatingDisplay(rating: ratingonWorker),
+                                                RatingDisplay(rating: projectData.pageContent.ratingOnWorker),
                                               ],
                                             )
                                                 : Container(),
@@ -8085,7 +9675,7 @@ setState(() {
                                               ),
                                             ),
                                             SizedBox(height: 17,),
-                                            projectData.pageContent.ratingOnClient != '' || projectData.pageContent.reviewOnClient != ''
+                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
 
                                            ? Padding(
                                               padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
@@ -8099,9 +9689,52 @@ setState(() {
                                                   ),
                                                 ),
                                               ),
-                                            ): Container(),
+                                            ): Padding(
+                                              padding: const EdgeInsets.only(top:8.0),
+                                              child: Center(
+                                                child: Column(
+                                                  children: [
+                                                    Container(
+                                                      width:double.infinity ,
+                                                      color: Colors.grey,
+                                                      height: 1,
+
+                                                    ),
+                                                    Card(
+                                                                                        elevation: 8,
+                                                                                        margin: EdgeInsets.all(16),
+                                                                                        child: Padding(
+                                                                                        padding: EdgeInsets.all(16),
+                                                                                        child: Column(
+                                                                                        mainAxisSize: MainAxisSize.min,
+                                                                                        children: [
+                                                                                        Icon(
+                                                                                        Icons.hourglass_empty,
+                                                                                        size: 64,
+                                                                                        color: Colors.orange,
+                                                                                        ),
+                                                                                        SizedBox(height: 16),
+                                                                                        Text(
+                                                                                        'The Worker Didnt Rate Yet.',
+                                                                                        style: TextStyle(fontSize: 18),
+                                                                                        textAlign: TextAlign.center,
+                                                                                        ),
+                                                                                        ],
+                                                                                        ),
+                                                                                        ),
+                                                                                        ),
+                                                    Container(
+                                                      width:double.infinity ,
+                                                      color: Colors.grey,
+                                                      height: 1,
+
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
                                             SizedBox(height: 10,),
-                                            projectData.pageContent.ratingOnClient != '' || projectData.pageContent.reviewOnClient != ''
+                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
                                                 ? Row(
                                               children: [
                                                 CircleAvatar(
@@ -8146,7 +9779,7 @@ setState(() {
 
 
                                                 Spacer(),
-                                                RatingDisplay(rating: ratingonclient),
+                                                RatingDisplay(rating: projectData.pageContent.ratingOnClient),
                                               ],
                                             )
                                                 : Container(),
@@ -8923,10 +10556,10 @@ class PageContent {
   final String project_complete_button;
   final String support;
   final String reviewOnWorker;
-  final String ratingOnWorker;
+  final int ratingOnWorker;
   final String reviewOnClient;
   final String schedule;
-  final String ratingOnClient;
+  final int ratingOnClient;
   final List<String> imagesAfter;
 
   PageContent({
@@ -8970,9 +10603,9 @@ class PageContent {
       project_complete_button: json['project_complete_button'] ?? '',
       support: json['support'] ?? '',
       reviewOnWorker: json['review_on_worker'] ?? '',
-      ratingOnWorker: json['rating_on_worker'] ?? '',
+      ratingOnWorker: json['rating_on_worker'] ?? 0,
       reviewOnClient: json['review_on_client'] ?? '',
-      ratingOnClient: json['rating_on_client'] ?? '',
+      ratingOnClient: json['rating_on_client'] ?? 0,
       imagesAfter: imagesAfter,
     );
   }
@@ -9201,14 +10834,14 @@ class ModernPopup extends StatelessWidget {
 }
 
 class RatingDisplay extends StatelessWidget {
-  final double rating;
+  final int rating;
 
   const RatingDisplay({  required this.rating}) ;
 
   @override
   Widget build(BuildContext context) {
     final int ratingInt = rating.clamp(0.0, 5.0).toInt();
-    final double ratingFrac = rating - ratingInt;
+    final int ratingFrac = rating - ratingInt;
     return Row(
       children: List.generate(5, (index) {
         if (index < ratingInt) {

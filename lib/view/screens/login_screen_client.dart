@@ -96,8 +96,8 @@ class _LoginScreenclientState extends State<LoginScreenclient>  with SingleTicke
           } else {
 
             Get.offAll(layoutclient(showCase: false),
-              transition: Transition.zoom, // You can choose a different transition
-              duration: Duration(milliseconds: 1100), fullscreenDialog: true, );
+              transition: Transition.fadeIn, // You can choose a different transition
+              duration: Duration(milliseconds: 700), fullscreenDialog: true, );
           }
         } else {
           // Handle the case when 'token' is null or not present in the response
@@ -265,7 +265,7 @@ class _LoginScreenclientState extends State<LoginScreenclient>  with SingleTicke
                 child: Stack(
                   children: [
                     const Upside(
-                      imgUrl: "assets/images/workers.png",
+                      imgUrl: "assets/images/signup.png",
                     ),
                     const PageTitleBar(title: 'Login to your account'),
                     Padding(

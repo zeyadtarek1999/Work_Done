@@ -18,6 +18,7 @@ import 'package:workdone/view/widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
 import '../../../model/post editprofilemodel.dart';
 import '../Edit address.dart';
+import '../Payment Method/Payment_method.dart';
 import '../Support Screen/Support.dart';
 import '../changePassword.dart';
 import '../homescreen/home screenClient.dart';
@@ -521,7 +522,84 @@ print('selected languageid  :: ${selectedLanguageids}');
                       ),
                       // Opacity Overlay
                       GestureDetector(
-                        onTap: _getImageFromGallery,
+                        onTap: () async {
+                          final action =
+                          await showDialog<
+                              String>(
+                            context: context,
+                            builder: (BuildContext
+                            context) {
+                              return AlertDialog(
+                                title: Text(
+                                    'Choose an option'),
+                                content: Column(
+                                  mainAxisSize:
+                                  MainAxisSize
+                                      .min,
+                                  children: [
+                                    ListTile(
+                                      leading: Icon(
+                                          Icons
+                                              .image),
+                                      title: Text(
+                                          'Gallery'),
+                                      onTap: () {
+                                        Navigator.pop(
+                                            context,
+                                            'gallery');
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: Icon(
+                                          Icons
+                                              .camera),
+                                      title: Text(
+                                          'Camera'),
+                                      onTap: () {
+                                        Navigator.pop(
+                                            context,
+                                            'camera');
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+
+                          if (action == 'gallery') {
+                            final pickedImage =
+                            await ImagePicker()
+                                .pickImage(
+                              source: ImageSource
+                                  .gallery,
+                            );
+                            if (pickedImage !=
+                                null) {
+                              setState(() {
+                                _image = File(
+                                    pickedImage
+                                        .path);
+                              });
+                            }
+                          } else if (action ==
+                              'camera') {
+                            final pickedImage =
+                            await ImagePicker()
+                                .pickImage(
+                              source: ImageSource
+                                  .camera,
+                            );
+                            if (pickedImage !=
+                                null) {
+                              setState(() {
+                                _image = File(
+                                    pickedImage
+                                        .path);
+                              });
+                            }
+                          }
+                        },
                         child: Container(
                           width: 150,
                           height: 150,
@@ -1080,6 +1158,45 @@ print('selected languageid  :: ${selectedLanguageids}');
                     ),
                     child: Text(
                       'Edit Address', // Button text
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey[800], // Button text color
+                      ),
+                    ),
+                  ),
+
+                ),
+                SizedBox(height: 20,),
+                Container(
+                  width: size.width * 0.90,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200], // Background color
+                    borderRadius:
+                    BorderRadius.circular(20), // Circular border radius
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final SharedPreferences prefs = await SharedPreferences.getInstance();
+                      final userToken = prefs.getString('user_token') ?? '';
+                      print(userToken);
+
+                      // Check if userToken is not empty before navigating
+                      if (userToken.isNotEmpty) {
+                        Get.to(paymentmethod());
+                      } else {
+                        // Handle the case where userToken is empty, e.g., show a message
+                        print('User token is empty. Cannot navigate to ChangePasswordScreen.');
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[200], // Button background color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20), // Circular border radius
+                      ),
+                    ),
+                    child: Text(
+                      'Payment Method', // Button text
                       style: TextStyle(
                         fontSize: 18,
                         color: Colors.grey[800], // Button text color

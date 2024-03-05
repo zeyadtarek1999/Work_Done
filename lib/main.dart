@@ -147,20 +147,28 @@ void startPeriodicSync() {
   });
 }
 
+@pragma('vm:entry-point')
 
 Future<void> _firebaseMessagingBackgroundHandler(
     RemoteMessage message) async {
-  print("Handling background message: ${message.notification?.body}");
+  await Firebase.initializeApp();
 
-    // showLocalNotification('${message.notification?.body}');
+  print("Handling background message Notification: ${message.notification?.body}");
+  print("Handling a background message id: ${message.messageId}");
+
+    showLocalNotification('${message.notification?.body}');
 }
 
+final FirebaseMessaging messaging = FirebaseMessaging.instance;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(false);
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
+  await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(false);
+  String? token = await messaging.getToken();
+  print("Firebase Messaging Token: $token");
   final notificationSettings = await FirebaseMessaging.instance.requestPermission(provisional: true);
   final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
   if (apnsToken != null) {
@@ -189,9 +197,12 @@ print ('token :: ${apnsToken}' ) ; }
       // Handle incoming messages
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         print("Received foreground message: ${message.notification?.body}");
-        // You can handle the message as needed
-        // For example, show a local notification using Awesome Notifications
-        // showLocalNotification(message.notification?.body ?? '');
+        print('Got a message whilst in the foreground!');
+        print('Message data: ${message.data}');
+        if (message.notification != null) {
+          print('Message also contained a notification: ${message.notification}');
+        }
+        showLocalNotification(message.notification?.body ?? '');
       });
 
       FirebaseMessaging.onMessageOpenedApp
@@ -215,7 +226,6 @@ print ('token :: ${apnsToken}' ) ; }
     fetchDataAndShowNotifications();
 
   });
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   await AwesomeNotifications().initialize(
     null,

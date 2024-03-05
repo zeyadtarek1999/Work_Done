@@ -11,10 +11,12 @@ import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../Edit address.dart';
+import '../Payment Method/Payment_method.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
+import '../notifications/notificationScreen.dart';
 import '../welcome/welcome_screen.dart';
 import 'package:http/http.dart' as http;
 
@@ -250,6 +252,35 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
               SizedBox(
                 height: 8,
               ),
+
+              Row(
+                children: [
+                  Icon(
+                    Ionicons.notifications_outline,
+                    color: Colors.grey[800],
+                    size: 27,
+                  ),
+                  SizedBox(
+                    width: 8,
+                  ),
+                  TextButton(
+                      onPressed: () {
+                        Get.to(NotificationsPage());
+                      },
+                      child: Text(
+                        'Notifications',
+                        style: GoogleFonts.encodeSans(
+                          textStyle: TextStyle(
+                              color: HexColor('454545'),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600),
+                        ),
+                      )),
+                ],
+              ),
+              SizedBox(
+                height: 8,
+              ),
               Row(
                 children: [
                   Icon(
@@ -262,7 +293,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
                   ),
                   TextButton(
                       onPressed: () {
-                        launchUrl(Uri.parse('https://www.paypal.com/signin'),mode: LaunchMode.inAppWebView);
+                        Get.to(paymentmethod());
                       },
                       child: Text(
                         'Payment method',

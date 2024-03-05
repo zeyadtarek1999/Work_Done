@@ -30,8 +30,8 @@ class OnBoardingWorker extends StatelessWidget {
         pageBackgroundColor: Colors.white,
         onFinish: () {
           Get.offAll(showcaseWorker(),
-            transition: Transition.zoom, // You can choose a different transition
-            duration: Duration(milliseconds: 1100), fullscreenDialog: true, );
+            transition: Transition.fadeIn, // You can choose a different transition
+            duration: Duration(milliseconds: 800), fullscreenDialog: true, );
         },
         headerBackgroundColor: Colors.white,
         finishButtonText: 'Let\'s Start',

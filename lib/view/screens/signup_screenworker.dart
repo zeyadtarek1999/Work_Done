@@ -622,8 +622,8 @@ class _SignUpScreenState extends State<SignUpScreen>
 
         Get.offAll(
           OnBoardingWorker(),
-          transition: Transition.leftToRight, // You can choose a different transition
-          duration: Duration(milliseconds: 1100),
+          transition: Transition.fadeIn, // You can choose a different transition
+          duration: Duration(milliseconds: 700),
           fullscreenDialog: true,
         );
         // Navigate to the next screen (you may want to do this based on certain conditions)

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:badges/badges.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +13,8 @@ import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/view/screens/Bid%20Details/Bid%20details%20Worker.dart';
 import '../Bid Details/Bid details Client.dart';
+import 'package:badges/badges.dart' as badges;
+
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
@@ -223,18 +226,35 @@ class _exploreWorkerState extends State<exploreWorker> with SingleTickerProvider
           actions: [
 
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: GestureDetector(
-                onTap: (){
-Get.to(NotificationsPage());
-                },
-                child:
-                SvgPicture.asset(
-                  'assets/icons/iconnotification.svg',
-                  width: 48.0,
-                  height:48.0,
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child:   badges.Badge(
+                badgeStyle: badges.BadgeStyle(
+                  badgeColor: Colors.red,
+                  shape: badges.BadgeShape.circle,
+                ),
+                position: BadgePosition.topEnd(),
+                badgeContent: Text('10',style: TextStyle(color: Colors.white),),
+                badgeAnimation: badges.BadgeAnimation.rotation(
+                  animationDuration: Duration(seconds: 1),
+                  colorChangeAnimationDuration: Duration(seconds: 1),
+                  loopAnimation: false,
+                  curve: Curves.fastOutSlowIn,
+                  colorChangeAnimationCurve: Curves.easeInCubic,
+                ),
+                child: GestureDetector(
+                  onTap:
+                      (){Get.to(NotificationsPage());
+                  }
+                  ,
+                  child: SvgPicture.asset(
+                    'assets/icons/iconnotification.svg',
+                    width: 48.0,
+                    height:48.0,
+                  ),
+
                 ),
               ),
+
             )
 
           ],

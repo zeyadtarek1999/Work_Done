@@ -1058,7 +1058,6 @@ print(widget.userId.toString(),);
   }
 
   Widget buildProjectItem(Project project) {
-    String ratingOnWorker = project.reviews.ratingOnWorker ?? 'No rate yet';
 
     return GestureDetector(
       onTap: () {
@@ -1286,7 +1285,7 @@ print(widget.userId.toString(),);
                             children: [
                               Icon(Icons.star,color: Colors.yellow,),
                               Text(
-                                '${ratingOnWorker}',
+                                '${project.reviews.ratingOnWorker}',
                                 style: GoogleFonts.openSans(
                                   textStyle: TextStyle(
                                     color: HexColor('393B3E'),
@@ -1504,9 +1503,9 @@ class Project {
 
 class Reviews {
   final String? reviewOnWorker;
-  final String? ratingOnWorker;
+  final int? ratingOnWorker;
   final String? reviewOnClient;
-  final String? ratingOnClient;
+  final int? ratingOnClient;
 
   Reviews({
     required this.reviewOnWorker,

@@ -68,18 +68,18 @@ class _AppLauncherState extends State<AppLauncher> {
             if (userType == 'client') {
               Get.offAll(
                 layoutclient(showCase: false),
-                transition: Transition.zoom, // You can choose a different transition
-                duration: Duration(milliseconds: 1100), // Set the duration of the transition
+                transition: Transition.fadeIn, // You can choose a different transition
+                duration: Duration(milliseconds: 700), // Set the duration of the transition
               );
             } else if (userType == 'worker') {
               Get.offAll(layoutworker(showCase: false),
-                transition: Transition.zoom, // You can choose a different transition
-                duration: Duration(milliseconds: 1100), );
+                transition: Transition.fadeIn, // You can choose a different transition
+                duration: Duration(milliseconds: 700), );
             } else {
               print('Error: Unknown user type.');
               Get.off(WelcomeScreen(),
                 transition: Transition.upToDown, // You can choose a different transition
-                duration: Duration(milliseconds: 1100), );
+                duration: Duration(milliseconds: 700), );
             }
           } else {
             print('Error: Response data does not contain user_type.');

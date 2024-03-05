@@ -23,6 +23,7 @@ class _changePasswordscreenState extends State<changePasswordscreen> {
 
   final TextEditingController confirmPasswordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
   bool _isObscured = true;
   bool _isObscured2 = true;
@@ -30,7 +31,7 @@ class _changePasswordscreenState extends State<changePasswordscreen> {
   bool _passwordsMatch = false;
   String _password = '';
   bool _isValidPassword(String password) {
-    if (password.length < 6) {
+    if (password.length < 8) {
       return false;
     }
 
@@ -75,11 +76,14 @@ class _changePasswordscreenState extends State<changePasswordscreen> {
     // All conditions passed, so the password is valid
     return true;
   }
+  bool charater8 = false;
+
   void checkPassword(String password) {
     setState(() {
       hasUppercase = RegExp(r'[A-Z]').hasMatch(password);
       hasLowercase = RegExp(r'[a-z]').hasMatch(password);
       hasNumber = RegExp(r'[0-9]').hasMatch(password);
+      charater8 = password.length >= 8;
     });
   }
 
@@ -125,6 +129,7 @@ class _changePasswordscreenState extends State<changePasswordscreen> {
     // }
 
     final apiManager = changepasswordapimodel();
+
     await apiManager.changePassword(currentPassword, newPassword);
 
     // Optionally, you can add navigation logic or show a message based on the API response.
@@ -135,6 +140,7 @@ class _changePasswordscreenState extends State<changePasswordscreen> {
     Size size = MediaQuery.of(context).size;
 
     return Form(
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       key: formKey,
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -212,7 +218,7 @@ class _changePasswordscreenState extends State<changePasswordscreen> {
                                         if (value == null || value.isEmpty) {
                                           return 'Please enter a password';
                                         } else if (!_isValidPassword(value)) {
-                                          return 'Password must be at least 12 characters long and include uppercase and lowercase letters, and numbers.';
+                                          return 'Password must be at least 8 characters long and include uppercase and lowercase letters, and numbers.';
                                         }
                                         return null;
                                       },
@@ -227,6 +233,8 @@ class _changePasswordscreenState extends State<changePasswordscreen> {
                                           onTap: _togglePasswordVisibility2,
                                           // Call the _togglePasswordVisibility function here
                                           child: Icon(
+                                            color: HexColor('#509372'),
+
                                             _isObscured2
                                                 ? Icons.visibility
                                                 : Icons.visibility_off,
@@ -297,7 +305,7 @@ class _changePasswordscreenState extends State<changePasswordscreen> {
                                         if (value == null || value.isEmpty) {
                                           return 'Please enter a password';
                                         } else if (!_isValidPassword(value)) {
-                                          return 'required At least 12 characters long,uppercase & lowercase letters,'
+                                          return 'required At least 8 characters long,uppercase & lowercase letters,'
                                               ' numbers, and symbols.';
                                         }
                                         return null;
@@ -313,6 +321,8 @@ class _changePasswordscreenState extends State<changePasswordscreen> {
                                           onTap: _togglePasswordVisibility,
                                           // Call the _togglePasswordVisibility function here
                                           child: Icon(
+                                            color: HexColor('#509372'),
+
                                             _isObscured
                                                 ? Icons.visibility
                                                 : Icons.visibility_off,
@@ -417,78 +427,113 @@ class _changePasswordscreenState extends State<changePasswordscreen> {
                   ],
                 ),
               ),
-
-              const SizedBox(
-                height: 10,
-              ),
-              RoundedButton(text: 'Change Password', press: _changePassword),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        hasUppercase
-                            ? Icons.check_circle
-                            : Icons.cancel,
-                        color:
-                        hasUppercase ? Colors.green : Colors.red,
+                      Row(
+                        mainAxisAlignment:
+                        MainAxisAlignment.start,
+                        children: [
+                          Icon(
+                            hasUppercase
+                                ? Icons.check_circle
+                                : Icons.cancel,
+                            color: hasUppercase
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Uppercase letter',
+                            style: TextStyle(
+                              color: hasUppercase
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 4),
-                      Text(
-                        'Uppercase letter',
-                        style: TextStyle(
-                          color: hasUppercase
-                              ? Colors.green
-                              : Colors.red,
-                        ),
+                      Row(
+                        mainAxisAlignment:
+                        MainAxisAlignment.start,
+                        children: [
+                          Icon(
+                            hasLowercase
+                                ? Icons.check_circle
+                                : Icons.cancel,
+                            color: hasLowercase
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Lowercase letter',
+                            style: TextStyle(
+                              color: hasLowercase
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment:
+                        MainAxisAlignment.start,
+                        children: [
+                          Icon(
+                            hasNumber
+                                ? Icons.check_circle
+                                : Icons.cancel,
+                            color: hasNumber
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Number',
+                            style: TextStyle(
+                              color: hasNumber
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment:
+                        MainAxisAlignment.start,
+                        children: [
+                          Icon(
+                            charater8
+                                ? Icons.check_circle
+                                : Icons.cancel,
+                            color: charater8
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'At least 8 characters',
+                            style: TextStyle(
+                              color: charater8
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        hasLowercase
-                            ? Icons.check_circle
-                            : Icons.cancel,
-                        color:
-                        hasLowercase ? Colors.green : Colors.red,
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        'Lowercase letter',
-                        style: TextStyle(
-                          color: hasLowercase
-                              ? Colors.green
-                              : Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        hasNumber ? Icons.check_circle : Icons.cancel,
-                        color: hasNumber ? Colors.green : Colors.red,
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        'Number',
-                        style: TextStyle(
-                          color:
-                          hasNumber ? Colors.green : Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: ScreenUtil.sizeboxheight,
                   ),
                 ],
               ),
+              SizedBox(
+                height: ScreenUtil.sizeboxheight,
+              ),
+
+              RoundedButton(text: 'Change Password', press: _changePassword),
             ],
 
           ),

@@ -481,7 +481,84 @@ SizedBox(height: 8,),
                       ),
                       // Opacity Overlay
                       GestureDetector(
-                        onTap: _getImageFromGallery,
+                        onTap: () async {
+                          final action =
+                          await showDialog<
+                              String>(
+                            context: context,
+                            builder: (BuildContext
+                            context) {
+                              return AlertDialog(
+                                title: Text(
+                                    'Choose an option'),
+                                content: Column(
+                                  mainAxisSize:
+                                  MainAxisSize
+                                      .min,
+                                  children: [
+                                    ListTile(
+                                      leading: Icon(
+                                          Icons
+                                              .image),
+                                      title: Text(
+                                          'Gallery'),
+                                      onTap: () {
+                                        Navigator.pop(
+                                            context,
+                                            'gallery');
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: Icon(
+                                          Icons
+                                              .camera),
+                                      title: Text(
+                                          'Camera'),
+                                      onTap: () {
+                                        Navigator.pop(
+                                            context,
+                                            'camera');
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+
+                          if (action == 'gallery') {
+                            final pickedImage =
+                            await ImagePicker()
+                                .pickImage(
+                              source: ImageSource
+                                  .gallery,
+                            );
+                            if (pickedImage !=
+                                null) {
+                              setState(() {
+                                _image = File(
+                                    pickedImage
+                                        .path);
+                              });
+                            }
+                          } else if (action ==
+                              'camera') {
+                            final pickedImage =
+                            await ImagePicker()
+                                .pickImage(
+                              source: ImageSource
+                                  .camera,
+                            );
+                            if (pickedImage !=
+                                null) {
+                              setState(() {
+                                _image = File(
+                                    pickedImage
+                                        .path);
+                              });
+                            }
+                          }
+                        },
                         child: Container(
                           width: 150,
                           height: 150,

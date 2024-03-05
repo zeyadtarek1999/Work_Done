@@ -213,13 +213,13 @@ class _SignUpScreen2State extends State<SignUpScreen2> with SingleTickerProvider
   bool hasLowercase = false;
 
   bool hasNumber = false;
-bool charater12 =false;
+bool charater8 =false;
   void checkPassword(String password) {
     setState(() {
       hasUppercase = RegExp(r'[A-Z]').hasMatch(password);
       hasLowercase = RegExp(r'[a-z]').hasMatch(password);
       hasNumber = RegExp(r'[0-9]').hasMatch(password);
-      charater12 = password.length >= 12;
+      charater8 = password.length >= 8;
     });
   }
 
@@ -256,7 +256,7 @@ bool charater12 =false;
   //   return true;
   // }
   bool _isValidPassword(String password) {
-    if (password.length < 12) {
+    if (password.length < 8) {
       return false;
     }
 
@@ -405,8 +405,8 @@ bool charater12 =false;
         );
 
         Get.offAll(OnBoardingClient(),
-          transition: Transition.leftToRight, // You can choose a different transition
-          duration: Duration(milliseconds: 1100), fullscreenDialog: true, );
+          transition: Transition.fadeIn, // You can choose a different transition
+          duration: Duration(milliseconds: 700), fullscreenDialog: true, );
             } else {
         // Display a toast message with the error message
         Fluttertoast.showToast(
@@ -490,7 +490,7 @@ bool charater12 =false;
 
     }
     if (selectedState != 'Select State') {
-      addresstext += selectedState +',';
+      addresstext += selectedState ;
       addresstext += '';
     }
 
@@ -766,7 +766,7 @@ bool charater12 =false;
                                                       controller: addressst2Controller,
                                                       style: TextStyle(color: HexColor('#4D8D6E')),
                                                       decoration: InputDecoration(
-                                                        hintText: 'Apt ,suite ,unit ,building, floor ,etc.',
+                                                        hintText: 'Apt ,suite ,unit ,building',
                                                         hintStyle: TextStyle(color: HexColor('#707070')),
                                                         enabledBorder: OutlineInputBorder(
                                                           borderSide: BorderSide(color: HexColor('#707070')),
@@ -1129,85 +1129,122 @@ bool charater12 =false;
                         height: ScreenUtil.sizeboxheight,
                       ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 0),
                                 height: size.height * 0.103,
                                 width: size.width * 0.93,
                                 decoration: BoxDecoration(
-
                                   color: Color(0xFFF5F5F5),
                                   borderRadius: BorderRadius.circular(29),
                                 ),
                                 child: Row(
                                   children: [
                                     SvgPicture.asset(
-                                      'assets/icons/phonenumber.svg', // Replace with your SVG path
+                                      'assets/icons/phonenumber.svg',
+                                      // Replace with your SVG path
                                       width: 33.0,
                                       height: 33.0,
                                     ),
-                                    SizedBox(width: 20.0),
+                                    SizedBox(width: 10.0),
                                     Expanded(
                                       child: Row(
                                         children: [
-                                          DropdownButton<String>(
-                                            value: selectedPhoneCode,
-                                            onChanged: (newValue) {
-                                              setState(() {
-                                                // Update the selected phone code
-                                                selectedPhoneCode = newValue!;
-                                              });
-                                            },
-                                            items: americanPhoneCodes.map((code) {
-                                              return DropdownMenuItem<String>(
-                                                value: code,
-                                                child: Text(code),
-                                              );
-                                            }).toList(),
+                                          Container(
+
+                                            decoration: BoxDecoration(
+
+                                              color: Colors.grey[200],
+                                              borderRadius: BorderRadius.circular(5.0),
+                                            ),
+                                            child: DecoratedBox(
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(5.0),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  SvgPicture.asset(
+                                                    'assets/icons/uslogo.svg',
+                                                    width: 27.0,
+                                                    height: 27.0,
+                                                  ),
+                                                  SizedBox(width: 8),
+                                                  Text(
+                                                    '+1',
+                                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
-                                          SizedBox(width: 8), // Add some spacing between the dropdown and the text field
+                                          SizedBox(width: 10),
+                                          // Add some spacing between the dropdown and the text field
                                           Expanded(
                                             child: TextFormField(
-
                                               controller: phoneNumberController,
                                               decoration: InputDecoration(
                                                 hintText: 'Phone Number',
                                                 border: InputBorder.none,
-                                                contentPadding: EdgeInsets.all(0), // Remove content padding
-
+                                                contentPadding: EdgeInsets.all(
+                                                    0), // Remove content padding
                                               ),
                                               keyboardType: TextInputType.phone,
                                               onChanged: (value) {
                                                 setState(() {
                                                   // Format the phone number using the formatPhoneNumber function
-                                                  final formattedPhoneNumber = formatPhoneNumber(value);
-                                                  phoneNumberController.value = TextEditingValue(
-                                                    text: formattedPhoneNumber,
-                                                    selection: TextSelection.collapsed(offset: formattedPhoneNumber.length),
-
-                                                  );
-                              // Add +1 prefix to the formatted phone number
-                                                  phoneNumberController.text = '$formattedPhoneNumber';
+                                                  final formattedPhoneNumber =
+                                                  formatPhoneNumber(value);
+                                                  phoneNumberController.value =
+                                                      TextEditingValue(
+                                                        text: formattedPhoneNumber,
+                                                        selection:
+                                                        TextSelection.collapsed(
+                                                            offset:
+                                                            formattedPhoneNumber
+                                                                .length),
+                                                      );
+                                                  // Add +1 prefix to the formatted phone number
+                                                  phoneNumberController.text =
+                                                  '$formattedPhoneNumber';
 
                                                   // Ensure the cursor position is at the end
-                                                  phoneNumberController.selection = TextSelection.fromPosition(
-                                                    TextPosition(offset: phoneNumberController.text.length),
-                                                  );
-                                                  print(phoneNumberController.text);
+                                                  phoneNumberController
+                                                      .selection =
+                                                      TextSelection
+                                                          .fromPosition(
+                                                        TextPosition(
+                                                            offset:
+                                                            phoneNumberController
+                                                                .text.length),
+                                                      );
+                                                  print(phoneNumberController
+                                                      .text);
                                                   // Validate the phone number
-                                                  isPhoneNumberValid = validatePhoneNumber(formattedPhoneNumber);
+                                                  isPhoneNumberValid =
+                                                      validatePhoneNumber(
+                                                          formattedPhoneNumber);
                                                 });
                                               },
                                               inputFormatters: [
-                                                FilteringTextInputFormatter.digitsOnly,
-                                                LengthLimitingTextInputFormatter(10), // Limit the input length to 10 digits
+                                                FilteringTextInputFormatter
+                                                    .digitsOnly,
+                                                LengthLimitingTextInputFormatter(
+                                                    10),
+                                                // Limit the input length to 10 digits
                                               ],
                                               validator: (value) {
-                                                if (value == null || value.isEmpty) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
                                                   return 'Please enter a phone number';
                                                 }
 
                                                 // Basic validation: Check if the formatted phone number has 10 digits
-                                                final formattedPhoneNumber = formatPhoneNumber(value);
-                                                if (formattedPhoneNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
+                                                final formattedPhoneNumber =
+                                                formatPhoneNumber(value);
+                                                if (formattedPhoneNumber
+                                                    .replaceAll(
+                                                    RegExp(r'\D'), '')
+                                                    .length !=
+                                                    10) {
                                                   return 'Invalid phone number';
                                                 }
 
@@ -1217,7 +1254,8 @@ bool charater12 =false;
                                           ),
                                         ],
                                       ),
-                                    ), if (!isPhoneNumberValid)
+                                    ),
+                                    if (!isPhoneNumberValid)
                                       Text(
                                         'Please enter a valid phone number.',
                                         style: TextStyle(color: Colors.red),
@@ -1267,7 +1305,7 @@ bool charater12 =false;
                                               }
 
                                               else if (!_isValidPassword(value)) {
-                                                return 'required At least 12 characters long,uppercase & lowercase letters,'
+                                                return 'required At least 8 characters long,uppercase & lowercase letters,'
                                                     ' numbers, and symbols.';
                                               }
                                               return null;
@@ -1437,14 +1475,14 @@ bool charater12 =false;
                                         mainAxisAlignment: MainAxisAlignment.start,
                                         children: [
                                           Icon(
-                                            charater12?  Icons.check_circle : Icons.cancel,
-                                            color: charater12?  Colors.green : Colors.red,
+                                            charater8?  Icons.check_circle : Icons.cancel,
+                                            color: charater8?  Colors.green : Colors.red,
                                           ),
                                           SizedBox(width: 4),
                                           Text(
-                                            'At least 12 characters',
+                                            'At least 8 characters',
                                             style: TextStyle(
-                                              color: charater12? Colors.green : Colors.red,
+                                              color: charater8? Colors.green : Colors.red,
                                             ),
                                           ),
                                         ],

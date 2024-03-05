@@ -162,8 +162,8 @@ bool _isLoading =false;
             fontSize: 16.0,
           );
           Get.off(bidDetailsWorker(projectId: widget.projectId),
-              transition: Transition.zoom, // You can choose a different transition
-              duration: Duration(milliseconds: 1100), // Set the duration of the transition
+              transition: Transition.fadeIn, // You can choose a different transition
+              duration: Duration(milliseconds: 700), // Set the duration of the transition
     );
         } else if (responseBody['status'] == 'success') {
           // Check the specific error message
@@ -177,8 +177,8 @@ bool _isLoading =false;
               ),
             );
             Get.offAll(bidDetailsWorker(projectId: widget.projectId),
-    transition: Transition.zoom, // You can choose a different transition
-    duration: Duration(milliseconds: 1100), // Set the duration of the transition
+    transition: Transition.fadeIn, // You can choose a different transition
+    duration: Duration(milliseconds: 700), // Set the duration of the transition
     );
 
           } else {
@@ -280,10 +280,12 @@ bool _isLoading =false;
               children: [
 
               Padding(
-                padding: const EdgeInsets.only(top: 20,left: 20,right: 20),
+                padding: EdgeInsets.symmetric(
+                  vertical: MediaQuery.of(context).size.width > 600 ? 40 : 20,
+                  horizontal: MediaQuery.of(context).size.width > 600 ? 60 : 20,
+                ),
                 child: Container(
                 width: double.infinity,
-                height: 300, // Set the height as needed
                 decoration: BoxDecoration(
                   color: HexColor('4D8D6E'), // Color
                   borderRadius: BorderRadius.circular(30.0), // Circular radius
@@ -304,262 +306,262 @@ bool _isLoading =false;
               projecttitle = projectData.title.toString();
               projectdesc = projectData.desc.toString();
 
-              return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Center(
-                      child: Animate(
-                        effects: [ScaleEffect(duration: Duration(milliseconds: 500),),],
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Center(
+                        child: Animate(
+                          effects: [ScaleEffect(duration: Duration(milliseconds: 500),),],
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'You are about to place a bid for ',
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                    color: HexColor('FFFFFF'),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                projecttitle,
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                    color: HexColor('FFFFFF'),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'by',
+                                    style: GoogleFonts.openSans(
+                                      textStyle: TextStyle(
+                                        color: HexColor('FFFFFF'),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 4,),
+                                  Container(
+                                    height: 30,
+                                    padding: EdgeInsets.zero,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: TextButton(
+                                      onPressed: () {
+                                        Get.to(ProfilePageClient(userId: projectData.clientData!.clientId.toString()),
+                                          transition: Transition.fadeIn, // You can choose a different transition
+                                          duration: Duration(milliseconds: 700), // Set the duration of the transition
+                                        );
+                                      },
+                                      style: TextButton.styleFrom(
+                                        // fixedSize: Size(50, 30), // Adjust the size as needed
+                                        padding: EdgeInsets.zero,
+                                      ),
+                                      child: Text(
+                                        projectData.clientData!.firstname,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          fontStyle: FontStyle.italic,
+                                          decoration: TextDecoration.underline,
+                                          ),
+                                          ),
+                                    ),
+                                    )
+                                    ],
+                                    ),
+                                        ],
+                                        ),
+                        ),
+                ),
+
+
+                Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25.0,vertical: 10),
+                        child: Text('Enter your bid',style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                            color: HexColor('FFFFFF'),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        ),
+                      ),
+                      SizedBox(height: 8,),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white, // White background color
+                            borderRadius: BorderRadius.circular(12.0), // Circular radius
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0), // Adjust padding as needed
+                            child: TextFormField(
+                              controller: receive,
+                              keyboardType: TextInputType.number,
+                              onChanged: (value) {
+                                // Call the calculateAndSave function when the text field changes
+                                calculateAndSave();
+                              },
+                              validator: (value) {
+                                // Validate the entered value
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a value';
+                                }
+                                // Add additional validation as needed
+
+                                // If the validation passes, return null
+                                return null;
+                              },
+                              decoration: InputDecoration(
+
+                                hintText: 'Enter a value', // Hint text
+                                hintStyle: TextStyle(color: Colors.grey), // Hint text color
+                                suffixIcon: Icon(Icons.attach_money), // Suffix icon (Dollar sign)
+                                border: InputBorder.none, // Remove underline
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 12,),
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25.0,vertical: 8),
+                        child: Row(
                           children: [
+
+                            Text('Service fee ',style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: HexColor('FFFFFF'),
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                            ),
+                            Container(
+                              width: 20, // Set the desired width
+                              height: 30, // Set the desired height
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle, // Make the container circular
+                                color: HexColor('4D8D6E'), // Set the background color
+                              ),
+                              child: IconButton(
+                                iconSize: 17, // Set the desired icon size
+                                icon: Icon(Icons.info_outline, color: Colors.white), // Use the 'info' icon
+                                onPressed: () {
+                                  // Show the dialog when the icon is pressed
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: Text('Information'),
+                                        content: Text('information.'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop(); // Close the dialog
+                                            },
+                                            child: Text(
+                                              'Close',
+                                              style: TextStyle(
+                                                color: HexColor('4D8D6E'), // Set the 'Close' button color
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            )
+                          ,
+                            Spacer(),
+                        Text('10',style: GoogleFonts.openSans(
+                          textStyle: TextStyle(
+                            color: HexColor('FFFFFF'),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        ),
+                          Icon(Icons.percent,size: 17,color: Colors.white,),
+
+                          ],
+
+                        ),
+                      )
+                          ,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                        child: Row(
+                          children: [
+
+                            Text('Total ',style: GoogleFonts.openSans(
+                              textStyle: TextStyle(
+                                color: HexColor('FFFFFF'),
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                            ),
+                            Spacer(),
                             Text(
-                              'You are about to place a bid for ',
+                              '${total}',
                               style: GoogleFonts.openSans(
                                 textStyle: TextStyle(
                                   color: HexColor('FFFFFF'),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  projecttitle,
-                                  style: GoogleFonts.openSans(
-                                    textStyle: TextStyle(
-                                      color: HexColor('FFFFFF'),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 4),
-                                Row(
-                                  children: [
-                                    Text(
-                                      'by',
-                                      style: GoogleFonts.openSans(
-                                        textStyle: TextStyle(
-                                          color: HexColor('FFFFFF'),
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      height: 30,
-                                      width: 50,
-                                      padding: EdgeInsets.zero,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: TextButton(
-                                        onPressed: () {
-                                          Get.to(ProfilePageClient(userId: projectData.clientData!.clientId.toString()),
-                                            transition: Transition.leftToRightWithFade, // You can choose a different transition
-                                            duration: Duration(milliseconds: 1100), // Set the duration of the transition
-                                          );
-                                        },
-                                        style: TextButton.styleFrom(
-                                          fixedSize: Size(50, 30), // Adjust the size as needed
-                                          padding: EdgeInsets.zero,
-                                        ),
-                                        child: Text(
-                                          projectData.clientData!.firstname,
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            decoration: TextDecoration.underline,
-                                            ),
-                                            ),
-                                      ),
-                                      )
-                                      ],
-                                      ),
-                                      ],
-                                      ),
-                                      ],
-                                      ),
-                      ),
-              ),
 
+                            Icon(Icons.attach_money,size: 17,color: Colors.white,),
 
-              Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25.0,vertical: 10),
-                      child: Text('Enter your bid',style: GoogleFonts.openSans(
-                        textStyle: TextStyle(
-                          color: HexColor('FFFFFF'),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                          ],
+
                         ),
                       ),
-                      ),
-                    ),
-                    SizedBox(height: 8,),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white, // White background color
-                          borderRadius: BorderRadius.circular(12.0), // Circular radius
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0), // Adjust padding as needed
-                          child: TextFormField(
-                            controller: receive,
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) {
-                              // Call the calculateAndSave function when the text field changes
-                              calculateAndSave();
-                            },
-                            validator: (value) {
-                              // Validate the entered value
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a value';
-                              }
-                              // Add additional validation as needed
 
-                              // If the validation passes, return null
-                              return null;
-                            },
-                            decoration: InputDecoration(
-
-                              hintText: 'Enter a value', // Hint text
-                              hintStyle: TextStyle(color: Colors.grey), // Hint text color
-                              suffixIcon: Icon(Icons.attach_money), // Suffix icon (Dollar sign)
-                              border: InputBorder.none, // Remove underline
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 12,),
-
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25.0,vertical: 8),
-                      child: Row(
-                        children: [
-
-                          Text('Service fee ',style: GoogleFonts.openSans(
-                            textStyle: TextStyle(
-                              color: HexColor('FFFFFF'),
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                          ),
-                          Container(
-                            width: 20, // Set the desired width
-                            height: 30, // Set the desired height
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle, // Make the container circular
-                              color: HexColor('4D8D6E'), // Set the background color
-                            ),
-                            child: IconButton(
-                              iconSize: 17, // Set the desired icon size
-                              icon: Icon(Icons.info_outline, color: Colors.white), // Use the 'info' icon
-                              onPressed: () {
-                                // Show the dialog when the icon is pressed
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: Text('Information'),
-                                      content: Text('information.'),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop(); // Close the dialog
-                                          },
-                                          child: Text(
-                                            'Close',
-                                            style: TextStyle(
-                                              color: HexColor('4D8D6E'), // Set the 'Close' button color
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          )
-          ,
-                          Spacer(),
-                      Text('10',style: GoogleFonts.openSans(
-                        textStyle: TextStyle(
-                          color: HexColor('FFFFFF'),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      ),
-                        Icon(Icons.percent,size: 17,color: Colors.white,),
-
-                        ],
-
-                      ),
-                    )
-          ,
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                      child: Row(
-                        children: [
-
-                          Text('Total ',style: GoogleFonts.openSans(
-                            textStyle: TextStyle(
-                              color: HexColor('FFFFFF'),
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                          ),
-                          Spacer(),
-                          Text(
-                            '${total}',
-                            style: GoogleFonts.openSans(
+                SizedBox(height: 3,),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text('(What you will recieve) ',style: GoogleFonts.openSans(
                               textStyle: TextStyle(
-                                color: HexColor('FFFFFF'),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
                               ),
-                            ),
-                          ),
-
-                          Icon(Icons.attach_money,size: 17,color: Colors.white,),
-
-                        ],
-
+                            ),),
+                          ],
+                        ),
                       ),
-                    ),
-
-SizedBox(height: 3,),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text('(What you will recieve) ',style: GoogleFonts.openSans(
-                            textStyle: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),),
-                        ],
-                      ),
-                    ),
 
 
 
-                  ],
-                );}}),
+                    ],
+                  ),
+              );}}),
               ),),
           SizedBox(height: 10,),
                 SizedBox(height: 15,),
@@ -614,8 +616,7 @@ SizedBox(width: 6,),
                         maxLines: null, // Allows the text to take up multiple lines
                         decoration: InputDecoration(
                           hintText:
-                          "Kindly provide detailed comments regarding your project, including insights into your envisioned materials, preferences, and any specific requirements you may have for the upcoming work......",
-                          border: InputBorder.none,
+'Please write your comment to the client. This should include materials you plan to use, etc..',                          border: InputBorder.none,
                           hintMaxLines: 5, // Allows the hint text to take up multiple lines
                           hintStyle: TextStyle(
                             color: Colors.grey,

@@ -411,6 +411,7 @@ double widthofbar = 150;
         throw Exception('Failed to load data from API: Status code ${response.statusCode}');
       }
     } catch (e) {
+      print('user id ${widget.userId}');
       throw Exception('Error retrieving user profile: $e');
     }
   }
@@ -447,7 +448,7 @@ double widthofbar = 150;
         throw Exception('Failed to load data from API: Status code ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error retrieving user profile: $e');
+      throw Exception('Error retrieving user rating profile: $e');
     }
   }
 
@@ -1314,7 +1315,7 @@ SizedBox(height: 10,),
   }
 
   Widget buildProjectItem(Project project) {
-    String ratingOnWorker = project.reviews.ratingOnWorker ?? 'No rate yet';
+    String ratingOnWorker = project.reviews.ratingOnWorker.toString() ?? 'No rate yet';
 
     return GestureDetector(
       onTap: () {
@@ -1678,8 +1679,8 @@ class UserData {
   final String lastname;
   final String email;
   final String profilePic;
-  final int experience;
-  final String phone;
+  final dynamic experience;
+  final dynamic phone;
   List<dynamic> languages;
   final String license_number;
   final String license_pic;
@@ -1710,7 +1711,7 @@ class UserData {
       license_number: json['license_number']??'',
       license_pic: json['license_pic']??'',
       languages: json['language']?? [],
-      experience: json['experience']??'0',
+      experience: json['experience']??0,
 
     );
 
@@ -1775,9 +1776,9 @@ class Project {
 
 class Reviews {
   final String? reviewOnWorker;
-  final String? ratingOnWorker;
+  final int? ratingOnWorker;
   final String? reviewOnClient;
-  final String? ratingOnClient;
+  final int? ratingOnClient;
 
   Reviews({
     required this.reviewOnWorker,
