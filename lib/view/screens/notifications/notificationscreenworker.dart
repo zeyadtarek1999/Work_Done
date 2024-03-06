@@ -3,19 +3,25 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:workdone/view/screens/Bid%20Details/Bid%20details%20Client.dart';
+import 'package:workdone/view/screens/Bid%20Details/Bid%20details%20Worker.dart';
+import 'package:workdone/view/screens/Profile%20(client-worker)/profilescreenClient.dart';
+import 'package:workdone/view/screens/Profile%20(client-worker)/profilescreenworker.dart';
 
-class NotificationsPage extends StatefulWidget {
+class NotificationsPageworker extends StatefulWidget {
   @override
-  State<NotificationsPage> createState() => _NotificationsPageState();
+  State<NotificationsPageworker> createState() => _NotificationsPageworkerState();
 }
 
-class _NotificationsPageState extends State<NotificationsPage> {
+class _NotificationsPageworkerState extends State<NotificationsPageworker> {
   Future<List<Item>> fetchnotification() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -39,9 +45,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
             return Item(
               created_at: json['created_at'],
               msg: json['msg'],
+              data: json['data'],
+              type:  json['type'],
             );
           }).toList();
-
+          print( 'testing the fetch data $projects');
           return projects;
         } else {
           throw Exception(
@@ -160,6 +168,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
   Widget buildListItem(Item item) {
 
+    print( 'testing the fetch type ${item.type}');
+    print( 'testing the fetch data ${item.data}');
+
     return
 
       Padding(
@@ -167,32 +178,67 @@ class _NotificationsPageState extends State<NotificationsPage> {
             horizontal: 10.0, vertical: 5),
         child: Column(
           children: [
-            ListTile(
-              leading: CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                  radius: 20,
-                  child: Icon(
-                    Icons.notifications_active,
-                    color: Colors.blueGrey,
-                  )),
-              title: Text(
-                item.msg,
-                style: GoogleFonts.poppins(
-                  textStyle: TextStyle(
-                      color: HexColor('1A1D1E'),
-                      fontSize: 15,
-                      fontWeight: FontWeight.normal),
+            GestureDetector(
+              onTap: (){
+                item.type == 'profile'?
+                Get.to(ProfileScreenworker()):
+                item.type == 'project'?
+                Get.to(bidDetailsWorker(projectId: item.data,)):
+                item.type == 'bid'?
+                Get.to(bidDetailsWorker(projectId: item.data,)):
+                item.type == 'schedule'?
+                Get.to(bidDetailsWorker(projectId: item.data,)):
+
+
+
+                null;
+
+
+
+
+              },
+
+              child: ListTile(
+                leading: CircleAvatar(
+                    backgroundColor: Colors.grey[300],
+                    radius: 20,
+                    child:
+                    item.type == 'project'?
+
+                    FaIcon(FontAwesomeIcons.briefcase,                     color: Colors.blueGrey,)
+                        :
+                    item.type == 'profile'?
+
+                    Icon(Icons.account_circle_rounded,                     color: Colors.blueGrey,)
+                        :item.type == 'bid'?
+                    Icon(Icons.monetization_on,                     color: Colors.blueGrey,)
+                        :item.type == 'schedule'?
+                    Icon(Icons.access_time_filled,                     color: Colors.blueGrey,)
+                        :
+                    Icon(
+                      Icons.notifications_active,
+                      color: Colors.blueGrey,
+                    )
                 ),
-              ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  item.created_at,
+                title: Text(
+                  item.msg,
                   style: GoogleFonts.poppins(
-                      textStyle:
-                      TextStyle(color: Colors.black45),
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal),
+                    textStyle: TextStyle(
+                        color: HexColor('1A1D1E'),
+                        fontSize: 15,
+                        fontWeight: FontWeight.normal),
+                  ),
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    item.created_at,
+                    style: GoogleFonts.poppins(
+                        textStyle:
+                        TextStyle(color: Colors.black45),
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                  ),
                 ),
               ),
             ),
@@ -208,14 +254,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
       );
   }
 
-  }
+}
 
 class Item {
   final String msg;
   final String created_at;
+  final dynamic type;
+  final dynamic data;
 
   Item({
     required this.msg,
     required this.created_at,
+    required this.type,
+    required this.data,
   });
 }

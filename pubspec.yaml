@@ -91,6 +91,7 @@ dependencies:
 
   firebase_messaging: ^14.7.17
   badges: ^3.1.2
+  flutter_launcher_icons: ^0.13.1
 
   dotted_border: ^2.1.0
   flutter_sequence_animation: ^4.0.0
@@ -101,7 +102,12 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: "^0.13.1"
+flutter_launcher_icons:
+  android: true
+  ios: true
 
+  image_path: "assets/icons/logoworkdone.png"
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your

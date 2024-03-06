@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -30,7 +31,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:video_player/video_player.dart';
 import 'package:workdone/view/screens/InboxwithChat/chat.dart';
-import 'package:workdone/view/screens/notifications/notificationScreen.dart';
+import 'package:workdone/view/screens/notifications/notificationScreenclient.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
 import '../InboxwithChat/ChatClient.dart';
 import '../Screens_layout/layoutclient.dart';
@@ -100,6 +101,137 @@ class _bidDetailsClientState extends State<bidDetailsClient>  with SingleTickerP
       }
     });
   }
+  final StreamController<String> _likedStatusController = StreamController<String>();
+
+  Map<int, bool> likedProjectsMap = {};
+
+
+  Stream<String> get likedStatusStream => _likedStatusController.stream;
+  Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String userToken = prefs.getString('user_token') ?? '';
+
+      final response = await http.post(
+        Uri.parse('https://workdonecorp.com/api/add_project_to_likes'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer $userToken',
+        },
+        body: {
+          'project_id': projectId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseBody = json.decode(response.body);
+
+        if (responseBody['status'] == 'success') {
+          // Project added to likes successfully
+          print('Project added to likes successfully');
+          _likedStatusController.add("true");
+
+        } else if (responseBody['msg'] == 'This Project is Already in Likes !') {
+          // Project is already liked
+          print('Project is already liked');
+        } else {
+          // Handle other error scenarios
+          print('Error: ${responseBody['msg']}');
+        }
+
+        return responseBody;
+      } else {
+        // Handle other status codes
+        print('Failed to add project to likes. Status code: ${response.statusCode}');
+        return {'status': 'error', 'msg': 'Failed to add project to likes'};
+      }
+    } catch (e) {
+      // Handle exception
+      print('Error: $e');
+      return {'status': 'error', 'msg': 'An error occurred'};
+    }
+  }
+  Future<Map<String, dynamic>> removeProjectFromLikes(String projectId) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String token = prefs.getString('user_token') ?? '';
+      final response = await http.post(
+        Uri.parse('https://workdonecorp.com/api/remove_project_from_likes'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer $token',
+        },
+        body: {
+          'project_id': projectId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Successful request, you can handle the response here if needed
+        print('Project removed from likes successfully');
+        return {'status': 'success', 'msg': 'Project removed from likes successfully'};
+      } else {
+        // Handle error
+        print('Failed to remove project from likes. Status code: ${response.statusCode}');
+        return {'status': 'error', 'msg': 'Failed to remove project from likes'};
+      }
+    } catch (e) {
+      // Handle exception
+      print('Error: $e');
+      return {'status': 'error', 'msg': 'An error occurred'};
+    }
+  }
+
+
+  int notificationnumber =0 ;  Future<void> Notificationnumber() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/unread_notification_number';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('counter')) {
+            int profileData = responseData['counter'];
+
+            setState(() {
+              notificationnumber= profileData;
+            });
+
+            print('Response of notification number : $profileData');
+            print('notification number: $notificationnumber');
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load notification number');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load notification number');
+        }
+      }
+      setState(() {
+        isLoading = false;
+      });
+    } catch (error) {
+      // Handle errors
+      print('Error getting notification number: $error');
+    }
+  }
+
+
   String rating = '';
   final reviewcontroller = TextEditingController();
   void _getUserToken() async {
@@ -511,6 +643,7 @@ setState(() {
     super.initState();
     int projectId =widget.projectId;
     futureProjects = fetchProjectDetails(projectId);
+    likedProjectsMap= {};
 
     projectDetailsFuture = fetchProjectDetails(projectId); // Use the projectId in the call
     scrollController = ScrollController();
@@ -545,6 +678,13 @@ setState(() {
 
     fetchvideo();
     fetchData();
+    Notificationnumber();
+    const Duration fetchdata = Duration(seconds: 15);
+    Timer.periodic(fetchdata, (Timer timer) {
+      // Fetch data at each interval
+      Notificationnumber();
+
+    });
   }
   @override
   void dispose() {
@@ -656,13 +796,16 @@ setState(() {
               actions: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child:   badges.Badge(
+                  child:
+                  notificationnumber!=0?
+
+                  badges.Badge(
                     badgeStyle: badges.BadgeStyle(
                       badgeColor: Colors.red,
                       shape: badges.BadgeShape.circle,
                     ),
                     position: BadgePosition.topEnd(),
-                    badgeContent: Text('10',style: TextStyle(color: Colors.white),),
+                    badgeContent: Text('$notificationnumber',style: TextStyle(color: Colors.white),),
                     badgeAnimation: badges.BadgeAnimation.rotation(
                       animationDuration: Duration(seconds: 1),
                       colorChangeAnimationDuration: Duration(seconds: 1),
@@ -672,7 +815,7 @@ setState(() {
                     ),
                     child: GestureDetector(
                       onTap:
-                          (){Get.to(NotificationsPage());
+                          (){Get.to(NotificationsPageclient());
                       }
                       ,
                       child: SvgPicture.asset(
@@ -682,6 +825,17 @@ setState(() {
                       ),
 
                     ),
+                  ):GestureDetector(
+                    onTap:
+                        (){Get.to(NotificationsPageclient());
+                    }
+                    ,
+                    child: SvgPicture.asset(
+                      'assets/icons/iconnotification.svg',
+                      width: 41.0,
+                      height:41.0,
+                    ),
+
                   ),
 
                 )
@@ -740,119 +894,211 @@ setState(() {
                           return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                CarouselSlider(
-                                  options: CarouselOptions(
-                                    pageSnapping: true,
-                                    height: 210,
-                                    viewportFraction: 1.0,
-                                    initialPage: 0,
-                                    enableInfiniteScroll: true,
-                                    reverse: false,
-                                    autoPlay: false,
-                                    autoPlayInterval: Duration(seconds: 3),
-                                    autoPlayAnimationDuration: Duration(milliseconds: 500),
-                                    autoPlayCurve: Curves.fastOutSlowIn,
-                                    scrollDirection: Axis.horizontal,
-                                    onPageChanged: (index, reason) {
-                                      // Update the current page index
-                                      setState(() {
-                                        _currentPageIndex = index;
-                                      });
-                                    },
-                                  ),
-                                  carouselController: _carouselController,
-                                  items: [
-                                    if (video != '')
-                                      Builder(
-                                        builder: (BuildContext context) {
-                                          return Stack(
-                                            children: [
-                                              Center(
-                                                child: GestureDetector(
-                                                  onTap: () {
-                                                    if (_controllerInitialized) {
-                                                      if (_controller.value.isPlaying) {
-                                                        _controller.pause();
-                                                        _chewieController!.pause();
-                                                      } else {
-                                                        _controller.play();
-                                                        _chewieController!.play();
-                                                      }
-                                                    }
-                                                  },
-                                                  child: Icon(
-                                                    _controllerInitialized
-                                                        ? _controller.value.isPlaying
-                                                        ? Icons.pause
-                                                        : Icons.play_arrow
-                                                        : Icons.play_arrow, // Show play icon while initializing
-                                                    size: 30,
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                              ),
-                                              Container(
-                                                width: MediaQuery.of(context).size.width,
-                                                height: 210,
-                                                child: _controllerInitialized
-                                                    ? Chewie(controller: _chewieController!)
-                                                    : Center(child: CircularProgressIndicator(
-                                                  color: Colors.green,
-                                                  strokeWidth: 2,
-                                                )),
-                                              ),
-                                            ],
-                                          );
+                                Stack(
+                                  children: [
+                                    CarouselSlider(
+                                      options: CarouselOptions(
+                                        pageSnapping: true,
+                                        height: 210,
+                                        viewportFraction: 1.0,
+                                        initialPage: 0,
+                                        enableInfiniteScroll: true,
+                                        reverse: false,
+                                        autoPlay: false,
+                                        autoPlayInterval: Duration(seconds: 3),
+                                        autoPlayAnimationDuration: Duration(milliseconds: 500),
+                                        autoPlayCurve: Curves.fastOutSlowIn,
+                                        scrollDirection: Axis.horizontal,
+                                        onPageChanged: (index, reason) {
+                                          // Update the current page index
+                                          setState(() {
+                                            _currentPageIndex = index;
+                                          });
                                         },
                                       ),
-                                    if (projectData.video.isEmpty)
-                                      Center(child: CircularProgressIndicator(
-                                        color: Colors.green,
-                                        strokeWidth: 2,
-                                      )),
-                                    ...projectData.images.map((image) {
-                                      return Builder(
-                                        builder: (BuildContext context) {
-                                          return GestureDetector(
-                                            onTap: () {
-                                              Navigator.of(context).push(MaterialPageRoute(
-                                                builder: (_) => Scaffold(
-                                                  backgroundColor: Colors.black,
-                                                  appBar: AppBar(
-                                                    backgroundColor: Colors.black,
-                                                    elevation: 0,
-                                                  ),
-                                                  body: Center(
-                                                    child: InteractiveViewer(
-                                                      child: Image.network(
-                                                        image,
-                                                        fit: BoxFit.contain,
+                                      carouselController: _carouselController,
+                                      items: [
+                                        if (video != '')
+                                          Builder(
+                                            builder: (BuildContext context) {
+                                              return Stack(
+                                                children: [
+                                                  Center(
+                                                    child: GestureDetector(
+                                                      onTap: () {
+                                                        if (_controllerInitialized) {
+                                                          if (_controller.value.isPlaying) {
+                                                            _controller.pause();
+                                                            _chewieController!.pause();
+                                                          } else {
+                                                            _controller.play();
+                                                            _chewieController!.play();
+                                                          }
+                                                        }
+                                                      },
+                                                      child: Icon(
+                                                        _controllerInitialized
+                                                            ? _controller.value.isPlaying
+                                                            ? Icons.pause
+                                                            : Icons.play_arrow
+                                                            : Icons.play_arrow, // Show play icon while initializing
+                                                        size: 30,
+                                                        color: Colors.black,
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                              ));
+                                                  Container(
+                                                    width: MediaQuery.of(context).size.width,
+                                                    height: 210,
+                                                    child: _controllerInitialized
+                                                        ? Chewie(controller: _chewieController!)
+                                                        : Center(child: CircularProgressIndicator(
+                                                      color: Colors.green,
+                                                      strokeWidth: 2,
+                                                    )),
+                                                  ),
+                                                ],
+                                              );
                                             },
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(30),
-                                              child: Image.network(
-                                                image,
-                                                fit: BoxFit.cover,
-                                                width: MediaQuery.of(context).size.width,
-                                                height: double.infinity,
-                                                loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                                                  if (loadingProgress == null) return child;
-                                                  return Center(child: CircularProgressIndicator(
-                                                    color: Colors.green,
-                                                    strokeWidth: 2,
+                                          ),
+                                        if (projectData.video.isEmpty)
+                                          Center(child: CircularProgressIndicator(
+                                            color: Colors.green,
+                                            strokeWidth: 2,
+                                          )),
+                                        ...projectData.images.map((image) {
+                                          return Builder(
+                                            builder: (BuildContext context) {
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  Navigator.of(context).push(MaterialPageRoute(
+                                                    builder: (_) => Scaffold(
+                                                      backgroundColor: Colors.black,
+                                                      appBar: AppBar(
+                                                        backgroundColor: Colors.black,
+                                                        elevation: 0,
+                                                      ),
+                                                      body: Center(
+                                                        child: InteractiveViewer(
+                                                          child: Image.network(
+                                                            image,
+                                                            fit: BoxFit.contain,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
                                                   ));
                                                 },
-                                              ),
-                                            ),
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(30),
+                                                  child: Image.network(
+                                                    image,
+                                                    fit: BoxFit.cover,
+                                                    width: MediaQuery.of(context).size.width,
+                                                    height: double.infinity,
+                                                    loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                                      if (loadingProgress == null) return child;
+                                                      return Center(child: CircularProgressIndicator(
+                                                        color: Colors.green,
+                                                        strokeWidth: 2,
+                                                      ));
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            },
                                           );
-                                        },
-                                      );
-                                    }).toList(),
+                                        }).toList(),
+                                      ],
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Spacer(),
+                                          Container(
+                                            height: 50,
+                                            padding: EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.withOpacity(0.3),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Padding(
+                                                  padding: const EdgeInsets.only(top: 8.0, left: 5),
+                                                  child: Text(
+                                                    "${projectData.numberOfLikes}",
+                                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                                                  ),
+                                                ),
+                                                SizedBox(width: 8),
+                                                IconButton(
+                                                  iconSize: 22,
+                                                  icon: Icon(
+                                                    likedProjectsMap[widget.projectId] ?? projectData.liked == "true"
+                                                        ? Icons.favorite
+                                                        : Icons.favorite_border,
+                                                    color: likedProjectsMap[widget.projectId] ?? projectData.liked == "true"
+                                                        ? Colors.red
+                                                        : Colors.grey,
+                                                  ),
+                                                  onPressed: () async {
+                                                    try {
+                                                      if (likedProjectsMap[widget.projectId] ?? projectData.liked == "true") {
+                                                        // If liked, remove like
+                                                        final response = await removeProjectFromLikes(widget.projectId.toString());
+
+                                                        if (response['status'] == 'success') {
+                                                          // If successfully removed from likes
+                                                          setState(() {
+                                                            likedProjectsMap[widget.projectId] = false;
+                                                            projectData.numberOfLikes = (projectData.numberOfLikes ?? 0) - 1;
+                                                          });
+                                                          print('Project removed from likes');
+                                                        } else {
+                                                          // Handle the case where the project is not removed from likes
+                                                          print('Error: ${response['msg']}');
+                                                        }
+                                                      } else {
+                                                        // If not liked, add like
+                                                        final response = await addProjectToLikes(widget.projectId.toString());
+
+                                                        if (response['status'] == 'success') {
+                                                          // If successfully added to likes
+                                                          setState(() {
+                                                            likedProjectsMap[widget.projectId] = true;
+                                                            projectData.numberOfLikes = (projectData.numberOfLikes ?? 0) + 1;
+                                                          });
+                                                          print('Project added to likes');
+                                                        } else if (response['msg'] == 'This Project is Already in Likes !') {
+                                                          // If the project is already liked, switch to Icons.favorite_border
+                                                          setState(() {
+                                                            likedProjectsMap[widget.projectId] = false;
+                                                          });
+                                                          print('Project is already liked');
+                                                        } else {
+                                                          // Handle the case where the project is not added to likes
+                                                          print('Error: ${response['msg']}');
+                                                        }
+                                                      }
+                                                    } catch (e) {
+                                                      print('Error: $e');
+                                                    }
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
                                   ],
                                 ),
 // Add the
@@ -9599,9 +9845,7 @@ setState(() {
                                             userId: projectData.clientData!.clientId.toString()));
                                       },
 
-                                                  child:                                                 Expanded(
-
-                                                  child: Text(
+                                                  child:                                                 Text(
                                                       projectData.clientData!.firstname,
                                                       style: TextStyle(
                                                         color: HexColor('4D8D6E'),
@@ -9609,7 +9853,6 @@ setState(() {
                                                         fontWeight: FontWeight.bold,
                                                       ),
                                                     ),
-                                                  ),
                                                 ),
                                                 Spacer(),
                                                 RatingDisplay(rating: projectData.pageContent.ratingOnWorker),
@@ -10456,8 +10699,8 @@ class ProjectData {
   final String status;
   final String desc;
   final String video;
-  final bool liked; // Assuming the 'liked' field should be a boolean
-  final int numberOfLikes;
+  final String liked; // Assuming the 'liked' field should be a boolean
+   int numberOfLikes;
   final dynamic? lowestBid; // Assuming lowest bid could be null
   final String timeframeStart;
   final String timeframeEnd;
@@ -10504,7 +10747,7 @@ class ProjectData {
       postedFrom: baseData['posted_from'] ?? 'No Post Date',
       status: baseData['status'] ?? 'No Status',
       desc: baseData['desc'] ?? 'No Description',
-      liked: baseData['liked'] == 'true',
+      liked: baseData['liked'] ?? 'true',
       numberOfLikes: baseData['number_of_likes'] ?? 0,
       video: baseData['video'] ?? '',
       lowestBid: baseData['lowest_bid'] ?? 'No Bids',

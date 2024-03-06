@@ -16,7 +16,7 @@ import '../Profile (client-worker)/profilescreenClient.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
-import '../notifications/notificationScreen.dart';
+import '../notifications/notificationScreenclient.dart';
 import '../welcome/welcome_screen.dart';
 import 'package:http/http.dart' as http;
 
@@ -265,7 +265,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
                   ),
                   TextButton(
                       onPressed: () {
-                        Get.to(NotificationsPage());
+                        Get.to(NotificationsPageclient());
                       },
                       child: Text(
                         'Notifications',

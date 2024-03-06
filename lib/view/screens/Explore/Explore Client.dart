@@ -15,7 +15,7 @@ import '../Bid Details/Bid details Client.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
-import '../notifications/notificationScreen.dart';
+import '../notifications/notificationScreenclient.dart';
 import '../view profile screens/Client profile view.dart';
 import 'package:http/http.dart' as http;
 import 'package:badges/badges.dart' as badges;
@@ -39,7 +39,53 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
     return nextPageData != null && nextPageData.isNotEmpty;
   }
   Timer? searchDebouncer;
+  int notificationnumber =0 ;  Future<void> Notificationnumber() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
 
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/unread_notification_number';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('counter')) {
+            int profileData = responseData['counter'];
+
+            setState(() {
+              notificationnumber= profileData;
+            });
+
+            print('Response of notification number : $profileData');
+            print('notification number: $notificationnumber');
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load notification number');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load notification number');
+        }
+      }
+      setState(() {
+        isLoading = false;
+      });
+    } catch (error) {
+      // Handle errors
+      print('Error getting notification number: $error');
+    }
+  }
   Future<List<Item>> fetchProjects() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -106,6 +152,13 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
     super.initState();
     // Call the function that fetches projects and assign the result to futureProjects
     futureProjects = fetchProjects();
+    Notificationnumber();
+    const Duration fetchdata = Duration(seconds: 15);
+    Timer.periodic(fetchdata, (Timer timer) {
+      // Fetch data at each interval
+      Notificationnumber();
+
+    });
     ciruclaranimation = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
@@ -226,13 +279,16 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child:   badges.Badge(
+            child:
+            notificationnumber!=0?
+
+            badges.Badge(
               badgeStyle: badges.BadgeStyle(
                 badgeColor: Colors.red,
                 shape: badges.BadgeShape.circle,
               ),
               position: BadgePosition.topEnd(),
-              badgeContent: Text('10',style: TextStyle(color: Colors.white),),
+              badgeContent: Text('$notificationnumber',style: TextStyle(color: Colors.white),),
               badgeAnimation: badges.BadgeAnimation.rotation(
                 animationDuration: Duration(seconds: 1),
                 colorChangeAnimationDuration: Duration(seconds: 1),
@@ -242,7 +298,7 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
               ),
               child: GestureDetector(
                 onTap:
-                    (){Get.to(NotificationsPage());
+                    (){Get.to(NotificationsPageclient());
                 }
                 ,
                 child: SvgPicture.asset(
@@ -252,6 +308,17 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
                 ),
 
               ),
+            ):GestureDetector(
+              onTap:
+                  (){Get.to(NotificationsPageclient());
+              }
+              ,
+              child: SvgPicture.asset(
+                'assets/icons/iconnotification.svg',
+                width: 48.0,
+                height:48.0,
+              ),
+
             ),
 
           )

@@ -145,11 +145,11 @@ class _paymentmethodState extends State<paymentmethod> {
                 ),
                 SizedBox(height: 20,),
                 Center(
-                  child: RoundedButton(
-                    text: 'Submit',
-                    press: () async {
-                        // If the form is valid, call the Payment Method() function
+                  child:
 
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () async{
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
@@ -166,10 +166,18 @@ class _paymentmethodState extends State<paymentmethod> {
                               ],
                             );
                           },
-                        );
-
-                    },
+                        );                      },
+                      child:Text ( 'Submit',style: TextStyle(color: Colors.white),), // Use an elevator icon for demonstration
+                      style: ElevatedButton.styleFrom(
+                        primary: Color(0xFF4D8D6E), // Set the button color to 4D8D6E
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30), // Make the button circular
+                        ),
+                      ),
+                    ),
                   ),
+
+
                 ),
                 SizedBox(height: 70,),
                 Center(

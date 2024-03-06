@@ -92,50 +92,49 @@ class _layoutclientState  extends State<layoutclient > {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: PersistentTabView(
+    return PersistentTabView(
 
-        context,
-        controller: navigationController,
-        screens: _screens,
+     context,
+     controller: navigationController,
+     screens: _screens,
 
-        items: _navBarItems,
-        confineInSafeArea: true,
+     items: _navBarItems,
+     confineInSafeArea: true,
 
-        navBarHeight: 63,
-        backgroundColor: Colors.white,
-        handleAndroidBackButtonPress: true, // Default is true.
-        resizeToAvoidBottomInset: true,
-        stateManagement: true,
-        hideNavigationBarWhenKeyboardShows: true,
-        decoration: NavBarDecoration(
-            borderRadius: BorderRadius.circular(10.0),
-            colorBehindNavBar: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2), // Increased opacity for more shadow
-              blurRadius: 20, // Increased blur radius
-              spreadRadius: 10, // Increased spread radius
-              offset: Offset(0, 4), // Adjusted offset
-            ),
-          ],      ),
-      popAllScreensOnTapOfSelectedTab: true,
-        popActionScreens: PopActionScreensType.all,
-        itemAnimationProperties: ItemAnimationProperties(
-          duration: Duration(milliseconds: 300),
-          curve: Curves.ease,
-        ),
-        screenTransitionAnimation: ScreenTransitionAnimation(
-          animateTabTransition: true,
-          curve: Curves.ease,
-          duration: Duration(milliseconds: 300),
-        ),
-        navBarStyle: NavBarStyle.style16,
-        onItemSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        ));
+     navBarHeight: 63,
+     backgroundColor: Colors.white,
+     handleAndroidBackButtonPress: true, // Default is true.
+     resizeToAvoidBottomInset: true,
+     stateManagement: true,
+     hideNavigationBarWhenKeyboardShows: true,
+     decoration: NavBarDecoration(
+         borderRadius: BorderRadius.circular(10.0),
+         colorBehindNavBar: Colors.white,
+       boxShadow: [
+         BoxShadow(
+           color: Colors.black.withOpacity(0.2), // Increased opacity for more shadow
+           blurRadius: 20, // Increased blur radius
+           spreadRadius: 10, // Increased spread radius
+           offset: Offset(0, 4), // Adjusted offset
+         ),
+       ],      ),
+            popAllScreensOnTapOfSelectedTab: true,
+     popActionScreens: PopActionScreensType.all,
+     itemAnimationProperties: ItemAnimationProperties(
+       duration: Duration(milliseconds: 300),
+       curve: Curves.ease,
+     ),
+     screenTransitionAnimation: ScreenTransitionAnimation(
+       animateTabTransition: true,
+       curve: Curves.ease,
+       duration: Duration(milliseconds: 300),
+     ),
+     navBarStyle: NavBarStyle.style16,
+     onItemSelected: (index) {
+       setState(() {
+         _currentIndex = index;
+       });
+     },
+     );
   }
 }

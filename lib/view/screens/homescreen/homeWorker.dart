@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:workdone/view/screens/Explore/Explore%20Worker.dart';
+import 'package:workdone/view/screens/notifications/notificationscreenworker.dart';
 import '../Bid Details/Bid details Worker.dart';
 import '../Explore/Explore Client.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
@@ -30,7 +31,7 @@ import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../editProfile/editProfileClient.dart';
 import '../editProfile/editprofileworker.dart';
-import '../notifications/notificationScreen.dart';
+import '../notifications/notificationScreenclient.dart';
 import '../view profile screens/Client profile view.dart';
 import '../view profile screens/Reviews profile .dart';
 import '../welcome/welcome_screen.dart';
@@ -66,6 +67,8 @@ List<Item> items = [];
 TextEditingController searchController = TextEditingController();
 
 Map<int, String> likedStatusMap = {};
+
+
 
 Future<List<Item>> fetchProjects() async {
   try {
@@ -250,7 +253,53 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
       return '${words.take(numberOfWords).join(' ')}...';
     }
   }
+  int notificationnumber =0 ;  Future<void> Notificationnumber() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
 
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/unread_notification_number';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('counter')) {
+            int profileData = responseData['counter'];
+
+            setState(() {
+              notificationnumber= profileData;
+            });
+
+            print('Response of notification number : $profileData');
+            print('notification number: $notificationnumber');
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load notification number');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load notification number');
+        }
+      }
+      setState(() {
+        isLoading = false;
+      });
+    } catch (error) {
+      // Handle errors
+      print('Error getting notification number: $error');
+    }
+  }
   final advancedDrawerController = AdvancedDrawerController();
   String profile_pic ='' ;
   String firstname ='' ;
@@ -365,6 +414,14 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
     _getUserid();
     initializeProjects();
     _getUserProfile();
+    Notificationnumber();
+    const Duration fetchdata = Duration(seconds: 15);
+    Timer.periodic(fetchdata, (Timer timer) {
+      // Fetch data at each interval
+      Notificationnumber();
+
+    });
+
     print('the show case work == ${widget.showCase}');
     if (widget.showCase == true) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -710,7 +767,8 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                     ),
                     TextButton(
                       onPressed: () {
-                        Get.to(NotificationsPage());
+                        Get.to(NotificationsPageworker
+                          ());
                       },
                       child: Text(
                         'Notifications',
@@ -942,13 +1000,15 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
             padding: const EdgeInsets.only(right: 12.0, top: 8, bottom: 8),
             child: Row(
               children: [
+                notificationnumber!=0?
+
                 badges.Badge(
                 badgeStyle: badges.BadgeStyle(
                   badgeColor: Colors.red,
                   shape: badges.BadgeShape.circle,
                 ),
                 position: BadgePosition.topEnd(),
-                badgeContent: Text('10', style: TextStyle(color: Colors.white)),
+                badgeContent: Text('$notificationnumber', style: TextStyle(color: Colors.white)),
                 badgeAnimation: badges.BadgeAnimation.rotation(
                   animationDuration: Duration(seconds: 1),
                   colorChangeAnimationDuration: Duration(seconds: 1),
@@ -961,11 +1021,21 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                   child: GestureDetector(
                     child: Icon(Ionicons.notifications, size: 26),
                     onTap: () {
-                      Get.to(NotificationsPage());
+                      Get.to(NotificationsPageworker
+                        ());
                     },
                   ),
                 ),
-                        ),
+                        ): Padding(
+    padding: const EdgeInsets.all(6.0),
+    child: GestureDetector(
+    child: Icon(Ionicons.notifications_outline, size: 26),
+    onTap: () {
+    Get.to(NotificationsPageworker
+      ());
+    },
+    ),
+    ),
 SizedBox(width: 20,),
                     widget.showCase == true
                         ? Padding(
