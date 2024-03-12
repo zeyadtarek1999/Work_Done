@@ -543,17 +543,15 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Shimmer.fromColors(
-                baseColor: Colors.grey,
-                highlightColor: Colors.black38,
-                child: CircleAvatar(
-                  radius: 35,
-                  backgroundColor: Colors.transparent,
-                  backgroundImage: profile_pic == '' || profile_pic.isEmpty
-                      || profile_pic == "https://workdonecorp.com/images/"
-                      ? AssetImage('assets/images/default.png') as ImageProvider
-                      : NetworkImage(profile_pic?? 'assets/images/default.png'),
-                ),
+              CircleAvatar(
+                radius: 35,
+                backgroundColor: Colors.transparent,
+                backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                    || profile_pic == "https://workdonecorp.com/storage/" ||
+                    !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+
+                    ? AssetImage('assets/images/default.png') as ImageProvider
+                    : NetworkImage(profile_pic?? 'assets/images/default.png'),
               ),
               SizedBox(
                 height: 12,
@@ -969,9 +967,12 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                                        child: CircleAvatar(
                                          radius: 27,
                                          backgroundColor: Colors.transparent,
-                                         backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                                             ? NetworkImage(profile_pic)
-                                             : AssetImage('assets/images/default.png') as ImageProvider,
+                                         backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                                             || profile_pic == "https://workdonecorp.com/storage/" ||
+                                             !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+
+                                             ? AssetImage('assets/images/default.png') as ImageProvider
+                                             : NetworkImage(profile_pic?? 'assets/images/default.png'),
                                        ),
                                      ),
                                    ),
@@ -987,9 +988,12 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                                  child: CircleAvatar(
                                    radius: 27,
                                    backgroundColor: Colors.transparent,
-                                   backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                                       ? NetworkImage(profile_pic)
-                                       : AssetImage('assets/images/default.png') as ImageProvider,
+                                   backgroundImage:profile_pic == '' || profile_pic.isEmpty
+                                       || profile_pic == "https://workdonecorp.com/storage/" ||
+                                       !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+
+                                       ? AssetImage('assets/images/default.png') as ImageProvider
+                                       : NetworkImage(profile_pic?? 'assets/images/default.png'),
                                  ),
                                ),
                              ],

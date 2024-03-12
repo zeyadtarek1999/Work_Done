@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:http/http.dart' as http;
 import 'package:screenshot/screenshot.dart';
+import 'package:workdone/view/screens/Payment%20Method/Payment_method.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
@@ -87,6 +88,98 @@ double total =0;
       throw Exception('Failed to load project details. Status code: ${response.statusCode}, Message: $message');
     }
   }
+  String paypalvalidation ='';
+  void checkPayPalValidation() {
+    // Replace the condition with your actual check
+    if (paypalvalidation == 'no paypal Email') {
+      // Show the PayPal pop-up
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent closing the pop-up by tapping outside
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('No Paypal Email'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('You need to set up your PayPal email.'),
+                SizedBox(height: 8,),
+                ElevatedButton(
+                  onPressed: () {
+                    // Add your logic to handle setting up PayPal here
+Get.to(paymentmethod());
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: Color(0xFF4D8D6E), // Use the specified color (replace 0xFF4D8D6E with your color)
+                  ),
+                  child: Text(
+                    'Set up PayPal',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16.0,
+                    ),
+                  ),
+                )
+              ],
+            ),
+
+          );
+        },
+      );
+    }
+  }
+
+  Future<void> _getUserProfile() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://www.workdonecorp.com/api/check_paypal_account';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $userToken',
+          },
+
+        );
+
+        if (response.statusCode == 200) {
+          Map<dynamic, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('data')) {
+            String profileData = responseData['data'];
+
+
+            setState(() {
+              paypalvalidation = profileData;
+              checkPayPalValidation();
+
+            });
+
+            print('Response: $profileData');
+            print('paypalvalidation : $paypalvalidation');
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to paypalvalidation');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load paypalvalidation');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting paypalvalidation: $error');
+    }
+  }
 
   final ScreenshotController screenshotController = ScreenshotController();
 
@@ -94,7 +187,7 @@ double total =0;
   void initState() {
     super.initState();
     receive.addListener(updateTotal);
-
+    _getUserProfile();
     int projectId =widget.projectId;
     projectDetailsFuture = fetchProjectDetails(projectId); // Use the projectId in the call
     projectDetailsFuture = fetchProjectDetails(projectId);
@@ -224,7 +317,9 @@ bool _isLoading =false;
 
       // Handle errors as needed
     }
-  }  final _formKey = GlobalKey<FormState>();
+  }
+
+  final _formKey = GlobalKey<FormState>();
 
   String unique= 'placebid' ;
   void _navigateToNextPage(BuildContext context) async {
@@ -239,6 +334,7 @@ bool _isLoading =false;
   }
   @override
   Widget build(BuildContext context) {
+
     return Scaffold( floatingActionButton:
     FloatingActionButton(    heroTag: 'workdone_${unique}',
 

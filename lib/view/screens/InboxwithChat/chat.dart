@@ -568,9 +568,38 @@ class _SendMessageFieldState extends State<SendMessageField> {
                     color: Colors.grey[700],
                   ),
                   onPressed: () async {
-                    // Trigger the image picker
-                    final pickedFile =
-                    await ImagePicker().pickImage(source: ImageSource.gallery);
+                    // Show a dialog to let the user choose between camera and gallery
+                    bool? isCamera = await showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(true); // Camera
+                              },
+                              child: Text("Camera"),
+                            ),
+                            SizedBox(height: 20),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(false); // Gallery
+                              },
+                              child: Text("Gallery"),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+
+                    if (isCamera == null) return; // User dismissed the dialog
+
+                    // Pick an image based on the user's choice
+                    final pickedFile = await ImagePicker().pickImage(
+                      source: isCamera ? ImageSource.camera : ImageSource.gallery,
+                    );
+
                     if (pickedFile != null) {
                       setState(() {
                         _selectedImage = File(pickedFile.path);
@@ -578,6 +607,7 @@ class _SendMessageFieldState extends State<SendMessageField> {
                     }
                   },
                 ),
+
                 GestureDetector(
                         onTap: () {
                           String message = _messageController.text;

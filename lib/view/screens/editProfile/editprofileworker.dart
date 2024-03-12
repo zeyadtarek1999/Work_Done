@@ -31,12 +31,41 @@ class editProfileworker extends StatefulWidget {
 }
 
 class _editProfileworkerState extends State<editProfileworker> {
-  List<String> americanPhoneCodes = ['+1', '+20', '+30', '+40']; // Add more if needed
+  List<String> americanPhoneCodes = ['+1',]; // Add more if needed
   List<Map<String, dynamic>> languages = [];
+  List<Map<String, dynamic>> Jobtypes2 = [];
   List<int> selectedLanguages = [];
+  List<String> selectedLanguagename = [];
+  List<String> selectedJobtypenames = [];
+  List<int> selectedjobtypes = [];
+  final GlobalKey<State> _dialogKey = GlobalKey<State>();
+
+  bool _isFormFilled = false;
 
 
+  Future<void> Jobtypesdata() async {
+    const String url = "https://workdonecorp.com/api/get_all_project_types";
 
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+
+      if (jsonResponse['status'] == 'success') {
+        final List data = jsonResponse['types_data'];
+        // Process the fetched language data as needed
+        print('Job types data   $data');
+        setState(() {
+          Jobtypes2 = data.map((job) => {'id': job['id'], 'name': job['name']}).toList();
+          filteredJobtypes = Jobtypes2;
+        });
+      } else {
+        print('Error: ${jsonResponse['msg']}');
+      }
+    } else {
+      print('Error: ${response.statusCode}');
+    }
+  }
 
   Future<void> Languagedata() async {
     const String url = "https://workdonecorp.com/api/get_all_languages";
@@ -63,14 +92,16 @@ class _editProfileworkerState extends State<editProfileworker> {
 
 
   String ? selectedLanguage;
+  String  selectedjobtype='';
   List <int>  selectedLanguageids=[];
+  List <int>  selectedjobtypeids=[];
   List<String> jobtypes = ['plumber', 'painting', ];
-  String ? selectedjobtype;
 
 
   TextEditingController firstNameController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
   TextEditingController paypalcontroller = TextEditingController();
+  TextEditingController LicenseNumber = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController experiencecontroller = TextEditingController();
   TextEditingController phoneController = TextEditingController();
@@ -137,7 +168,9 @@ class _editProfileworkerState extends State<editProfileworker> {
 
 
   File? _image;
+  File? _imagelicense;
   final picker = ImagePicker();
+  final pickerlicense = ImagePicker();
 
   Future<void> _getImageFromGallery() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -157,12 +190,21 @@ class _editProfileworkerState extends State<editProfileworker> {
   String profile_pic = '';
   String phonenumber = '';
   late String userToken;
+  late String languagesString;
+  late String JobtypeString;
 
   @override
   void initState() {
     super.initState();
+
     // selectedLanguage = languages.first; // Set the initial value of selectedLanguage
     Languagedata();
+    filteredLanguages = languages;
+    languagesString = selectedLanguagename.join(', ');
+    JobtypeString = selectedJobtypenames.join(', ');
+    Jobtypesdata();
+    filteredJobtypes = Jobtypes2;
+
     _getUserToken();
 // setState(() {
 //   firstNameController.text = firstname;
@@ -203,6 +245,12 @@ class _editProfileworkerState extends State<editProfileworker> {
       } else {
         request.fields['paypal'] = paypal;
       }
+      if (LicenseNumber.text.isNotEmpty) {
+        request.fields['license_number'] = LicenseNumber.text;
+      } else {
+        request.fields['license_number'] = license_number;
+      }
+
       if (selectedLanguages .isNotEmpty) {
         for (var i = 0; i < selectedLanguages.length; i++) {
           request.fields['language[$i]'] = selectedLanguages[i].toString();
@@ -212,10 +260,13 @@ class _editProfileworkerState extends State<editProfileworker> {
           request.fields['language[$i]'] = selectedLanguageids[i].toString();
         }
       }
-      if (selectedjobtype != '' ||selectedjobtype != null ) {
-        request.fields['job_type'] = selectedjobtype.toString();
-      } else {
-        request.fields['job_type'] = selectedjobtype .toString();
+      if (selectedjobtypes .isNotEmpty) {
+        for (var i = 0; i < selectedjobtypes.length; i++) {
+          request.fields['job_type[$i]'] = selectedjobtypes[i].toString();
+        }}else {
+        for (var i = 0; i < selectedjobtypes.length; i++) {
+          request.fields['job_type[$i]'] = selectedjobtypes[i].toString();
+        }
       }
       if (lastNameController.text.isNotEmpty) {
         request.fields['lastname'] = lastNameController.text;
@@ -234,6 +285,9 @@ class _editProfileworkerState extends State<editProfileworker> {
       }
       if (_image != null) {
         request.files.add(await http.MultipartFile.fromPath('profile_pic', _image!.path));
+      }
+      if (_imagelicense != null) {
+        request.files.add(await http.MultipartFile.fromPath('license_pic', _imagelicense!.path));
       }
       final response = await request.send();
 
@@ -320,16 +374,16 @@ class _editProfileworkerState extends State<editProfileworker> {
       // Handle errors as needed
     }
   }
+  String license_number = '';
+  String license_pic = 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png';
+
   Future<void> _getUserProfile() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final userToken = prefs.getString('user_token') ?? '';
-      print(userToken);
 
       if (userToken.isNotEmpty) {
-        // Replace the API endpoint with your actual endpoint
         final String apiUrl = 'https://workdonecorp.com/api/get_profile_info';
-        print(userToken);
 
         final response = await http.post(
           Uri.parse(apiUrl),
@@ -337,7 +391,6 @@ class _editProfileworkerState extends State<editProfileworker> {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $userToken',
           },
-
         );
 
         if (response.statusCode == 200) {
@@ -345,8 +398,8 @@ class _editProfileworkerState extends State<editProfileworker> {
 
           if (responseData.containsKey('data')) {
             Map<dynamic, dynamic> profileData = responseData['data'];
-
-            String languageString;
+            String languageString2;
+            String jobtypesString2;
 
             setState(() {
               firstname = profileData['firstname'] ?? '';
@@ -354,46 +407,73 @@ class _editProfileworkerState extends State<editProfileworker> {
               email = profileData['email'] ?? '';
               profile_pic = profileData['profile_pic'] ?? '';
               phonenumber = profileData['phone'] ?? '';
-              paypal = profileData['paypal'] ?? 'no paypal number';
-              // license_number = profileData['license_number'] ?? 'No license number';
-              // license_pic = profileData['license_pic'] ?? 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png';
+              paypal = profileData['paypal'] ?? 'no paypal Email';
+              license_number = profileData['license_number'] ?? 'No license number';
+              license_pic = profileData['license_pic'] ?? 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png';
               experience = profileData['experience'] ?? '';
-              selectedjobtype = profileData['job_type'] ?? 'Select Job type';
               List<dynamic> languages = profileData['language'] ?? [];
+              selectedLanguageids = languages.map<int>((language) => language['id']).toList();
               List<String> languageNames = languages.map<String>((language) => language['name']).toList();
-              languageString = languageNames.join(', ');
-              selectedLanguage = languageString;
-              List<dynamic> languagesnumber = profileData['language'] ?? [];
-              selectedLanguageids = languagesnumber.map<int>((language) => language['id']).toList();
+              languageString2 = languageNames.join(', ');
+              selectedLanguage = languageString2;
+              selectedLanguages = selectedLanguageids;
+               selectedLanguagename=languageNames;
+              languagesString = selectedLanguagename.join(', ');
 
-              // Add this line
+              List<dynamic> Jobtypes = profileData['job_type'] ?? [];
+              selectedjobtypeids = Jobtypes.map<int>((job_type) => job_type['id']).toList();
+              List<String> jobtypeNames = Jobtypes.map<String>((job_type) => job_type['name']).toList();
+              jobtypesString2 = jobtypeNames.join(', ');
+              selectedjobtype = jobtypesString2;
+              selectedjobtypes = selectedjobtypeids;
+              selectedJobtypenames=jobtypeNames;
+              JobtypeString = selectedJobtypenames.join(', ');
+
             });
-print('selected language  :: ${selectedLanguage}');
-print('selected languageid  :: ${selectedLanguageids}');
+
+            print('selected language  :: ${selectedLanguage}');
+            print('selected jobtype  :: ${selectedjobtype}');
+            print('selected languageid  :: ${selectedLanguageids}');
+            print('selected jobtypeid  :: ${selectedjobtypeids}');
             print('Response: $profileData');
             print('profile pic: $profile_pic');
           } else {
+            print('selected language  :: ${selectedLanguage}');
+            print('selected jobtype  :: ${selectedjobtype}');
+            print('selected languageid  :: ${selectedLanguageids}');
+            print('selected jobtypeid  :: ${selectedjobtypeids}');
+            print('profile pic: $profile_pic');
             print(
                 'Error: Response data does not contain the expected structure.');
             throw Exception('Failed to load profile information');
           }
         } else {
-          // Handle error response
-          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          print('selected language  :: ${selectedLanguage}');
+          print('selected jobtype  :: ${selectedjobtype}');
+          print('selected languageid  :: ${selectedLanguageids}');
+          print('selected jobtypeid  :: ${selectedjobtypeids}');
+          print('profile pic: $profile_pic');          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
           throw Exception('Failed to load profile information');
         }
       }
     } catch (error) {
-      // Handle errors
-      print('Error getting profile information: $error');
+      print('selected language  :: ${selectedLanguage}');
+      print('selected jobtype  :: ${selectedjobtype}');
+      print('selected languageid  :: ${selectedLanguageids}');
+      print('selected jobtypeid  :: ${selectedjobtypeids}');
+      print('profile pic: $profile_pic');      print('Error getting profile information: $error');
     }
   }
-
   // Test if token is saved
 
   bool isLanguageListVisible = false; // Add this variable
+  bool isJobtypeListVisible = false; // Add this variable
   bool isSearchBarVisible = false;
+  bool isSearchBarVisible2 = false;
   List<Map<String, dynamic>> filteredLanguages = [];
+  List<Map<String, dynamic>> filteredJobtypes = [];
+  List<Map<String, dynamic>> languagesnumber = [];
+  List<Map<String, dynamic>> jobtypenumber = [];
 
   final ScreenshotController screenshotController = ScreenshotController();
 
@@ -610,10 +690,91 @@ print('selected languageid  :: ${selectedLanguageids}');
                         ),
                       ),
                       // Camera Logo
-                      Icon(
-                        Icons.camera_alt,
-                        size: 35,
-                        color: Colors.white,
+                      GestureDetector(
+                        onTap: () async {
+                          final action =
+                          await showDialog<
+                              String>(
+                            context: context,
+                            builder: (BuildContext
+                            context) {
+                              return AlertDialog(
+                                title: Text(
+                                    'Choose an option'),
+                                content: Column(
+                                  mainAxisSize:
+                                  MainAxisSize
+                                      .min,
+                                  children: [
+                                    ListTile(
+                                      leading: Icon(
+                                          Icons
+                                              .image),
+                                      title: Text(
+                                          'Gallery'),
+                                      onTap: () {
+                                        Navigator.pop(
+                                            context,
+                                            'gallery');
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: Icon(
+                                          Icons
+                                              .camera),
+                                      title: Text(
+                                          'Camera'),
+                                      onTap: () {
+                                        Navigator.pop(
+                                            context,
+                                            'camera');
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+
+                          if (action == 'gallery') {
+                            final pickedImage =
+                            await ImagePicker()
+                                .pickImage(
+                              source: ImageSource
+                                  .gallery,
+                            );
+                            if (pickedImage !=
+                                null) {
+                              setState(() {
+                                _image = File(
+                                    pickedImage
+                                        .path);
+                              });
+                            }
+                          } else if (action ==
+                              'camera') {
+                            final pickedImage =
+                            await ImagePicker()
+                                .pickImage(
+                              source: ImageSource
+                                  .camera,
+                            );
+                            if (pickedImage !=
+                                null) {
+                              setState(() {
+                                _image = File(
+                                    pickedImage
+                                        .path);
+                              });
+                            }
+                          }
+                        },
+
+                        child: Icon(
+                          Icons.camera_alt,
+                          size: 35,
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ),
@@ -752,9 +913,10 @@ print('selected languageid  :: ${selectedLanguageids}');
                                 child: TextField(
                                   controller: experiencecontroller,
                                   decoration: InputDecoration(
-                                    hintText: experience.toString(),
+                                    hintText: '${experience.toString()}',
                                     border:
-                                    InputBorder.none, // Remove default border
+                                    InputBorder.none,
+                                    // Remove default border
                                   ),
                                 ),
                               ))
@@ -781,6 +943,7 @@ print('selected languageid  :: ${selectedLanguageids}');
                                     isSearchBarVisible = isLanguageListVisible;
                                     // Remove the condition to update filteredLanguages regardless of the search bar visibility
                                     filteredLanguages = languages;
+
                                   });
                                 },
                                 child: Container(
@@ -796,19 +959,23 @@ print('selected languageid  :: ${selectedLanguageids}');
                                   ),
                                   child: Row(
                                     children: [
-                                      selectedLanguage!=' ' ?
-                                      Text(
-                                        '${selectedLanguage?? 'select language'}',
-                                        style: TextStyle(
-                                            fontSize: 16, color: Colors.grey[700]),
+                                      languagesString.isNotEmpty ?
+                                      Expanded(
+                                        child: Text(
+                                          '${languagesString?? 'select language'}',
+                                          style: TextStyle(
+                                              fontSize: 16, color: Colors.grey[700]),
+                                        ),
                                       )
-                                      :Text(
-                                        'Select language',
-                                        style: TextStyle(
-                                            fontSize: 16, color: Colors.grey[700]),
+                                      :                                      Expanded(
+
+                                      child: Text(
+                                          'Select language',
+                                          style: TextStyle(
+                                              fontSize: 16, color: Colors.grey[700]),
+                                        ),
                                       )
                                       ,
-                                      Spacer(),
                                       Icon(
                                         isLanguageListVisible
                                             ? Icons.arrow_drop_up
@@ -840,7 +1007,7 @@ print('selected languageid  :: ${selectedLanguageids}');
                                       setState(() {
                                         filteredLanguages = languages
                                             .where((language) =>
-                                            language['lang']
+                                            language['name']
                                                 .toLowerCase()
                                                 .contains(query.toLowerCase()))
                                             .toList();
@@ -865,6 +1032,7 @@ print('selected languageid  :: ${selectedLanguageids}');
                                   children: filteredLanguages.map((language) {
                                     final langName = language['name'];
                                     final langId = language['id'];
+                                    languagesString = selectedLanguagename.join(', ');
 
                                     return Column(
                                       children: [
@@ -877,13 +1045,19 @@ print('selected languageid  :: ${selectedLanguageids}');
                                               setState(() {
                                                 if (value!) {
                                                   selectedLanguages.add(langId);
+                                                  selectedLanguagename.add((langName));
+                                                  languagesString = selectedLanguagename.join(', ');
                                                   print('selected languages add ${selectedLanguages}'); // Print the selected language IDs
+
 
 
                                                 } else {
                                                   print('selected languages remove ${selectedLanguages}'); // Print the selected language IDs
-
+                                                  selectedLanguagename.remove((langName));
+                                                  languagesString = selectedLanguagename.join(', ');
                                                   selectedLanguages.remove(langId);
+
+
                                                 }
                                               });
                                             },
@@ -896,64 +1070,150 @@ print('selected languageid  :: ${selectedLanguageids}');
                                 ),
                               ),
 
+
+                            ]))),
+                Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: SingleChildScrollView(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0, vertical: 10),
                                 child: Text('Job Type'),
                               ),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    isJobtypeListVisible = !isJobtypeListVisible;
+                                    isSearchBarVisible2 = isJobtypeListVisible;
+                                    // Remove the condition to update filteredLanguages regardless of the search bar visibility
+                                    filteredJobtypes = Jobtypes2;
 
-                              Container(
-                                width: size.width * 0.90,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200], // Background color
-                                  borderRadius: BorderRadius.circular(
-                                      20), // Circular border radius
-                                ),
-                                child:                                             Stack(
-                                  children: [
-                                    TextFormField(
-                                      readOnly: true, // Set this to true to disable editing
-                                      style: TextStyle(color: HexColor('#4D8D6E')),
-                                      decoration: InputDecoration(
-                                        hintText: selectedjobtype ?? 'Select Job type', // Use selectedState or 'Select State' if it's null
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide.none,
-                                          borderRadius: BorderRadius.circular(20.0),
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                  height: size.height * 0.09,
+                                  width: size.width * 0.93,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(29),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      JobtypeString.isNotEmpty ?
+                                      Expanded(
+                                        child: Text(
+                                          '${JobtypeString?? 'Select Jobtype'}',
+                                          style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                                          overflow: TextOverflow.ellipsis, // Add this to handle long text
                                         ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide.none,
-                                          borderRadius: BorderRadius.circular(20.0),
-                                        ),
+                                      )
+                                          :Expanded(
+                                            child: Text(
+                                                                                    'Select Jobtype',
+                                                                                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                                                                                  ),
+                                          ),
+                                      Icon(
+                                        isJobtypeListVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                                        size: 18,
                                       ),
-                                    ),
-                                    Positioned.fill(
-                                      child: InkWell(
-                                        onTap: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return StateSelectorPopup(
-                                                states: jobtypes,
-                                                onSelect: (newlySelectedjob) {
-                                                  // Update selectedState when a state is selected
-                                                  setState(() {
-                                                    selectedjobtype = newlySelectedjob;
-                                                  });
-                                                  print('Selected jobtype : $newlySelectedjob');
-                                                },
-                                              );
-                                            },
-                                          );
-                                        },
-                                        splashColor: Colors.transparent,
-                                        highlightColor: Colors.transparent,
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
 
                               ),
+
+                              // Validation error message
+                              // if (isLanguageListVisible && selectedLanguages.isEmpty)
+                              //   Padding(
+                              //     padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+                              //     child: Text(
+                              //       'Please select a language',
+                              //       style: TextStyle(color: Colors.red),
+                              //     ),
+                              //   ),
+
+                              // Search bar
+                              Visibility(
+                                visible: isSearchBarVisible2,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: TextField(
+                                    onChanged: (query) {
+                                      setState(() {
+                                        filteredJobtypes = Jobtypes2
+                                            .where((jobtype) =>
+                                            jobtype['name']
+                                                .toLowerCase()
+                                                .contains(query.toLowerCase()))
+                                            .toList();
+
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText: 'Search Jobtype...',
+                                      prefixIcon: Icon(Icons.search),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // List of filtered languages
+                              Visibility(
+                                visible: isJobtypeListVisible,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: filteredJobtypes.map((jobtype) {
+                                    final jobName = jobtype['name'];
+                                    final jobId = jobtype['id'];
+                                    JobtypeString = selectedJobtypenames.join(', ');
+
+                                    return Column(
+                                      children: [
+                                        ListTile(
+                                          title: Text(jobName),
+                                          leading: Checkbox(
+                                            activeColor: HexColor('#4D8D6E'),
+                                            value: selectedjobtypes.contains(jobId),
+                                            onChanged: (value) {
+                                              setState(() {
+                                                if (value!) {
+                                                  selectedjobtypes.add(jobId);
+                                                  print('selected jobtypes add ${selectedjobtypes}'); // Print the selected language IDs
+                                                  selectedJobtypenames.add(jobName);
+
+                                                  JobtypeString = selectedJobtypenames.join(', ');
+
+
+                                                } else {
+                                                  print('selected jobtypes remove ${selectedjobtypes}'); // Print the selected language IDs
+
+                                                  selectedjobtypes.remove(jobId);
+                                                  selectedJobtypenames.remove(jobName);
+
+                                                  JobtypeString = selectedJobtypenames.join(', ');
+                                                }
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                        Divider(),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+
+
                             ]))),
+
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Row(
@@ -993,6 +1253,318 @@ print('selected languageid  :: ${selectedLanguageids}');
                 ),
 
                 Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10.0, vertical: 10),
+                            child: Text('License image & Number'),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  // Use MediaQuery to get the screen size
+                                  final screenSize = MediaQuery.of(context).size;
+
+                                  return AlertDialog(
+                                    title: Center(
+                                      child: Text(
+                                        'License',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    content: SingleChildScrollView( // Wrap content in SingleChildScrollView
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'License Image:',
+                                            style: TextStyle(
+                                              color: Colors.black45,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          SizedBox(height: 8),
+    Center(
+    child: StatefulBuilder(
+    key: _dialogKey,
+    builder: (BuildContext context, StateSetter setState) {
+    return Stack(
+    alignment: Alignment.center,
+    children: [
+    // Circular Image
+    Container(
+    width: 200,
+    height: 200,
+    decoration: BoxDecoration(
+    image: _imagelicense != null
+    ? DecorationImage(
+    fit: BoxFit.cover,
+    image: FileImage(_imagelicense!),
+    )
+        : license_pic != null &&
+    license_pic.isNotEmpty &&
+    license_pic != "https://workdonecorp.com/images/"
+    ? DecorationImage(
+    fit: BoxFit.cover,
+    image: NetworkImage(license_pic),
+    )
+        : DecorationImage(
+    fit: BoxFit.contain,
+    image: NetworkImage(
+    'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png'),
+    ),
+    ),
+    ),
+    // Opacity Overlay
+    GestureDetector(
+    onTap: () async {
+    final action = await showDialog<String>(
+    context: context,
+    builder: (BuildContext context) {
+    return AlertDialog(
+    title: Text('Choose an option'),
+    content: Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+    ListTile(
+    leading: Icon(Icons.image),
+    title: Text('Gallery'),
+    onTap: () {
+    Navigator.pop(context, 'gallery');
+    },
+    ),
+    ListTile(
+    leading: Icon(Icons.camera),
+    title: Text('Camera'),
+    onTap: () {
+    Navigator.pop(context, 'camera');
+    },
+    ),
+    ],
+    ),
+    );
+    },
+    );
+
+    if (action == 'gallery') {
+    final pickedImage = await ImagePicker().pickImage(
+    source: ImageSource.gallery,
+    );
+    if (pickedImage != null) {
+    setState(() {
+    _imagelicense = File(pickedImage.path);
+    });
+    }
+    } else if (action == 'camera') {
+    final pickedImage = await ImagePicker().pickImage(
+    source: ImageSource.camera,
+    );
+    if (pickedImage != null) {
+    setState(() {
+    _imagelicense = File(pickedImage.path);
+    });
+    }
+    }
+    },
+    child: Container(
+    width: 150,
+    height: 150,
+    decoration: BoxDecoration(
+    shape: BoxShape.circle,
+    color: Colors.grey.withOpacity(0.4),
+    ),
+    ),
+    ),
+    // Camera Logo
+    GestureDetector(
+    onTap: () async {
+    final action = await showDialog<String>(
+    context: context,
+    builder: (BuildContext context) {
+    return StatefulBuilder(
+    key: _dialogKey,
+    builder: (BuildContext context, StateSetter setState) {
+    return AlertDialog(
+    title: Text('Choose an option'),
+    content: Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+    ListTile(
+    leading: Icon(Icons.image),
+    title: Text('Gallery'),
+    onTap: () {
+    Navigator.pop(context, 'gallery');
+    },
+    ),
+    ListTile(
+    leading: Icon(Icons.camera),
+    title: Text('Camera'),
+    onTap: () {
+    Navigator.pop(context, 'camera');                                },
+    ),
+    ],
+    ),
+    );
+    }
+    );
+    },
+    );
+
+    if (action == 'gallery') {
+      final pickedImage = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+      );
+      if (pickedImage != null) {
+        setState(() {
+          _image = File(pickedImage.path);
+        });
+      }
+    } else if (action == 'camera') {
+      final pickedImage = await ImagePicker().pickImage(
+        source: ImageSource.camera,
+      );
+      if (pickedImage != null) {
+        setState(() {
+          _image = File(pickedImage.path);
+        });
+      }
+    }
+    },
+      child: Icon(
+        Icons.camera_alt,
+        size: 35,
+        color: Colors.white,
+      ),
+    ),
+    ],
+    );
+    },
+    ),
+    ),                                          SizedBox(height: 10),
+                                          Text(
+                                            'Your license Number:',
+                                            style: TextStyle(
+                                              color: Colors.black45,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          SizedBox(height: 10),
+                                          Center(
+                                            child: TextField(
+                                              controller: LicenseNumber,
+                                              decoration: InputDecoration(
+                                                hintText: '$license_number',
+                                                hintStyle: TextStyle(fontSize: 16, color: HexColor('4D8D6E')),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    actions: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                        child: Center(
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              ElevatedButton(
+                                                child: Text(
+                                                  'Close',
+                                                  style: TextStyle(color: Colors.white), // Set the text color to white
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.of(context)
+                                                      .pop(); // Close the dialog
+                                                },
+                                                style: ButtonStyle(
+                                                  backgroundColor: MaterialStateProperty.all(Colors.red), // Set the background color
+                                                ),
+                                              ),
+                                              SizedBox(width: 20,),
+                                              ElevatedButton(
+                                                child: Text(
+                                                  'Done',
+                                                  style: TextStyle(color: Colors.white), // Set the text color to white
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.of(context)
+                                                      .pop();
+                                                  setState(() {
+                                                    _isFormFilled=true;
+                                                  });// Close the dialog
+                                                },
+                                                style: ButtonStyle(
+                                                  backgroundColor: MaterialStateProperty.all(HexColor('4D8D6E')), // Set the background color
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: Container(
+                              width: size.width * 0.90,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                child: IntrinsicHeight(
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          'License Image & Number',
+                                          style: TextStyle(
+                                            color: HexColor('#707070'),
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(
+                                        Icons.arrow_forward_ios,
+                                        size: 18,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(width: 8),
+                                      if (_isFormFilled == true)
+                                        Icon(Icons.check, color: Colors.green),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+
+
+                Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 10.0, vertical: 10),
                   child: Text('Phone Number'),
@@ -1011,22 +1583,35 @@ print('selected languageid  :: ${selectedLanguageids}');
                       Expanded(
                         child: Row(
                           children: [
-                            DropdownButton<String>(
-                              value: selectedPhoneCode,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  // Update the selected phone code
-                                  selectedPhoneCode = newValue!;
-                                });
-                              },
-                              items: americanPhoneCodes.map((code) {
-                                return DropdownMenuItem<String>(
-                                  value: code,
-                                  child: Text(code),
-                                );
-                              }).toList(),
+                            Container(
+
+                              decoration: BoxDecoration(
+
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(5.0),
+                              ),
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5.0),
+                                ),
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/icons/uslogo.svg',
+                                      width: 27.0,
+                                      height: 27.0,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      '+1',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                            SizedBox(width: 8), // Add some spacing between the dropdown and the text field
+                            SizedBox(width: 10),
+                            // Add some spacing between the dropdown and the text field // Add some spacing between the dropdown and the text field
                             Expanded(
                               child: TextFormField(
 
@@ -1214,8 +1799,19 @@ print('selected languageid  :: ${selectedLanguageids}');
                     child: RoundedButton(
                       text: 'Submit',
                       press: () {
-                        // Call the method to update the client profile
-                        sendprofile();
+                        if (selectedjobtypes .isEmpty) {
+                          Fluttertoast.showToast(
+                              msg: "Must select a job type",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              timeInSecForIosWeb: 1,
+                              backgroundColor: Colors.red,
+                              textColor: Colors.white,
+                              fontSize: 16.0
+                          );
+                        }else{
+                          print('selected job type $selectedjobtypes');
+                        sendprofile();}
                       },
                     )
 

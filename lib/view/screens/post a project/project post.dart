@@ -162,8 +162,9 @@ class _projectPostState extends State<projectPost>
     var request = http.MultipartRequest(
         'POST', Uri.parse('https://www.workdonecorp.com/api/insert_project'))
       ..headers.addAll(headers)
-      ..fields['project_type_id'] = selectedprojectid
-      ..fields['title'] = titleController.text
+      ..fields['project_type_id'] =        selectedProjectType!['id']!.toString()
+
+    ..fields['title'] = titleController.text
       ..fields['desc'] = descController.text
       ..fields['timeframe_start'] = timeframeControllerstart.text.isEmpty
           ? '0'
@@ -278,7 +279,7 @@ class _projectPostState extends State<projectPost>
   }
 
   List<Map<String, String>> projectTypes = [];
-  Map<String, String>? selectedProjectType;
+  Map<String, String>? selectedProjectType = {'id': '1', 'name': 'Select Project Type'};
 
 // Function to fetch project types and update the list
   void _fetchProjectTypes() async {
@@ -948,65 +949,55 @@ class _projectPostState extends State<projectPost>
                         SizedBox(
                           height: 8,
                         ),
-                        Container(
-                          height: 55,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Row(
-                              children: [
-                                Text(
-                                  'Select Project Type',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 16.0,
-                                  ),
-                                ),
-                                Spacer(),
-                                Column(
-                                  children: [
-                                    DropdownButton<Map<String, String>>(
-                                      underline: SizedBox(),
-                                      // Remove the underline
-                                      icon: Icon(Icons.arrow_drop_down,
-                                          color: Colors.black54),
-                                      value: selectedProjectType,
-                                      // Track the selected value
-                                      items: projectTypes.map<
-                                              DropdownMenuItem<
-                                                  Map<String, String>>>(
-                                          (Map<String, String> type) {
-                                        return DropdownMenuItem<
-                                            Map<String, String>>(
-                                          value: type,
-                                          child: Text(type['name']!),
-                                        );
-                                      }).toList(),
-                                      onChanged: (Map<String, String>? newValue) {
+                        GestureDetector(
+                          onTap: () => showModalBottomSheet(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Container(
+                                padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                                child: ListView.builder(
+                                  itemCount: projectTypes.length,
+                                  itemBuilder: (BuildContext context, int index) {
+                                    return ListTile(
+                                      title: Text(projectTypes[index]['name']!),
+                                      onTap: () {
                                         setState(() {
-                                          selectedProjectType = newValue;
+                                          selectedProjectType = projectTypes[index];
                                         });
-                                        // Handle dropdown value change, you can use the selectedProjectType
-                                        // to get the selected project type ID and send it to the API
-                                        if (selectedProjectType != null) {
-                                          String projectId =
-                                              selectedProjectType!['id']!;
-                                          selectedprojectid = projectId;
-                                          String projectName =
-                                              selectedProjectType!['name']!;
-                                          print('Selected Project ID: $projectId');
-                                          print(
-                                              'Selected Project Name: $projectName');
-                                        }
+                                        Navigator.pop(context); // Close the bottom sheet
                                       },
-                                    ),
-                                  ],
+                                    );
+                                  },
                                 ),
-                              ],
+                              );
+                            },
+                          ),
+
+                          child: Container(
+                            height: 55,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      selectedProjectType!['name']!.toString() ?? 'Select Project Type',
+                                      style: TextStyle(
+                                        color: Colors.black87,
+                                        fontSize: 16.0,
+                                      ),
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.arrow_drop_down,
+                                    color: Colors.black54,
+                                  ),                              ],
+                              ),
                             ),
                           ),
                         ),

@@ -484,9 +484,9 @@ setState(() {
     }
   }
   late Future<ProjectData> futureProjects;
-  void refreshProjects() async{
-    futureProjects = fetchProjectDetails(widget.projectId);
-  }
+  // void refreshProjects() async{
+  //   futureProjects = fetchProjectDetails(widget.projectId);
+  // }
   Future<ProjectData> fetchProjectDetails(int projectId) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String userToken = prefs.getString('user_token') ?? '';
@@ -637,10 +637,16 @@ setState(() {
   }
   late VideoPlayerController _controller;
   late AnimationController ciruclaranimation;
+   Duration fetchdata = Duration(seconds: 15);
 
   @override
   void initState() {
     super.initState();
+    Timer.periodic(fetchdata, (Timer timer) {
+      // Fetch data at each interval
+      Notificationnumber();
+
+    });
     int projectId =widget.projectId;
     futureProjects = fetchProjectDetails(projectId);
     likedProjectsMap= {};
@@ -679,12 +685,7 @@ setState(() {
     fetchvideo();
     fetchData();
     Notificationnumber();
-    const Duration fetchdata = Duration(seconds: 15);
-    Timer.periodic(fetchdata, (Timer timer) {
-      // Fetch data at each interval
-      Notificationnumber();
 
-    });
   }
   @override
   void dispose() {
@@ -1584,7 +1585,7 @@ setState(() {
 
                                 SizedBox(height: 20,),
                                 FutureBuilder<ProjectData>(
-                                  future: fetchProjectDetails(widget.projectId),
+                                  future: futureProjects,
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState ==
                                         ConnectionState.waiting) {
@@ -10080,7 +10081,25 @@ setState(() {
                                       }
 
                                       else if (projectData.bids.isNotEmpty) {
-              activeStep=0;
+
+                                        projectData.status ==
+                                            'bid_accepted'?
+                                        activeStep=1:
+                                        projectData.status ==
+                                            'scheduled'?
+                                        activeStep=2:
+                                        projectData.status ==
+                                            'processing'?
+                                        activeStep=3:
+                                        projectData.status ==
+                                            'finalizing'?
+                                        activeStep=4:
+                                        projectData.status ==
+                                            'completed'?
+                                        activeStep=4:
+                                        activeStep=0;
+
+                                        ;
                                         // Render a ListView with bids
                                         return Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,

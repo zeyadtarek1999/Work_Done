@@ -15,14 +15,14 @@ class RegisterWorkerApiClient {
     required String password,
     required String phone,
     required String experience,
-    required String jobType,
+    List<int>?  jobType,
     String? licenseNumber,
     String? licensePic,
     required String street1,
     required String street2,
     required String city,
     required String state,
-    required String paypal,
+    // required String paypal,
     required String addressZip,
     List<int>? languageIds,
   }) async {
@@ -37,8 +37,8 @@ class RegisterWorkerApiClient {
           'password': password,
           'phone': phone,
           'experience': experience,
-          'job_type': jobType,
-          'paypal': paypal,
+          // 'job_type': jobType,
+          // 'paypal': paypal,
           'license_number': licenseNumber ?? '',
           'street1': street1,
           'street2': street2,
@@ -56,6 +56,12 @@ class RegisterWorkerApiClient {
           request.fields['language[$i]'] = languageIds[i].toString();
         }
       }
+      if (jobType != null) {
+        for (var i = 0; i < jobType.length; i++) {
+          request.fields['job_type[$i]'] = jobType[i].toString();
+        }
+      }
+
       if (licensePic != null) {
         final file = File(licensePic);
         request.files.add(

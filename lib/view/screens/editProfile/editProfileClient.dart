@@ -35,6 +35,7 @@ class _editProfileState extends State<editProfile> {
   String ? selectedLanguage;
   List<Map<String, dynamic>> languages = [];
   List<int> selectedLanguages = [];
+  List<String> selectedLanguagename = [];
 
 
 
@@ -153,6 +154,7 @@ class _editProfileState extends State<editProfile> {
   String language = '';
   String phonenumber = '';
   late String userToken;
+  late String languagesString;
 
   @override
   void initState() {
@@ -166,6 +168,10 @@ class _editProfileState extends State<editProfile> {
 // });
     // Fetch user profile information when the screen initializes
     Languagedata();
+
+    languagesString = selectedLanguagename.join(', ');
+
+    filteredLanguages = languages;
 
     _getUserProfile();
   }
@@ -319,9 +325,15 @@ class _editProfileState extends State<editProfile> {
               profile_pic = profileData['profile_pic'] ?? '';
               phonenumber = profileData['phone'] ?? '';
               List<dynamic> languages = profileData['language'] ?? [];
+              selectedLanguageids = languages.map<int>((language) => language['id']).toList();
               List<String> languageNames = languages.map<String>((language) => language['name']).toList();
               languageString = languageNames.join(', ');
               selectedLanguage = languageString;
+              selectedLanguages = selectedLanguageids;
+
+              selectedLanguagename=languageNames;
+              languagesString = selectedLanguagename.join(', ');
+
               List<dynamic> languagesnumber = profileData['language'] ?? [];
               selectedLanguageids = languagesnumber.map<int>((language) => language['id']).toList();
 
@@ -472,6 +484,7 @@ SizedBox(height: 8,),
                               ? DecorationImage(
                             fit: BoxFit.cover,
                             image: NetworkImage(profile_pic),
+
                           )
                               : DecorationImage(
                             fit: BoxFit.cover,
@@ -569,10 +582,91 @@ SizedBox(height: 8,),
                         ),
                       ),
                       // Camera Logo
-                      Icon(
-                        Icons.camera_alt,
-                        size: 35,
-                        color: Colors.white,
+                      GestureDetector(
+                        onTap: () async {
+                          final action =
+                          await showDialog<
+                              String>(
+                            context: context,
+                            builder: (BuildContext
+                            context) {
+                              return AlertDialog(
+                                title: Text(
+                                    'Choose an option'),
+                                content: Column(
+                                  mainAxisSize:
+                                  MainAxisSize
+                                      .min,
+                                  children: [
+                                    ListTile(
+                                      leading: Icon(
+                                          Icons
+                                              .image),
+                                      title: Text(
+                                          'Gallery'),
+                                      onTap: () {
+                                        Navigator.pop(
+                                            context,
+                                            'gallery');
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: Icon(
+                                          Icons
+                                              .camera),
+                                      title: Text(
+                                          'Camera'),
+                                      onTap: () {
+                                        Navigator.pop(
+                                            context,
+                                            'camera');
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+
+                          if (action == 'gallery') {
+                            final pickedImage =
+                            await ImagePicker()
+                                .pickImage(
+                              source: ImageSource
+                                  .gallery,
+                            );
+                            if (pickedImage !=
+                                null) {
+                              setState(() {
+                                _image = File(
+                                    pickedImage
+                                        .path);
+                              });
+                            }
+                          } else if (action ==
+                              'camera') {
+                            final pickedImage =
+                            await ImagePicker()
+                                .pickImage(
+                              source: ImageSource
+                                  .camera,
+                            );
+                            if (pickedImage !=
+                                null) {
+                              setState(() {
+                                _image = File(
+                                    pickedImage
+                                        .path);
+                              });
+                            }
+                          }
+                        },
+
+                        child: Icon(
+                          Icons.camera_alt,
+                          size: 35,
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ),
@@ -690,6 +784,7 @@ SizedBox(height: 8,),
                                     isSearchBarVisible = isLanguageListVisible;
                                     // Remove the condition to update filteredLanguages regardless of the search bar visibility
                                     filteredLanguages = languages;
+
                                   });
                                 },
                                 child: Container(
@@ -705,19 +800,23 @@ SizedBox(height: 8,),
                                   ),
                                   child: Row(
                                     children: [
-                                      selectedLanguage!=' ' ?
-                                      Text(
-                                        '${selectedLanguage?? 'select language'}',
-                                        style: TextStyle(
-                                            fontSize: 16, color: Colors.grey[700]),
+                                      languagesString.isNotEmpty ?
+                                      Expanded(
+                                        child: Text(
+                                          '${languagesString?? 'select language'}',
+                                          style: TextStyle(
+                                              fontSize: 16, color: Colors.grey[700]),
+                                        ),
                                       )
-                                          :Text(
-                                        'Select language',
-                                        style: TextStyle(
-                                            fontSize: 16, color: Colors.grey[700]),
+                                          :                                      Expanded(
+
+                                        child: Text(
+                                          'Select language',
+                                          style: TextStyle(
+                                              fontSize: 16, color: Colors.grey[700]),
+                                        ),
                                       )
                                       ,
-                                      Spacer(),
                                       Icon(
                                         isLanguageListVisible
                                             ? Icons.arrow_drop_up
@@ -749,7 +848,7 @@ SizedBox(height: 8,),
                                       setState(() {
                                         filteredLanguages = languages
                                             .where((language) =>
-                                            language['lang']
+                                            language['name']
                                                 .toLowerCase()
                                                 .contains(query.toLowerCase()))
                                             .toList();
@@ -774,6 +873,7 @@ SizedBox(height: 8,),
                                   children: filteredLanguages.map((language) {
                                     final langName = language['name'];
                                     final langId = language['id'];
+                                    languagesString = selectedLanguagename.join(', ');
 
                                     return Column(
                                       children: [
@@ -786,13 +886,19 @@ SizedBox(height: 8,),
                                               setState(() {
                                                 if (value!) {
                                                   selectedLanguages.add(langId);
+                                                  selectedLanguagename.add((langName));
+                                                  languagesString = selectedLanguagename.join(', ');
                                                   print('selected languages add ${selectedLanguages}'); // Print the selected language IDs
+
 
 
                                                 } else {
                                                   print('selected languages remove ${selectedLanguages}'); // Print the selected language IDs
-
+                                                  selectedLanguagename.remove((langName));
+                                                  languagesString = selectedLanguagename.join(', ');
                                                   selectedLanguages.remove(langId);
+
+
                                                 }
                                               });
                                             },
@@ -827,22 +933,35 @@ SizedBox(height: 8,),
                       Expanded(
                         child: Row(
                           children: [
-                            DropdownButton<String>(
-                              value: selectedPhoneCode,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  // Update the selected phone code
-                                  selectedPhoneCode = newValue!;
-                                });
-                              },
-                              items: americanPhoneCodes.map((code) {
-                                return DropdownMenuItem<String>(
-                                  value: code,
-                                  child: Text(code),
-                                );
-                              }).toList(),
+                            Container(
+
+                              decoration: BoxDecoration(
+
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(5.0),
+                              ),
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5.0),
+                                ),
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/icons/uslogo.svg',
+                                      width: 27.0,
+                                      height: 27.0,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      '+1',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                            SizedBox(width: 8), // Add some spacing between the dropdown and the text field
+                            SizedBox(width: 10),
+                            // Add some spacing between the dropdown and the text field/ Add some spacing between the dropdown and the text field
                             Expanded(
                               child: TextFormField(
 

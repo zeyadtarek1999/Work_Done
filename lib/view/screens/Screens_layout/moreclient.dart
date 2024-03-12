@@ -146,11 +146,12 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
                     CircleAvatar(
                       radius: MediaQuery.of(context).size.width * 0.1,
                       backgroundColor: Colors.transparent,
-                      backgroundImage: profile_pic != '' &&
-                          profile_pic.isNotEmpty &&
-                          profile_pic == "https://workdonecorp.com/images/"
+                      backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                          || profile_pic == "https://workdonecorp.com/storage/" ||
+                          !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+
                           ? AssetImage('assets/images/default.png') as ImageProvider
-                          : NetworkImage(profile_pic ?? 'assets/images/default.png'),
+                          : NetworkImage(profile_pic?? 'assets/images/default.png'),
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(

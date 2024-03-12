@@ -1756,12 +1756,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                     } else {
                                       ProjectData projectData = snapshot.data!;
 
-
-
-
-
-
-
                                       if (projectData.pageContent.currentUserRole ==
                                               'worker' &&
                                           (projectData.status == 'bid_accepted'
@@ -2246,7 +2240,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                           ],
                                         );
                                       }
-                                      else if (  projectData.status == 'scheduled' && projectData.pageContent.scheduleStatus == 'pending'){
+                                      else if (  projectData.status == 'scheduled' && projectData.pageContent.scheduleStatus == 'pending'&&projectData.pageContent.selectedDate.isNotEmpty){
                                         activeStep=2;
 
                                         return  Column(
@@ -2929,7 +2923,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                         );
 
                                       }
-                                      else if (  projectData.status == 'scheduled' && projectData.pageContent.scheduleStatus == 'accepted'){
+                                      else if (  projectData.status == 'scheduled' && projectData.pageContent.scheduleStatus == 'accepted'&&projectData.pageContent.selectedDate.isNotEmpty){
                                         activeStep=2;
 
                                         return  Column(
@@ -3538,7 +3532,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                         );
 
                                       }
-                                      else if (  projectData.status == 'scheduled' ){
+                                      else if (  projectData.status == 'scheduled'&&projectData.pageContent.selectedDate.isNotEmpty ){
                                         activeStep=2;
 
                                         return  Column(
@@ -4104,9 +4098,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                         );
 
                                       }
-
-
-
                                       else if (  projectData.status == 'processing' && projectData.pageContent.enter_complete_project_verification_code_button == 'mftoo7')
                                       {
                                         activeStep =3;
@@ -5317,7 +5308,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
               }
 
                                       else if ( projectData.status ==
-                                          'completed') {
+                                          'completed' &&projectData.pageaccessdata.force_review == 'true' ) {
                                         activeStep=5;
                                         return
 
@@ -5943,9 +5934,752 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                           ],
                                         );
                                       }
+                                      else if ( projectData.status ==
+                                          'completed' ) {
+                                        activeStep=5;
+                                        return
 
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+
+                                            children: [
+                                              Padding(
+                                                padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                child: Text(
+                                                  'Progress',
+                                                  style: GoogleFonts.openSans(
+                                                    textStyle: TextStyle(
+                                                      color: HexColor('454545'),
+                                                      fontSize: 22,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 8,),
+
+                                              Container(
+                                                height:150,
+                                                child: Center(
+                                                  child: Container(
+                                                    padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                                    child: EasyStepper(
+                                                      activeStepBackgroundColor:HexColor('4D8D6E') ,
+                                                      activeStepIconColor: Colors.white,
+                                                      activeStepBorderColor:HexColor('4D8D6E')  ,
+                                                      activeStepTextColor: HexColor('4D8D6E'),
+
+                                                      showScrollbar: true,
+                                                      enableStepTapping: false,
+                                                      maxReachedStep: 6,
+                                                      activeStep: activeStep,
+                                                      stepShape: StepShape.circle,
+                                                      stepBorderRadius: 15,
+                                                      borderThickness: 1,
+                                                      internalPadding: 15,
+                                                      stepRadius: 32,
+                                                      finishedStepBorderColor: HexColor('8d4d6c'),
+                                                      finishedStepTextColor: HexColor('8d4d6c'),
+                                                      finishedStepBackgroundColor: HexColor('8d4d6c'),
+                                                      finishedStepIconColor: Colors.white,
+                                                      finishedStepBorderType: BorderType.normal,
+                                                      showLoadingAnimation: false,
+                                                      showStepBorder: true,
+                                                      lineStyle: LineStyle(
+                                                        lineLength: 45,
+                                                        lineType: LineType.dashed,
+
+                                                        activeLineColor: HexColor('#8d4d6c'),
+                                                        defaultLineColor: HexColor('#8d4d6c'),
+                                                        unreachedLineColor: HexColor('#172a21'),
+                                                        lineThickness: 3,
+                                                        lineSpace: 2,
+                                                        lineWidth: 10,
+
+                                                        unreachedLineType: LineType.dashed,
+
+                                                      ),
+
+                                                      steps: [
+                                                        EasyStep(
+
+
+                                                          icon: Icon(
+                                                            FluentIcons.money_16_regular,
+                                                          ),
+                                                          title: 'Under Bidding',
+
+                                                        ),
+                                                        EasyStep(
+
+
+                                                          icon: Icon(
+                                                            Icons.check_circle,
+                                                          ),
+                                                          title: 'Accepted',
+
+                                                        ),
+                                                        EasyStep(
+
+
+                                                          icon: Icon(
+                                                            FluentIcons.calendar_12_filled ,
+                                                          ),
+                                                          title: 'Schedule',
+
+                                                        ),
+                                                        EasyStep(
+
+
+                                                          icon: Icon(
+                                                            FluentIcons.spinner_ios_16_filled ,
+                                                          ),
+                                                          title: 'Processing',
+
+                                                        ),
+                                                        EasyStep(
+
+
+                                                          icon: Icon(
+                                                            FluentIcons.checkmark_circle_square_16_filled ,
+                                                          ),
+                                                          title: 'Finilizing',
+
+                                                        ),
+                                                        EasyStep(
+
+
+                                                          icon: Icon(
+                                                            FluentIcons.flag_16_filled  ,
+                                                          ),
+                                                          title: 'Completed',
+
+                                                        ),
+
+                                                      ],
+                                                      onStepReached: (index) => setState(() => activeStep = index),
+                                                    ),
+                                                  ),
+
+                                                ),
+                                              ),
+
+                                              Padding(
+                                                padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                child: Text(
+                                                  'Reviews',
+                                                  style: GoogleFonts.openSans(
+                                                    textStyle: TextStyle(
+                                                      color: HexColor('454545'),
+                                                      fontSize: 22,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 17,),
+                                              projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+
+                                                  ?  Padding(
+                                                padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                child: Text(
+                                                  'Client Review :',
+                                                  style: GoogleFonts.openSans(
+                                                    textStyle: TextStyle(
+                                                      color: HexColor('34446F'),
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ):Container(),
+                                              SizedBox(height: 10,),
+                                              projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+                                                  ? Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    radius: 23,
+                                                    backgroundColor: Colors.transparent,
+                                                    backgroundImage: projectData.clientData?.profileImage== 'https://workdonecorp.com/images/' ||projectData.clientData?.profileImage== ''
+                                                        ? AssetImage('assets/images/default.png') as ImageProvider
+                                                        : NetworkImage(projectData.clientData?.profileImage?? 'assets/images/default.png'),
+                                                  ),
+                                                  SizedBox(width: 11),
+                                                  GestureDetector(
+                                                    onTap:  () {
+                                                      Get.to(ProfilePageClient(
+                                                          userId: projectData.clientData!.clientId.toString()));
+                                                    },
+
+                                                    child:                                                 Text(
+                                                      projectData.clientData!.firstname,
+                                                      style: TextStyle(
+                                                        color: HexColor('4D8D6E'),
+                                                        fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Spacer(),
+                                                  RatingDisplay(rating: projectData.pageContent.ratingOnWorker),
+                                                ],
+                                              )
+                                                  : Container(),
+                                              SizedBox(height: 8),
+                                              projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+                                                  ? Padding(
+                                                padding: const EdgeInsets.all(16.0), // Consistent padding
+                                                child: Text(
+                                                  '${projectData.pageContent.reviewOnWorker}',
+                                                  style: GoogleFonts.roboto( // Same font for consistency
+                                                    textStyle: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 16, // Readable size
+                                                      fontWeight: FontWeight.w400, // Slightly emphasized weight
+                                                      height: 1.5, // Increased line height for better spacing
+                                                    ),
+                                                  ),
+                                                  textAlign: TextAlign.left,
+                                                ),
+                                              )
+                                                  : SizedBox(height: 0),
+                                              SizedBox(height: 8),
+                                              projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+                                                  ?
+                                              Container(
+                                                height: 140,
+                                                child: ListView.builder(
+                                                  scrollDirection: Axis.horizontal,
+                                                  itemCount: projectData.pageContent.imagesAfter.length,
+                                                  itemBuilder: (context, index) {
+                                                    return GestureDetector(
+                                                      onTap: () {
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) => PhotoView(
+                                                              imageProvider: NetworkImage(
+                                                                projectData.pageContent.imagesAfter[index],
+                                                              ),
+                                                              heroAttributes: PhotoViewHeroAttributes(
+                                                                tag: projectData.pageContent.imagesAfter[index],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      },
+                                                      child: Hero(
+                                                        tag: projectData.pageContent.imagesAfter[index],
+                                                        child: Padding(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                          child: AspectRatio(
+                                                            aspectRatio: 1,
+                                                            child: Image.network(
+                                                              projectData.pageContent.imagesAfter[index],
+                                                              fit: BoxFit.cover,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              )
+                                                  :  Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+
+                                                  children: [
+                                                    Padding(
+                                                      padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                      child: Text(
+                                                        'Client Review :',
+                                                        style: GoogleFonts.openSans(
+                                                          textStyle: TextStyle(
+                                                            color: HexColor('34446F'),
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Row(
+                                                      children: [
+                                                        CircleAvatar(
+                                                          radius: 23,
+                                                          backgroundColor: Colors.transparent,
+                                                          backgroundImage: projectData.clientData?.profileImage== 'https://workdonecorp.com/images/' ||projectData.clientData?.profileImage== ''
+                                                              ? AssetImage('assets/images/default.png') as ImageProvider
+                                                              : NetworkImage(projectData.clientData?.profileImage?? 'assets/images/default.png'),
+                                                        ),
+                                                        SizedBox(width: 11),
+                                                        GestureDetector(
+                                                          onTap:  () {
+                                                            Get.to(ProfilePageClient(
+                                                                userId: projectData.clientData!.clientId.toString()));
+                                                          },
+
+                                                          child:                                                 Text(
+                                                            projectData.clientData!.firstname,
+                                                            style: TextStyle(
+                                                              color: HexColor('4D8D6E'),
+                                                              fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Spacer(),
+                                                        RatingDisplay(rating: projectData.pageContent.ratingOnWorker),
+                                                      ],
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets.all(16.0), // Consistent padding
+                                                      child: Text(
+                                                        '${projectData.pageContent.reviewOnWorker}',
+                                                        style: GoogleFonts.roboto( // Same font for consistency
+                                                          textStyle: TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 16, // Readable size
+                                                            fontWeight: FontWeight.w400, // Slightly emphasized weight
+                                                            height: 1.5, // Increased line height for better spacing
+                                                          ),
+                                                        ),
+                                                        textAlign: TextAlign.left,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      height: 140,
+                                                      child: ListView.builder(
+                                                        scrollDirection: Axis.horizontal,
+                                                        itemCount: projectData.pageContent.imagesAfter.length,
+                                                        itemBuilder: (context, index) {
+                                                          return GestureDetector(
+                                                            onTap: () {
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder: (context) => PhotoView(
+                                                                    imageProvider: NetworkImage(
+                                                                      projectData.pageContent.imagesAfter[index],
+                                                                    ),
+                                                                    heroAttributes: PhotoViewHeroAttributes(
+                                                                      tag: projectData.pageContent.imagesAfter[index],
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            },
+                                                            child: Hero(
+                                                              tag: projectData.pageContent.imagesAfter[index],
+                                                              child: Padding(
+                                                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                                child: AspectRatio(
+                                                                  aspectRatio: 1,
+                                                                  child: Image.network(
+                                                                    projectData.pageContent.imagesAfter[index],
+                                                                    fit: BoxFit.cover,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                      ),
+                                                    )
+                                                  ],
+                                              ),
+                                              SizedBox(height: 17,),
+                                              projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+
+                                                  ? Padding(
+                                                padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                child: Text(
+                                                  'Worker Review :',
+                                                  style: GoogleFonts.openSans(
+                                                    textStyle: TextStyle(
+                                                      color: HexColor('34446F'),
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ): Container(),
+                                              SizedBox(height: 10,),
+                                              projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+                                                  ? Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    radius: 23,
+                                                    backgroundColor: Colors.transparent,
+                                                    backgroundImage: projectData.selectworkerbid.worker_profile_pic == 'https://workdonecorp.com/images/' ||projectData.selectworkerbid.worker_profile_pic == ''
+                                                        ? AssetImage('assets/images/default.png') as ImageProvider
+                                                        : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
+                                                  ),
+                                                  SizedBox(width: 11),
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      Get.to(Workerprofileother
+                                                        (
+                                                          userId: projectData
+                                                              .selectworkerbid.worker_id
+                                                              .toString()),
+                                                        transition: Transition.fadeIn, // You can choose a different transition
+                                                        duration: Duration(milliseconds: 700), );
+                                                    },
+
+                                                    child: Text(
+                                                      projectData.selectworkerbid.worker_firstname,
+                                                      //client first name
+                                                      style: TextStyle(
+                                                        color: HexColor('4D8D6E'),
+                                                        fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+
+
+                                                  Spacer(),
+                                                  RatingDisplay(rating: projectData.pageContent.ratingOnClient),
+                                                ],
+                                              )
+                                                  : Container(
+                                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    color: Colors.white,
+                                    boxShadow: [
+                                    BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 5,
+                                    offset: Offset(0, 3),
+                                    ),
+                                    ],
+                                    ),
+                                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                    child: Row(
+                                    children: [
+                                    Icon(
+                                    Icons.warning_amber_outlined,
+                                    color: Colors.orange,
+                                    size: 20,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                    child: Text(
+                                    'The Worker Didnt rate yet.',
+                                    style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey[800],
+                                    ),
+                                    ),
+                                    ),
+                                    ],
+                                    ),
+                                    ),
+                                              SizedBox(height: 5),
+                                              projectData.pageContent.reviewOnClient != ''
+                                                  ? Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 12.0), // Add padding around the text
+                                                child: Text(
+                                                  '${projectData.pageContent.reviewOnClient}',
+                                                  style: GoogleFonts.roboto( // Use Roboto for a more readable font
+                                                    textStyle: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 16, // Increased font size for better readability
+                                                      fontWeight: FontWeight.w400, // Slightly heavier weight for emphasis
+                                                    ),
+
+                                                  ),
+                                                ),
+                                              )
+                                                  : Container(),
+
+
+                                              projectData.pageaccessdata.force_review == 'true' ?
+                                              Row(
+                                                children: [
+
+                                                  Expanded(
+                                                    child: Container(
+                                                      width: 220.0,
+                                                      height: 50,
+                                                      // Set the desired width
+                                                      child: ElevatedButton(
+                                                        onPressed: () {
+                                                          showModalBottomSheet(
+                                                            context: context,
+                                                            isScrollControlled: true,
+                                                            builder: (context) {
+                                                              return SafeArea(
+                                                                child: SingleChildScrollView(
+                                                                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                                                                  child: Column(
+                                                                    mainAxisSize: MainAxisSize.min,
+                                                                    children: [
+                                                                      ListTile(
+                                                                        title: Text(
+                                                                          'The Project is Completed, make feedback about Client!',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: HexColor('4D8D6E'),
+                                                                              fontSize: 20,
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                          ),
+                                                                          textAlign: TextAlign.center,
+                                                                        ),
+                                                                      ),
+                                                                      ListTile(
+                                                                        title: Text(
+                                                                          'Rating',
+                                                                          style: GoogleFonts.roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: HexColor('424347'),
+                                                                              fontSize: 18,
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      ListTile(
+                                                                        title: Column(
+                                                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                                                          children: [
+                                                                            Row(
+                                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                                              children: [
+                                                                                CircleAvatar(
+                                                                                  radius: 23,
+                                                                                  backgroundColor: Colors.transparent,
+                                                                                  backgroundImage: projectData.clientData.profileImage== 'https://workdonecorp.com/images/' ||projectData.clientData.profileImage == ''
+                                                                                      ? AssetImage('assets/images/default.png') as ImageProvider
+                                                                                      : NetworkImage(projectData.clientData.profileImage ?? 'assets/images/default.png'),
+                                                                                ),
+                                                                                SizedBox(width: 10),
+                                                                                Column(
+                                                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                                                  children: [
+                                                                                    Text(
+                                                                                      '${projectData.clientData.firstname}',
+                                                                                      style: GoogleFonts.roboto(
+                                                                                        textStyle: TextStyle(
+                                                                                          color: HexColor('706F6F'),
+                                                                                          fontSize: 17,
+                                                                                          fontWeight: FontWeight.bold,
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                    SizedBox(width: 8),
+                                                                                    RatingBar.builder(
+                                                                                      initialRating: 0,
+                                                                                      minRating: 1,
+                                                                                      direction: Axis.horizontal,
+                                                                                      allowHalfRating: false,
+                                                                                      itemCount: 5,
+                                                                                      itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                                                      itemBuilder: (context, _) => Icon(
+                                                                                        Icons.star,
+                                                                                        color: HexColor('4D8D6E'),
+                                                                                        size: 14,
+                                                                                      ),
+                                                                                      onRatingUpdate: (rating2) {
+                                                                                        rating = rating2.toString();
+                                                                                        print(rating);
+                                                                                      },
+                                                                                    ),
+                                                                                  ],
+                                                                                ),
+                                                                              ],
+                                                                            )
+                                                                          ],
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(height: screenheight * 0.02),
+                                                                      Padding(
+                                                                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                                                        child: Container(
+                                                                          decoration: BoxDecoration(
+                                                                            borderRadius: BorderRadius.circular(15),
+                                                                            color: Colors.grey[100],
+                                                                          ),
+                                                                          child: Padding(
+                                                                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                                                                            child: TextFormField(
+                                                                              controller: reviewcontroller,
+                                                                              decoration: InputDecoration(
+                                                                                hintText: 'Write a Review ...',
+                                                                                hintStyle: TextStyle(color: Colors.grey[500]),
+                                                                                border: InputBorder.none,
+                                                                              ),
+                                                                              maxLines: 4,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Padding(
+                                                                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
+                                                                        child: Center(
+                                                                          child: ActionSlider.standard(
+                                                                            sliderBehavior: SliderBehavior.stretch,
+                                                                            rolling: false,
+                                                                            width: double.infinity,
+                                                                            backgroundColor: Colors.white,
+                                                                            toggleColor: HexColor('4D8D6E'),
+                                                                            iconAlignment: Alignment.centerRight,
+                                                                            loadingIcon: SizedBox(
+                                                                              width: 55,
+                                                                              child: Center(
+                                                                                child: RotationTransition(
+                                                                                  turns: ciruclaranimation,
+                                                                                  child: SvgPicture.asset(
+                                                                                    'assets/images/Logo.svg',
+                                                                                    semanticsLabel: 'Your SVG Image',
+                                                                                    width: 100,
+                                                                                    height: 130,
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            successIcon: const SizedBox(
+                                                                              width: 55,
+                                                                              child: Center(
+                                                                                child: Icon(
+                                                                                  Icons.check_rounded,
+                                                                                  color: Colors.white,
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            icon: const SizedBox(
+                                                                              width: 55,
+                                                                              child: Center(
+                                                                                child: Icon(
+                                                                                  Icons.keyboard_double_arrow_right,
+                                                                                  color: Colors.white,
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            action: (controller) async {
+                                                                              if (!isLoading) {
+                                                                                controller.loading();
+                                                                                await    Reviewproject();
+                                                                                Get.off(
+                                                                                  bidDetailsWorker(projectId: widget.projectId),
+                                                                                  transition: Transition.fadeIn, // You can choose a different transition
+                                                                                  duration: Duration(milliseconds: 700), // Set the duration of the transition
+                                                                                );
+
+                                                                                controller.success();
+                                                                                await Future.delayed(const Duration(seconds: 1));
+                                                                                controller.reset();
+                                                                              }
+                                                                            },
+                                                                            child: const Text('Swipe To Confirm'),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(height: 20),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            },
+                                                          );
+
+                                                        },
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          primary:
+                                                          HexColor('ED6F53'),
+                                                          // Background color
+                                                          onPrimary: Colors.white,
+                                                          // Text color
+                                                          elevation: 8,
+                                                          // Elevation
+                                                          shape:
+                                                          RoundedRectangleBorder(
+                                                            borderRadius:
+                                                            BorderRadius.circular(
+                                                                12), // Rounded corners
+                                                          ),
+                                                        ),
+                                                        child: Padding(
+                                                          padding:
+                                                          const EdgeInsets
+                                                              .all(12.0),
+                                                          child: Text(
+                                                            'Rate your Client',
+                                                            style: GoogleFonts
+                                                                .roboto(
+                                                              textStyle:
+                                                              TextStyle(
+                                                                color:
+                                                                Colors.white,
+                                                                fontSize: 14,
+                                                                fontWeight:
+                                                                FontWeight
+                                                                    .bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ) :Container(),
+
+
+
+
+
+
+                                              SizedBox(height: 15,),
+                                              Padding(
+                                                padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                child: Text(
+                                                  'Workers Bids',
+                                                  style: GoogleFonts.openSans(
+                                                    textStyle: TextStyle(
+                                                      color: HexColor('454545'),
+                                                      fontSize: 22,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Animate(
+                                                effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                                                child: ListView.builder(
+                                                  physics: NeverScrollableScrollPhysics(),
+                                                  shrinkWrap: true,
+                                                  itemCount: projectData.bids.length,
+                                                  itemBuilder: (context, index) {
+                                                    Bid bid = projectData.bids[index];
+                                                    return buildListItem(bid);
+                                                  },
+                                                ),
+                                              ),
+
+                                            ],
+                                          );
+                                      }
                                       else if (projectData.bids.isNotEmpty) {
-                                        activeStep =0;
+                                        projectData.status ==
+                                            'bid_accepted'?
+                                        activeStep=1:
+                                        projectData.status ==
+                                            'scheduled'?
+                                        activeStep=2:
+                                        projectData.status ==
+                                            'processing'?
+                                        activeStep=3:
+                                        projectData.status ==
+                                            'finalizing'?
+                                        activeStep=4:
+                                        projectData.status ==
+                                            'completed'?
+                                        activeStep=5:
+                                        activeStep=0;
                                         return Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
 

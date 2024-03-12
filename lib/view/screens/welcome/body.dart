@@ -53,12 +53,24 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
     });
   }
 
-  void _startVibratingAnimation() {
+  void _startVibratingAnimation(int times) {
     // Reset the controller and start the animation
-    _controller.repeat(reverse: true);
-    Future.delayed(Duration(seconds: 4), () {
-      _controller.stop();
+    _controller.reset(); // Ensure the animation starts from the beginning
+    int counter = 0; // Initialize a counter to track the number of repetitions
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        counter++; // Increment the counter each time the animation completes
+        if (counter < times) {
+          _controller.reverse(); // Reverse the animation to start the next cycle
+        } else {
+          _controller.removeStatusListener(this as AnimationStatusListener); // Remove the listener to stop the animation
+          _controller.stop(); // Stop the animation
+        }
+      }
     });
+
+    _controller.forward(); // Start the animation
   }
 
   double buttonscreenwidth = ScreenUtil.screenWidth! * 0.75;
@@ -154,7 +166,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
           children: <Widget>[
 
             GestureDetector(
-              onTap: _startVibratingAnimation,
+              onTap: () => _startVibratingAnimation(0), // Vibrate 2 times
               child: Transform.translate(
                 offset: Offset(_animation.value, 0),
                 child: SvgPicture.asset(

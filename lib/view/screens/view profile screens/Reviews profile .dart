@@ -980,7 +980,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
 
                                           SizedBox(height: 12,),
 
-                                          // Text("${userProfile.projectCount.toString()}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                                          Text("${userProfile.projectCount.toString()}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                                           SizedBox(height: 5,),
                                           Text("Projects", style: TextStyle(color: Colors.grey,),),
 
@@ -1072,62 +1072,11 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
           body:                     SingleChildScrollView(
             child: Column(
               children: [
-            //   FutureBuilder<UserProfile>(
-            //   future: futureProjects,
-            //   builder: (context, snapshot) {
-            //     if (snapshot.connectionState == ConnectionState.waiting) {
-            //       return Center(
-            //         child: CircularProgressIndicator(),
-            //       );
-            //     } else if (snapshot.hasError) {
-            //       return Text('Error: ${snapshot.error}');
-            //     } else if (snapshot.data == null) {
-            //       UserProfile userProfile = snapshot.data!;
-            //       return Animate(
-            //         effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
-            //         child: ListView.builder(
-            //           physics: NeverScrollableScrollPhysics(),
-            //           shrinkWrap: true,
-            //           itemCount: userProfile.projects.length,
-            //           itemBuilder: (context, index) {
-            //
-            //             return buildProjectItem(userProfile.projects[index]);
-            //           },
-            //         ),
-            //       );
-            //     } else {
-            //       return                   Column(
-            //         mainAxisAlignment: MainAxisAlignment.center,
-            //         children: [
-            //           Padding(
-            //             padding: const EdgeInsets.symmetric(vertical: 12.0),
-            //             child: SvgPicture.asset(
-            //               'assets/images/nothing.svg',
-            //               width: 100.0, // Set the width you want
-            //               height: 100.0, // Set the height you want
-            //             ),
-            //           ),
-            //           SizedBox(
-            //             height: 20,
-            //           ),
-            //           Text(
-            //             'No Projects yet',
-            //             style: GoogleFonts.encodeSans(
-            //               textStyle: TextStyle(
-            //                   color: HexColor('BBC3CE'),
-            //                   fontSize: 18,
-            //                   fontWeight: FontWeight.normal),
-            //             ),
-            //           ),
-            //         ],
-            //       )
-            //     ;
-            //     }
-            //   },
-            // ),
                 FutureBuilder<UserProfile>(
                   future: futureProjects,
                   builder: (context, snapshot) {
+                    UserProfile userProfile = snapshot.data!;
+
                     if (snapshot.connectionState ==
                         ConnectionState.waiting) {
                       return Center(
@@ -1138,7 +1087,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                     } else if (snapshot.hasError) {
                       return Text(
                           'Error: ${snapshot.error}');
-                    } else if (snapshot.data == null ) {
+                    } else if (snapshot.data == null || userProfile.projects.isEmpty ) {
                       // If projects list is empty, reset current page to 0 and refresh
                       return                   Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1537,14 +1486,14 @@ class UserProfile {
   final String msg;
   // final UserData userData;
   final List<Project> projects;
-  // final dynamic projectCount;
+   int projectCount =0 ;
 
   UserProfile({
     required this.status,
     required this.msg,
     // required this.userData,
     required this.projects,
-    // required this.projectCount,
+    required this.projectCount,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -1553,7 +1502,7 @@ class UserProfile {
       msg: json['msg'],
       // userData: UserData.fromJson(json['user_data']),
       projects: List<Project>.from(json['projects'].map((project) => Project.fromJson(project))),
-      // projectCount: json['project_count'],
+      projectCount: json['project_count'],
     );
   }
 }

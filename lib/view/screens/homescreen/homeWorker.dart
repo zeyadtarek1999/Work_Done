@@ -642,8 +642,10 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                     CircleAvatar(
                   radius: 35,
                   backgroundColor: Colors.transparent,
-                  backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                      && profile_pic == "https://workdonecorp.com/images/"
+                  backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                      || profile_pic == "https://workdonecorp.com/storage/" ||
+                      !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+
                       ? AssetImage('assets/images/default.png') as ImageProvider
                       : NetworkImage(profile_pic?? 'assets/images/default.png'),
                 ),
@@ -1067,9 +1069,12 @@ SizedBox(width: 20,),
                             child: CircleAvatar(
                               radius: 27,
                               backgroundColor: Colors.transparent,
-                              backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                                  ? NetworkImage(profile_pic)
-                                  : AssetImage('assets/images/default.png') as ImageProvider,
+                              backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                                  || profile_pic == "https://workdonecorp.com/storage/" ||
+                                  !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+
+                                  ? AssetImage('assets/images/default.png') as ImageProvider
+                                  : NetworkImage(profile_pic?? 'assets/images/default.png'),
                             ),
                           ),
                                           ),
@@ -1085,9 +1090,12 @@ SizedBox(width: 20,),
                       child: CircleAvatar(
                         radius: 27,
                         backgroundColor: Colors.transparent,
-                        backgroundImage: profile_pic != null && profile_pic.isNotEmpty
-                            ? NetworkImage(profile_pic)
-                            : AssetImage('assets/images/default.png') as ImageProvider,
+                        backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                            || profile_pic == "https://workdonecorp.com/storage/" ||
+                            !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+
+                            ? AssetImage('assets/images/default.png') as ImageProvider
+                            : NetworkImage(profile_pic?? 'assets/images/default.png'),
                       ),
                     ),
               ],

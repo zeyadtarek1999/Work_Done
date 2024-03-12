@@ -237,7 +237,6 @@ double widthofbar = 150;
   void initState() {
   super.initState();
   initializeProjects();
-  _getUserProfile();
   likedProjectsMap= {};
   super.initState();
   _getusertype();
@@ -253,6 +252,7 @@ double widthofbar = 150;
   String profile_pic = '';
   String phone = '';
   String language = '';
+  String jobtype = '';
   String usertype = '';
   int projectnumber = 0;
   dynamic stars_5 = 0;
@@ -521,7 +521,8 @@ print(widget.userId.toString(),);
 
           if (responseData.containsKey('user_data')) {
             Map<dynamic, dynamic> profileData = responseData['user_data'];
-
+            String languageString;
+            String jobtypeString;
             setState(() {
               firstname = profileData['firstname'] ?? '';
               secondname = profileData['lastname'] ?? '';
@@ -529,6 +530,14 @@ print(widget.userId.toString(),);
               profile_pic = profileData['profile_pic'] ?? '';
               phone = profileData['phone'] ?? '';
               language = profileData['language'] ?? '';
+              List<dynamic> jobtypes = profileData['job_type'] ?? [];
+              List<String> jobtypeNames = jobtypes.map<String>((jobtype) => jobtype['name']).toList();
+              jobtypeString = jobtypeNames.join(', ');
+              jobtype =jobtypeString;
+              List<dynamic> languages = profileData['language'] ?? [];
+              List<String> languageNames = languages.map<String>((language) => language['name']).toList();
+              languageString = languageNames.join(', ');
+              language = languageString;
             });
 
             print('Response: $profileData');
@@ -963,9 +972,9 @@ SizedBox(height: 10,),
                                                         List <dynamic> languagelist = userProfile.userData.languages;
                                                         List<String> languageNames = languagelist.map<String>((language) => language['name']).toList();
                                                         languageString = languageNames.join(', ');
-                                                        language = languageString;
 
-                                                        return                                                              Column(
+
+                                                        return                                       Column(
                                                           crossAxisAlignment: CrossAxisAlignment.start,
                                                           mainAxisAlignment: MainAxisAlignment.center,
                                                           children: [
@@ -1073,7 +1082,7 @@ SizedBox(height: 10,),
                                                                           width: ScreenUtil.sizeboxwidth3,
                                                                         ),
                                                                         Text(
-                                                                          '${userProfile.userData.job_type}    ',
+                                                                          '${jobtype}  ',
                                                                           style: TextStyle(
                                                                               color: HexColor('#404040'), fontSize: 15),
                                                                         )
@@ -1684,7 +1693,7 @@ class UserData {
   List<dynamic> languages;
   final String license_number;
   final String license_pic;
-  final String job_type;
+  List<dynamic> job_type;
 
   UserData({
     required this.firstname,

@@ -432,8 +432,10 @@ client_id: item.client_id,
               CircleAvatar(
                 radius: 32,
                 backgroundColor: Colors.transparent,
-                backgroundImage: item.other_side_image != '' && item.other_side_image.isNotEmpty
-                    && item.other_side_image == "https://workdonecorp.com/images/"
+                backgroundImage: item.other_side_image == '' || item.other_side_image.isEmpty
+                    || item.other_side_image == "https://workdonecorp.com/storage/" ||
+                    !(item.other_side_image.toLowerCase().endsWith('.jpg') || item.other_side_image.toLowerCase().endsWith('.png'))
+
                     ? AssetImage('assets/images/default.png') as ImageProvider
                     : NetworkImage(item.other_side_image?? 'assets/images/default.png'),
               ),

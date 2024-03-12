@@ -136,6 +136,7 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
             Map<dynamic, dynamic> profileData = responseData['data'];
 
             String languageString;
+            String jobtypeString;
 
             setState(() {
               firstname = profileData['firstname'] ?? '';
@@ -143,11 +144,14 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
               email = profileData['email'] ?? '';
               profile_pic = profileData['profile_pic'] ?? '';
               phonenumber = profileData['phone'] ?? '';
-              paypal = profileData['paypal'] ?? 'no paypal number';
+              paypal = profileData['paypal'] ?? 'no paypal Email';
               license_number = profileData['license_number'] ?? 'No license number';
               license_pic = profileData['license_pic'] ?? 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png';
               experience = profileData['experience'] ?? '';
-              job_type = profileData['job_type'] ?? '';
+              List<dynamic> jobtypes = profileData['job_type'] ?? [];
+              List<String> jobtypeNames = jobtypes.map<String>((jobtype) => jobtype['name']).toList();
+              jobtypeString = jobtypeNames.join(', ');
+              job_type =jobtypeString;
               List<dynamic> languages = profileData['language'] ?? [];
               List<String> languageNames = languages.map<String>((language) => language['name']).toList();
               languageString = languageNames.join(', ');
@@ -156,6 +160,8 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
 
             print('Response: $profileData');
             print('profile pic: $profile_pic');
+            print('language : $language');
+            print('jobtypes : $job_type');
           } else {
             print(
                 'Error: Response data does not contain the expected structure.');
@@ -448,7 +454,9 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                             style: ButtonStyle(
                               backgroundColor: MaterialStateProperty.all(HexColor('4D8D6E')), // Set the background color
                             ),
-                          ),    ],
+                          ),
+
+                        ],
                       ),
                     ),
                     Center(
@@ -538,6 +546,8 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                             ),
                             Container(
                                 height: 50,
+                                width: double.infinity,
+
                                 decoration: BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
@@ -571,7 +581,45 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                                   ),
                                 )),
                             Container(
+                                height: 50,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: HexColor('#707070').withOpacity(0.1),
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: [
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: 12),
+                                        child: Text(
+                                          'Job Types:',
+                                          style: TextStyle(
+                                            color: HexColor('#4D8D6E'),
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 17,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: ScreenUtil.sizeboxwidth3),
+                                      Text(
+                                        '$job_type',
+                                        style: TextStyle(
+                                            color: HexColor('#404040'), fontSize: 15),
+                                      )
+                                    ],
+                                  ),
+                                )),
+
+                            Container(
                               height: 50,
+                              width: double.infinity,
+
                               decoration: BoxDecoration(
                                 border: Border(
                                   bottom: BorderSide(
@@ -674,6 +722,8 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                             ),
                             Container(
                               height: 50,
+                              width: double.infinity,
+
                               decoration: BoxDecoration(
                                 border: Border(
                                   bottom: BorderSide(

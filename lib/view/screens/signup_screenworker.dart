@@ -46,10 +46,15 @@ class _SignUpScreenState extends State<SignUpScreen>
 
 
   List<Map<String, dynamic>> languages = [];
+  List<Map<String, dynamic>> jobtypes = [];
   List<int> selectedLanguages = [];
+  List<String> selectedLanguagesname = [];
+  List<int> selectedJobtype = [];
+  List<String> selectedJobtypenames = [];
 
 
   bool isSearchBarVisible = false;
+  bool isSearchBarVisible2 = false;
   Future<void> Languagedata() async {
     const String url = "https://workdonecorp.com/api/get_all_languages";
 
@@ -65,6 +70,29 @@ class _SignUpScreenState extends State<SignUpScreen>
         setState(() {
           languages = data.map((lang) => {'id': lang['id'], 'name': lang['name']}).toList();
           filteredLanguages = languages;
+        });
+      } else {
+        print('Error: ${jsonResponse['msg']}');
+      }
+    } else {
+      print('Error: ${response.statusCode}');
+    }
+  }
+  Future<void> Jobtypesdata() async {
+    const String url = "https://workdonecorp.com/api/get_all_project_types";
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+
+      if (jsonResponse['status'] == 'success') {
+        final List data = jsonResponse['types_data'];
+        // Process the fetched language data as needed
+        print('Job types data   $data');
+        setState(() {
+          jobtypes = data.map((job) => {'id': job['id'], 'name': job['name']}).toList();
+          filteredJobtypes = jobtypes;
         });
       } else {
         print('Error: ${jsonResponse['msg']}');
@@ -147,7 +175,6 @@ class _SignUpScreenState extends State<SignUpScreen>
     // Add more job types as needed
   ];
 
-  String selectedJobType = 'Select JobType';
   List<Map<String, dynamic>> filteredJobTypes = [];
   File? _image;
   final picker = ImagePicker();
@@ -249,9 +276,10 @@ class _SignUpScreenState extends State<SignUpScreen>
 
   TextEditingController searchController = TextEditingController();
   List<Map<String, dynamic>> filteredLanguages = [];
+  List<Map<String, dynamic>> filteredJobtypes = [];
 
   final TextEditingController phoneNumberController = TextEditingController();
-  final TextEditingController paypalcontroller = TextEditingController();
+  // final TextEditingController paypalcontroller = TextEditingController();
   final firstnameController = TextEditingController();
   final lastnameController = TextEditingController();
   final licenseController = TextEditingController();
@@ -372,7 +400,7 @@ class _SignUpScreenState extends State<SignUpScreen>
     emailController2.dispose();
     passwordController.dispose();
     expyearcontroller.dispose();
-    paypalcontroller.dispose();
+    // paypalcontroller.dispose();
     addressLineController.dispose();
     addressst2Controller.dispose();
     cityController.dispose();
@@ -383,17 +411,22 @@ class _SignUpScreenState extends State<SignUpScreen>
   }
 
   late String _selectedRadio;
-
+ late String languagesString;
+ late String JobtypeString;
   @override
   void initState() {
     super.initState();
     Languagedata();
+    Jobtypesdata();
     ciruclaranimation = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
     );
     ciruclaranimation.repeat(reverse: false);
     _selectedRadio = ''; // You can set a default value if needed
+    languagesString = selectedLanguagesname.join(', ');
+    JobtypeString = selectedJobtypenames.join(', ');
+
   }
 
   void _togglePasswordVisibility() {
@@ -517,8 +550,9 @@ class _SignUpScreenState extends State<SignUpScreen>
         passwordController.text.isEmpty ||
         phoneNumberController.text.isEmpty ||
         // selectedLanguage.isEmpty ||
-        expyearcontroller.text.isEmpty ||
-        paypalcontroller.text.isEmpty) {
+        expyearcontroller.text.isEmpty
+        // paypalcontroller.text.isEmpty
+    ) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please fill in all fields'),
@@ -544,14 +578,13 @@ class _SignUpScreenState extends State<SignUpScreen>
     String phone = phoneNumberController.text;
 
     String experience = expyearcontroller.text.isEmpty ? 'No Experience year' : expyearcontroller.text;
-    String jobType = selectedJobType;
     String licenseNumber = licenseController.text;
     String street1 = addressLineController.text;
     String street2 = addressst2Controller.text.isEmpty || addressst2Controller.text == '' ? 'No addressline 2' : addressst2Controller.text;
     String city = cityController.text;
     String state = selectedState;
     String address_zip = zipcodeController.text;
-    String paypal = paypalcontroller.text;
+    // String paypal = paypalcontroller.text;
 
 
     print(firstName);
@@ -560,14 +593,13 @@ class _SignUpScreenState extends State<SignUpScreen>
     print(password);
     print(phone);
     print(experience);
-    print(jobType);
     print(street1);
     print(street2);
     print(licenseNumber);
     print(city);
     print(state);
     print(address_zip);
-    print(paypal);
+    // print(paypal);
     print('selected languages ${selectedLanguages}'); // Print the selected language IDs
 
     // Show the circular progress indicator
@@ -583,12 +615,12 @@ class _SignUpScreenState extends State<SignUpScreen>
         email: email,
         phone: phone,
         password: password,
-        jobType: jobType,
+        jobType: selectedJobtype,
         experience: experience,
         state: state,
         city: city,
         street2: street2,
-        paypal: paypal,
+        // paypal: paypal,
         street1: street1,
         languageIds: selectedLanguages,
 
@@ -1767,451 +1799,427 @@ SizedBox(width: 8,),
                               SizedBox(
                                 height: ScreenUtil.sizeboxheight,
                               ),
-                              Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                  child: SingleChildScrollView(
-                                      child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            GestureDetector(
-                                              onTap: () {
-                                                setState(() {
-                                                  isLanguageListVisible = !isLanguageListVisible;
-                                                  isSearchBarVisible = isLanguageListVisible;
-                                                  // Remove the condition to update filteredLanguages regardless of the search bar visibility
-                                                  filteredLanguages = languages;
-                                                });
-                                              },
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 20,
-                                                  vertical: 5,
-                                                ),
-                                                height: size.height * 0.09,
-                                                width: size.width * 0.93,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey[200],
-                                                  borderRadius: BorderRadius.circular(29),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Icon(Icons.language),
-                                                    SizedBox(width: 10),
-                                                    Text(
-                                                      'Select Language',
-                                                      style: TextStyle(
-                                                          fontSize: 16, color: Colors.grey[700]),
-                                                    ),
-                                                    Spacer(),
-                                                    Icon(
-                                                      isLanguageListVisible
-                                                          ? Icons.arrow_drop_up
-                                                          : Icons.arrow_drop_down,
-                                                      size: 18,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
+                              SingleChildScrollView(
+                                  child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              isLanguageListVisible = !isLanguageListVisible;
+                                              isSearchBarVisible = isLanguageListVisible;
+                                              // Remove the condition to update filteredLanguages regardless of the search bar visibility
+                                              filteredLanguages = languages;
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 20,
+                                              vertical: 5,
                                             ),
+                                            height: size.height * 0.09,
+                                            width: size.width * 0.93,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[200],
+                                              borderRadius: BorderRadius.circular(29),
+                                            ),
+                                            child:Row(
+                                              children: [
+                                                Icon(Icons.language),
+                                                SizedBox(width: 10),
+                                                Expanded(
+                                                  child: Text(
+                                                    languagesString.isEmpty?
+                                                    'Select Language' : '${languagesString}',
+                                                    style: TextStyle(
+                                                        fontSize: 16, color: Colors.grey[700]),
+                                                    maxLines: 1, // Limit the number of lines to 1
 
-                                            // Validation error message
-                                            if (isLanguageListVisible && selectedLanguages.isEmpty)
-                                              Padding(
-                                                padding: const EdgeInsets.only(left: 16.0, top: 8.0),
-                                                child: Text(
+                                                    overflow: TextOverflow.ellipsis, // Add this to handle long text
+                                                                                              
+                                                  ),
+                                                ),
+                                                Icon(
+                                                  isLanguageListVisible
+                                                      ? Icons.arrow_drop_up
+                                                      : Icons.arrow_drop_down,
+                                                  size: 18,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+
+                                        // Validation error message
+                                        if (isLanguageListVisible && selectedLanguages.isEmpty)
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 19.0,vertical: 10),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                Text(
                                                   'Please select a language',
                                                   style: TextStyle(color: Colors.red),
                                                 ),
+                                              ],
+                                            ),
+                                          ),
+
+                                        // Search bar
+                                        Visibility(
+                                          visible: isSearchBarVisible,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                            child: TextField(
+                                              onChanged: (query) {
+                                                setState(() {
+                                                  filteredLanguages = languages
+                                                      .where((language) =>
+                                                      language['name']
+                                                          .toLowerCase()
+                                                          .contains(query.toLowerCase()))
+                                                      .toList();
+                                                });
+                                              },
+
+
+                                              decoration: InputDecoration(
+                                                hintText: 'Search languages...',
+                                                prefixIcon: Icon(Icons.search),
+                                                border: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(10),
+                                                ),
                                               ),
+                                            ),
+                                          ),
+                                        ),
 
-                                            // Search bar
-                                            Visibility(
-                                              visible: isSearchBarVisible,
-                                              child: Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                                child: TextField(
-                                                  onChanged: (query) {
-                                                    setState(() {
-                                                      filteredLanguages = languages
-                                                          .where((language) =>
-                                                          language['name']
-                                                              .toLowerCase()
-                                                              .contains(query.toLowerCase()))
-                                                          .toList();
-                                                    });
-                                                  },
+                                        // List of filtered languages
+                                        Visibility(
+                                          visible: isLanguageListVisible,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: filteredLanguages.map((language) {
+                                              final langName = language['name'];
+                                              final langId = language['id'];
+                                              languagesString = selectedLanguagesname.join(', ');
 
+                                              return Column(
+                                                children: [
+                                                  ListTile(
+                                                    title: Text(langName),
+                                                    leading: Checkbox(
+                                                      activeColor: HexColor('#4D8D6E'),
+                                                      value: selectedLanguages.contains(langId),
+                                                      onChanged: (value) {
+                                                        setState(() {
+                                                          if (value!) {
+                                                            selectedLanguages.add(langId);
+                                                            selectedLanguagesname.add((langName));
+                                                            languagesString = selectedLanguagesname.join(', ');
 
-                                                  decoration: InputDecoration(
-                                                    hintText: 'Search languages...',
-                                                    prefixIcon: Icon(Icons.search),
-                                                    border: OutlineInputBorder(
-                                                      borderRadius: BorderRadius.circular(10),
+                                                            print('selected languages add ${selectedLanguages}'); // Print the selected language IDs
+                                                          } else {
+                                                            print('selected languages remove ${selectedLanguages}'); // Print the selected language IDs
+                                                            selectedLanguages.remove(langId);
+                                                            selectedLanguagesname.remove((langName));
+                                                            languagesString = selectedLanguagesname.join(', ');
+
+                                                          }
+                                                        });
+                                                      },
                                                     ),
                                                   ),
-                                                ),
-                                              ),
-                                            ),
-
-                                            // List of filtered languages
-                                            Visibility(
-                                              visible: isLanguageListVisible,
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: filteredLanguages.map((language) {
-                                                  final langName = language['name'];
-                                                  final langId = language['id'];
-
-                                                  return Column(
-                                                    children: [
-                                                      ListTile(
-                                                        title: Text(langName),
-                                                        leading: Checkbox(
-                                                          activeColor: HexColor('#4D8D6E'),
-                                                          value: selectedLanguages.contains(langId),
-                                                          onChanged: (value) {
-                                                            setState(() {
-                                                              if (value!) {
-                                                                selectedLanguages.add(langId);
-                                                                print('selected languages add ${selectedLanguages}'); // Print the selected language IDs
-                                                              } else {
-                                                                print('selected languages remove ${selectedLanguages}'); // Print the selected language IDs
-                                                                selectedLanguages.remove(langId);
-                                                              }
-                                                            });
-                                                          },
-                                                        ),
-                                                      ),
-                                                      Divider(),
-                                                    ],
-                                                  );
-                                                }).toList(),
-                                              ),
-                                            )
-                                          ]))),
+                                                  Divider(),
+                                                ],
+                                              );
+                                            }).toList(),
+                                          ),
+                                        )
+                                      ])),
                               SizedBox(
-                                height: 20,
+                                height: ScreenUtil.sizeboxheight,
                               ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16.0,vertical: 8),
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            isJobTypeListVisible =
-                                                !isJobTypeListVisible;
 
-                                            // If the list is visible, show the full list
-                                            if (isJobTypeListVisible) {
-                                              filteredJobTypes = jobTypes;
-                                            }
-                                          });
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 20,
-                                            vertical: 5,
-                                          ),
-                                          height: size.height * 0.09,
-                                          width: size.width * 0.93,
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[200],
-                                            borderRadius:
-                                                BorderRadius.circular(29),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Icon(Icons.work),
-                                              SizedBox(width: 10),
-                                              Text(
-                                                selectedJobType,
-                                                style: TextStyle(
-                                                    fontSize: 16,
-                                                    color: Colors.grey[700]),
-                                              ),
-                                              Spacer(),
-                                              Icon(
-                                                isJobTypeListVisible
-                                                    ? Icons.arrow_drop_up
-                                                    : Icons.arrow_drop_down,
-                                                size: 18,
-                                              ),
-                                            ],
+                              SingleChildScrollView(
+                                  child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              isJobTypeListVisible = !isJobTypeListVisible;
+                                              isSearchBarVisible2 = isJobTypeListVisible;
+                                              // Remove the condition to update filteredLanguages regardless of the search bar visibility
+                                              filteredJobtypes = jobtypes;
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 20,
+                                              vertical: 5,
+                                            ),
+                                            height: size.height * 0.09,
+                                            width: size.width * 0.93,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[200],
+                                              borderRadius: BorderRadius.circular(29),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.work),
+                                                SizedBox(width: 10),
+                                                Expanded(
+                                                  child: Text(
+                                                    JobtypeString.isEmpty ? 'Select Jobtype' : '${JobtypeString}',
+                                                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                                                    maxLines: 1, // Limit the number of lines to 1
+                                                    overflow: TextOverflow.ellipsis, // Add this to handle long text
+                                                  ),
+                                                ),
+                                                Icon(
+                                                  isJobTypeListVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                                                  size: 18,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      // Search bar and List of filtered job types
-                                      Visibility(
-                                        visible: isJobTypeListVisible,
-                                        child: Column(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 16, vertical: 8),
-                                              child: TextField(
-                                                onChanged: (query) {
-                                                  setState(() {
-                                                    filteredJobTypes = jobTypes
-                                                        .where((jobType) =>
-                                                            jobType['type']
-                                                                .toLowerCase()
-                                                                .contains(query
-                                                                    .toLowerCase()))
-                                                        .toList();
-                                                  });
-                                                },
-                                                decoration: InputDecoration(
-                                                  hintText: 'Search job types...',
-                                                  prefixIcon: Icon(Icons.search),
-                                                  border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(10),
-                                                  ),
+
+                                        // Validation error message
+                                        if (isJobTypeListVisible && selectedJobtype.isEmpty)
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 19.0,vertical: 10),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Please select a Job Type',
+                                                  style: TextStyle(color: Colors.red),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+
+                                        // Search bar
+                                        Visibility(
+                                          visible: isSearchBarVisible2,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                            child: TextField(
+                                              onChanged: (query) {
+                                                setState(() {
+                                                  filteredJobtypes = jobtypes
+                                                      .where((jobtype) =>
+                                                      jobtype['name']
+                                                          .toLowerCase()
+                                                          .contains(query.toLowerCase()))
+                                                      .toList();
+                                                });
+                                              },
+
+
+                                              decoration: InputDecoration(
+                                                hintText: 'Search JobTypes...',
+                                                prefixIcon: Icon(Icons.search),
+                                                border: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(10),
                                                 ),
                                               ),
                                             ),
-                                            // List of filtered job types
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children:
-                                                  filteredJobTypes.map((jobType) {
-                                                final typeName = jobType['type'];
-
-                                                return ListTile(
-                                                  title: Text(typeName),
-                                                  leading: Radio(
-                                                    value: typeName,
-                                                    activeColor:
-                                                        HexColor('#4D8D6E'),
-                                                    // Set the color when the radio button is selected
-                                                    groupValue: selectedJobType,
-                                                    onChanged: (value) {
-                                                      setState(() {
-                                                        selectedJobType =
-                                                            value as String;
-                                                        isJobTypeListVisible =
-                                                            false;
-                                                        print(
-                                                            selectedJobType); // Hide the list after selecting a job type
-                                                      });
-                                                    },
-                                                  ),
-                                                );
-                                              }).toList(),
-                                            ),
-                                          ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+
+                                        // List of filtered languages
+                                        Visibility(
+                                          visible: isJobTypeListVisible,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: filteredJobtypes.map((jobtype) {
+                                              final jobname = jobtype['name'];
+                                              final jobid = jobtype['id'];
+
+                                              return Column(
+                                                children: [
+                                                  ListTile(
+                                                    title: Text(jobname),
+                                                    leading: Checkbox(
+                                                      activeColor: HexColor('#4D8D6E'),
+                                                      value: selectedJobtype.contains(jobid),
+                                                      onChanged: (value) {
+                                                        setState(() {
+                                                          if (value!) {
+                                                            selectedJobtype.add(jobid);
+                                                            selectedJobtypenames.add(jobname);
+
+                                                            JobtypeString = selectedJobtypenames.join(', ');
+
+                                                            print('selected jobtype add ${selectedJobtype}'); // Print the selected language IDs
+                                                          } else {
+                                                            print('selected jobtype remove ${selectedJobtype}'); // Print the selected language IDs
+                                                            selectedJobtype.remove(jobid);
+                                                            selectedJobtypenames.remove(jobname);
+
+                                                            JobtypeString = selectedJobtypenames.join(', ');
+
+                                                          }
+                                                        });
+                                                      },
+                                                    ),
+                                                  ),
+                                                  Divider(),
+                                                ],
+                                              );
+                                            }).toList(),
+                                          ),
+                                        )
+                                      ])),
+                              SizedBox(
+                                height: ScreenUtil.sizeboxheight,
                               ),
-                              Padding(
+
+                              Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 20.0, vertical: 10),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 0),
-                                  height: size.height * 0.103,
-                                  width: size.width * 0.93,
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFFF5F5F5),
-                                    borderRadius: BorderRadius.circular(29),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      SvgPicture.asset(
-                                        'assets/icons/phonenumber.svg',
-                                        // Replace with your SVG path
-                                        width: 33.0,
-                                        height: 33.0,
-                                      ),
-                                      SizedBox(width: 10.0),
-                                      Expanded(
-                                        child: Row(
-                                          children: [
-                                            Container(
+                                    horizontal: 20, vertical: 5),
+                                height: size.height * 0.103,
+                                width: size.width * 0.93,
+                                decoration: BoxDecoration(
+                                  color: Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(29),
+                                ),
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/icons/phonenumber.svg',
+                                      // Replace with your SVG path
+                                      width: 33.0,
+                                      height: 33.0,
+                                    ),
+                                    SizedBox(width: 10.0),
+                                    Expanded(
+                                      child: Row(
+                                        children: [
+                                          Container(
 
+                                            decoration: BoxDecoration(
+
+                                              color: Colors.grey[200],
+                                              borderRadius: BorderRadius.circular(5.0),
+                                            ),
+                                            child: DecoratedBox(
                                               decoration: BoxDecoration(
-
-                                                color: Colors.grey[200],
                                                 borderRadius: BorderRadius.circular(5.0),
                                               ),
-                                              child: DecoratedBox(
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(5.0),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    SvgPicture.asset(
-                                                      'assets/icons/uslogo.svg',
-                                                      width: 27.0,
-                                                      height: 27.0,
-                                                    ),
-                                                    SizedBox(width: 8),
-                                                    Text(
-                                                      '+1',
-                                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
-                                                    ),
-                                                  ],
-                                                ),
+                                              child: Row(
+                                                children: [
+                                                  SvgPicture.asset(
+                                                    'assets/icons/uslogo.svg',
+                                                    width: 27.0,
+                                                    height: 27.0,
+                                                  ),
+                                                  SizedBox(width: 8),
+                                                  Text(
+                                                    '+1',
+                                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                            SizedBox(width: 10),
-                                            // Add some spacing between the dropdown and the text field
-                                            Expanded(
-                                              child: TextFormField(
-                                                controller: phoneNumberController,
-                                                decoration: InputDecoration(
-                                                  hintText: 'Phone Number',
-                                                  border: InputBorder.none,
-                                                  contentPadding: EdgeInsets.all(
-                                                      0), // Remove content padding
-                                                ),
-                                                keyboardType: TextInputType.phone,
-                                                onChanged: (value) {
-                                                  setState(() {
-                                                    // Format the phone number using the formatPhoneNumber function
-                                                    final formattedPhoneNumber =
-                                                        formatPhoneNumber(value);
-                                                    phoneNumberController.value =
-                                                        TextEditingValue(
-                                                      text: formattedPhoneNumber,
-                                                      selection:
-                                                          TextSelection.collapsed(
-                                                              offset:
-                                                                  formattedPhoneNumber
-                                                                      .length),
-                                                    );
-          // Add +1 prefix to the formatted phone number
-                                                    phoneNumberController.text =
-                                                        '$formattedPhoneNumber';
-
-                                                    // Ensure the cursor position is at the end
-                                                    phoneNumberController
-                                                            .selection =
-                                                        TextSelection
-                                                            .fromPosition(
-                                                      TextPosition(
-                                                          offset:
-                                                              phoneNumberController
-                                                                  .text.length),
-                                                    );
-                                                    print(phoneNumberController
-                                                        .text);
-                                                    // Validate the phone number
-                                                    isPhoneNumberValid =
-                                                        validatePhoneNumber(
-                                                            formattedPhoneNumber);
-                                                  });
-                                                },
-                                                inputFormatters: [
-                                                  FilteringTextInputFormatter
-                                                      .digitsOnly,
-                                                  LengthLimitingTextInputFormatter(
-                                                      10),
-                                                  // Limit the input length to 10 digits
-                                                ],
-                                                validator: (value) {
-                                                  if (value == null ||
-                                                      value.isEmpty) {
-                                                    return 'Please enter a phone number';
-                                                  }
-
-                                                  // Basic validation: Check if the formatted phone number has 10 digits
+                                          ),
+                                          SizedBox(width: 10),
+                                          // Add some spacing between the dropdown and the text field
+                                          Expanded(
+                                            child: TextFormField(
+                                              controller: phoneNumberController,
+                                              decoration: InputDecoration(
+                                                hintText: 'Phone Number',
+                                                border: InputBorder.none,
+                                                contentPadding: EdgeInsets.all(
+                                                    0), // Remove content padding
+                                              ),
+                                              keyboardType: TextInputType.phone,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  // Format the phone number using the formatPhoneNumber function
                                                   final formattedPhoneNumber =
                                                       formatPhoneNumber(value);
-                                                  if (formattedPhoneNumber
-                                                          .replaceAll(
-                                                              RegExp(r'\D'), '')
-                                                          .length !=
-                                                      10) {
-                                                    return 'Invalid phone number';
-                                                  }
+                                                  phoneNumberController.value =
+                                                      TextEditingValue(
+                                                    text: formattedPhoneNumber,
+                                                    selection:
+                                                        TextSelection.collapsed(
+                                                            offset:
+                                                                formattedPhoneNumber
+                                                                    .length),
+                                                  );
+                                        // Add +1 prefix to the formatted phone number
+                                                  phoneNumberController.text =
+                                                      '$formattedPhoneNumber';
 
-                                                  return null; // Return null if the input is valid
-                                                },
-                                              ),
+                                                  // Ensure the cursor position is at the end
+                                                  phoneNumberController
+                                                          .selection =
+                                                      TextSelection
+                                                          .fromPosition(
+                                                    TextPosition(
+                                                        offset:
+                                                            phoneNumberController
+                                                                .text.length),
+                                                  );
+                                                  print(phoneNumberController
+                                                      .text);
+                                                  // Validate the phone number
+                                                  isPhoneNumberValid =
+                                                      validatePhoneNumber(
+                                                          formattedPhoneNumber);
+                                                });
+                                              },
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter
+                                                    .digitsOnly,
+                                                LengthLimitingTextInputFormatter(
+                                                    10),
+                                                // Limit the input length to 10 digits
+                                              ],
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return 'Please enter a phone number';
+                                                }
+
+                                                // Basic validation: Check if the formatted phone number has 10 digits
+                                                final formattedPhoneNumber =
+                                                    formatPhoneNumber(value);
+                                                if (formattedPhoneNumber
+                                                        .replaceAll(
+                                                            RegExp(r'\D'), '')
+                                                        .length !=
+                                                    10) {
+                                                  return 'Invalid phone number';
+                                                }
+
+                                                return null; // Return null if the input is valid
+                                              },
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
-                                      if (!isPhoneNumberValid)
-                                        Text(
-                                          'Please enter a valid phone number.',
-                                          style: TextStyle(color: Colors.red),
-                                        ),
-                                    ],
-                                  ),
+                                    ),
+                                    if (!isPhoneNumberValid)
+                                      Text(
+                                        'Please enter a valid phone number.',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                  ],
                                 ),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 20.0, vertical: 10),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 0),
-                                  height: size.height * 0.103,
-                                  width: size.width * 0.93,
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFFF5F5F5),
-                                    borderRadius: BorderRadius.circular(29),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      SvgPicture.asset(
-                                        'assets/icons/paypal.svg',
-                                        // Replace with your SVG path
-                                        width: 33.0,
-                                        height: 33.0,
-                                      ),
-                                      SizedBox(width: 20.0),
-                                      Expanded(
-                                        child: Row(
-                                          children: [
-                                            SizedBox(width: 8),
-                                            // Add some spacing between the dropdown and the text field
-                                            Expanded(
-                                              child: TextFormField(
-                                                controller: paypalcontroller,
-                                                decoration: InputDecoration(
-                                                  hintText:
-                                                      'Please Enter Paypal Email',
-                                                  border: InputBorder.none,
-                                                  contentPadding: EdgeInsets.all(
-                                                      0), // Remove content padding
-                                                ),
-                                                onChanged: _onChanged,
-                                                validator: (value) {
-                                                  if (value == null ||
-                                                      value.isEmpty) {
-                                                    return 'paypal Email \'@Example.com\'';
-                                                  } else if (!isValidEmail2(
-                                                      value)) {
-                                                    return 'Enter this format @Example.com';
-                                                  }
-                                                  return null;
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+
                               SizedBox(
-                                height: 8,
+                                height: ScreenUtil.sizeboxheight,
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
+                                  horizontal: 20,vertical: 5
                                 ),
                                 height: size.height * 0.09,
                                 width: size.width * 0.93,
@@ -2405,7 +2413,9 @@ SizedBox(width: 8,),
                                   ),
                                 ),
                               ),
-                              SizedBox(height: 12),
+                              SizedBox(
+                                height: ScreenUtil.sizeboxheight,
+                              ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -2537,7 +2547,7 @@ SizedBox(width: 8,),
                                                   if (selectedLanguages.isNotEmpty) {
                                                     if (addressLineController
                                                         .text.isNotEmpty) {
-                                                      if (selectedJobType !=
+                                                      if (selectedJobtype !=
                                                           'Select JobType') {
                                                         _registerWorker();
                                                       } else {

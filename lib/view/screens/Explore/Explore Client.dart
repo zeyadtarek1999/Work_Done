@@ -34,6 +34,89 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
   void refreshProjects() {
     futureProjects = fetchProjects();
   }
+  final StreamController<String> _likedStatusController = StreamController<String>();
+
+
+
+  Stream<String> get likedStatusStream => _likedStatusController.stream;
+  Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String userToken = prefs.getString('user_token') ?? '';
+
+      final response = await http.post(
+        Uri.parse('https://workdonecorp.com/api/add_project_to_likes'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer $userToken',
+        },
+        body: {
+          'project_id': projectId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseBody = json.decode(response.body);
+
+        if (responseBody['status'] == 'success') {
+          // Project added to likes successfully
+          print('Project added to likes successfully');
+          _likedStatusController.add("true");
+
+        } else if (responseBody['msg'] == 'This Project is Already in Likes !') {
+          // Project is already liked
+          print('Project is already liked');
+        } else {
+          // Handle other error scenarios
+          print('Error: ${responseBody['msg']}');
+        }
+
+        return responseBody;
+      } else {
+        // Handle other status codes
+        print('Failed to add project to likes. Status code: ${response.statusCode}');
+        return {'status': 'error', 'msg': 'Failed to add project to likes'};
+      }
+    } catch (e) {
+      // Handle exception
+      print('Error: $e');
+      return {'status': 'error', 'msg': 'An error occurred'};
+    }
+  }
+
+
+  Future<Map<String, dynamic>> removeProjectFromLikes(String projectId) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String token = prefs.getString('user_token') ?? '';
+      final response = await http.post(
+        Uri.parse('https://workdonecorp.com/api/remove_project_from_likes'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer $token',
+        },
+        body: {
+          'project_id': projectId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Successful request, you can handle the response here if needed
+        print('Project removed from likes successfully');
+        return {'status': 'success', 'msg': 'Project removed from likes successfully'};
+      } else {
+        // Handle error
+        print('Failed to remove project from likes. Status code: ${response.statusCode}');
+        return {'status': 'error', 'msg': 'Failed to remove project from likes'};
+      }
+    } catch (e) {
+      // Handle exception
+      print('Error: $e');
+      return {'status': 'error', 'msg': 'An error occurred'};
+    }
+  }
+
+
   bool shouldShowNextButton(List<Item>? nextPageData) {
     // Add your condition to check if the next page is not empty here
     return nextPageData != null && nextPageData.isNotEmpty;
@@ -565,37 +648,130 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
         ),
         child: Column(
           children: [
-            CarouselSlider(
-              options: CarouselOptions(
-                pageSnapping: true,
+            Stack(
+              children: [
+                CarouselSlider(
+                  options: CarouselOptions(
+                    pageSnapping: true,
 
-                height: 170,
-                aspectRatio: 16/9,
-                viewportFraction: 1.0,
-                initialPage: 0,
-                enableInfiniteScroll: true,
-                reverse: false,
-                autoPlay: false,
-                autoPlayInterval: Duration(seconds: 3),
-                autoPlayAnimationDuration: Duration(milliseconds: 800),
-                autoPlayCurve: Curves.fastOutSlowIn,
-                scrollDirection: Axis.horizontal,
-              ),
-              items: item.imageUrl.map((imageUrl) {
-                return Builder(
-                  builder: (BuildContext context) {
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(30),
-                      child: Image.network(
-                        imageUrl,
-                        fit: BoxFit.cover,
-                        width: MediaQuery.of(context).size.width,
-                        height: double.infinity,
-                      ),
+                    height: 170,
+                    aspectRatio: 16/9,
+                    viewportFraction: 1.0,
+                    initialPage: 0,
+                    enableInfiniteScroll: true,
+                    reverse: false,
+                    autoPlay: false,
+                    autoPlayInterval: Duration(seconds: 3),
+                    autoPlayAnimationDuration: Duration(milliseconds: 800),
+                    autoPlayCurve: Curves.fastOutSlowIn,
+                    scrollDirection: Axis.horizontal,
+                  ),
+                  items: item.imageUrl.map((imageUrl) {
+                    return Builder(
+                      builder: (BuildContext context) {
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(30),
+                          child: Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            width: MediaQuery.of(context).size.width,
+                            height: double.infinity,
+                          ),
+                        );
+                      },
                     );
-                  },
-                );
-              }).toList(),
+                  }).toList(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Spacer(), // Pushes the container to the right
+                      Container(
+                        height: 50,
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0, left: 5),
+                              child: Text(
+                                "${item.numbers_of_likes}",
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            IconButton(
+                              iconSize: 22,
+                              icon: Icon(
+                                likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                    ? Colors.red
+                                    : Colors.grey,
+                              ),
+                              onPressed: () async {
+                                try {
+                                  if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
+                                    // If liked, remove like
+                                    final response = await removeProjectFromLikes(item.projectId.toString());
+
+                                    if (response['status'] == 'success') {
+                                      // If successfully removed from likes
+                                      setState(() {
+                                        likedProjectsMap[item.projectId] = false;
+                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) - 1;
+                                      });
+                                      print('Project removed from likes');
+                                    } else {
+                                      // Handle the case where the project is not removed from likes
+                                      print('Error: ${response['msg']}');
+                                    }
+                                  } else {
+                                    // If not liked, add like
+                                    final response = await addProjectToLikes(item.projectId.toString());
+
+                                    if (response['status'] == 'success') {
+                                      // If successfully added to likes
+                                      setState(() {
+                                        likedProjectsMap[item.projectId] = true;
+                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) + 1;
+                                      });
+                                      print('Project added to likes');
+                                    } else if (response['msg'] == 'This Project is Already in Likes !') {
+                                      // If the project is already liked, switch to Icons.favorite_border
+                                      setState(() {
+                                        likedProjectsMap[item.projectId] = false;
+                                      });
+                                      print('Project is already liked');
+                                    } else {
+                                      // Handle the case where the project is not added to likes
+                                      print('Error: ${response['msg']}');
+                                    }
+                                  }
+                                } catch (e) {
+                                  print('Error: $e');
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+
+                      ),
+                    ],
+                  ),
+                ),
+
+              ],
             ),
             SizedBox(height: 10.0),
             Padding(
@@ -782,7 +958,7 @@ class Item {
   final String liked;
   final String description;
   final List<String> imageUrl;
-  final int numbers_of_likes;
+   int numbers_of_likes;
   final String postedFrom;
   String isLiked;
   dynamic? lowest_bids;

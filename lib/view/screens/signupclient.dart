@@ -48,6 +48,7 @@ class _SignUpScreen2State extends State<SignUpScreen2> with SingleTickerProvider
   List<Map<String, dynamic>> languages = [];
   List<int> selectedLanguages = [];
   List<Map<String, dynamic>> filteredLanguages = [];
+  List<String> selectedLanguagesname = [];
 
 
 
@@ -305,6 +306,7 @@ bool charater8 =false;
   }
 
   final RxBool _isChecked = false.obs;
+  late String languagesString;
 
   @override
   void initState() {
@@ -316,6 +318,8 @@ bool charater8 =false;
       duration: Duration(seconds: 2),
     );
     ciruclaranimation.repeat(reverse: false);
+    languagesString = selectedLanguagesname.join(', ');
+
   }
 
   void _togglePasswordVisibility() {
@@ -1005,9 +1009,9 @@ bool charater8 =false;
 
                         Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: SingleChildScrollView(
+                            child:                               SingleChildScrollView(
                                 child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
                                       GestureDetector(
                                         onTap: () {
@@ -1029,16 +1033,22 @@ bool charater8 =false;
                                             color: Colors.grey[200],
                                             borderRadius: BorderRadius.circular(29),
                                           ),
-                                          child: Row(
+                                          child:Row(
                                             children: [
                                               Icon(Icons.language),
                                               SizedBox(width: 10),
-                                              Text(
-                                                'Select Language',
-                                                style: TextStyle(
-                                                    fontSize: 16, color: Colors.grey[700]),
+                                              Expanded(
+                                                child: Text(
+                                                  languagesString.isEmpty?
+                                                  'Select Language' : '${languagesString}',
+                                                  style: TextStyle(
+                                                      fontSize: 16, color: Colors.grey[700]),
+                                                  maxLines: 1, // Limit the number of lines to 1
+
+                                                  overflow: TextOverflow.ellipsis, // Add this to handle long text
+
+                                                ),
                                               ),
-                                              Spacer(),
                                               Icon(
                                                 isLanguageListVisible
                                                     ? Icons.arrow_drop_up
@@ -1053,10 +1063,15 @@ bool charater8 =false;
                                       // Validation error message
                                       if (isLanguageListVisible && selectedLanguages.isEmpty)
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 16.0, top: 8.0),
-                                          child: Text(
-                                            'Please select a language',
-                                            style: TextStyle(color: Colors.red),
+                                          padding: const EdgeInsets.symmetric(horizontal: 19.0,vertical: 10),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Please select a language',
+                                                style: TextStyle(color: Colors.red),
+                                              ),
+                                            ],
                                           ),
                                         ),
 
@@ -1097,6 +1112,7 @@ bool charater8 =false;
                                           children: filteredLanguages.map((language) {
                                             final langName = language['name'];
                                             final langId = language['id'];
+                                            languagesString = selectedLanguagesname.join(', ');
 
                                             return Column(
                                               children: [
@@ -1109,10 +1125,16 @@ bool charater8 =false;
                                                       setState(() {
                                                         if (value!) {
                                                           selectedLanguages.add(langId);
+                                                          selectedLanguagesname.add((langName));
+                                                          languagesString = selectedLanguagesname.join(', ');
+
                                                           print('selected languages add ${selectedLanguages}'); // Print the selected language IDs
                                                         } else {
                                                           print('selected languages remove ${selectedLanguages}'); // Print the selected language IDs
                                                           selectedLanguages.remove(langId);
+                                                          selectedLanguagesname.remove((langName));
+                                                          languagesString = selectedLanguagesname.join(', ');
+
                                                         }
                                                       });
                                                     },
@@ -1124,7 +1146,8 @@ bool charater8 =false;
                                           }).toList(),
                                         ),
                                       )
-                                    ]))),
+                                    ])),
+                        ),
                               SizedBox(
                         height: ScreenUtil.sizeboxheight,
                       ),
