@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:blurry_modal_progress_hud/blurry_modal_progress_hud.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -42,7 +43,7 @@ class _editProfileworkerState extends State<editProfileworker> {
 
   bool _isFormFilled = false;
 
-
+bool isLoading =false;
   Future<void> Jobtypesdata() async {
     const String url = "https://workdonecorp.com/api/get_all_project_types";
 
@@ -222,6 +223,9 @@ class _editProfileworkerState extends State<editProfileworker> {
   Future<void> sendprofile() async {
     final url = Uri.parse('https://www.workdonecorp.com/api/update_worker_profile');
     try {
+      setState(() {
+        isLoading=true;
+      });
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String userToken = prefs.getString('user_token') ?? '';
       print (userToken);
@@ -294,7 +298,9 @@ class _editProfileworkerState extends State<editProfileworker> {
       // Check the response status
       if (response.statusCode == 200) {
         Map<String, dynamic> responseBody = json.decode(await response.stream.transform(utf8.decoder).join());
-
+        setState(() {
+          isLoading=false;
+        });
         // Check the status in the response
         if (responseBody['status'] == 'success') {
           print(responseBody);
@@ -332,7 +338,9 @@ class _editProfileworkerState extends State<editProfileworker> {
             MaterialPageRoute(builder: (context) => layoutworker(showCase: false,)),
           );
         } else if (responseBody['status'] == 'success') {
-          // Check the specific error message
+          setState(() {
+            isLoading=false;
+          });
           String errorMsg = responseBody['msg'];
 
           if (errorMsg == ' Bid Submitted') {
@@ -344,7 +352,9 @@ class _editProfileworkerState extends State<editProfileworker> {
             );
 
           } else {
-            // Handle other error cases as needed
+            setState(() {
+              isLoading=false;
+            });
             print('Error: $errorMsg');
             Fluttertoast.showToast(
               msg: errorMsg,
@@ -359,7 +369,9 @@ class _editProfileworkerState extends State<editProfileworker> {
         }
       }
       else {
-
+        setState(() {
+          isLoading=false;
+        });
         print('Failed to update profile. Status code: ${response.statusCode}');
 
         // Print the response body for more details
@@ -367,6 +379,9 @@ class _editProfileworkerState extends State<editProfileworker> {
 
       }
     } catch (e) {
+      setState(() {
+        isLoading=false;
+      });
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String userToken = prefs.getString('user_token') ?? '';
 
@@ -500,723 +515,302 @@ class _editProfileworkerState extends State<editProfileworker> {
       final formattedPhoneNumber = phoneNumber.replaceAll(RegExp(r'\D'), ''); // Remove non-digit characters
       return formattedPhoneNumber.length == 10;
     }
-    return Scaffold( floatingActionButton:
-    FloatingActionButton(    heroTag: 'workdone_${unique}',
+    return BlurryModalProgressHUD(
+      inAsyncCall: isLoading,
+      blurEffectIntensity: 7,
+      progressIndicator: CircularProgressIndicator(),
+
+
+      dismissible: false,
+      opacity: 0.4,
+      child: Scaffold( floatingActionButton:
+      FloatingActionButton(    heroTag: 'workdone_${unique}',
 
 
 
-      onPressed: () {
-        _navigateToNextPage(context);
+        onPressed: () {
+          _navigateToNextPage(context);
 
-      },
-      backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-      child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-      shape: CircleBorder(), // Make the button circular
-    ),
+        },
+        backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+        shape: CircleBorder(), // Make the button circular
+      ),
 
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        toolbarHeight: 67,
         backgroundColor: Colors.white,
-        title: Text(
-          'Edit Profile',
-          style: GoogleFonts.roboto(
-            textStyle: TextStyle(
-              color: HexColor('454545'),
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          elevation: 0,
+          toolbarHeight: 67,
+          backgroundColor: Colors.white,
+          title: Text(
+            'Edit Profile',
+            style: GoogleFonts.roboto(
+              textStyle: TextStyle(
+                color: HexColor('454545'),
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_sharp),
+            color: Colors.black,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_sharp),
-          color: Colors.black,
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
-      body:
-      Screenshot(
-        controller:screenshotController ,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Column(
-                    children: [
-                      Text('Note',
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                              color: Colors.red,
-                              fontSize: 16 ,
-                              fontWeight: FontWeight.bold),
+        body:
+        Screenshot(
+          controller:screenshotController ,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Column(
+                      children: [
+                        Text('Note',
+                          style: GoogleFonts.openSans(
+                            textStyle: TextStyle(
+                                color: Colors.red,
+                                fontSize: 16 ,
+                                fontWeight: FontWeight.bold),
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 3,),
-                      Text('You Can Edit Any Field Only and Press Submit',
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                              color: Colors.black45,
-                              fontSize: 13 ,
-                              fontWeight: FontWeight.w600),
-                          decoration: TextDecoration.underline,
+                        SizedBox(height: 3,),
+                        Text('You Can Edit Any Field Only and Press Submit',
+                          style: GoogleFonts.openSans(
+                            textStyle: TextStyle(
+                                color: Colors.black45,
+                                fontSize: 13 ,
+                                fontWeight: FontWeight.w600),
+                            decoration: TextDecoration.underline,
 
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(height: 8,),
-                Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Circular Image
-                      Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.blue, // Change the color as needed
-                          image: _image != null
-                              ? DecorationImage(
-                            fit: BoxFit.cover,
-                            image: FileImage(_image!),
-                          )
-                              : profile_pic.isNotEmpty && profile_pic != 'https://workdonecorp.com/images/'
-                              ? DecorationImage(
-                            fit: BoxFit.cover,
-                            image: NetworkImage(profile_pic),
-                          )
-                              : DecorationImage(
-                            fit: BoxFit.cover,
-                            image: AssetImage('assets/images/default.png') ,
-                          ) ,
-                        ),
-                      ),
-                      // Opacity Overlay
-                      GestureDetector(
-                        onTap: () async {
-                          final action =
-                          await showDialog<
-                              String>(
-                            context: context,
-                            builder: (BuildContext
-                            context) {
-                              return AlertDialog(
-                                title: Text(
-                                    'Choose an option'),
-                                content: Column(
-                                  mainAxisSize:
-                                  MainAxisSize
-                                      .min,
-                                  children: [
-                                    ListTile(
-                                      leading: Icon(
-                                          Icons
-                                              .image),
-                                      title: Text(
-                                          'Gallery'),
-                                      onTap: () {
-                                        Navigator.pop(
-                                            context,
-                                            'gallery');
-                                      },
-                                    ),
-                                    ListTile(
-                                      leading: Icon(
-                                          Icons
-                                              .camera),
-                                      title: Text(
-                                          'Camera'),
-                                      onTap: () {
-                                        Navigator.pop(
-                                            context,
-                                            'camera');
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-
-                          if (action == 'gallery') {
-                            final pickedImage =
-                            await ImagePicker()
-                                .pickImage(
-                              source: ImageSource
-                                  .gallery,
-                            );
-                            if (pickedImage !=
-                                null) {
-                              setState(() {
-                                _image = File(
-                                    pickedImage
-                                        .path);
-                              });
-                            }
-                          } else if (action ==
-                              'camera') {
-                            final pickedImage =
-                            await ImagePicker()
-                                .pickImage(
-                              source: ImageSource
-                                  .camera,
-                            );
-                            if (pickedImage !=
-                                null) {
-                              setState(() {
-                                _image = File(
-                                    pickedImage
-                                        .path);
-                              });
-                            }
-                          }
-                        },
-                        child: Container(
+                  SizedBox(height: 8,),
+                  Center(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Circular Image
+                        Container(
                           width: 150,
                           height: 150,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.grey.withOpacity(0.4),
+                            color: Colors.blue, // Change the color as needed
+                            image: _image != null
+                                ? DecorationImage(
+                              fit: BoxFit.cover,
+                              image: FileImage(_image!),
+                            )
+                                : profile_pic == '' || profile_pic.isEmpty
+                                || profile_pic == "https://workdonecorp.com/storage/" ||
+                                !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+                                ? DecorationImage(
+                              fit: BoxFit.cover,
+                              image:AssetImage('assets/images/default.png') as ImageProvider ,
+
+                            )
+                                : DecorationImage(
+                              fit: BoxFit.cover,
+                              image: NetworkImage(profile_pic),
+                            ) ,
                           ),
                         ),
-                      ),
-                      // Camera Logo
-                      GestureDetector(
-                        onTap: () async {
-                          final action =
-                          await showDialog<
-                              String>(
-                            context: context,
-                            builder: (BuildContext
-                            context) {
-                              return AlertDialog(
-                                title: Text(
-                                    'Choose an option'),
-                                content: Column(
-                                  mainAxisSize:
-                                  MainAxisSize
-                                      .min,
-                                  children: [
-                                    ListTile(
-                                      leading: Icon(
-                                          Icons
-                                              .image),
-                                      title: Text(
-                                          'Gallery'),
-                                      onTap: () {
-                                        Navigator.pop(
-                                            context,
-                                            'gallery');
-                                      },
-                                    ),
-                                    ListTile(
-                                      leading: Icon(
-                                          Icons
-                                              .camera),
-                                      title: Text(
-                                          'Camera'),
-                                      onTap: () {
-                                        Navigator.pop(
-                                            context,
-                                            'camera');
-                                      },
-                                    ),
-                                  ],
-                                ),
+                        // Opacity Overlay
+                        GestureDetector(
+                          onTap: () async {
+                            final action =
+                            await showDialog<
+                                String>(
+                              context: context,
+                              builder: (BuildContext
+                              context) {
+                                return AlertDialog(
+                                  title: Text(
+                                      'Choose an option'),
+                                  content: Column(
+                                    mainAxisSize:
+                                    MainAxisSize
+                                        .min,
+                                    children: [
+                                      ListTile(
+                                        leading: Icon(
+                                            Icons
+                                                .image),
+                                        title: Text(
+                                            'Gallery'),
+                                        onTap: () {
+                                          Navigator.pop(
+                                              context,
+                                              'gallery');
+                                        },
+                                      ),
+                                      ListTile(
+                                        leading: Icon(
+                                            Icons
+                                                .camera),
+                                        title: Text(
+                                            'Camera'),
+                                        onTap: () {
+                                          Navigator.pop(
+                                              context,
+                                              'camera');
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+
+                            if (action == 'gallery') {
+                              final pickedImage =
+                              await ImagePicker()
+                                  .pickImage(
+                                source: ImageSource
+                                    .gallery,
                               );
-                            },
-                          );
-
-                          if (action == 'gallery') {
-                            final pickedImage =
-                            await ImagePicker()
-                                .pickImage(
-                              source: ImageSource
-                                  .gallery,
-                            );
-                            if (pickedImage !=
-                                null) {
-                              setState(() {
-                                _image = File(
-                                    pickedImage
-                                        .path);
-                              });
+                              if (pickedImage !=
+                                  null) {
+                                setState(() {
+                                  _image = File(
+                                      pickedImage
+                                          .path);
+                                });
+                              }
+                            } else if (action ==
+                                'camera') {
+                              final pickedImage =
+                              await ImagePicker()
+                                  .pickImage(
+                                source: ImageSource
+                                    .camera,
+                              );
+                              if (pickedImage !=
+                                  null) {
+                                setState(() {
+                                  _image = File(
+                                      pickedImage
+                                          .path);
+                                });
+                              }
                             }
-                          } else if (action ==
-                              'camera') {
-                            final pickedImage =
-                            await ImagePicker()
-                                .pickImage(
-                              source: ImageSource
-                                  .camera,
-                            );
-                            if (pickedImage !=
-                                null) {
-                              setState(() {
-                                _image = File(
-                                    pickedImage
-                                        .path);
-                              });
-                            }
-                          }
-                        },
-
-                        child: Icon(
-                          Icons.camera_alt,
-                          size: 35,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: 30,
-                ),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10.0, vertical: 10),
-                          child: Text('First Name'),
-                        ),
-                        Container(
-                            width: 156,
-                            height: 60,
+                          },
+                          child: Container(
+                            width: 150,
+                            height: 150,
                             decoration: BoxDecoration(
-                              color: Colors.grey[200], // Background color
-                              borderRadius: BorderRadius.circular(
-                                  20), // Circular border radius
+                              shape: BoxShape.circle,
+                              color: Colors.grey.withOpacity(0.4),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: TextField(
-                                controller: firstNameController,
-                                decoration: InputDecoration(
-                                  hintText: firstname,
-                                  border:
-                                  InputBorder.none, // Remove default border
-                                ),
-                              ),
-                            ))
-                      ],
-                    ),
-                    Spacer(),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10.0, vertical: 10),
-                          child: Text('Last Name'),
+                          ),
                         ),
-                        Container(
-                            width: 156,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200], // Background color
-                              borderRadius: BorderRadius.circular(
-                                  20), // Circular border radius
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: TextField(
-                                controller: lastNameController,
-                                decoration: InputDecoration(
-                                  hintText: secondname,
-                                  border:
-                                  InputBorder.none, // Remove default border
-                                ),
-                              ),
-                            ))
-                      ],
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10),
-                            child: Text('Email'),
-                          ),
-                          Container(
-                              width: size.width * 0.90,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200], // Background color
-                                borderRadius: BorderRadius.circular(
-                                    20), // Circular border radius
-                              ),
-                              child: Padding(
-                                padding:
-                                const EdgeInsets.symmetric(horizontal: 20),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(email,style: TextStyle(
-                                      fontSize: 17,
-                                      color: Colors.grey[800], // Button text color
-                                    ),
-                                    ),
-                                  ],
-                                )
-                              ))
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10),
-                            child: Text('experience'),
-                          ),
-                          Container(
-                              width: size.width * 0.90,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200], // Background color
-                                borderRadius: BorderRadius.circular(
-                                    20), // Circular border radius
-                              ),
-                              child: Padding(
-                                padding:
-                                const EdgeInsets.symmetric(horizontal: 20),
-                                child: TextField(
-                                  controller: experiencecontroller,
-                                  decoration: InputDecoration(
-                                    hintText: '${experience.toString()}',
-                                    border:
-                                    InputBorder.none,
-                                    // Remove default border
-                                  ),
-                                ),
-                              ))
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: SingleChildScrollView(
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0, vertical: 10),
-                                child: Text('language'),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    isLanguageListVisible = !isLanguageListVisible;
-                                    isSearchBarVisible = isLanguageListVisible;
-                                    // Remove the condition to update filteredLanguages regardless of the search bar visibility
-                                    filteredLanguages = languages;
-
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 5,
-                                  ),
-                                  height: size.height * 0.09,
-                                  width: size.width * 0.93,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(29),
-                                  ),
-                                  child: Row(
+                        // Camera Logo
+                        GestureDetector(
+                          onTap: () async {
+                            final action =
+                            await showDialog<
+                                String>(
+                              context: context,
+                              builder: (BuildContext
+                              context) {
+                                return AlertDialog(
+                                  title: Text(
+                                      'Choose an option'),
+                                  content: Column(
+                                    mainAxisSize:
+                                    MainAxisSize
+                                        .min,
                                     children: [
-                                      languagesString.isNotEmpty ?
-                                      Expanded(
-                                        child: Text(
-                                          '${languagesString?? 'select language'}',
-                                          style: TextStyle(
-                                              fontSize: 16, color: Colors.grey[700]),
-                                        ),
-                                      )
-                                      :                                      Expanded(
-
-                                      child: Text(
-                                          'Select language',
-                                          style: TextStyle(
-                                              fontSize: 16, color: Colors.grey[700]),
-                                        ),
-                                      )
-                                      ,
-                                      Icon(
-                                        isLanguageListVisible
-                                            ? Icons.arrow_drop_up
-                                            : Icons.arrow_drop_down,
-                                        size: 18,
+                                      ListTile(
+                                        leading: Icon(
+                                            Icons
+                                                .image),
+                                        title: Text(
+                                            'Gallery'),
+                                        onTap: () {
+                                          Navigator.pop(
+                                              context,
+                                              'gallery');
+                                        },
+                                      ),
+                                      ListTile(
+                                        leading: Icon(
+                                            Icons
+                                                .camera),
+                                        title: Text(
+                                            'Camera'),
+                                        onTap: () {
+                                          Navigator.pop(
+                                              context,
+                                              'camera');
+                                        },
                                       ),
                                     ],
                                   ),
-                                ),
-                              ),
+                                );
+                              },
+                            );
 
-                              // Validation error message
-                              // if (isLanguageListVisible && selectedLanguages.isEmpty)
-                              //   Padding(
-                              //     padding: const EdgeInsets.only(left: 16.0, top: 8.0),
-                              //     child: Text(
-                              //       'Please select a language',
-                              //       style: TextStyle(color: Colors.red),
-                              //     ),
-                              //   ),
+                            if (action == 'gallery') {
+                              final pickedImage =
+                              await ImagePicker()
+                                  .pickImage(
+                                source: ImageSource
+                                    .gallery,
+                              );
+                              if (pickedImage !=
+                                  null) {
+                                setState(() {
+                                  _image = File(
+                                      pickedImage
+                                          .path);
+                                });
+                              }
+                            } else if (action ==
+                                'camera') {
+                              final pickedImage =
+                              await ImagePicker()
+                                  .pickImage(
+                                source: ImageSource
+                                    .camera,
+                              );
+                              if (pickedImage !=
+                                  null) {
+                                setState(() {
+                                  _image = File(
+                                      pickedImage
+                                          .path);
+                                });
+                              }
+                            }
+                          },
 
-                              // Search bar
-                              Visibility(
-                                visible: isSearchBarVisible,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  child: TextField(
-                                    onChanged: (query) {
-                                      setState(() {
-                                        filteredLanguages = languages
-                                            .where((language) =>
-                                            language['name']
-                                                .toLowerCase()
-                                                .contains(query.toLowerCase()))
-                                            .toList();
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: 'Search languages...',
-                                      prefixIcon: Icon(Icons.search),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 35,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30,
+                  ),
 
-                              // List of filtered languages
-                              Visibility(
-                                visible: isLanguageListVisible,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: filteredLanguages.map((language) {
-                                    final langName = language['name'];
-                                    final langId = language['id'];
-                                    languagesString = selectedLanguagename.join(', ');
-
-                                    return Column(
-                                      children: [
-                                        ListTile(
-                                          title: Text(langName),
-                                          leading: Checkbox(
-                                            activeColor: HexColor('#4D8D6E'),
-                                            value: selectedLanguages.contains(langId),
-                                            onChanged: (value) {
-                                              setState(() {
-                                                if (value!) {
-                                                  selectedLanguages.add(langId);
-                                                  selectedLanguagename.add((langName));
-                                                  languagesString = selectedLanguagename.join(', ');
-                                                  print('selected languages add ${selectedLanguages}'); // Print the selected language IDs
-
-
-
-                                                } else {
-                                                  print('selected languages remove ${selectedLanguages}'); // Print the selected language IDs
-                                                  selectedLanguagename.remove((langName));
-                                                  languagesString = selectedLanguagename.join(', ');
-                                                  selectedLanguages.remove(langId);
-
-
-                                                }
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                        Divider(),
-                                      ],
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-
-
-                            ]))),
-                Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: SingleChildScrollView(
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0, vertical: 10),
-                                child: Text('Job Type'),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    isJobtypeListVisible = !isJobtypeListVisible;
-                                    isSearchBarVisible2 = isJobtypeListVisible;
-                                    // Remove the condition to update filteredLanguages regardless of the search bar visibility
-                                    filteredJobtypes = Jobtypes2;
-
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                                  height: size.height * 0.09,
-                                  width: size.width * 0.93,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(29),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      JobtypeString.isNotEmpty ?
-                                      Expanded(
-                                        child: Text(
-                                          '${JobtypeString?? 'Select Jobtype'}',
-                                          style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                                          overflow: TextOverflow.ellipsis, // Add this to handle long text
-                                        ),
-                                      )
-                                          :Expanded(
-                                            child: Text(
-                                                                                    'Select Jobtype',
-                                                                                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                                                                                  ),
-                                          ),
-                                      Icon(
-                                        isJobtypeListVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                                        size: 18,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                              ),
-
-                              // Validation error message
-                              // if (isLanguageListVisible && selectedLanguages.isEmpty)
-                              //   Padding(
-                              //     padding: const EdgeInsets.only(left: 16.0, top: 8.0),
-                              //     child: Text(
-                              //       'Please select a language',
-                              //       style: TextStyle(color: Colors.red),
-                              //     ),
-                              //   ),
-
-                              // Search bar
-                              Visibility(
-                                visible: isSearchBarVisible2,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  child: TextField(
-                                    onChanged: (query) {
-                                      setState(() {
-                                        filteredJobtypes = Jobtypes2
-                                            .where((jobtype) =>
-                                            jobtype['name']
-                                                .toLowerCase()
-                                                .contains(query.toLowerCase()))
-                                            .toList();
-
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: 'Search Jobtype...',
-                                      prefixIcon: Icon(Icons.search),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              // List of filtered languages
-                              Visibility(
-                                visible: isJobtypeListVisible,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: filteredJobtypes.map((jobtype) {
-                                    final jobName = jobtype['name'];
-                                    final jobId = jobtype['id'];
-                                    JobtypeString = selectedJobtypenames.join(', ');
-
-                                    return Column(
-                                      children: [
-                                        ListTile(
-                                          title: Text(jobName),
-                                          leading: Checkbox(
-                                            activeColor: HexColor('#4D8D6E'),
-                                            value: selectedjobtypes.contains(jobId),
-                                            onChanged: (value) {
-                                              setState(() {
-                                                if (value!) {
-                                                  selectedjobtypes.add(jobId);
-                                                  print('selected jobtypes add ${selectedjobtypes}'); // Print the selected language IDs
-                                                  selectedJobtypenames.add(jobName);
-
-                                                  JobtypeString = selectedJobtypenames.join(', ');
-
-
-                                                } else {
-                                                  print('selected jobtypes remove ${selectedjobtypes}'); // Print the selected language IDs
-
-                                                  selectedjobtypes.remove(jobId);
-                                                  selectedJobtypenames.remove(jobName);
-
-                                                  JobtypeString = selectedJobtypenames.join(', ');
-                                                }
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                        Divider(),
-                                      ],
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-
-
-                            ]))),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1224,10 +818,10 @@ class _editProfileworkerState extends State<editProfileworker> {
                           Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10.0, vertical: 10),
-                            child: Text('PayPal Email'),
+                            child: Text('First Name'),
                           ),
                           Container(
-                              width: size.width * 0.90,
+                              width: 156,
                               height: 60,
                               decoration: BoxDecoration(
                                 color: Colors.grey[200], // Background color
@@ -1235,588 +829,1021 @@ class _editProfileworkerState extends State<editProfileworker> {
                                     20), // Circular border radius
                               ),
                               child: Padding(
-                                padding:
-                                const EdgeInsets.symmetric(horizontal: 20),
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
                                 child: TextField(
-                                  controller: paypalcontroller,
+                                  controller: firstNameController,
                                   decoration: InputDecoration(
-                                    hintText: paypal,
+                                    hintText: firstname,
                                     border:
                                     InputBorder.none, // Remove default border
                                   ),
                                 ),
                               ))
                         ],
-                      )
-                    ],
-                  ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    children: [
+                      ),
+                      Spacer(),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10.0, vertical: 10),
-                            child: Text('License image & Number'),
+                            child: Text('Last Name'),
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  // Use MediaQuery to get the screen size
-                                  final screenSize = MediaQuery.of(context).size;
-
-                                  return AlertDialog(
-                                    title: Center(
-                                      child: Text(
-                                        'License',
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    content: SingleChildScrollView( // Wrap content in SingleChildScrollView
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            'License Image:',
-                                            style: TextStyle(
-                                              color: Colors.black45,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          SizedBox(height: 8),
-    Center(
-    child: StatefulBuilder(
-    key: _dialogKey,
-    builder: (BuildContext context, StateSetter setState) {
-    return Stack(
-    alignment: Alignment.center,
-    children: [
-    // Circular Image
-    Container(
-    width: 200,
-    height: 200,
-    decoration: BoxDecoration(
-    image: _imagelicense != null
-    ? DecorationImage(
-    fit: BoxFit.cover,
-    image: FileImage(_imagelicense!),
-    )
-        : license_pic != null &&
-    license_pic.isNotEmpty &&
-    license_pic != "https://workdonecorp.com/images/"
-    ? DecorationImage(
-    fit: BoxFit.cover,
-    image: NetworkImage(license_pic),
-    )
-        : DecorationImage(
-    fit: BoxFit.contain,
-    image: NetworkImage(
-    'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png'),
-    ),
-    ),
-    ),
-    // Opacity Overlay
-    GestureDetector(
-    onTap: () async {
-    final action = await showDialog<String>(
-    context: context,
-    builder: (BuildContext context) {
-    return AlertDialog(
-    title: Text('Choose an option'),
-    content: Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-    ListTile(
-    leading: Icon(Icons.image),
-    title: Text('Gallery'),
-    onTap: () {
-    Navigator.pop(context, 'gallery');
-    },
-    ),
-    ListTile(
-    leading: Icon(Icons.camera),
-    title: Text('Camera'),
-    onTap: () {
-    Navigator.pop(context, 'camera');
-    },
-    ),
-    ],
-    ),
-    );
-    },
-    );
-
-    if (action == 'gallery') {
-    final pickedImage = await ImagePicker().pickImage(
-    source: ImageSource.gallery,
-    );
-    if (pickedImage != null) {
-    setState(() {
-    _imagelicense = File(pickedImage.path);
-    });
-    }
-    } else if (action == 'camera') {
-    final pickedImage = await ImagePicker().pickImage(
-    source: ImageSource.camera,
-    );
-    if (pickedImage != null) {
-    setState(() {
-    _imagelicense = File(pickedImage.path);
-    });
-    }
-    }
-    },
-    child: Container(
-    width: 150,
-    height: 150,
-    decoration: BoxDecoration(
-    shape: BoxShape.circle,
-    color: Colors.grey.withOpacity(0.4),
-    ),
-    ),
-    ),
-    // Camera Logo
-    GestureDetector(
-    onTap: () async {
-    final action = await showDialog<String>(
-    context: context,
-    builder: (BuildContext context) {
-    return StatefulBuilder(
-    key: _dialogKey,
-    builder: (BuildContext context, StateSetter setState) {
-    return AlertDialog(
-    title: Text('Choose an option'),
-    content: Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-    ListTile(
-    leading: Icon(Icons.image),
-    title: Text('Gallery'),
-    onTap: () {
-    Navigator.pop(context, 'gallery');
-    },
-    ),
-    ListTile(
-    leading: Icon(Icons.camera),
-    title: Text('Camera'),
-    onTap: () {
-    Navigator.pop(context, 'camera');                                },
-    ),
-    ],
-    ),
-    );
-    }
-    );
-    },
-    );
-
-    if (action == 'gallery') {
-      final pickedImage = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-      );
-      if (pickedImage != null) {
-        setState(() {
-          _image = File(pickedImage.path);
-        });
-      }
-    } else if (action == 'camera') {
-      final pickedImage = await ImagePicker().pickImage(
-        source: ImageSource.camera,
-      );
-      if (pickedImage != null) {
-        setState(() {
-          _image = File(pickedImage.path);
-        });
-      }
-    }
-    },
-      child: Icon(
-        Icons.camera_alt,
-        size: 35,
-        color: Colors.white,
-      ),
-    ),
-    ],
-    );
-    },
-    ),
-    ),                                          SizedBox(height: 10),
-                                          Text(
-                                            'Your license Number:',
-                                            style: TextStyle(
-                                              color: Colors.black45,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          SizedBox(height: 10),
-                                          Center(
-                                            child: TextField(
-                                              controller: LicenseNumber,
-                                              decoration: InputDecoration(
-                                                hintText: '$license_number',
-                                                hintStyle: TextStyle(fontSize: 16, color: HexColor('4D8D6E')),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    actions: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                        child: Center(
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              ElevatedButton(
-                                                child: Text(
-                                                  'Close',
-                                                  style: TextStyle(color: Colors.white), // Set the text color to white
-                                                ),
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop(); // Close the dialog
-                                                },
-                                                style: ButtonStyle(
-                                                  backgroundColor: MaterialStateProperty.all(Colors.red), // Set the background color
-                                                ),
-                                              ),
-                                              SizedBox(width: 20,),
-                                              ElevatedButton(
-                                                child: Text(
-                                                  'Done',
-                                                  style: TextStyle(color: Colors.white), // Set the text color to white
-                                                ),
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop();
-                                                  setState(() {
-                                                    _isFormFilled=true;
-                                                  });// Close the dialog
-                                                },
-                                                style: ButtonStyle(
-                                                  backgroundColor: MaterialStateProperty.all(HexColor('4D8D6E')), // Set the background color
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                            child: Container(
-                              width: size.width * 0.90,
+                          Container(
+                              width: 156,
                               height: 60,
                               decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.grey[200], // Background color
+                                borderRadius: BorderRadius.circular(
+                                    20), // Circular border radius
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                                child: IntrinsicHeight(
-                                  child: Row(
+                                child: TextField(
+                                  controller: lastNameController,
+                                  decoration: InputDecoration(
+                                    hintText: secondname,
+                                    border:
+                                    InputBorder.none, // Remove default border
+                                  ),
+                                ),
+                              ))
+                        ],
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10.0, vertical: 10),
+                              child: Text('Email'),
+                            ),
+                            Container(
+                                width: size.width * 0.90,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200], // Background color
+                                  borderRadius: BorderRadius.circular(
+                                      20), // Circular border radius
+                                ),
+                                child: Padding(
+                                  padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Expanded(
+                                      Text(email,style: TextStyle(
+                                        fontSize: 17,
+                                        color: Colors.grey[800], // Button text color
+                                      ),
+                                      ),
+                                    ],
+                                  )
+                                ))
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10.0, vertical: 10),
+                              child: Text('experience'),
+                            ),
+                            Container(
+                                width: size.width * 0.90,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200], // Background color
+                                  borderRadius: BorderRadius.circular(
+                                      20), // Circular border radius
+                                ),
+                                child: Padding(
+                                  padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                                  child: TextField(
+                                    controller: experiencecontroller,
+                                    decoration: InputDecoration(
+                                      hintText: '${experience.toString()}',
+                                      border:
+                                      InputBorder.none,
+                                      // Remove default border
+                                    ),
+                                  ),
+                                ))
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: SingleChildScrollView(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10.0, vertical: 10),
+                                  child: Text('language'),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      isLanguageListVisible = !isLanguageListVisible;
+                                      isSearchBarVisible = isLanguageListVisible;
+                                      // Remove the condition to update filteredLanguages regardless of the search bar visibility
+                                      filteredLanguages = languages;
+
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 5,
+                                    ),
+                                    height: size.height * 0.09,
+                                    width: size.width * 0.93,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(29),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        languagesString.isNotEmpty ?
+                                        Expanded(
+                                          child: Text(
+                                            '${languagesString?? 'select language'}',
+                                            style: TextStyle(
+                                                fontSize: 16, color: Colors.grey[700]),
+                                          ),
+                                        )
+                                        :                                      Expanded(
+
                                         child: Text(
-                                          'License Image & Number',
+                                            'Select language',
+                                            style: TextStyle(
+                                                fontSize: 16, color: Colors.grey[700]),
+                                          ),
+                                        )
+                                        ,
+                                        Icon(
+                                          isLanguageListVisible
+                                              ? Icons.arrow_drop_up
+                                              : Icons.arrow_drop_down,
+                                          size: 18,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                // Validation error message
+                                // if (isLanguageListVisible && selectedLanguages.isEmpty)
+                                //   Padding(
+                                //     padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+                                //     child: Text(
+                                //       'Please select a language',
+                                //       style: TextStyle(color: Colors.red),
+                                //     ),
+                                //   ),
+
+                                // Search bar
+                                Visibility(
+                                  visible: isSearchBarVisible,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    child: TextField(
+                                      onChanged: (query) {
+                                        setState(() {
+                                          filteredLanguages = languages
+                                              .where((language) =>
+                                              language['name']
+                                                  .toLowerCase()
+                                                  .contains(query.toLowerCase()))
+                                              .toList();
+                                        });
+                                      },
+                                      decoration: InputDecoration(
+                                        hintText: 'Search languages...',
+                                        prefixIcon: Icon(Icons.search),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                // List of filtered languages
+                                Visibility(
+                                  visible: isLanguageListVisible,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: filteredLanguages.map((language) {
+                                      final langName = language['name'];
+                                      final langId = language['id'];
+                                      languagesString = selectedLanguagename.join(', ');
+
+                                      return Column(
+                                        children: [
+                                          ListTile(
+                                            title: Text(langName),
+                                            leading: Checkbox(
+                                              activeColor: HexColor('#4D8D6E'),
+                                              value: selectedLanguages.contains(langId),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  if (value!) {
+                                                    selectedLanguages.add(langId);
+                                                    selectedLanguagename.add((langName));
+                                                    languagesString = selectedLanguagename.join(', ');
+                                                    print('selected languages add ${selectedLanguages}'); // Print the selected language IDs
+
+
+
+                                                  } else {
+                                                    print('selected languages remove ${selectedLanguages}'); // Print the selected language IDs
+                                                    selectedLanguagename.remove((langName));
+                                                    languagesString = selectedLanguagename.join(', ');
+                                                    selectedLanguages.remove(langId);
+
+
+                                                  }
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                          Divider(),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+
+
+                              ]))),
+                  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: SingleChildScrollView(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10.0, vertical: 10),
+                                  child: Text('Job Type'),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      isJobtypeListVisible = !isJobtypeListVisible;
+                                      isSearchBarVisible2 = isJobtypeListVisible;
+                                      // Remove the condition to update filteredLanguages regardless of the search bar visibility
+                                      filteredJobtypes = Jobtypes2;
+
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                    height: size.height * 0.09,
+                                    width: size.width * 0.93,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(29),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        JobtypeString.isNotEmpty ?
+                                        Expanded(
+                                          child: Text(
+                                            '${JobtypeString?? 'Select Jobtype'}',
+                                            style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                                            overflow: TextOverflow.ellipsis, // Add this to handle long text
+                                          ),
+                                        )
+                                            :Expanded(
+                                              child: Text(
+                                                                                      'Select Jobtype',
+                                                                                      style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                                                                                    ),
+                                            ),
+                                        Icon(
+                                          isJobtypeListVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                                          size: 18,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                ),
+
+                                // Validation error message
+                                // if (isLanguageListVisible && selectedLanguages.isEmpty)
+                                //   Padding(
+                                //     padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+                                //     child: Text(
+                                //       'Please select a language',
+                                //       style: TextStyle(color: Colors.red),
+                                //     ),
+                                //   ),
+
+                                // Search bar
+                                Visibility(
+                                  visible: isSearchBarVisible2,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    child: TextField(
+                                      onChanged: (query) {
+                                        setState(() {
+                                          filteredJobtypes = Jobtypes2
+                                              .where((jobtype) =>
+                                              jobtype['name']
+                                                  .toLowerCase()
+                                                  .contains(query.toLowerCase()))
+                                              .toList();
+
+                                        });
+                                      },
+                                      decoration: InputDecoration(
+                                        hintText: 'Search Jobtype...',
+                                        prefixIcon: Icon(Icons.search),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                // List of filtered languages
+                                Visibility(
+                                  visible: isJobtypeListVisible,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: filteredJobtypes.map((jobtype) {
+                                      final jobName = jobtype['name'];
+                                      final jobId = jobtype['id'];
+                                      JobtypeString = selectedJobtypenames.join(', ');
+
+                                      return Column(
+                                        children: [
+                                          ListTile(
+                                            title: Text(jobName),
+                                            leading: Checkbox(
+                                              activeColor: HexColor('#4D8D6E'),
+                                              value: selectedjobtypes.contains(jobId),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  if (value!) {
+                                                    selectedjobtypes.add(jobId);
+                                                    print('selected jobtypes add ${selectedjobtypes}'); // Print the selected language IDs
+                                                    selectedJobtypenames.add(jobName);
+
+                                                    JobtypeString = selectedJobtypenames.join(', ');
+
+
+                                                  } else {
+                                                    print('selected jobtypes remove ${selectedjobtypes}'); // Print the selected language IDs
+
+                                                    selectedjobtypes.remove(jobId);
+                                                    selectedJobtypenames.remove(jobName);
+
+                                                    JobtypeString = selectedJobtypenames.join(', ');
+                                                  }
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                          Divider(),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+
+
+                              ]))),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10.0, vertical: 10),
+                              child: Text('PayPal Email'),
+                            ),
+                            Container(
+                                width: size.width * 0.90,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200], // Background color
+                                  borderRadius: BorderRadius.circular(
+                                      20), // Circular border radius
+                                ),
+                                child: Padding(
+                                  padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                                  child: TextField(
+                                    controller: paypalcontroller,
+                                    decoration: InputDecoration(
+                                      hintText: paypal,
+                                      border:
+                                      InputBorder.none, // Remove default border
+                                    ),
+                                  ),
+                                ))
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10.0, vertical: 10),
+                              child: Text('License image & Number'),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    // Use MediaQuery to get the screen size
+                                    final screenSize = MediaQuery.of(context).size;
+
+                                    return AlertDialog(
+                                      title: Center(
+                                        child: Text(
+                                          'License',
                                           style: TextStyle(
-                                            color: HexColor('#707070'),
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                       ),
-                                      Icon(
-                                        Icons.arrow_forward_ios,
-                                        size: 18,
-                                        color: Colors.grey,
+                                      content: SingleChildScrollView( // Wrap content in SingleChildScrollView
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'License Image:',
+                                              style: TextStyle(
+                                                color: Colors.black45,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            SizedBox(height: 8),
+      Center(
+      child: StatefulBuilder(
+      key: _dialogKey,
+      builder: (BuildContext context, StateSetter setState) {
+      return Stack(
+      alignment: Alignment.center,
+      children: [
+      // Circular Image
+      Container(
+      width: 200,
+      height: 200,
+      decoration: BoxDecoration(
+      image: _imagelicense != null
+      ? DecorationImage(
+      fit: BoxFit.cover,
+      image: FileImage(_imagelicense!),
+      )
+          : license_pic != null &&
+      license_pic.isNotEmpty &&
+      license_pic != "https://workdonecorp.com/images/"
+      ? DecorationImage(
+      fit: BoxFit.cover,
+      image: NetworkImage(license_pic),
+      )
+          : DecorationImage(
+      fit: BoxFit.contain,
+      image: NetworkImage(
+      'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png'),
+      ),
+      ),
+      ),
+      // Opacity Overlay
+      GestureDetector(
+      onTap: () async {
+      final action = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+      return AlertDialog(
+      title: Text('Choose an option'),
+      content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+      ListTile(
+      leading: Icon(Icons.image),
+      title: Text('Gallery'),
+      onTap: () {
+      Navigator.pop(context, 'gallery');
+      },
+      ),
+      ListTile(
+      leading: Icon(Icons.camera),
+      title: Text('Camera'),
+      onTap: () {
+      Navigator.pop(context, 'camera');
+      },
+      ),
+      ],
+      ),
+      );
+      },
+      );
+
+      if (action == 'gallery') {
+      final pickedImage = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      );
+      if (pickedImage != null) {
+      setState(() {
+      _imagelicense = File(pickedImage.path);
+      });
+      }
+      } else if (action == 'camera') {
+      final pickedImage = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      );
+      if (pickedImage != null) {
+      setState(() {
+      _imagelicense = File(pickedImage.path);
+      });
+      }
+      }
+      },
+      child: Container(
+      width: 150,
+      height: 150,
+      decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: Colors.grey.withOpacity(0.4),
+      ),
+      ),
+      ),
+      // Camera Logo
+      GestureDetector(
+      onTap: () async {
+      final action = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+      return StatefulBuilder(
+      key: _dialogKey,
+      builder: (BuildContext context, StateSetter setState) {
+      return AlertDialog(
+      title: Text('Choose an option'),
+      content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+      ListTile(
+      leading: Icon(Icons.image),
+      title: Text('Gallery'),
+      onTap: () {
+      Navigator.pop(context, 'gallery');
+      },
+      ),
+      ListTile(
+      leading: Icon(Icons.camera),
+      title: Text('Camera'),
+      onTap: () {
+      Navigator.pop(context, 'camera');                                },
+      ),
+      ],
+      ),
+      );
+      }
+      );
+      },
+      );
+
+      if (action == 'gallery') {
+        final pickedImage = await ImagePicker().pickImage(
+          source: ImageSource.gallery,
+        );
+        if (pickedImage != null) {
+          setState(() {
+            _image = File(pickedImage.path);
+          });
+        }
+      } else if (action == 'camera') {
+        final pickedImage = await ImagePicker().pickImage(
+          source: ImageSource.camera,
+        );
+        if (pickedImage != null) {
+          setState(() {
+            _image = File(pickedImage.path);
+          });
+        }
+      }
+      },
+        child: Icon(
+          Icons.camera_alt,
+          size: 35,
+          color: Colors.white,
+        ),
+      ),
+      ],
+      );
+      },
+      ),
+      ),                                          SizedBox(height: 10),
+                                            Text(
+                                              'Your license Number:',
+                                              style: TextStyle(
+                                                color: Colors.black45,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            SizedBox(height: 10),
+                                            Center(
+                                              child: TextField(
+                                                controller: LicenseNumber,
+                                                decoration: InputDecoration(
+                                                  hintText: '$license_number',
+                                                  hintStyle: TextStyle(fontSize: 16, color: HexColor('4D8D6E')),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      actions: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                          child: Center(
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                ElevatedButton(
+                                                  child: Text(
+                                                    'Close',
+                                                    style: TextStyle(color: Colors.white), // Set the text color to white
+                                                  ),
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop(); // Close the dialog
+                                                  },
+                                                  style: ButtonStyle(
+                                                    backgroundColor: MaterialStateProperty.all(Colors.red), // Set the background color
+                                                  ),
+                                                ),
+                                                SizedBox(width: 20,),
+                                                ElevatedButton(
+                                                  child: Text(
+                                                    'Done',
+                                                    style: TextStyle(color: Colors.white), // Set the text color to white
+                                                  ),
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop();
+                                                    setState(() {
+                                                      _isFormFilled=true;
+                                                    });// Close the dialog
+                                                  },
+                                                  style: ButtonStyle(
+                                                    backgroundColor: MaterialStateProperty.all(HexColor('4D8D6E')), // Set the background color
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              child: Container(
+                                width: size.width * 0.90,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: IntrinsicHeight(
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            'License Image & Number',
+                                            style: TextStyle(
+                                              color: HexColor('#707070'),
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 18,
+                                          color: Colors.grey,
+                                        ),
+                                        SizedBox(width: 8),
+                                        if (_isFormFilled == true)
+                                          Icon(Icons.check, color: Colors.green),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 10),
+                    child: Text('Phone Number'),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                    height: size.height * 0.103,
+                    width: size.width * 0.93,
+                    decoration: BoxDecoration(
+
+                      color: Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(29),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+
+                                decoration: BoxDecoration(
+
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(5.0),
+                                ),
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(5.0),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/icons/uslogo.svg',
+                                        width: 27.0,
+                                        height: 27.0,
                                       ),
                                       SizedBox(width: 8),
-                                      if (_isFormFilled == true)
-                                        Icon(Icons.check, color: Colors.green),
+                                      Text(
+                                        '+1',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+                                      ),
                                     ],
                                   ),
                                 ),
                               ),
-                            ),
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                ),
+                              SizedBox(width: 10),
+                              // Add some spacing between the dropdown and the text field // Add some spacing between the dropdown and the text field
+                              Expanded(
+                                child: TextFormField(
 
+                                  controller: phoneController,
+                                  decoration: InputDecoration(
+                                    hintText: phonenumber,
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.all(0), // Remove content padding
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0, vertical: 10),
-                  child: Text('Phone Number'),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                  height: size.height * 0.103,
-                  width: size.width * 0.93,
-                  decoration: BoxDecoration(
+                                  ),
+                                  keyboardType: TextInputType.phone,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      // Format the phone number using the formatPhoneNumber function
+                                      final formattedPhoneNumber = formatPhoneNumber(value);
+                                      phoneController.value = TextEditingValue(
+                                        text: formattedPhoneNumber,
+                                        selection: TextSelection.collapsed(offset: formattedPhoneNumber.length),
 
-                    color: Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(29),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Container(
+                                      );
+                                      // Add +1 prefix to the formatted phone number
+                                      phoneController.text = '$formattedPhoneNumber';
 
-                              decoration: BoxDecoration(
-
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(5.0),
-                              ),
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5.0),
-                                ),
-                                child: Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                      'assets/icons/uslogo.svg',
-                                      width: 27.0,
-                                      height: 27.0,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      '+1',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
-                                    ),
+                                      // Ensure the cursor position is at the end
+                                      phoneController.selection = TextSelection.fromPosition(
+                                        TextPosition(offset: phoneController.text.length),
+                                      );
+                                      print(phoneController.text);
+                                      // Validate the phone number
+                                      isPhoneNumberValid = validatePhoneNumber(formattedPhoneNumber);
+                                    });
+                                  },
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(10), // Limit the input length to 10 digits
                                   ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 10),
-                            // Add some spacing between the dropdown and the text field // Add some spacing between the dropdown and the text field
-                            Expanded(
-                              child: TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter a phone number';
+                                    }
 
-                                controller: phoneController,
-                                decoration: InputDecoration(
-                                  hintText: phonenumber,
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.all(0), // Remove content padding
-
-                                ),
-                                keyboardType: TextInputType.phone,
-                                onChanged: (value) {
-                                  setState(() {
-                                    // Format the phone number using the formatPhoneNumber function
+                                    // Basic validation: Check if the formatted phone number has 10 digits
                                     final formattedPhoneNumber = formatPhoneNumber(value);
-                                    phoneController.value = TextEditingValue(
-                                      text: formattedPhoneNumber,
-                                      selection: TextSelection.collapsed(offset: formattedPhoneNumber.length),
+                                    if (formattedPhoneNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
+                                      return 'Invalid phone number';
+                                    }
 
-                                    );
-                                    // Add +1 prefix to the formatted phone number
-                                    phoneController.text = '$formattedPhoneNumber';
-
-                                    // Ensure the cursor position is at the end
-                                    phoneController.selection = TextSelection.fromPosition(
-                                      TextPosition(offset: phoneController.text.length),
-                                    );
-                                    print(phoneController.text);
-                                    // Validate the phone number
-                                    isPhoneNumberValid = validatePhoneNumber(formattedPhoneNumber);
-                                  });
-                                },
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(10), // Limit the input length to 10 digits
-                                ],
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter a phone number';
-                                  }
-
-                                  // Basic validation: Check if the formatted phone number has 10 digits
-                                  final formattedPhoneNumber = formatPhoneNumber(value);
-                                  if (formattedPhoneNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
-                                    return 'Invalid phone number';
-                                  }
-
-                                  return null; // Return null if the input is valid
-                                },
+                                    return null; // Return null if the input is valid
+                                  },
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ), if (!isPhoneNumberValid)
-                        Text(
-                          'Please enter a valid phone number.',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 13,)
-                ,             Container(
-                  width: size.width * 0.90,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200], // Background color
-                    borderRadius:
-                    BorderRadius.circular(20), // Circular border radius
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final SharedPreferences prefs = await SharedPreferences.getInstance();
-                      final userToken = prefs.getString('user_token') ?? '';
-                      print(userToken);
-
-                      // Check if userToken is not empty before navigating
-                      if (userToken.isNotEmpty) {
-                        Get.to(changePasswordscreen(userToken: userToken));
-                      } else {
-                        // Handle the case where userToken is empty, e.g., show a message
-                        print('User token is empty. Cannot navigate to ChangePasswordScreen.');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[200], // Button background color
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20), // Circular border radius
-                      ),
-                    ),
-                    child: Text(
-                      'Change Password', // Button text
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[800], // Button text color
-                      ),
+                            ],
+                          ),
+                        ), if (!isPhoneNumberValid)
+                          Text(
+                            'Please enter a valid phone number.',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                      ],
                     ),
                   ),
-
-                ),
-                SizedBox(height: 20,),
-                Container(
-                  width: size.width * 0.90,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200], // Background color
-                    borderRadius:
-                    BorderRadius.circular(20), // Circular border radius
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final SharedPreferences prefs = await SharedPreferences.getInstance();
-                      final userToken = prefs.getString('user_token') ?? '';
-                      print(userToken);
-
-                      // Check if userToken is not empty before navigating
-                      if (userToken.isNotEmpty) {
-                        Get.to(editAddressClient());
-                      } else {
-                        // Handle the case where userToken is empty, e.g., show a message
-                        print('User token is empty. Cannot navigate to ChangePasswordScreen.');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[200], // Button background color
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20), // Circular border radius
-                      ),
+                  SizedBox(height: 13,)
+                  ,             Container(
+                    width: size.width * 0.90,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200], // Background color
+                      borderRadius:
+                      BorderRadius.circular(20), // Circular border radius
                     ),
-                    child: Text(
-                      'Edit Address', // Button text
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[800], // Button text color
-                      ),
-                    ),
-                  ),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final SharedPreferences prefs = await SharedPreferences.getInstance();
+                        final userToken = prefs.getString('user_token') ?? '';
+                        print(userToken);
 
-                ),
-                SizedBox(height: 20,),
-                Container(
-                  width: size.width * 0.90,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200], // Background color
-                    borderRadius:
-                    BorderRadius.circular(20), // Circular border radius
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final SharedPreferences prefs = await SharedPreferences.getInstance();
-                      final userToken = prefs.getString('user_token') ?? '';
-                      print(userToken);
-
-                      // Check if userToken is not empty before navigating
-                      if (userToken.isNotEmpty) {
-                        Get.to(paymentmethod());
-                      } else {
-                        // Handle the case where userToken is empty, e.g., show a message
-                        print('User token is empty. Cannot navigate to ChangePasswordScreen.');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[200], // Button background color
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20), // Circular border radius
-                      ),
-                    ),
-                    child: Text(
-                      'Payment Method', // Button text
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[800], // Button text color
-                      ),
-                    ),
-                  ),
-
-                ),
-
-                SizedBox(
-                  height: 12,
-                ),
-                SizedBox(height: 15,),
-                Center(
-                    child: RoundedButton(
-                      text: 'Submit',
-                      press: () {
-                        if (selectedjobtypes .isEmpty) {
-                          Fluttertoast.showToast(
-                              msg: "Must select a job type",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              timeInSecForIosWeb: 1,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                              fontSize: 16.0
-                          );
-                        }else{
-                          print('selected job type $selectedjobtypes');
-                        sendprofile();}
+                        // Check if userToken is not empty before navigating
+                        if (userToken.isNotEmpty) {
+                          Get.to(changePasswordscreen(userToken: userToken));
+                        } else {
+                          // Handle the case where userToken is empty, e.g., show a message
+                          print('User token is empty. Cannot navigate to ChangePasswordScreen.');
+                        }
                       },
-                    )
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[200], // Button background color
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20), // Circular border radius
+                        ),
+                      ),
+                      child: Text(
+                        'Change Password', // Button text
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey[800], // Button text color
+                        ),
+                      ),
+                    ),
 
-                )
-              ],
+                  ),
+                  SizedBox(height: 20,),
+                  Container(
+                    width: size.width * 0.90,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200], // Background color
+                      borderRadius:
+                      BorderRadius.circular(20), // Circular border radius
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final SharedPreferences prefs = await SharedPreferences.getInstance();
+                        final userToken = prefs.getString('user_token') ?? '';
+                        print(userToken);
+
+                        // Check if userToken is not empty before navigating
+                        if (userToken.isNotEmpty) {
+                          Get.to(editAddressClient());
+                        } else {
+                          // Handle the case where userToken is empty, e.g., show a message
+                          print('User token is empty. Cannot navigate to ChangePasswordScreen.');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[200], // Button background color
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20), // Circular border radius
+                        ),
+                      ),
+                      child: Text(
+                        'Edit Address', // Button text
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey[800], // Button text color
+                        ),
+                      ),
+                    ),
+
+                  ),
+                  SizedBox(height: 20,),
+                  Container(
+                    width: size.width * 0.90,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200], // Background color
+                      borderRadius:
+                      BorderRadius.circular(20), // Circular border radius
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final SharedPreferences prefs = await SharedPreferences.getInstance();
+                        final userToken = prefs.getString('user_token') ?? '';
+                        print(userToken);
+
+                        // Check if userToken is not empty before navigating
+                        if (userToken.isNotEmpty) {
+                          Get.to(paymentmethod());
+                        } else {
+                          // Handle the case where userToken is empty, e.g., show a message
+                          print('User token is empty. Cannot navigate to ChangePasswordScreen.');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[200], // Button background color
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20), // Circular border radius
+                        ),
+                      ),
+                      child: Text(
+                        'Payment Method', // Button text
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey[800], // Button text color
+                        ),
+                      ),
+                    ),
+
+                  ),
+
+                  SizedBox(
+                    height: 12,
+                  ),
+                  SizedBox(height: 15,),
+                  Center(
+                      child: RoundedButton(
+                        text: 'Submit',
+                        press: () {
+                          if (selectedjobtypes .isEmpty) {
+                            Fluttertoast.showToast(
+                                msg: "Must select a job type",
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                          }else{
+                            print('selected job type $selectedjobtypes');
+                          sendprofile();}
+                        },
+                      )
+
+                  )
+                ],
+              ),
             ),
           ),
         ),

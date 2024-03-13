@@ -164,13 +164,13 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
   }
 
 
-  final ScreenshotController screenshotController = ScreenshotController();
+  final ScreenshotController screenshotController5 = ScreenshotController();
 
 
 
   String unique= 'profilescreenclient' ;
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController5.capture();
 
     Navigator.push(
       context,
@@ -236,7 +236,7 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
       key: _scaffoldKey,
       backgroundColor: HexColor('F5F5F5'),
       body :Screenshot(
-        controller:screenshotController ,
+        controller:screenshotController5 ,
         child: SingleChildScrollView(
             child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,7 +350,10 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                         child: CircleAvatar(
                           radius: 35,
                           backgroundColor: Colors.transparent,
-                          backgroundImage: profile_pic== 'https://workdonecorp.com/images/' ||profile_pic== ''
+                          backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                              || profile_pic == "https://workdonecorp.com/storage/" ||
+                              !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+
                               ? AssetImage('assets/images/default.png') as ImageProvider
                               : NetworkImage(profile_pic?? 'assets/images/default.png'),
                         ),

@@ -109,7 +109,7 @@ class _projectsWorkerState extends State<projectsWorker> with SingleTickerProvid
   }
 
 
-  final ScreenshotController screenshotController2 = ScreenshotController();
+  final ScreenshotController screenshotController3 = ScreenshotController();
   late AnimationController ciruclaranimation;
   @override
   void initState() {
@@ -162,10 +162,9 @@ class _projectsWorkerState extends State<projectsWorker> with SingleTickerProvid
     return spans;
   }
 
-  final ScreenshotController screenshotController = ScreenshotController();
   String unique= 'projectclient' ;
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController3.capture();
 
     Navigator.push(
       context,
@@ -308,7 +307,7 @@ class _projectsWorkerState extends State<projectsWorker> with SingleTickerProvid
           ),
         ),
         body: Screenshot(
-          controller:screenshotController ,
+          controller:screenshotController3 ,
           child: TabBarView(
             physics: NeverScrollableScrollPhysics(),
 

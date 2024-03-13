@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:blurry_modal_progress_hud/blurry_modal_progress_hud.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -391,734 +392,744 @@ class _editProfileState extends State<editProfile> {
       final formattedPhoneNumber = phoneNumber.replaceAll(RegExp(r'\D'), ''); // Remove non-digit characters
       return formattedPhoneNumber.length == 10;
     }
-    return Scaffold( floatingActionButton:
-    FloatingActionButton(    heroTag: 'workdone_${unique}',
+    return BlurryModalProgressHUD(
+      inAsyncCall: _isLoading,
+      blurEffectIntensity: 7,
+      progressIndicator: CircularProgressIndicator(),
+
+
+      dismissible: false,
+      opacity: 0.4,
+      child: Scaffold( floatingActionButton:
+      FloatingActionButton(    heroTag: 'workdone_${unique}',
 
 
 
-      onPressed: () {
-        _navigateToNextPage(context);
+        onPressed: () {
+          _navigateToNextPage(context);
 
-      },
-      backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
-      child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
-      shape: CircleBorder(), // Make the button circular
-    ),
+        },
+        backgroundColor: Color(0xFF4D8D6E), // Use the color 4D8D6E
+        child: Icon(Icons.question_mark ,color: Colors.white,), // Use the support icon
+        shape: CircleBorder(), // Make the button circular
+      ),
 
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        toolbarHeight: 67,
         backgroundColor: Colors.white,
-        title: Text(
-          'Edit Profile',
-          style: GoogleFonts.roboto(
-            textStyle: TextStyle(
-              color: HexColor('454545'),
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          elevation: 0,
+          toolbarHeight: 67,
+          backgroundColor: Colors.white,
+          title: Text(
+            'Edit Profile',
+            style: GoogleFonts.roboto(
+              textStyle: TextStyle(
+                color: HexColor('454545'),
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_sharp),
+            color: Colors.black,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_sharp),
-          color: Colors.black,
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
-      body:
-      Screenshot(
-        controller:screenshotController ,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Column(
-                    children: [
-                      Text('Note',
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                              color: Colors.red,
-                              fontSize: 16 ,
-                              fontWeight: FontWeight.bold),
+        body:
+        Screenshot(
+          controller:screenshotController ,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Column(
+                      children: [
+                        Text('Note',
+                          style: GoogleFonts.openSans(
+                            textStyle: TextStyle(
+                                color: Colors.red,
+                                fontSize: 16 ,
+                                fontWeight: FontWeight.bold),
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 3,),
-                      Text('You Can Edit Any Field Only and Press Submit',
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                              color: Colors.black45,
-                              fontSize: 13 ,
-                              fontWeight: FontWeight.w600),
-                          decoration: TextDecoration.underline,
+                        SizedBox(height: 3,),
+                        Text('You Can Edit Any Field Only and Press Submit',
+                          style: GoogleFonts.openSans(
+                            textStyle: TextStyle(
+                                color: Colors.black45,
+                                fontSize: 13 ,
+                                fontWeight: FontWeight.w600),
+                            decoration: TextDecoration.underline,
 
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-SizedBox(height: 8,),
-                Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Circular Image
-                      Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.blue, // Change the color as needed
-                          image: _image != null
-                              ? DecorationImage(
-                            fit: BoxFit.cover,
-                            image: FileImage(_image!),
-                          )
-                              : profile_pic.isNotEmpty && profile_pic != 'https://workdonecorp.com/images/'
-                              ? DecorationImage(
-                            fit: BoxFit.cover,
-                            image: NetworkImage(profile_pic),
-
-                          )
-                              : DecorationImage(
-                            fit: BoxFit.cover,
-                            image: AssetImage('assets/images/default.png') ,
-                          ) ,
-                        ),
-                      ),
-                      // Opacity Overlay
-                      GestureDetector(
-                        onTap: () async {
-                          final action =
-                          await showDialog<
-                              String>(
-                            context: context,
-                            builder: (BuildContext
-                            context) {
-                              return AlertDialog(
-                                title: Text(
-                                    'Choose an option'),
-                                content: Column(
-                                  mainAxisSize:
-                                  MainAxisSize
-                                      .min,
-                                  children: [
-                                    ListTile(
-                                      leading: Icon(
-                                          Icons
-                                              .image),
-                                      title: Text(
-                                          'Gallery'),
-                                      onTap: () {
-                                        Navigator.pop(
-                                            context,
-                                            'gallery');
-                                      },
-                                    ),
-                                    ListTile(
-                                      leading: Icon(
-                                          Icons
-                                              .camera),
-                                      title: Text(
-                                          'Camera'),
-                                      onTap: () {
-                                        Navigator.pop(
-                                            context,
-                                            'camera');
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-
-                          if (action == 'gallery') {
-                            final pickedImage =
-                            await ImagePicker()
-                                .pickImage(
-                              source: ImageSource
-                                  .gallery,
-                            );
-                            if (pickedImage !=
-                                null) {
-                              setState(() {
-                                _image = File(
-                                    pickedImage
-                                        .path);
-                              });
-                            }
-                          } else if (action ==
-                              'camera') {
-                            final pickedImage =
-                            await ImagePicker()
-                                .pickImage(
-                              source: ImageSource
-                                  .camera,
-                            );
-                            if (pickedImage !=
-                                null) {
-                              setState(() {
-                                _image = File(
-                                    pickedImage
-                                        .path);
-                              });
-                            }
-                          }
-                        },
-                        child: Container(
+      SizedBox(height: 8,),
+                  Center(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Circular Image
+                        Container(
                           width: 150,
                           height: 150,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.grey.withOpacity(0.4),
+                            image: _image != null
+                                ? DecorationImage(
+                              fit: BoxFit.cover,
+                              image: FileImage(_image!),
+                            )
+                                : profile_pic == '' || profile_pic.isEmpty
+                                || profile_pic == "https://workdonecorp.com/storage/" ||
+                                !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+                                ? DecorationImage(
+                              fit: BoxFit.cover,
+                              image:AssetImage('assets/images/default.png') as ImageProvider ,
+
+                            )
+                                : DecorationImage(
+                              fit: BoxFit.cover,
+                              image: NetworkImage(profile_pic),
+                            ) ,
                           ),
                         ),
-                      ),
-                      // Camera Logo
-                      GestureDetector(
-                        onTap: () async {
-                          final action =
-                          await showDialog<
-                              String>(
-                            context: context,
-                            builder: (BuildContext
-                            context) {
-                              return AlertDialog(
-                                title: Text(
-                                    'Choose an option'),
-                                content: Column(
-                                  mainAxisSize:
-                                  MainAxisSize
-                                      .min,
-                                  children: [
-                                    ListTile(
-                                      leading: Icon(
-                                          Icons
-                                              .image),
-                                      title: Text(
-                                          'Gallery'),
-                                      onTap: () {
-                                        Navigator.pop(
-                                            context,
-                                            'gallery');
-                                      },
-                                    ),
-                                    ListTile(
-                                      leading: Icon(
-                                          Icons
-                                              .camera),
-                                      title: Text(
-                                          'Camera'),
-                                      onTap: () {
-                                        Navigator.pop(
-                                            context,
-                                            'camera');
-                                      },
-                                    ),
-                                  ],
-                                ),
+                        // Opacity Overlay
+                        GestureDetector(
+                          onTap: () async {
+                            final action =
+                            await showDialog<
+                                String>(
+                              context: context,
+                              builder: (BuildContext
+                              context) {
+                                return AlertDialog(
+                                  title: Text(
+                                      'Choose an option'),
+                                  content: Column(
+                                    mainAxisSize:
+                                    MainAxisSize
+                                        .min,
+                                    children: [
+                                      ListTile(
+                                        leading: Icon(
+                                            Icons
+                                                .image),
+                                        title: Text(
+                                            'Gallery'),
+                                        onTap: () {
+                                          Navigator.pop(
+                                              context,
+                                              'gallery');
+                                        },
+                                      ),
+                                      ListTile(
+                                        leading: Icon(
+                                            Icons
+                                                .camera),
+                                        title: Text(
+                                            'Camera'),
+                                        onTap: () {
+                                          Navigator.pop(
+                                              context,
+                                              'camera');
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+
+                            if (action == 'gallery') {
+                              final pickedImage =
+                              await ImagePicker()
+                                  .pickImage(
+                                source: ImageSource
+                                    .gallery,
                               );
-                            },
-                          );
-
-                          if (action == 'gallery') {
-                            final pickedImage =
-                            await ImagePicker()
-                                .pickImage(
-                              source: ImageSource
-                                  .gallery,
-                            );
-                            if (pickedImage !=
-                                null) {
-                              setState(() {
-                                _image = File(
-                                    pickedImage
-                                        .path);
-                              });
+                              if (pickedImage !=
+                                  null) {
+                                setState(() {
+                                  _image = File(
+                                      pickedImage
+                                          .path);
+                                });
+                              }
+                            } else if (action ==
+                                'camera') {
+                              final pickedImage =
+                              await ImagePicker()
+                                  .pickImage(
+                                source: ImageSource
+                                    .camera,
+                              );
+                              if (pickedImage !=
+                                  null) {
+                                setState(() {
+                                  _image = File(
+                                      pickedImage
+                                          .path);
+                                });
+                              }
                             }
-                          } else if (action ==
-                              'camera') {
-                            final pickedImage =
-                            await ImagePicker()
-                                .pickImage(
-                              source: ImageSource
-                                  .camera,
-                            );
-                            if (pickedImage !=
-                                null) {
-                              setState(() {
-                                _image = File(
-                                    pickedImage
-                                        .path);
-                              });
-                            }
-                          }
-                        },
-
-                        child: Icon(
-                          Icons.camera_alt,
-                          size: 35,
-                          color: Colors.white,
+                          },
+                          child: Container(
+                            width: 150,
+                            height: 150,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey.withOpacity(0.4),
+                            ),
+                          ),
                         ),
+                        // Camera Logo
+                        GestureDetector(
+                          onTap: () async {
+                            final action =
+                            await showDialog<
+                                String>(
+                              context: context,
+                              builder: (BuildContext
+                              context) {
+                                return AlertDialog(
+                                  title: Text(
+                                      'Choose an option'),
+                                  content: Column(
+                                    mainAxisSize:
+                                    MainAxisSize
+                                        .min,
+                                    children: [
+                                      ListTile(
+                                        leading: Icon(
+                                            Icons
+                                                .image),
+                                        title: Text(
+                                            'Gallery'),
+                                        onTap: () {
+                                          Navigator.pop(
+                                              context,
+                                              'gallery');
+                                        },
+                                      ),
+                                      ListTile(
+                                        leading: Icon(
+                                            Icons
+                                                .camera),
+                                        title: Text(
+                                            'Camera'),
+                                        onTap: () {
+                                          Navigator.pop(
+                                              context,
+                                              'camera');
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+
+                            if (action == 'gallery') {
+                              final pickedImage =
+                              await ImagePicker()
+                                  .pickImage(
+                                source: ImageSource
+                                    .gallery,
+                              );
+                              if (pickedImage !=
+                                  null) {
+                                setState(() {
+                                  _image = File(
+                                      pickedImage
+                                          .path);
+                                });
+                              }
+                            } else if (action ==
+                                'camera') {
+                              final pickedImage =
+                              await ImagePicker()
+                                  .pickImage(
+                                source: ImageSource
+                                    .camera,
+                              );
+                              if (pickedImage !=
+                                  null) {
+                                setState(() {
+                                  _image = File(
+                                      pickedImage
+                                          .path);
+                                });
+                              }
+                            }
+                          },
+
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 35,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10.0, vertical: 10),
+                            child: Text('First Name'),
+                          ),
+                          Container(
+                              width: 156,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200], // Background color
+                                borderRadius: BorderRadius.circular(
+                                    20), // Circular border radius
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                child: TextField(
+                                  controller: firstNameController,
+                                  decoration: InputDecoration(
+                                    hintText: firstname,
+                                    border:
+                                        InputBorder.none, // Remove default border
+                                  ),
+                                ),
+                              ))
+                        ],
+                      ),
+                      Spacer(),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10.0, vertical: 10),
+                            child: Text('Last Name'),
+                          ),
+                          Container(
+                              width: 156,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200], // Background color
+                                borderRadius: BorderRadius.circular(
+                                    20), // Circular border radius
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                child: TextField(
+                                  controller: lastNameController,
+                                  decoration: InputDecoration(
+                                    hintText: secondname,
+                                    border:
+                                        InputBorder.none, // Remove default border
+                                  ),
+                                ),
+                              ))
+                        ],
                       ),
                     ],
                   ),
-                ),
-                SizedBox(
-                  height: 30,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10.0, vertical: 10),
-                          child: Text('First Name'),
-                        ),
-                        Container(
-                            width: 156,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200], // Background color
-                              borderRadius: BorderRadius.circular(
-                                  20), // Circular border radius
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: TextField(
-                                controller: firstNameController,
-                                decoration: InputDecoration(
-                                  hintText: firstname,
-                                  border:
-                                      InputBorder.none, // Remove default border
-                                ),
-                              ),
-                            ))
-                      ],
-                    ),
-                    Spacer(),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10.0, vertical: 10),
-                          child: Text('Last Name'),
-                        ),
-                        Container(
-                            width: 156,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200], // Background color
-                              borderRadius: BorderRadius.circular(
-                                  20), // Circular border radius
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: TextField(
-                                controller: lastNameController,
-                                decoration: InputDecoration(
-                                  hintText: secondname,
-                                  border:
-                                      InputBorder.none, // Remove default border
-                                ),
-                              ),
-                            ))
-                      ],
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0, vertical: 10),
-                  child: Text('Email'),
-                ),
-                Container(
-                    width: size.width * 0.90,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200], // Background color
-                      borderRadius: BorderRadius.circular(
-                          20), // Circular border radius
-                    ),
-                    child: Padding(
-                        padding:
-                        const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(email,style: TextStyle(
-                              fontSize: 17,
-                              color: Colors.grey[800], // Button text color
-                            ),
-                            ),
-                          ],
-                        )
-                    )),
-                Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: SingleChildScrollView(
-                        child: Column(
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 10),
+                    child: Text('Email'),
+                  ),
+                  Container(
+                      width: size.width * 0.90,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200], // Background color
+                        borderRadius: BorderRadius.circular(
+                            20), // Circular border radius
+                      ),
+                      child: Padding(
+                          padding:
+                          const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0, vertical: 10),
-                                child: Text('language'),
+                              Text(email,style: TextStyle(
+                                fontSize: 17,
+                                color: Colors.grey[800], // Button text color
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    isLanguageListVisible = !isLanguageListVisible;
-                                    isSearchBarVisible = isLanguageListVisible;
-                                    // Remove the condition to update filteredLanguages regardless of the search bar visibility
-                                    filteredLanguages = languages;
-
-                                  });
-                                },
-                                child: Container(
+                              ),
+                            ],
+                          )
+                      )),
+                  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: SingleChildScrollView(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 5,
+                                      horizontal: 10.0, vertical: 10),
+                                  child: Text('language'),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      isLanguageListVisible = !isLanguageListVisible;
+                                      isSearchBarVisible = isLanguageListVisible;
+                                      // Remove the condition to update filteredLanguages regardless of the search bar visibility
+                                      filteredLanguages = languages;
+
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 5,
+                                    ),
+                                    height: size.height * 0.09,
+                                    width: size.width * 0.93,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(29),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        languagesString.isNotEmpty ?
+                                        Expanded(
+                                          child: Text(
+                                            '${languagesString?? 'select language'}',
+                                            style: TextStyle(
+                                                fontSize: 16, color: Colors.grey[700]),
+                                          ),
+                                        )
+                                            :                                      Expanded(
+
+                                          child: Text(
+                                            'Select language',
+                                            style: TextStyle(
+                                                fontSize: 16, color: Colors.grey[700]),
+                                          ),
+                                        )
+                                        ,
+                                        Icon(
+                                          isLanguageListVisible
+                                              ? Icons.arrow_drop_up
+                                              : Icons.arrow_drop_down,
+                                          size: 18,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  height: size.height * 0.09,
-                                  width: size.width * 0.93,
+                                ),
+
+                                // Validation error message
+                                // if (isLanguageListVisible && selectedLanguages.isEmpty)
+                                //   Padding(
+                                //     padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+                                //     child: Text(
+                                //       'Please select a language',
+                                //       style: TextStyle(color: Colors.red),
+                                //     ),
+                                //   ),
+
+                                // Search bar
+                                Visibility(
+                                  visible: isSearchBarVisible,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    child: TextField(
+                                      onChanged: (query) {
+                                        setState(() {
+                                          filteredLanguages = languages
+                                              .where((language) =>
+                                              language['name']
+                                                  .toLowerCase()
+                                                  .contains(query.toLowerCase()))
+                                              .toList();
+                                        });
+                                      },
+                                      decoration: InputDecoration(
+                                        hintText: 'Search languages...',
+                                        prefixIcon: Icon(Icons.search),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                // List of filtered languages
+                                Visibility(
+                                  visible: isLanguageListVisible,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: filteredLanguages.map((language) {
+                                      final langName = language['name'];
+                                      final langId = language['id'];
+                                      languagesString = selectedLanguagename.join(', ');
+
+                                      return Column(
+                                        children: [
+                                          ListTile(
+                                            title: Text(langName),
+                                            leading: Checkbox(
+                                              activeColor: HexColor('#4D8D6E'),
+                                              value: selectedLanguages.contains(langId),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  if (value!) {
+                                                    selectedLanguages.add(langId);
+                                                    selectedLanguagename.add((langName));
+                                                    languagesString = selectedLanguagename.join(', ');
+                                                    print('selected languages add ${selectedLanguages}'); // Print the selected language IDs
+
+
+
+                                                  } else {
+                                                    print('selected languages remove ${selectedLanguages}'); // Print the selected language IDs
+                                                    selectedLanguagename.remove((langName));
+                                                    languagesString = selectedLanguagename.join(', ');
+                                                    selectedLanguages.remove(langId);
+
+
+                                                  }
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                          Divider(),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+
+
+                              ]))),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 10),
+                    child: Text('Phone Number'),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                    height: size.height * 0.103,
+                    width: size.width * 0.93,
+                    decoration: BoxDecoration(
+
+                      color: Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(29),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+
+                                decoration: BoxDecoration(
+
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(5.0),
+                                ),
+                                child: DecoratedBox(
                                   decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(29),
+                                    borderRadius: BorderRadius.circular(5.0),
                                   ),
                                   child: Row(
                                     children: [
-                                      languagesString.isNotEmpty ?
-                                      Expanded(
-                                        child: Text(
-                                          '${languagesString?? 'select language'}',
-                                          style: TextStyle(
-                                              fontSize: 16, color: Colors.grey[700]),
-                                        ),
-                                      )
-                                          :                                      Expanded(
-
-                                        child: Text(
-                                          'Select language',
-                                          style: TextStyle(
-                                              fontSize: 16, color: Colors.grey[700]),
-                                        ),
-                                      )
-                                      ,
-                                      Icon(
-                                        isLanguageListVisible
-                                            ? Icons.arrow_drop_up
-                                            : Icons.arrow_drop_down,
-                                        size: 18,
+                                      SvgPicture.asset(
+                                        'assets/icons/uslogo.svg',
+                                        width: 27.0,
+                                        height: 27.0,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        '+1',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
+                              SizedBox(width: 10),
+                              // Add some spacing between the dropdown and the text field/ Add some spacing between the dropdown and the text field
+                              Expanded(
+                                child: TextFormField(
 
-                              // Validation error message
-                              // if (isLanguageListVisible && selectedLanguages.isEmpty)
-                              //   Padding(
-                              //     padding: const EdgeInsets.only(left: 16.0, top: 8.0),
-                              //     child: Text(
-                              //       'Please select a language',
-                              //       style: TextStyle(color: Colors.red),
-                              //     ),
-                              //   ),
+                                  controller: phoneController,
+                                  decoration: InputDecoration(
+                                    hintText: phonenumber,
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.all(0), // Remove content padding
 
-                              // Search bar
-                              Visibility(
-                                visible: isSearchBarVisible,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  child: TextField(
-                                    onChanged: (query) {
-                                      setState(() {
-                                        filteredLanguages = languages
-                                            .where((language) =>
-                                            language['name']
-                                                .toLowerCase()
-                                                .contains(query.toLowerCase()))
-                                            .toList();
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: 'Search languages...',
-                                      prefixIcon: Icon(Icons.search),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
                                   ),
-                                ),
-                              ),
+                                  keyboardType: TextInputType.phone,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      // Format the phone number using the formatPhoneNumber function
+                                      final formattedPhoneNumber = formatPhoneNumber(value);
+                                      phoneController.value = TextEditingValue(
+                                        text: formattedPhoneNumber,
+                                        selection: TextSelection.collapsed(offset: formattedPhoneNumber.length),
 
-                              // List of filtered languages
-                              Visibility(
-                                visible: isLanguageListVisible,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: filteredLanguages.map((language) {
-                                    final langName = language['name'];
-                                    final langId = language['id'];
-                                    languagesString = selectedLanguagename.join(', ');
+                                      );
+                  // Add +1 prefix to the formatted phone number
+                                      phoneController.text = '$formattedPhoneNumber';
 
-                                    return Column(
-                                      children: [
-                                        ListTile(
-                                          title: Text(langName),
-                                          leading: Checkbox(
-                                            activeColor: HexColor('#4D8D6E'),
-                                            value: selectedLanguages.contains(langId),
-                                            onChanged: (value) {
-                                              setState(() {
-                                                if (value!) {
-                                                  selectedLanguages.add(langId);
-                                                  selectedLanguagename.add((langName));
-                                                  languagesString = selectedLanguagename.join(', ');
-                                                  print('selected languages add ${selectedLanguages}'); // Print the selected language IDs
-
-
-
-                                                } else {
-                                                  print('selected languages remove ${selectedLanguages}'); // Print the selected language IDs
-                                                  selectedLanguagename.remove((langName));
-                                                  languagesString = selectedLanguagename.join(', ');
-                                                  selectedLanguages.remove(langId);
-
-
-                                                }
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                        Divider(),
-                                      ],
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-
-
-                            ]))),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0, vertical: 10),
-                  child: Text('Phone Number'),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                  height: size.height * 0.103,
-                  width: size.width * 0.93,
-                  decoration: BoxDecoration(
-
-                    color: Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(29),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Container(
-
-                              decoration: BoxDecoration(
-
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(5.0),
-                              ),
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5.0),
-                                ),
-                                child: Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                      'assets/icons/uslogo.svg',
-                                      width: 27.0,
-                                      height: 27.0,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      '+1',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
-                                    ),
+                                      // Ensure the cursor position is at the end
+                                      phoneController.selection = TextSelection.fromPosition(
+                                        TextPosition(offset: phoneController.text.length),
+                                      );
+                                      print(phoneController.text);
+                                      // Validate the phone number
+                                      isPhoneNumberValid = validatePhoneNumber(formattedPhoneNumber);
+                                    });
+                                  },
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(10), // Limit the input length to 10 digits
                                   ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 10),
-                            // Add some spacing between the dropdown and the text field/ Add some spacing between the dropdown and the text field
-                            Expanded(
-                              child: TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter a phone number';
+                                    }
 
-                                controller: phoneController,
-                                decoration: InputDecoration(
-                                  hintText: phonenumber,
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.all(0), // Remove content padding
-
-                                ),
-                                keyboardType: TextInputType.phone,
-                                onChanged: (value) {
-                                  setState(() {
-                                    // Format the phone number using the formatPhoneNumber function
+                                    // Basic validation: Check if the formatted phone number has 10 digits
                                     final formattedPhoneNumber = formatPhoneNumber(value);
-                                    phoneController.value = TextEditingValue(
-                                      text: formattedPhoneNumber,
-                                      selection: TextSelection.collapsed(offset: formattedPhoneNumber.length),
+                                    if (formattedPhoneNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
+                                      return 'Invalid phone number';
+                                    }
 
-                                    );
-                // Add +1 prefix to the formatted phone number
-                                    phoneController.text = '$formattedPhoneNumber';
-
-                                    // Ensure the cursor position is at the end
-                                    phoneController.selection = TextSelection.fromPosition(
-                                      TextPosition(offset: phoneController.text.length),
-                                    );
-                                    print(phoneController.text);
-                                    // Validate the phone number
-                                    isPhoneNumberValid = validatePhoneNumber(formattedPhoneNumber);
-                                  });
-                                },
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(10), // Limit the input length to 10 digits
-                                ],
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter a phone number';
-                                  }
-
-                                  // Basic validation: Check if the formatted phone number has 10 digits
-                                  final formattedPhoneNumber = formatPhoneNumber(value);
-                                  if (formattedPhoneNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
-                                    return 'Invalid phone number';
-                                  }
-
-                                  return null; // Return null if the input is valid
-                                },
+                                    return null; // Return null if the input is valid
+                                  },
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
+                        ), if (!isPhoneNumberValid)
+                          Text(
+                            'Please enter a valid phone number.',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                      ],
+                    ),
+                  ),
+          SizedBox(height: 13,)
+           ,             Container(
+                    width: size.width * 0.90,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200], // Background color
+                      borderRadius:
+                          BorderRadius.circular(20), // Circular border radius
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final SharedPreferences prefs = await SharedPreferences.getInstance();
+                        final userToken = prefs.getString('user_token') ?? '';
+                        print(userToken);
+
+                        // Check if userToken is not empty before navigating
+                        if (userToken.isNotEmpty) {
+                          Get.to(changePasswordscreen(userToken: userToken));
+                        } else {
+                          // Handle the case where userToken is empty, e.g., show a message
+                          print('User token is empty. Cannot navigate to ChangePasswordScreen.');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[200], // Button background color
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20), // Circular border radius
                         ),
-                      ), if (!isPhoneNumberValid)
-                        Text(
-                          'Please enter a valid phone number.',
-                          style: TextStyle(color: Colors.red),
+                      ),
+                      child: Text(
+                        'Change Password', // Button text
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey[800], // Button text color
                         ),
-                    ],
-                  ),
-                ),
-        SizedBox(height: 13,)
-         ,             Container(
-                  width: size.width * 0.90,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200], // Background color
-                    borderRadius:
-                        BorderRadius.circular(20), // Circular border radius
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final SharedPreferences prefs = await SharedPreferences.getInstance();
-                      final userToken = prefs.getString('user_token') ?? '';
-                      print(userToken);
-
-                      // Check if userToken is not empty before navigating
-                      if (userToken.isNotEmpty) {
-                        Get.to(changePasswordscreen(userToken: userToken));
-                      } else {
-                        // Handle the case where userToken is empty, e.g., show a message
-                        print('User token is empty. Cannot navigate to ChangePasswordScreen.');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[200], // Button background color
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20), // Circular border radius
                       ),
                     ),
-                    child: Text(
-                      'Change Password', // Button text
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[800], // Button text color
+
+                  ),
+                  SizedBox(height: 20,),
+                  Container(
+                    width: size.width * 0.90,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200], // Background color
+                      borderRadius:
+                      BorderRadius.circular(20), // Circular border radius
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final SharedPreferences prefs = await SharedPreferences.getInstance();
+                        final userToken = prefs.getString('user_token') ?? '';
+                        print(userToken);
+
+                        // Check if userToken is not empty before navigating
+                        if (userToken.isNotEmpty) {
+                          Get.to(editAddressClient());
+                        } else {
+                          // Handle the case where userToken is empty, e.g., show a message
+                          print('User token is empty. Cannot navigate to ChangePasswordScreen.');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[200], // Button background color
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20), // Circular border radius
+                        ),
+                      ),
+                      child: Text(
+                        'Edit Address', // Button text
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey[800], // Button text color
+                        ),
                       ),
                     ),
+
                   ),
 
-                ),
-                SizedBox(height: 20,),
-                Container(
-                  width: size.width * 0.90,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200], // Background color
-                    borderRadius:
-                    BorderRadius.circular(20), // Circular border radius
+                  SizedBox(
+                    height: 12,
                   ),
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final SharedPreferences prefs = await SharedPreferences.getInstance();
-                      final userToken = prefs.getString('user_token') ?? '';
-                      print(userToken);
+                 SizedBox(height: 15,),
+                  _isLoading == false ?
+                  Center(
+                    child: RoundedButton(
+                      text: 'Submit',
+                      press: () {
+                        // Call the method to update the client profile
+                        sendprofile();
+                      },
+                    )
 
-                      // Check if userToken is not empty before navigating
-                      if (userToken.isNotEmpty) {
-                        Get.to(editAddressClient());
-                      } else {
-                        // Handle the case where userToken is empty, e.g., show a message
-                        print('User token is empty. Cannot navigate to ChangePasswordScreen.');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[200], // Button background color
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20), // Circular border radius
-                      ),
-                    ),
-                    child: Text(
-                      'Edit Address', // Button text
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[800], // Button text color
-                      ),
-                    ),
-                  ),
+                  ) :Center(child: CircularProgressIndicator())
 
-                ),
-
-                SizedBox(
-                  height: 12,
-                ),
-               SizedBox(height: 15,),
-                _isLoading == false ?
-                Center(
-                  child: RoundedButton(
-                    text: 'Submit',
-                    press: () {
-                      // Call the method to update the client profile
-                      sendprofile();
-                    },
-                  )
-
-                ) :Center(child: CircularProgressIndicator())
-
-              ],
+                ],
+              ),
             ),
           ),
         ),

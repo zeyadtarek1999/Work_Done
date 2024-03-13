@@ -181,7 +181,7 @@ Get.to(paymentmethod());
     }
   }
 
-  final ScreenshotController screenshotController = ScreenshotController();
+  final ScreenshotController screenshotController10 = ScreenshotController();
 
   @override
   void initState() {
@@ -323,7 +323,7 @@ bool _isLoading =false;
 
   String unique= 'placebid' ;
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController10.capture();
 
     Navigator.push(
       context,
@@ -366,7 +366,7 @@ bool _isLoading =false;
       ),
       body:
       Screenshot(
-        controller:screenshotController ,
+        controller:screenshotController10 ,
         child:Form(
           key: _formKey,
           child: SingleChildScrollView(

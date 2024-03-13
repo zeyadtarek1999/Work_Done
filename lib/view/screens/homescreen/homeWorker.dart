@@ -998,99 +998,91 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
             leadingWidth: 72,
 
             actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0, top: 8, bottom: 8),
-            child: Row(
-              children: [
-                notificationnumber!=0?
-
-                badges.Badge(
-                badgeStyle: badges.BadgeStyle(
-                  badgeColor: Colors.red,
-                  shape: badges.BadgeShape.circle,
-                ),
-                position: BadgePosition.topEnd(),
-                badgeContent: Text('$notificationnumber', style: TextStyle(color: Colors.white)),
-                badgeAnimation: badges.BadgeAnimation.rotation(
-                  animationDuration: Duration(seconds: 1),
-                  colorChangeAnimationDuration: Duration(seconds: 1),
-                  loopAnimation: false,
-                  curve: Curves.fastOutSlowIn,
-                  colorChangeAnimationCurve: Curves.easeInCubic,
-                ),
-                child:  Padding(
-                  padding: const EdgeInsets.all(6.0),
-                  child: GestureDetector(
-                    child: Icon(Ionicons.notifications, size: 26),
-                    onTap: () {
-                      Get.to(NotificationsPageworker
-                        ());
-                    },
-                  ),
-                ),
-                        ): Padding(
-    padding: const EdgeInsets.all(6.0),
-    child: GestureDetector(
-    child: Icon(Ionicons.notifications_outline, size: 26),
-    onTap: () {
-    Get.to(NotificationsPageworker
-      ());
-    },
-    ),
-    ),
-SizedBox(width: 20,),
-                    widget.showCase == true
-                        ? Padding(
-                      padding: const EdgeInsets.only(right: 12.0, top: 8, bottom: 8),
-                          child: Showcase(
-                                          blurValue: 12,
-                                          descTextStyle: TextStyle(
-                          fontSize: 19,
-                          color: HexColor('#333333'),
-                                          ),
-                                          titleTextStyle: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: HexColor('#0c343d'),
-                                          ),
-                                          key: _four,
-                                          description: 'Tap here to View & Edit Profile',
-                                          title: 'Profile',
-                                          overlayColor: Colors.black.withOpacity(0.7),
-                                          child: InkWell(
+              Padding(
+                padding: const EdgeInsets.only(right: 12.0, top: 8, bottom: 8),
+                child: Row(
+                  children: [
+                    notificationnumber!=0?
+                    badges.Badge(
+                      badgeStyle: badges.BadgeStyle(
+                        badgeColor: Colors.red,
+                        shape: badges.BadgeShape.circle,
+                      ),
+                      position: BadgePosition.topEnd(),
+                      badgeContent: Text('$notificationnumber', style: TextStyle(color: Colors.white)),
+                      badgeAnimation: badges.BadgeAnimation.rotation(
+                        animationDuration: Duration(seconds: 1),
+                        colorChangeAnimationDuration: Duration(seconds: 1),
+                        loopAnimation: false,
+                        curve: Curves.fastOutSlowIn,
+                        colorChangeAnimationCurve: Curves.easeInCubic,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: GestureDetector(
+                          child: Icon(Ionicons.notifications, size: 26),
                           onTap: () {
-                            Get.to(ProfileScreenworker(),
-                              transition: Transition.fadeIn,
-                              duration: Duration(milliseconds: 700),
-                            );
+                            Get.to(NotificationsPageclient());
                           },
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 12.0, top: 8, bottom: 8),
-                            child: CircleAvatar(
-                              radius: 27,
-                              backgroundColor: Colors.transparent,
-                              backgroundImage: profile_pic == '' || profile_pic.isEmpty
-                                  || profile_pic == "https://workdonecorp.com/storage/" ||
-                                  !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+                        ),
+                      ),
+                    ):
+                    Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: GestureDetector(
+                        child: Icon(Ionicons.notifications_outline, size: 26),
+                        onTap: () {
+                          Get.to(NotificationsPageclient());
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 20,),
+                    widget.showCase == true
+                        ? Showcase(
+                      blurValue: 12,
+                      descTextStyle: TextStyle(
+                        fontSize: 19,
+                        color: HexColor('#333333'),
+                      ),
+                      titleTextStyle: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: HexColor('#0c343d'),
+                      ),
+                      key: _four,
+                      description: 'Tap here to View & Edit Profile',
+                      title: 'Profile',
+                      overlayColor: Colors.black.withOpacity(0.7),
+                      child: InkWell(
+                        onTap: () {
+                          Get.to(ProfileScreenClient2(),
+                            transition: Transition.fadeIn,
+                            duration: Duration(milliseconds: 500),
+                          );
+                        },
+                        child: CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.transparent,
+                          backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                              || profile_pic == "https://workdonecorp.com/storage/" ||
+                              !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
 
-                                  ? AssetImage('assets/images/default.png') as ImageProvider
-                                  : NetworkImage(profile_pic?? 'assets/images/default.png'),
-                            ),
-                          ),
-                                          ),
-                                        ),
-                        )
+                              ? AssetImage('assets/images/default.png') as ImageProvider
+                              : NetworkImage(profile_pic?? 'assets/images/default.png'),
+                        ),
+                      ),
+                    )
                         : InkWell(
                       onTap: () {
-                        Get.to(ProfileScreenworker(),
+                        Get.to(ProfileScreenClient2(),
                           transition: Transition.fadeIn,
-                          duration: Duration(milliseconds: 700),
+                          duration: Duration(milliseconds: 500),
                         );
                       },
                       child: CircleAvatar(
                         radius: 27,
                         backgroundColor: Colors.transparent,
-                        backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                        backgroundImage:profile_pic == '' || profile_pic.isEmpty
                             || profile_pic == "https://workdonecorp.com/storage/" ||
                             !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
 
@@ -1098,15 +1090,15 @@ SizedBox(width: 20,),
                             : NetworkImage(profile_pic?? 'assets/images/default.png'),
                       ),
                     ),
-              ],
-            ),
-          ),
+                  ],
+                ),
+              ),
 
             ],
           ),
 
          body: Screenshot(
-            controller:screenshotController ,
+            controller:screenshotController2 ,
 
             child: RefreshIndicator(
               color: HexColor('4D8D6E'),
@@ -1455,10 +1447,10 @@ SizedBox(width: 20,),
     );
 
   }
-  final ScreenshotController screenshotController = ScreenshotController();
+  final ScreenshotController screenshotController2 = ScreenshotController();
 
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController2.capture();
 
     Navigator.push(
       context,

@@ -92,7 +92,9 @@ class _chatState extends State<chat> {
                       radius: 20,
                       backgroundColor: Colors.transparent,
                       backgroundImage: widget.seconduserimage == '' || widget.seconduserimage.isEmpty
-                          || widget.seconduserimage== "https://workdonecorp.com/images/"
+                          || widget.seconduserimage == "https://workdonecorp.com/storage/" ||
+                          !(widget.seconduserimage.toLowerCase().endsWith('.jpg') || widget.seconduserimage.toLowerCase().endsWith('.png'))
+
                           ? AssetImage('assets/images/default.png') as ImageProvider
                           : NetworkImage(widget.seconduserimage?? 'assets/images/default.png'),
                     ),
@@ -169,7 +171,7 @@ class _chatState extends State<chat> {
                             );
                           }
                           return Animate(
-                            effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                            effects: [SlideEffect(duration: Duration(milliseconds: 400),),],
                             child: ListView.builder(
                               reverse: true,
                               itemCount: messages.length,

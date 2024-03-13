@@ -382,7 +382,7 @@ centerTitle: true,
                         items = snapshot.data!;
 
                         return Animate(
-                          effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                          effects: [SlideEffect(duration: Duration(milliseconds: 400),),],
                           child: ListView.builder(
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,

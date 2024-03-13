@@ -812,14 +812,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
         fetchProjectDetails(projectId);
     fetchAndPushProjectDetails(projectId);
     fetchvideo();
-    const Duration fetchdata = Duration(seconds: 15);
+
     Notificationnumber();
 
-    Timer.periodic(fetchdata, (Timer timer) {
-      // Fetch data at each interval
-      Notificationnumber();
 
-    });
     ciruclaranimation = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
@@ -842,12 +838,12 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
   String currentbid = '24';
-  final ScreenshotController screenshotController = ScreenshotController();
+  final ScreenshotController screenshotController9 = ScreenshotController();
 
   String unique = 'biddetailsworker';
 
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController9.capture();
 
     Navigator.push(
       context,
@@ -983,7 +979,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
             ],
           ),
           body: Screenshot(
-            controller: screenshotController,
+            controller: screenshotController9,
             child: RefreshIndicator(
               color: HexColor('4D8D6E'),
               backgroundColor: Colors.white,
@@ -1266,7 +1262,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                 Row(
                                   children: [
                                     Container(
-                                      height: 40,
+                                      height: 45,
+                                      width: MediaQuery.of(context).size.width * 0.26, // Adjust the width as needed
                                       decoration: BoxDecoration(
                                         color: HexColor('4D8D6E'),
                                         borderRadius: BorderRadius.circular(20),
@@ -1281,6 +1278,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               fontSize: 14,
                                               fontWeight: FontWeight.w500,
                                             ),
+
                                           ),
                                         ),
                                       ),
@@ -1336,7 +1334,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                       ],
                                     ),
                                   ],
-                                ),                           SizedBox(
+                                ),
+
+
+                                SizedBox(
                                   height: 12,
                                 ),
                                 Animate(
@@ -1363,9 +1364,12 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                     CircleAvatar(
                                       radius: 23,
                                       backgroundColor: Colors.transparent,
-                                      backgroundImage: projectData.clientData.profileImage == 'https://workdonecorp.com/images/'
+                                      backgroundImage: projectData.clientData.profileImage == '' || projectData.clientData.profileImage.isEmpty
+                                          || projectData.clientData.profileImage == "https://workdonecorp.com/storage/" ||
+                                          !(projectData.clientData.profileImage.toLowerCase().endsWith('.jpg') || projectData.clientData.profileImage.toLowerCase().endsWith('.png'))
+
                                           ? AssetImage('assets/images/default.png') as ImageProvider
-                                          : NetworkImage(projectData.clientData.profileImage ?? 'assets/images/default.png'),
+                                          : NetworkImage(projectData.clientData.profileImage?? 'assets/images/default.png'),
                                     ),
 
                                     SizedBox(
@@ -1554,7 +1558,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               CircleAvatar(
                                                 radius: 28,
                                                 backgroundColor: Colors.transparent,
-                                                backgroundImage: projectData.selectworkerbid.worker_profile_pic == 'https://workdonecorp.com/images/' ||projectData.selectworkerbid.worker_profile_pic == ''
+                                                backgroundImage: projectData.selectworkerbid.worker_profile_pic  == '' || projectData.selectworkerbid.worker_profile_pic .isEmpty
+                                                    || projectData.selectworkerbid.worker_profile_pic  == "https://workdonecorp.com/storage/" ||
+                                                    !(projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.jpg') || projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.png'))
+
                                                     ? AssetImage('assets/images/default.png') as ImageProvider
                                                     : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
                                               ),
@@ -5614,7 +5621,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 CircleAvatar(
                                                   radius: 23,
                                                   backgroundColor: Colors.transparent,
-                                                  backgroundImage: projectData.selectworkerbid.worker_profile_pic == 'https://workdonecorp.com/images/' ||projectData.selectworkerbid.worker_profile_pic == ''
+                                                  backgroundImage: projectData.selectworkerbid.worker_profile_pic  == '' || projectData.selectworkerbid.worker_profile_pic .isEmpty
+                                                      || projectData.selectworkerbid.worker_profile_pic  == "https://workdonecorp.com/storage/" ||
+                                                      !(projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.jpg') || projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.png'))
+
                                                       ? AssetImage('assets/images/default.png') as ImageProvider
                                                       : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
                                                 ),
@@ -6310,7 +6320,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   CircleAvatar(
                                                     radius: 23,
                                                     backgroundColor: Colors.transparent,
-                                                    backgroundImage: projectData.selectworkerbid.worker_profile_pic == 'https://workdonecorp.com/images/' ||projectData.selectworkerbid.worker_profile_pic == ''
+                                                    backgroundImage: projectData.selectworkerbid.worker_profile_pic  == '' || projectData.selectworkerbid.worker_profile_pic .isEmpty
+                                                        || projectData.selectworkerbid.worker_profile_pic  == "https://workdonecorp.com/storage/" ||
+                                                        !(projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.jpg') || projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.png'))
+
                                                         ? AssetImage('assets/images/default.png') as ImageProvider
                                                         : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
                                                   ),
@@ -7085,7 +7098,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           CircleAvatar(
             radius: 28,
             backgroundColor: Colors.transparent,
-            backgroundImage: item.workerProfilePic== 'https://workdonecorp.com/images/' ||item.workerProfilePic == ''
+            backgroundImage: item.workerProfilePic == '' || item.workerProfilePic.isEmpty
+                || item.workerProfilePic == "https://workdonecorp.com/storage/" ||
+                !(item.workerProfilePic.toLowerCase().endsWith('.jpg') || item.workerProfilePic.toLowerCase().endsWith('.png'))
+
                 ? AssetImage('assets/images/default.png') as ImageProvider
                 : NetworkImage(item.workerProfilePic?? 'assets/images/default.png'),
           ),

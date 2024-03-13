@@ -130,7 +130,7 @@ double widthofbar = 150;
       return {'status': 'error', 'msg': 'An error occurred'};
     }
   }
-  final ScreenshotController screenshotController = ScreenshotController();
+  final ScreenshotController screenshotController6 = ScreenshotController();
 
   void refreshProjects() {
     futureProjects = fetchUserProfile(widget.userId);
@@ -224,7 +224,7 @@ double widthofbar = 150;
   }
 
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController6.capture();
 
     Navigator.push(
       context,
@@ -607,7 +607,7 @@ print(widget.userId.toString(),);
         ),
         body:
         Screenshot(
-          controller:screenshotController ,
+          controller:screenshotController6 ,
           child: NestedScrollView(
             headerSliverBuilder: (context, value) {
               return [
@@ -628,8 +628,10 @@ print(widget.userId.toString(),);
                             CircleAvatar(
                               radius: 65,
                               backgroundColor: Colors.transparent,
-                              backgroundImage: profile_pic != '' && profile_pic.isNotEmpty
-                                  && profile_pic== "https://workdonecorp.com/images/"
+                              backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                                  || profile_pic == "https://workdonecorp.com/storage/" ||
+                                  !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+
                                   ? AssetImage('assets/images/default.png') as ImageProvider
                                   : NetworkImage(profile_pic?? 'assets/images/default.png'),
                             ),

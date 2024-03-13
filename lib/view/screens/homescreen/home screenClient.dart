@@ -195,7 +195,7 @@ Future<Map<String, dynamic>> removeProjectFromLikes(String projectId) async {
     return {'status': 'error', 'msg': 'An error occurred'};
   }
 }
-final ScreenshotController screenshotController = ScreenshotController();
+final ScreenshotController screenshotController1 = ScreenshotController();
 
 
 class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateMixin {
@@ -277,6 +277,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
       print('Error getting profile information: $error');
     }
   }
+   Duration fetchdata = Duration(seconds: 15);
 
   @override
   void initState() {
@@ -285,8 +286,6 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
     _getUserid();
     _getUserProfile();
 
-    Notificationnumber();
-    const Duration fetchdata = Duration(seconds: 15);
     Timer.periodic(fetchdata, (Timer timer) {
       // Fetch data at each interval
       Notificationnumber();
@@ -509,7 +508,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
 
   String unique= 'homescreenclient' ;
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController1 .capture();
 
     Navigator.push(
       context,
@@ -927,7 +926,8 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                                      },
                                    ),
                                  ),
-                               ): Padding(
+                               ):
+                               Padding(
       padding: const EdgeInsets.all(6.0),
       child: GestureDetector(
         child: Icon(Ionicons.notifications_outline, size: 26),
@@ -938,34 +938,30 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
     ),
                                SizedBox(width: 20,),
                                widget.showCase == true
-                                   ? Padding(
-                                 padding: const EdgeInsets.only(right: 12.0, top: 8, bottom: 8),
-                                 child: Showcase(
-                                   blurValue: 12,
-                                   descTextStyle: TextStyle(
-                                     fontSize: 19,
-                                     color: HexColor('#333333'),
-                                   ),
-                                   titleTextStyle: TextStyle(
-                                     fontSize: 24,
-                                     fontWeight: FontWeight.bold,
-                                     color: HexColor('#0c343d'),
-                                   ),
-                                   key: _four,
-                                   description: 'Tap here to View & Edit Profile',
-                                   title: 'Profile',
-                                   overlayColor: Colors.black.withOpacity(0.7),
-                                   child: InkWell(
-                                     onTap: () {
-                                       Get.to(ProfileScreenClient2(),
-                                         transition: Transition.fadeIn,
-                                         duration: Duration(milliseconds: 700),
-                                       );
-                                     },
-                                     child: Padding(
-                                       padding: const EdgeInsets.only(right: 12.0, top: 8, bottom: 8),
+                                   ? Showcase(
+                                     blurValue: 12,
+                                     descTextStyle: TextStyle(
+                                       fontSize: 19,
+                                       color: HexColor('#333333'),
+                                     ),
+                                     titleTextStyle: TextStyle(
+                                       fontSize: 24,
+                                       fontWeight: FontWeight.bold,
+                                       color: HexColor('#0c343d'),
+                                     ),
+                                     key: _four,
+                                     description: 'Tap here to View & Edit Profile',
+                                     title: 'Profile',
+                                     overlayColor: Colors.black.withOpacity(0.7),
+                                     child: InkWell(
+                                       onTap: () {
+                                         Get.to(ProfileScreenClient2(),
+                                           transition: Transition.fadeIn,
+                                           duration: Duration(milliseconds: 500),
+                                         );
+                                       },
                                        child: CircleAvatar(
-                                         radius: 27,
+                                         radius: 30,
                                          backgroundColor: Colors.transparent,
                                          backgroundImage: profile_pic == '' || profile_pic.isEmpty
                                              || profile_pic == "https://workdonecorp.com/storage/" ||
@@ -975,14 +971,12 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                                              : NetworkImage(profile_pic?? 'assets/images/default.png'),
                                        ),
                                      ),
-                                   ),
-                                 ),
-                               )
+                                   )
                                    : InkWell(
                                  onTap: () {
                                    Get.to(ProfileScreenClient2(),
                                      transition: Transition.fadeIn,
-                                     duration: Duration(milliseconds: 700),
+                                     duration: Duration(milliseconds: 500),
                                    );
                                  },
                                  child: CircleAvatar(
@@ -1004,7 +998,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                      ),
 
                      body: Screenshot(
-                        controller: screenshotController,
+                        controller: screenshotController1 ,
                         child: RefreshIndicator(
                           color: HexColor('4D8D6E'),
                           backgroundColor: Colors.white,

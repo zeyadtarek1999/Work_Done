@@ -721,7 +721,10 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                                 child: CircleAvatar(
                                   radius: 35,
                                   backgroundColor: Colors.transparent,
-                                  backgroundImage: profile_pic== 'https://workdonecorp.com/images/' ||profile_pic== ''|| profile_pic.isEmpty
+                                  backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                                      || profile_pic == "https://workdonecorp.com/storage/" ||
+                                      !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+
                                       ? AssetImage('assets/images/default.png') as ImageProvider
                                       : NetworkImage(profile_pic?? 'assets/images/default.png'),
                                 ),

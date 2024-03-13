@@ -21,6 +21,7 @@ class Reviews extends StatefulWidget {
   @override
   _ReviewsState createState() => _ReviewsState();
 }
+final ScreenshotController screenshotController = ScreenshotController();
 
 String unique= 'reviews' ;
 void _navigateToNextPage(BuildContext context) async {

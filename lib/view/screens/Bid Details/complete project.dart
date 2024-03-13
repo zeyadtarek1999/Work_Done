@@ -31,7 +31,7 @@ class completeprojectscreen extends StatefulWidget {
 }
 
 class _completeprojectscreenState extends State<completeprojectscreen> with SingleTickerProviderStateMixin {
-  final ScreenshotController screenshotController = ScreenshotController();
+  final ScreenshotController screenshotController10 = ScreenshotController();
   String unique = 'completeproject';
   late Future<ProjectData> projectDetailsFuture;
   List<File> _imageFiles = []; // Use File directly
@@ -104,7 +104,7 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
   }
 
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController10.capture();
 
     Navigator.push(
       context,
@@ -285,7 +285,7 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
         ),
       ),
       body: Screenshot(
-        controller: screenshotController,
+        controller: screenshotController10,
         child: SingleChildScrollView(
           physics: AlwaysScrollableScrollPhysics(),
           child: Padding(

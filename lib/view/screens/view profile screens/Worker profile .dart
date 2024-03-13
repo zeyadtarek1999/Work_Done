@@ -606,11 +606,15 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.grey.shade300, width: 5),
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(300),
-                            child: (profile_pic != null && profile_pic.isNotEmpty && profile_pic.startsWith('http') && profile_pic != 'https://workdonecorp.com/images/')
-                                ? Image.network(profile_pic)
-                                : Image.asset('assets/images/default.png'),
+                          child: CircleAvatar(
+                            radius: 70,
+                            backgroundColor: Colors.transparent,
+                            backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                                || profile_pic == "https://workdonecorp.com/storage/" ||
+                                !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+
+                                ? AssetImage('assets/images/default.png') as ImageProvider
+                                : NetworkImage(profile_pic?? 'assets/images/default.png'),
                           ),
                         ),
                       ),
@@ -976,32 +980,41 @@ SizedBox(height: 10,),
 
                                                         return                                       Column(
                                                           crossAxisAlignment: CrossAxisAlignment.start,
-                                                          mainAxisAlignment: MainAxisAlignment.center,
+                                                          mainAxisAlignment: MainAxisAlignment.start,
                                                           children: [
-                                                            Center(
-                                                              child: Column(
-                                                                children: [
-                                                                  Center(
-                                                                    child: Text(
-                                                                      'Worker Info'.toUpperCase(),
-                                                                      style: TextStyle(
-                                                                          color: HexColor('#022C43'),
-                                                                          fontSize: 20,
-                                                                          fontWeight: FontWeight.bold),
-                                                                    ),
+                                                            Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              mainAxisAlignment: MainAxisAlignment.start,
+                                                              children: [
+                                                                Center(
+                                                                  child: Text(
+                                                                    'Worker Info'.toUpperCase(),
+                                                                    style: TextStyle(
+                                                                        color: HexColor('#022C43'),
+                                                                        fontSize: 20,
+                                                                        fontWeight: FontWeight.bold),
                                                                   ),
+                                                                ),
 
-                                                                  Container(
-                                                                      height: 50,
-                                                                      decoration: BoxDecoration(
-                                                                        border: Border(
-                                                                          bottom: BorderSide(
-                                                                            color: HexColor('#707070').withOpacity(0.1),
-                                                                            width: 1,
-                                                                          ),
+                                                                SizedBox(height: 10,),
+                                                                Container(
+                                                                    height: 50,
+                                                                    width: double.infinity,
+                                                                    decoration: BoxDecoration(
+                                                                      border: Border(
+                                                                        bottom: BorderSide(
+                                                                          color: HexColor('#707070').withOpacity(0.1),
+                                                                          width: 1,
                                                                         ),
                                                                       ),
+                                                                    ),
+                                                                    child: SingleChildScrollView(
+                                                                      scrollDirection: Axis.horizontal, // Set scroll direction to horizontal
+
                                                                       child: Row(
+                                                                        mainAxisAlignment: MainAxisAlignment.start,
+
+
                                                                         children: [
                                                                           Padding(
                                                                             padding: EdgeInsets.symmetric(horizontal: 12),
@@ -1012,6 +1025,7 @@ SizedBox(height: 10,),
                                                                                 fontWeight: FontWeight.w400,
                                                                                 fontSize: 17,
                                                                               ),
+                                                                              textAlign: TextAlign.start,
                                                                             ),
                                                                           ),
                                                                           SizedBox(width: ScreenUtil.sizeboxwidth3),
@@ -1022,50 +1036,56 @@ SizedBox(height: 10,),
                                                                                 color: HexColor('#404040'), fontSize: 15),
                                                                           )
                                                                         ],
-                                                                      )),
-                                                                  Container(
-                                                                    height: 50,
-                                                                    decoration: BoxDecoration(
-                                                                      border: Border(
-                                                                        bottom: BorderSide(
-                                                                          color: HexColor('#707070').withOpacity(0.1),
-                                                                          width: 1,
-                                                                        ),
                                                                       ),
-                                                                    ),
-                                                                    child: Row(
-                                                                      children: [
-                                                                        Padding(
-                                                                          padding: EdgeInsets.symmetric(horizontal: 12),
-                                                                          child: Text(
-                                                                            'Experience:',
-                                                                            style: TextStyle(
-                                                                                color: HexColor('#4D8D6E'),
-                                                                                fontWeight: FontWeight.w400,
-                                                                                fontSize: 17),
-                                                                          ),
-                                                                        ),
-                                                                        SizedBox(
-                                                                          width: ScreenUtil.sizeboxwidth3,
-                                                                        ),
-                                                                        Text(
-                                                                          '${userProfile.userData.experience} Years of Experience   ',
-                                                                          style: TextStyle(
-                                                                              color: HexColor('#404040'), fontSize: 15),
-                                                                        )
-                                                                      ],
+                                                                    )),
+                                                                Container(
+                                                                  height: 50,
+                                                                  decoration: BoxDecoration(
+                                                                    border: Border(
+                                                                      bottom: BorderSide(
+                                                                        color: HexColor('#707070').withOpacity(0.1),
+                                                                        width: 1,
+                                                                      ),
                                                                     ),
                                                                   ),
-                                                                  Container(
-                                                                    height: 50,
-                                                                    decoration: BoxDecoration(
-                                                                      border: Border(
-                                                                        bottom: BorderSide(
-                                                                          color: HexColor('#707070').withOpacity(0.1),
-                                                                          width: 1,
+                                                                  child: Row(
+                                                                    mainAxisAlignment: MainAxisAlignment.start,
+
+                                                                    children: [
+                                                                      Padding(
+                                                                        padding: EdgeInsets.symmetric(horizontal: 12),
+                                                                        child: Text(
+                                                                          'Experience:',
+                                                                          style: TextStyle(
+                                                                              color: HexColor('#4D8D6E'),
+                                                                              fontWeight: FontWeight.w400,
+                                                                              fontSize: 17),
                                                                         ),
                                                                       ),
+                                                                      SizedBox(
+                                                                        width: ScreenUtil.sizeboxwidth3,
+                                                                      ),
+                                                                      Text(
+                                                                        '${userProfile.userData.experience} Years of Experience   ',
+                                                                        style: TextStyle(
+                                                                            color: HexColor('#404040'), fontSize: 15),
+                                                                      )
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                Container(
+                                                                  height: 50,
+                                                                  decoration: BoxDecoration(
+                                                                    border: Border(
+                                                                      bottom: BorderSide(
+                                                                        color: HexColor('#707070').withOpacity(0.1),
+                                                                        width: 1,
+                                                                      ),
                                                                     ),
+                                                                  ),
+                                                                  child: SingleChildScrollView(
+                                                                    scrollDirection: Axis.horizontal, // Set scroll direction to horizontal
+
                                                                     child: Row(
                                                                       children: [
                                                                         Padding(
@@ -1089,9 +1109,11 @@ SizedBox(height: 10,),
                                                                       ],
                                                                     ),
                                                                   ),
+                                                                ),
 
-                                                      SizedBox(height: 20,),
-                                                                  ElevatedButton(
+                                                                                                                  SizedBox(height: 20,),
+                                                                Center(
+                                                                  child: ElevatedButton(
                                                                     onPressed: () {
                                                                       Navigator.of(context).pop(); // Close the bottom sheet
                                                                     },
@@ -1100,9 +1122,9 @@ SizedBox(height: 10,),
                                                                     ),
                                                                     child: Text('Close',style: TextStyle(color: Colors.white),),
                                                                   ),
+                                                                ),
 
-                                                                ],
-                                                              ),
+                                                              ],
                                                             ),
                                                             // Container(
                                                             //   height: 50,

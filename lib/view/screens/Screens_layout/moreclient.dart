@@ -294,8 +294,8 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
                   ),
                   TextButton(
                       onPressed: () {
-                        Get.to(paymentmethod());
-                      },
+                          launchUrl(Uri.parse('https://www.paypal.com/signin'),mode: LaunchMode.inAppWebView);
+                                             },
                       child: Text(
                         'Payment method',
                         style: GoogleFonts.encodeSans(
