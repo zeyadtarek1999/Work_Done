@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_paypal_native/flutter_paypal_native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/firebase_options.dart';
 import 'package:workdone/view/screens/onBoard/OnboardClient.dart';
 import 'package:workdone/view/screens/onBoard/onboardWorker.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
@@ -148,22 +150,28 @@ void startPeriodicSync() {
 }
 
 @pragma('vm:entry-point')
-
-Future<void> _firebaseMessagingBackgroundHandler(
-    RemoteMessage message) async {
-  await Firebase.initializeApp();
-
-  print("Handling background message Notification: ${message.notification?.body}");
-  print("Handling a background message id: ${message.messageId}");
-
-    showLocalNotification('${message.notification?.body}');
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  showLocalNotification('${message.notification?.body}');  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  print('Handling a background message ${message.messageId}');
 }
+// Future<void> _firebaseMessagingBackgroundHandler(
+//     RemoteMessage message) async {
+//   await Firebase.initializeApp();
+//
+//   print("Handling background message Notification: ${message.notification?.body}");
+//   print("Handling a background message id: ${message.messageId}");
+//
+//     showLocalNotification('${message.notification?.body}');
+// }
 
 final FirebaseMessaging messaging = FirebaseMessaging.instance;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+ 
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(false);
