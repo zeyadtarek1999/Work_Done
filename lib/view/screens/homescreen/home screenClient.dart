@@ -231,7 +231,6 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
  final GlobalKey _two = GlobalKey();
  final GlobalKey _three = GlobalKey();
  final GlobalKey _four = GlobalKey();
- final GlobalKey _five = GlobalKey();
   int? userId;
   Future<void> _getUserid() async {
     try {
@@ -307,11 +306,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
 
   }
 
-  @override
-  void dispose() {
-    ciruclaranimation.dispose();
-    super.dispose();
-  }
+
   String profile_pic ='' ;
   String firstname ='' ;
   String secondname ='' ;
@@ -366,7 +361,9 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
       print('Error getting profile information: $error');
     }
   }
-  int notificationnumber =0 ;  Future<void> Notificationnumber() async {
+  int notificationnumber =0 ;
+
+  Future<void> Notificationnumber() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final userToken = prefs.getString('user_token') ?? '';
@@ -517,9 +514,17 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
       ),
     );
   }
+  @override
+  void dispose() {
+    ciruclaranimation.dispose();
 
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
+    final GlobalKey<ScreenshotState> _screenshotKey = GlobalKey<ScreenshotState>();
+
+
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: HexColor('F0EEEE'),
       // Change this color to the desired one
@@ -680,7 +685,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
 
                       ,
                       transition: Transition.fadeIn, // You can choose a different transition
-                      duration: Duration(milliseconds: 700), // Set the duration of the transition
+                      duration: Duration(milliseconds: 600), // Set the duration of the transition
 
                     );},
                     child: Text(
@@ -997,393 +1002,388 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                        ],
                      ),
 
-                     body: Screenshot(
-                        controller: screenshotController1 ,
-                        child: RefreshIndicator(
-                          color: HexColor('4D8D6E'),
-                          backgroundColor: Colors.white,
+                     body: RefreshIndicator(
+                       color: HexColor('4D8D6E'),
+                       backgroundColor: Colors.white,
 
-                          onRefresh: () async {
-                            setState(() {
-                              futureProjects = fetchProjects();
-                            });
-                          },
+                       onRefresh: () async {
+                         setState(() {
+                           futureProjects = fetchProjects();
+                         });
+                       },
 
-                          child: SingleChildScrollView(
-                            physics: AlwaysScrollableScrollPhysics(),
-                            child: SafeArea(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 23.0,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          'Browse Popular Projects',
-                                          style: GoogleFonts.openSans(
-                                            textStyle: TextStyle(
-                                                color: Colors.grey[700],
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                        Spacer(),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      exploreClient()),
-                                            );
-                                          },
-                                          child: Text(
-                                            'See all',
-                                            style: GoogleFonts.openSans(
-                                              textStyle: TextStyle(
-                                                  color: HexColor('4F815A'),
-                                                  fontSize: 17,
-                                                  fontWeight: FontWeight.w500),
-                                            ),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: 14,
-                                  ),
-                                  Column(
-                                    children: [
-                                      FutureBuilder<List<Item>>(
-                                        future: futureProjects,
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState ==
-                                              ConnectionState.waiting) {
-                                            // Replace CircularProgressIndicator with Shimmer.fromColors
-                                            return Center(
-                                                child: RotationTransition(
-                                                  turns: ciruclaranimation,
-                                                  child: SvgPicture.asset(
-                                                    'assets/images/Logo.svg',
-                                                    semanticsLabel: 'Your SVG Image',
-                                                    width: 100,
-                                                    height: 130,
-                                                  ),
-                                                ));
-                                          } else if (snapshot.hasError) {
-                                            return Text(
-                                                'Error: ${snapshot.error}');
-                                          } else if (!snapshot.hasData ||
-                                              snapshot.data!.isEmpty) {
-                                            return Center(
-                                              child: SvgPicture.asset(
-                                                'assets/images/empty.svg',
-                                                semanticsLabel: 'Your SVG Image',
-                                                width: 150,
-                                                height: 200,
-                                              ),
-                                            );
-                                          } else {
-                                            // Update the items list
-                                            items = snapshot.data!;
+                       child: SingleChildScrollView(
+                         physics: AlwaysScrollableScrollPhysics(),
+                         child: Column(
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
+                             Padding(
+                               padding: const EdgeInsets.symmetric(
+                                 horizontal: 23.0,
+                               ),
+                               child: Row(
+                                 children: [
+                                   Text(
+                                     'Browse Popular Projects',
+                                     style: GoogleFonts.openSans(
+                                       textStyle: TextStyle(
+                                           color: Colors.grey[700],
+                                           fontSize: 18,
+                                           fontWeight: FontWeight.bold),
+                                     ),
+                                   ),
+                                   Spacer(),
+                                   TextButton(
+                                     onPressed: () {
+                                       Navigator.push(
+                                         context,
+                                         MaterialPageRoute(
+                                             builder: (context) =>
+                                                 exploreClient()),
+                                       );
+                                     },
+                                     child: Text(
+                                       'See all',
+                                       style: GoogleFonts.openSans(
+                                         textStyle: TextStyle(
+                                             color: HexColor('4F815A'),
+                                             fontSize: 17,
+                                             fontWeight: FontWeight.w500),
+                                       ),
+                                     ),
+                                   )
+                                 ],
+                               ),
+                             ),
+                             SizedBox(
+                               height: 14,
+                             ),
+                             Column(
+                               children: [
+                                 FutureBuilder<List<Item>>(
+                                   future: futureProjects,
+                                   builder: (context, snapshot) {
+                                     if (snapshot.connectionState ==
+                                         ConnectionState.waiting) {
+                                       // Replace CircularProgressIndicator with Shimmer.fromColors
+                                       return Center(
+                                           child: RotationTransition(
+                                             turns: ciruclaranimation,
+                                             child: SvgPicture.asset(
+                                               'assets/images/Logo.svg',
+                                               semanticsLabel: 'Your SVG Image',
+                                               width: 100,
+                                               height: 130,
+                                             ),
+                                           ));
+                                     } else if (snapshot.hasError) {
+                                       return Text(
+                                           'Error: ${snapshot.error}');
+                                     } else if (!snapshot.hasData ||
+                                         snapshot.data!.isEmpty) {
+                                       return Center(
+                                         child: SvgPicture.asset(
+                                           'assets/images/empty.svg',
+                                           semanticsLabel: 'Your SVG Image',
+                                           width: 150,
+                                           height: 200,
+                                         ),
+                                       );
+                                     } else {
+                                       // Update the items list
+                                       items = snapshot.data!;
 
-                                            return CarouselSlider.builder(
-                                              carouselController: _carouselController,
-                                              itemCount: items.length,
-                                              itemBuilder: (
-                                                  BuildContext context,
-                                                  int index, int realIndex) {
-                                                Item currentItem = items[index];
-                                                return buildListItem2(
-                                                    currentItem);
-                                              },
-                                              options: CarouselOptions(
-                                                height: 230,
-                                                aspectRatio: 16 / 7,
-                                                viewportFraction: 0.84,
-                                                enableInfiniteScroll: false,
-                                                autoPlay: true,
-                                                animateToClosest: true,
-                                                enlargeFactor: 0.27,
-                                                padEnds: true,
-                                                enlargeCenterPage: true,
-                                                autoPlayInterval: Duration(
-                                                    seconds: 5),
-                                                autoPlayAnimationDuration: Duration(
-                                                    milliseconds: 1000),
-                                                autoPlayCurve: Curves
-                                                    .fastOutSlowIn,
-                                                onPageChanged: (index, reason) {
-                                                  setState(() {
-                                                    _currentIndex = index;
-                                                  });
-                                                },
-                                              ),
-                                            );
-                                          }
-                                        },
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 1.0),
-                                        child: SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment
-                                                .center,
-                                            children: items.map((item) {
-                                              int itemIndex = items.indexOf(
-                                                  item);
-                                              return CircularIndicator(
-                                                itemIndex: itemIndex,
-                                                currentIndex: _currentIndex,
-                                              );
-                                            }).toList(),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 15,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 25.0,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          'Projects Around You',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors
-                                                .grey[700], // Change the color as needed
-                                          ),
-                                        ),
-                                        Spacer(),
-                                        widget.showCase ==true
-?
-                                        Showcase(
+                                       return CarouselSlider.builder(
+                                         carouselController: _carouselController,
+                                         itemCount: items.length,
+                                         itemBuilder: (
+                                             BuildContext context,
+                                             int index, int realIndex) {
+                                           Item currentItem = items[index];
+                                           return buildListItem2(
+                                               currentItem);
+                                         },
+                                         options: CarouselOptions(
+                                           height: 230,
+                                           aspectRatio: 16 / 7,
+                                           viewportFraction: 0.84,
+                                           enableInfiniteScroll: false,
+                                           autoPlay: true,
+                                           animateToClosest: true,
+                                           enlargeFactor: 0.27,
+                                           padEnds: true,
+                                           enlargeCenterPage: true,
+                                           autoPlayInterval: Duration(
+                                               seconds: 5),
+                                           autoPlayAnimationDuration: Duration(
+                                               milliseconds: 1000),
+                                           autoPlayCurve: Curves
+                                               .fastOutSlowIn,
+                                           onPageChanged: (index, reason) {
+                                             setState(() {
+                                               _currentIndex = index;
+                                             });
+                                           },
+                                         ),
+                                       );
+                                     }
+                                   },
+                                 ),
+                                 Padding(
+                                   padding: const EdgeInsets.only(
+                                       top: 1.0),
+                                   child: SingleChildScrollView(
+                                     scrollDirection: Axis.horizontal,
+                                     child: Row(
+                                       mainAxisAlignment: MainAxisAlignment
+                                           .center,
+                                       children: items.map((item) {
+                                         int itemIndex = items.indexOf(
+                                             item);
+                                         return CircularIndicator(
+                                           itemIndex: itemIndex,
+                                           currentIndex: _currentIndex,
+                                         );
+                                       }).toList(),
+                                     ),
+                                   ),
+                                 ),
+                               ],
+                             ),
+                             SizedBox(
+                               height: 15,
+                             ),
+                             Padding(
+                               padding: const EdgeInsets.symmetric(
+                                 horizontal: 25.0,
+                               ),
+                               child: Row(
+                                 children: [
+                                   Text(
+                                     'Projects Around You',
+                                     style: TextStyle(
+                                       fontSize: 20,
+                                       fontWeight: FontWeight.bold,
+                                       color: Colors
+                                           .grey[700], // Change the color as needed
+                                     ),
+                                   ),
+                                   Spacer(),
+                                   widget.showCase ==true
+                                        ?
+                                   Showcase(
 
-                                          blurValue: 12,
-                                          descTextStyle: TextStyle(
-                                            fontSize: 19,
-                                            color: HexColor ('#333333'),
-                                          ),
-                                          titleTextStyle: TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
-                                            color: HexColor('#0c343d'),  // Custom title color
-                                          ),
-                                          key: _three,
-                                          description: 'Tap here to explore more project!',
-                                          title: 'Explore',
-                                          textColor: Colors.blue, // Custom text color
+                                     blurValue: 12,
+                                     descTextStyle: TextStyle(
+                                       fontSize: 19,
+                                       color: HexColor ('#333333'),
+                                     ),
+                                     titleTextStyle: TextStyle(
+                                       fontSize: 24,
+                                       fontWeight: FontWeight.bold,
+                                       color: HexColor('#0c343d'),  // Custom title color
+                                     ),
+                                     key: _three,
+                                     description: 'Tap here to explore more project!',
+                                     title: 'Explore',
+                                     textColor: Colors.blue, // Custom text color
 
-                                          overlayColor: Colors.black.withOpacity(0.7), // Custom overlay color
-                                          child: TextButton(
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        exploreClient()),
-                                              );
-                                            },
-                                            child: Text(
-                                              'See all',
-                                              style: GoogleFonts.openSans(
-                                                textStyle: TextStyle(
-                                                    color: HexColor('4F815A'),
-                                                    fontSize: 17,
-                                                    fontWeight: FontWeight.w500),
-                                              ),
-                                            ),
-                                          ),
-                                        ):
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      exploreClient()),
-                                            );
-                                          },
-                                          child: Text(
-                                            'See all',
-                                            style: GoogleFonts.openSans(
-                                              textStyle: TextStyle(
-                                                  color: HexColor('4F815A'),
-                                                  fontSize: 17,
-                                                  fontWeight: FontWeight.w500),
-                                            ),
-                                          ),
-                                        )
+                                     overlayColor: Colors.black.withOpacity(0.7), // Custom overlay color
+                                     child: TextButton(
+                                       onPressed: () {
+                                         Navigator.push(
+                                           context,
+                                           MaterialPageRoute(
+                                               builder: (context) =>
+                                                   exploreClient()),
+                                         );
+                                       },
+                                       child: Text(
+                                         'See all',
+                                         style: GoogleFonts.openSans(
+                                           textStyle: TextStyle(
+                                               color: HexColor('4F815A'),
+                                               fontSize: 17,
+                                               fontWeight: FontWeight.w500),
+                                         ),
+                                       ),
+                                     ),
+                                   ):
+                                   TextButton(
+                                     onPressed: () {
+                                       Navigator.push(
+                                         context,
+                                         MaterialPageRoute(
+                                             builder: (context) =>
+                                                 exploreClient()),
+                                       );
+                                     },
+                                     child: Text(
+                                       'See all',
+                                       style: GoogleFonts.openSans(
+                                         textStyle: TextStyle(
+                                             color: HexColor('4F815A'),
+                                             fontSize: 17,
+                                             fontWeight: FontWeight.w500),
+                                       ),
+                                     ),
+                                   )
 
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: 7,
-                                  ),
-                                  Column(
-                                    children: [
-                                      FutureBuilder<List<Item>>(
-                                        future: futureProjects,
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState ==
-                                              ConnectionState.waiting) {
-                                            return Column(
-                                              children: [
-                                                SizedBox(height: 80,),
-                                                Center(
-                                                    child: RotationTransition(
-                                                      turns: ciruclaranimation,
-                                                      child: SvgPicture.asset(
-                                                        'assets/images/Logo.svg',
-                                                        semanticsLabel: 'Your SVG Image',
-                                                        width: 100,
-                                                        height: 130,
-                                                      ),
-                                                    ))
-                                                ,
-                                                SizedBox(height: 80,)
-                                              ],
+                                 ],
+                               ),
+                             ),
+                             SizedBox(
+                               height: 7,
+                             ),
+                             Column(
+                               children: [
+                                 FutureBuilder<List<Item>>(
+                                   future: futureProjects,
+                                   builder: (context, snapshot) {
+                                     if (snapshot.connectionState ==
+                                         ConnectionState.waiting) {
+                                       return Column(
+                                         children: [
+                                           SizedBox(height: 80,),
+                                           Center(
+                                               child: RotationTransition(
+                                                 turns: ciruclaranimation,
+                                                 child: SvgPicture.asset(
+                                                   'assets/images/Logo.svg',
+                                                   semanticsLabel: 'Your SVG Image',
+                                                   width: 100,
+                                                   height: 130,
+                                                 ),
+                                               ))
+                                           ,
+                                           SizedBox(height: 80,)
+                                         ],
 
-                                            );
-                                          } else if (snapshot.hasError) {
-                                            return Text(
-                                                'Error: ${snapshot.error}');
-                                          } else if (snapshot.data != null &&
-                                              snapshot.data!.isEmpty) {
-                                            // If projects list is empty, reset current page to 0 and refresh
-                                            currentPage = 0;
-                                            refreshProjects();
-                                            return Center(
-                                              child: SvgPicture.asset(
-                                                'assets/images/empty.svg',
-                                                semanticsLabel: 'Your SVG Image',
-                                                width: 150,
-                                                height: 200,
-                                              ),
-                                            );
-                                          } else {
-                                            return                                 widget.showCase ==true
-                                                ?  Showcase(
-                                                blurValue: 12,
-                                                descTextStyle: TextStyle(
-                                                  fontSize: 19,
-                                                  color: HexColor ('#333333'),
-                                                ),
-                                                titleTextStyle: TextStyle(
-                                                  fontSize: 24,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: HexColor('#0c343d'),  // Custom title color
-                                                ),
+                                       );
+                                     } else if (snapshot.hasError) {
+                                       return Text(
+                                           'Error: ${snapshot.error}');
+                                     } else if (snapshot.data != null &&
+                                         snapshot.data!.isEmpty) {
+                                       // If projects list is empty, reset current page to 0 and refresh
+                                       currentPage = 0;
+                                       refreshProjects();
+                                       return Center(
+                                         child: SvgPicture.asset(
+                                           'assets/images/empty.svg',
+                                           semanticsLabel: 'Your SVG Image',
+                                           width: 150,
+                                           height: 200,
+                                         ),
+                                       );
+                                     } else {
+                                       return                                 widget.showCase ==true
+                                           ?  Showcase(
+                                           blurValue: 12,
+                                           descTextStyle: TextStyle(
+                                             fontSize: 19,
+                                             color: HexColor ('#333333'),
+                                           ),
+                                           titleTextStyle: TextStyle(
+                                             fontSize: 24,
+                                             fontWeight: FontWeight.bold,
+                                             color: HexColor('#0c343d'),  // Custom title color
+                                           ),
 
-                                                overlayColor: Colors.black.withOpacity(0.7),
+                                           overlayColor: Colors.black.withOpacity(0.7),
 
-                                          key: _two,
-                                          title: 'Discover Projects',
-                                          description: 'Discover new projects to initiate your first work',
-                                          child: ListView.builder(
-                                          physics: NeverScrollableScrollPhysics(),
-                                          shrinkWrap: true, // Set shrinkWrap to true
-                                          itemCount: snapshot.data!.length,
-                                          itemBuilder: (context, index) {
-                                          return buildListItem(
-                                          snapshot.data![index]);
-                                          },
-                                          ),
-                                          ):ListView.builder(
-                                          physics: NeverScrollableScrollPhysics(),
-                                          shrinkWrap: true, // Set shrinkWrap to true
-                                          itemCount: snapshot.data!.length,
-                                          itemBuilder: (context, index) {
-                                          return buildListItem(
-                                          snapshot.data![index]);
-                                          },
+                                     key: _two,
+                                     title: 'Discover Projects',
+                                     description: 'Discover new projects to initiate your first work',
+                                     child: ListView.builder(
+                                     physics: NeverScrollableScrollPhysics(),
+                                     shrinkWrap: true, // Set shrinkWrap to true
+                                     itemCount: snapshot.data!.length,
+                                     itemBuilder: (context, index) {
+                                     return buildListItem(
+                                     snapshot.data![index]);
+                                     },
+                                     ),
+                                     ):ListView.builder(
+                                     physics: NeverScrollableScrollPhysics(),
+                                     shrinkWrap: true, // Set shrinkWrap to true
+                                     itemCount: snapshot.data!.length,
+                                     itemBuilder: (context, index) {
+                                     return buildListItem(
+                                     snapshot.data![index]);
+                                     },
 
-                                            );
-                                          }
-                                        },
-                                      ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment
-                                            .spaceAround,
-                                        children: [
-                                          if (currentPage > 1)
-                                            TextButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  currentPage--;
-                                                  refreshProjects(); // Use refreshProjects instead of fetchProjects
-                                                });
-                                              },
-                                              style: TextButton.styleFrom(
+                                       );
+                                     }
+                                   },
+                                 ),
+                                 Row(
+                                   mainAxisAlignment: MainAxisAlignment
+                                       .spaceAround,
+                                   children: [
+                                     if (currentPage > 1)
+                                       TextButton(
+                                         onPressed: () {
+                                           setState(() {
+                                             currentPage--;
+                                             refreshProjects(); // Use refreshProjects instead of fetchProjects
+                                           });
+                                         },
+                                         style: TextButton.styleFrom(
 
-                                                foregroundColor: Colors
-                                                    .redAccent,
+                                           foregroundColor: Colors
+                                               .redAccent,
 
-                                              ),
-                                              child: Text(
-                                                'Previous Page',
-                                                style: TextStyle(fontSize: 16,),
-                                              ),
-                                            ),
-                                          TextButton(
-                                            onPressed: () async {
-                                              setState(() {
-                                                currentPage++;
-                                                refreshProjects();
-                                              });
+                                         ),
+                                         child: Text(
+                                           'Previous Page',
+                                           style: TextStyle(fontSize: 16,),
+                                         ),
+                                       ),
+                                     TextButton(
+                                       onPressed: () async {
+                                         setState(() {
+                                           currentPage++;
+                                           refreshProjects();
+                                         });
 
-                                              // Fetch the projects for the next page
-                                              List<
-                                                  Item>? nextPageProjects = await fetchProjects();
+                                         // Fetch the projects for the next page
+                                         List<
+                                             Item>? nextPageProjects = await fetchProjects();
 
-                                              // Check if the next page is empty or no data and hide the button accordingly
-                                              if (!shouldShowNextButton(
-                                                  nextPageProjects)) {
-                                                setState(() {
-                                                  currentPage = 1;
-                                                  refreshProjects();
-                                                });
-                                              } else {
-                                                // Update the futureProjects with the fetched projects
-                                                futureProjects = Future.value(
-                                                    nextPageProjects);
-                                              }
-                                            },
-                                            style: TextButton.styleFrom(
+                                         // Check if the next page is empty or no data and hide the button accordingly
+                                         if (!shouldShowNextButton(
+                                             nextPageProjects)) {
+                                           setState(() {
+                                             currentPage = 1;
+                                             refreshProjects();
+                                           });
+                                         } else {
+                                           // Update the futureProjects with the fetched projects
+                                           futureProjects = Future.value(
+                                               nextPageProjects);
+                                         }
+                                       },
+                                       style: TextButton.styleFrom(
 
-                                              primary: Colors.black45,
+                                         primary: Colors.black45,
 
-                                            ),
-                                            child: Text(
-                                              'Next Page',
-                                              style: TextStyle(fontSize: 16),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 50,)
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
+                                       ),
+                                       child: Text(
+                                         'Next Page',
+                                         style: TextStyle(fontSize: 16),
+                                       ),
+                                     ),
+                                   ],
+                                 ),
+                                 SizedBox(height: 50,)
+                               ],
+                             )
+                           ],
+                         ),
+                       ),
 
-                      )
-                ),
+                                           ),
               ),
               ),
     );

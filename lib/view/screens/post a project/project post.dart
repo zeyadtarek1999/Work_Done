@@ -295,12 +295,12 @@ class _projectPostState extends State<projectPost>
     }
   }
 
-  final ScreenshotController screenshotController = ScreenshotController();
+  final ScreenshotController screenshotController100 = ScreenshotController();
 
   String unique = 'Projectpost';
 
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController100.capture();
 
     Navigator.push(
       context,
@@ -374,7 +374,7 @@ class _projectPostState extends State<projectPost>
           // ),
         ),
         body: Screenshot(
-          controller: screenshotController,
+          controller: screenshotController100,
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.only(top: 12.0, left: 10, right: 10),
@@ -683,6 +683,7 @@ class _projectPostState extends State<projectPost>
                         ),
                         SizedBox(height: 7),
                         Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Stack(
                               children: [

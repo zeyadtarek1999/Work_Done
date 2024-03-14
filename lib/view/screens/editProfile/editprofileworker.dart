@@ -12,6 +12,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/view/screens/Profile%20(client-worker)/profilescreenworker.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutWorker.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutclient.dart';
 import 'package:workdone/view/stateslectorpopup.dart';
@@ -231,10 +232,8 @@ bool isLoading =false;
       print (userToken);
       // Make the API request
       final request = http.MultipartRequest('POST', url)
-        ..headers['Authorization'] = 'Bearer $userToken'
-        ..fields['language'] = 'english'
-        ..fields['job_type'] = 'sabak'
-        ..fields['language'] = 'english';
+        ..headers['Authorization'] = 'Bearer $userToken';
+
 
       if (_image != null) {
         request.files.add(await http.MultipartFile.fromPath('image', _image!.path));
@@ -287,9 +286,9 @@ bool isLoading =false;
       } else {
         request.fields['phone'] = phonenumber;
       }
-      if (_image != null) {
-        request.files.add(await http.MultipartFile.fromPath('profile_pic', _image!.path));
-      }
+      // if (_image != null) {
+      //   request.files.add(await http.MultipartFile.fromPath('profile_pic', _image!.path));
+      // }
       if (_imagelicense != null) {
         request.files.add(await http.MultipartFile.fromPath('license_pic', _imagelicense!.path));
       }
@@ -303,6 +302,9 @@ bool isLoading =false;
         });
         // Check the status in the response
         if (responseBody['status'] == 'success') {
+          setState(() {
+            isLoading=false;
+          });
           print(responseBody);
           // Show a toast message
           Fluttertoast.showToast(
@@ -338,9 +340,7 @@ bool isLoading =false;
             MaterialPageRoute(builder: (context) => layoutworker(showCase: false,)),
           );
         } else if (responseBody['status'] == 'success') {
-          setState(() {
-            isLoading=false;
-          });
+
           String errorMsg = responseBody['msg'];
 
           if (errorMsg == ' Bid Submitted') {

@@ -10028,7 +10028,7 @@ setState(() {
                                                       //client first name
                                                       style: TextStyle(
                                                         color: HexColor('4D8D6E'),
-                                                        fontSize: 20,
+                                                        fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
                                                         fontWeight: FontWeight.bold,
                                                       ),
                                                     ),
@@ -10635,7 +10635,7 @@ setState(() {
                   workerimage: item.workerProfilePic,
                   selectedworkerrating: item.avg_rating,
                   workername: item.workerFirstname,
-                  currentbid: currentbid,
+                  currentbid: item.amount.toString(),
                   projectdesc: projectdesc,
                   projectimage: projectimage,
                   projecttitle: projecttitle,

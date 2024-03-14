@@ -77,7 +77,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
   void _showBottomSheet(BuildContext context) {
     // Define the animation controller
     AnimationController controller = AnimationController(
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 300),
       vsync: Navigator.of(context),
     );
 
@@ -117,7 +117,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
   void _showBottomSheetlogin(BuildContext context) {
     // Define the animation controller
     AnimationController controller = AnimationController(
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 300),
       vsync: Navigator.of(context),
     );
 

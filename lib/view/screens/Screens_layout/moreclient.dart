@@ -87,12 +87,12 @@ class _MoreclientState extends State<Moreclient> {
     }
   }
 
-  final ScreenshotController screenshotController = ScreenshotController();
+  final ScreenshotController screenshotController1000 = ScreenshotController();
 
   String unique= 'moreclient' ;
 
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController1000.capture();
 
     Navigator.push(
       context,
@@ -133,7 +133,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
       backgroundColor: Colors.white,
       body:
       Screenshot(
-        controller:screenshotController ,
+        controller:screenshotController1000 ,
         child: Padding(
           padding: const EdgeInsets.only(top: 50.0, left: 20, right: 20),
           child: Column(

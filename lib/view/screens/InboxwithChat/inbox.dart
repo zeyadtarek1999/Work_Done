@@ -273,11 +273,11 @@ print(userType);
 
 
 
-  final ScreenshotController screenshotController = ScreenshotController();
+  final ScreenshotController screenshotController200 = ScreenshotController();
 
   String unique= 'inbox' ;
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController200.capture();
 
     Navigator.push(
       context,
@@ -325,80 +325,89 @@ centerTitle: true,
 
       ),
       backgroundColor: HexColor('EDEBEB'),
-      body: Screenshot(
-        controller:screenshotController ,
-        child:SingleChildScrollView(
-          child: Column(
-            children: [
-              SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: FutureBuilder<List<Item>>(
-                    future: futurechatusers,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: RotationTransition(
-                          turns: ciruclaranimation,
-                          child: SvgPicture.asset(
-                            'assets/images/Logo.svg',
-                            semanticsLabel: 'Your SVG Image',
-                            width: 130,
-                            height: 130,
-                          ),
-                        ))
-                        ;
-                      } else if (snapshot.hasError) {
-                        return  Center(
-                          child: Column(
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/emptyinbox.svg',
-                                width: 200.0,
-                                height: 300.0,
-                              ),
-                            
-                            SizedBox(height: 20,),
-                              Text('Inbox is Empty',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),)
-                            ],
-                            
-                          ),
-                        );
+      body: RefreshIndicator(
+        color: HexColor('4D8D6E'),
+        backgroundColor: Colors.white,
+        onRefresh: () async {
+          setState(() {
+            fetchchatusers();
+          });
+        },
+        child: Screenshot(
+          controller:screenshotController200 ,
+          child:SingleChildScrollView(
+            child: Column(
+              children: [
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: FutureBuilder<List<Item>>(
+                      future: futurechatusers,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(child: RotationTransition(
+                            turns: ciruclaranimation,
+                            child: SvgPicture.asset(
+                              'assets/images/Logo.svg',
+                              semanticsLabel: 'Your SVG Image',
+                              width: 130,
+                              height: 130,
+                            ),
+                          ))
+                          ;
+                        } else if (snapshot.hasError) {
+                          return  Center(
+                            child: Column(
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/emptyinbox.svg',
+                                  width: 200.0,
+                                  height: 300.0,
+                                ),
 
-                      } else if (snapshot.data!.isEmpty) {
-                        return  SvgPicture.asset(
-                          'assets/images/emptyinbox.svg',
-                          width: 100.0,
-                          height: 100.0,
-                        );
+                              SizedBox(height: 20,),
+                                Text('Inbox is Empty',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),)
+                              ],
 
-                      }else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return  SvgPicture.asset(
-                          'assets/images/emptyinbox.svg',
-                          width: 100.0,
-                          height: 100.0,
-                        );
-                      } else {
-                        // Update the items list
-                        items = snapshot.data!;
+                            ),
+                          );
 
-                        return Animate(
-                          effects: [SlideEffect(duration: Duration(milliseconds: 400),),],
-                          child: ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: snapshot.data!.length,
-                            itemBuilder: (context, index) {
-                              return buildListItem(snapshot.data![index]);
-                            },
-                          ),
-                        );
+                        } else if (snapshot.data!.isEmpty) {
+                          return  SvgPicture.asset(
+                            'assets/images/emptyinbox.svg',
+                            width: 100.0,
+                            height: 100.0,
+                          );
 
-                      }
-                    },
+                        }else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return  SvgPicture.asset(
+                            'assets/images/emptyinbox.svg',
+                            width: 100.0,
+                            height: 100.0,
+                          );
+                        } else {
+                          // Update the items list
+                          items = snapshot.data!;
+
+                          return Animate(
+                            effects: [SlideEffect(duration: Duration(milliseconds: 400),),],
+                            child: ListView.builder(
+                              physics: NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemCount: snapshot.data!.length,
+                              itemBuilder: (context, index) {
+                                return buildListItem(snapshot.data![index]);
+                              },
+                            ),
+                          );
+
+                        }
+                      },
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -455,13 +464,24 @@ client_id: item.client_id,
                   ),
                   SizedBox(height: 8,),
                   if (item.lastMessage == '')
-Text('.....',style: TextStyle(fontSize: 20),)                  else
-                    Text(
-                      '${item.lastMessage}',
-                      style: TextStyle(
-                        color: Colors.black45,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+Text('.....',style: TextStyle(fontSize: 20),)       
+                  else
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.512, // Adjust the width as needed
+                      child: Row(
+                        children: [
+                          Expanded( // Use Expanded to ensure the Text widget fits within the available space
+                            child: Text(
+                              '${item.lastMessage}',
+                              style: TextStyle(
+                                color: Colors.black45,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              overflow: TextOverflow.ellipsis, // Truncate the text with an ellipsis
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                 ],

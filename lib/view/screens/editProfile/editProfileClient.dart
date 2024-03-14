@@ -195,7 +195,7 @@ class _editProfileState extends State<editProfile> {
       // Make the API request
       final request = http.MultipartRequest('POST', url)
         ..headers['Authorization'] = 'Bearer $userToken'
-        ..fields['language'] = 'english';
+;
 
       if (_image != null) {
         request.files.add(await http.MultipartFile.fromPath('image', _image!.path));
@@ -367,13 +367,13 @@ class _editProfileState extends State<editProfile> {
   bool isSearchBarVisible = false;
   List<Map<String, dynamic>> filteredLanguages = [];
 
-  final ScreenshotController screenshotController = ScreenshotController();
+  final ScreenshotController screenshotController90 = ScreenshotController();
 
 
 
   String unique= 'editprofileclient' ;
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController90.capture();
 
     Navigator.push(
       context,
@@ -440,7 +440,7 @@ class _editProfileState extends State<editProfile> {
         ),
         body:
         Screenshot(
-          controller:screenshotController ,
+          controller:screenshotController90 ,
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18.0),

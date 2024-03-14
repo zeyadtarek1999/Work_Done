@@ -126,7 +126,7 @@ double widthofbar = 150;
       return {'status': 'error', 'msg': 'An error occurred'};
     }
   }
-  final ScreenshotController screenshotController = ScreenshotController();
+  final ScreenshotController screenshotController435 = ScreenshotController();
 
   // void refreshProjects() {
   //   futureProjects = fetchUserProfile();
@@ -226,7 +226,7 @@ double widthofbar = 150;
   }
 
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController435.capture();
 
     Navigator.push(
       context,
@@ -614,7 +614,7 @@ double widthofbar = 150;
 //   }
 
 
-  String unique= 'WorkerView' ;
+  String unique= 'Review' ;
   @override
   Widget build(BuildContext context) {
 
@@ -638,9 +638,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
           future: futureProjects,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
+              return Container();
             } else if (snapshot.hasError) {
               return Text('Error: ${snapshot.error}');
             } else if (snapshot.data != null) {
@@ -685,7 +683,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
       ),
       body:
       Screenshot(
-        controller:screenshotController ,
+        controller:screenshotController435 ,
         child: NestedScrollView(
           headerSliverBuilder: (context, value) {
             return [
@@ -732,7 +730,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                               ),
                             ),
                             SizedBox(height: 20,),
-                            // Text("${userProfile.userData.firstname}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),),
+                            Text("${firstname}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),),
                             SizedBox(height: 10,),
                             Text("Worker", style: TextStyle(color: Colors.grey, fontSize: 16),),
                             SizedBox(height: 16,),
@@ -1078,47 +1076,37 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                 FutureBuilder<UserProfile>(
                   future: futureProjects,
                   builder: (context, snapshot) {
-                    UserProfile userProfile = snapshot.data!;
-
-                    if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-
-
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Container();
                     } else if (snapshot.hasError) {
-                      return Text(
-                          'Error: ${snapshot.error}');
-                    } else if (snapshot.data == null || userProfile.projects.isEmpty ) {
+                      return Text('Error: ${snapshot.error}');
+                    } else if (snapshot.data == null || snapshot.data!.projects.isEmpty) {
                       // If projects list is empty, reset current page to 0 and refresh
-                      return                   Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                      child: SvgPicture.asset(
-                                        'assets/images/nothing.svg',
-                                        width: 100.0, // Set the width you want
-                                        height: 100.0, // Set the height you want
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 20,
-                                    ),
-                                    Text(
-                                      'No Projects yet',
-                                      style: GoogleFonts.encodeSans(
-                                        textStyle: TextStyle(
-                                            color: HexColor('BBC3CE'),
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.normal),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              ;
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12.0),
+                            child: SvgPicture.asset(
+                              'assets/images/nothing.svg',
+                              width: 100.0, // Set the width you want
+                              height: 100.0, // Set the height you want
+                            ),
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Text(
+                            'No Projects yet',
+                            style: GoogleFonts.encodeSans(
+                              textStyle: TextStyle(
+                                  color: HexColor('BBC3CE'),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.normal),
+                            ),
+                          ),
+                        ],
+                      );
                     } else {
                       UserProfile userProfile = snapshot.data!;
                       return Animate(
@@ -1128,7 +1116,6 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                           shrinkWrap: true,
                           itemCount: userProfile.projects.length,
                           itemBuilder: (context, index) {
-
                             return buildProjectItem(userProfile.projects[index]);
                           },
                         ),
@@ -1336,10 +1323,10 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                             fixedSize: Size(50, 30), // Adjust the size as needed
                             padding: EdgeInsets.zero,
                           ),
-                          child: Text.rich(
-                            TextSpan(
-                              children: _buildTextSpans(project.clientFirstname, searchController.text),
-                            ),
+                          child:
+
+                               Text(project.clientFirstname,
+
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis, // Use the client name from the fetched data
                             style: TextStyle(
@@ -1347,7 +1334,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
-                          ),
+                      )
                         ),
                       ),
                     ],

@@ -1055,7 +1055,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                       overlayColor: Colors.black.withOpacity(0.7),
                       child: InkWell(
                         onTap: () {
-                          Get.to(ProfileScreenClient2(),
+                          Get.to(ProfileScreenworker(),
                             transition: Transition.fadeIn,
                             duration: Duration(milliseconds: 500),
                           );
@@ -1074,7 +1074,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                     )
                         : InkWell(
                       onTap: () {
-                        Get.to(ProfileScreenClient2(),
+                        Get.to(ProfileScreenworker(),
                           transition: Transition.fadeIn,
                           duration: Duration(milliseconds: 500),
                         );
