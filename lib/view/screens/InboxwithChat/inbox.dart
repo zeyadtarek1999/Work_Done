@@ -190,6 +190,7 @@ print(userType);
       print('Error getting profile information: $error');
     }
   }
+  late AnimationController ciruclaranimation;
 
   @override
   void initState() {

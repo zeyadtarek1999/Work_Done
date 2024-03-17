@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/view/screens/Bid%20Details/Bid%20details%20Worker.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutWorker.dart';
 import '../../../model/mediaquery.dart';
 import '../Bid Details/Bid details Client.dart';
@@ -506,7 +507,7 @@ class _projectsWorkerState extends State<projectsWorker> with SingleTickerProvid
     return GestureDetector(
       onTap: () {
         Get.to(
-              () => bidDetailsClient(projectId: item.projectId),  );    },
+              () => bidDetailsWorker(projectId: item.projectId),  );    },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
         padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
@@ -790,7 +791,7 @@ class _projectsWorkerState extends State<projectsWorker> with SingleTickerProvid
                         child: ElevatedButton(
                           onPressed: () {
                             Get.to(
-                                  () => bidDetailsClient(projectId: item.projectId),  );
+                                  () => bidDetailsWorker(projectId: item.projectId),  );
                             // Handle button press
                           },
                           child: Text('Details',style: TextStyle(color: Colors.white),),

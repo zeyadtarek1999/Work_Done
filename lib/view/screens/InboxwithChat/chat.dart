@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -12,6 +14,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 import '../Support Screen/Helper.dart';
 import '../homescreen/home screenClient.dart';
@@ -48,7 +52,99 @@ class chat extends StatefulWidget {
 
 class _chatState extends State<chat> {
   final TextEditingController _messageController = TextEditingController();
+String Reciver ='';
+String usertype='';
 
+  Future<void> _getusertype() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_user_type';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('user_type')) {
+            String userType = responseData['user_type'];
+
+            // Navigate based on user type
+            if (userType == 'client') {
+              usertype= 'Client';
+              setState(() {
+                Reciver=widget.worker_id.toString();
+                usertype= 'client';
+              });
+            } else if (userType == 'worker') {
+              usertype= 'worker';
+              setState(() {
+                Reciver=widget.client_id.toString();
+                usertype= 'Worker';
+
+              });
+            } else {
+              print('Error: Unknown user type.');
+              throw Exception('Failed to load profile information');
+            }
+          } else {
+            print('Error: Response data does not contain user_type.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
+  void initState() {
+    super.initState();
+    // Call the function that fetches projects and assign the result to futureProjects
+    _getusertype();
+
+  }
+  Future<void> sendNotification(String title, String body, String token) async {
+    try {
+      await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=AAAAaK6XL4o:APA91bHRHrQ-LdNBAovY6ju0bmVmISrukMdlvnuGRdDSI5Iovt1vzwFmSTLAu6GwUGZ8vLBVaympavSLm8XTpM7BmsmlbRlpJea6rKJyU4fAyXV3vOPKW4OpvNm8A466udxY8SfLw8zK',
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            'notification': <String, dynamic>{
+              'body': body,
+              'title': title,
+            },
+            'priority': 'high',
+            'data': <String, dynamic>{
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+              'id': '1',
+              'status': 'done'
+            },
+            "to": token,
+          },
+        ),
+      );
+      print('Notification sent');
+    } catch (e) {
+      print("Error sending notification: $e");
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -220,6 +316,7 @@ class _chatState extends State<chat> {
     );
   }
 
+
   void sendMessage(String content, File? image) async {
     try {
       if (content.isEmpty && image == null) {
@@ -238,23 +335,36 @@ class _chatState extends State<chat> {
         imageUrl = await uploadImageToStorage(image);
       }
 
-      FirebaseFirestore.instance
+      // Add message to Firestore
+      await FirebaseFirestore.instance
           .collection('chats')
           .doc(widget.chatId)
           .collection('messages')
           .add({
         'sender': widget.myside_firstname,
+        'recieverid': Reciver,
         'content': content,
         'image': imageUrl, // Store image URL or path
         'timestamp': FieldValue.serverTimestamp(),
         'seen': false, // Initialize as not seen
       });
+
+      // Retrieve the receiver's FCM token from Firestore
+      DocumentSnapshot receiverDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(Reciver)
+          .get();
+      String? receiverToken = receiverDoc.get('fcmToken'); // Assuming 'fcmToken' is the field name for the FCM token
+print('reciver tokern $receiverToken');
+      // Send a notification to the receiver
+      if (receiverToken != null) {
+        await sendNotification("Message from ${widget.myside_firstname} ($usertype)", "${content}", receiverToken);
+        print('sended succerss');
+      }
     } catch (e) {
       print('Error sending message: $e');
     }
-  }
-
-  Future<String?> uploadImageToStorage(File image) async {
+  }  Future<String?> uploadImageToStorage(File image) async {
     try {
       final Reference storageReference = FirebaseStorage.instance
           .ref()

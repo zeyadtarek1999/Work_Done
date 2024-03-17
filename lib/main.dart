@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_paypal_native/flutter_paypal_native.dart';
@@ -28,12 +29,12 @@ import 'package:firebase_admin/firebase_admin.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
 
-Future<void> showLocalNotification(String message) async {
+Future<void> showLocalNotification(String title , String message) async {
   await AwesomeNotifications().createNotification(
     content: NotificationContent(
       id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
       channelKey: 'background_channel',
-      title: 'New Notification',
+      title: title,
       body: message,
     ),
   );
@@ -106,7 +107,7 @@ print (userId);
 
           // Check if the user is the target user
           if (userId == userIdR) {
-            await showLocalNotification(message);
+            await showLocalNotification('New Notification' ,message);
           }
         }
 
@@ -152,28 +153,27 @@ void startPeriodicSync() {
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  showLocalNotification('${message.notification?.body}');  // If you're going to use other Firebase services in the background, such as Firestore,
+
+  // showLocalNotification(
+  //     message.notification?.title  ??'', message.notification?.body ?? '');
+
   // make sure you call `initializeApp` before using other Firebase services.
   print('Handling a background message ${message.messageId}');
 }
-// Future<void> _firebaseMessagingBackgroundHandler(
-//     RemoteMessage message) async {
-//   await Firebase.initializeApp();
-//
-//   print("Handling background message Notification: ${message.notification?.body}");
-//   print("Handling a background message id: ${message.messageId}");
-//
-//     showLocalNotification('${message.notification?.body}');
-// }
+
 
 final FirebaseMessaging messaging = FirebaseMessaging.instance;
-
+void saveDeviceTokenToFirestore(String token) {
+  FirebaseFirestore.instance.collection('users').doc(userId.toString()).set({
+    'fcmToken': token,
+  });
+  print(' the token is done sended $token  and the user $userId');
+}
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
  
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
   await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(false);
   String? token = await messaging.getToken();
   print("Firebase Messaging Token: $token");
@@ -207,15 +207,17 @@ print ('token :: ${apnsToken}' ) ; }
         print("Received foreground message: ${message.notification?.body}");
         print('Got a message whilst in the foreground!');
         print('Message data: ${message.data}');
-        if (message.notification != null) {
-          print('Message also contained a notification: ${message.notification}');
-        }
-        showLocalNotification(message.notification?.body ?? '');
-      });
+          showLocalNotification(
+              message.notification?.title  ??'', message.notification?.body ?? '');
+          print('Got a message  in the foreground!');
+
+        });
 
       FirebaseMessaging.onMessageOpenedApp
           .listen((RemoteMessage message) {
         print("Opened app from notification: ${message.notification?.body}");
+        showLocalNotification(
+            message.notification?.title  ??'', message.notification?.body ?? '');
         // Handle navigation or additional logic when the app is opened from a notification
       });
 
@@ -269,15 +271,9 @@ print ('token :: ${apnsToken}' ) ; }
 
 
 
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print("Received foreground message: ${message.notification?.body}");
-    // Extract data and perform actions
-    String title = message.notification?.title ?? '';
-    String body = message.notification?.body ?? '';
-    showLocalNotification(body);
-    // You can customize the handling based on your notification payload
-  });
-
+  FirebaseMessaging.onMessage.listen((message) {
+    showLocalNotification(
+        message.notification?.title  ??'', message.notification?.body ?? '');  });
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     print("Opened app from notification: ${message.notification?.body}");
     // Extract data and perform actions when the app is opened from a notification
@@ -301,6 +297,11 @@ print ('token :: ${apnsToken}' ) ; }
   );
 
   await _getUserProfile();
+  // FirebaseMessaging.instance.getToken().then((token) {
+  //   // Save the device token to Firestore
+  //   saveDeviceTokenToFirestore(token!);
+  // });
+
   startPeriodicSync();
 
   bool isAllowedToSendNotification =
