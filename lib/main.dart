@@ -108,10 +108,11 @@ print (userId);
           // Check if the user is the target user
           if (userId == userIdR) {
             await showLocalNotification('New Notification' ,message);
+            print('Notifications shown successfully');
           }
         }
 
-        print('Notifications shown successfully');
+
       } else {
         print('Error: ${jsonResponse['msg']}');
       }
@@ -169,6 +170,8 @@ void saveDeviceTokenToFirestore(String token) {
   });
   print(' the token is done sended $token  and the user $userId');
 }
+const Duration fetchdata = Duration(seconds: 15);
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
  
@@ -177,7 +180,7 @@ void main() async {
   await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(false);
   String? token = await messaging.getToken();
   print("Firebase Messaging Token: $token");
-  final notificationSettings = await FirebaseMessaging.instance.requestPermission(provisional: true);
+  // final notificationSettings = await FirebaseMessaging.instance.requestPermission(provisional: true);
   final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
   if (apnsToken != null) {
 print ('token :: ${apnsToken}' ) ; }
@@ -191,6 +194,7 @@ print ('token :: ${apnsToken}' ) ; }
 
       // Request permission for iOS devices
       NotificationSettings settings = await messaging.requestPermission(
+
         alert: true,
         badge: true,
         sound: true,
@@ -198,9 +202,7 @@ print ('token :: ${apnsToken}' ) ; }
 
       print("Notification settings: $settings");
 
-      // Get the token
-      String? token = await messaging.getToken();
-      print("Firebase Messaging Token: $token");
+
 
       // Handle incoming messages
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -215,7 +217,7 @@ print ('token :: ${apnsToken}' ) ; }
 
       FirebaseMessaging.onMessageOpenedApp
           .listen((RemoteMessage message) {
-        print("Opened app from notification: ${message.notification?.body}");
+        print("Opened app from notification again: ${message.notification?.body}");
         showLocalNotification(
             message.notification?.title  ??'', message.notification?.body ?? '');
         // Handle navigation or additional logic when the app is opened from a notification
@@ -230,7 +232,6 @@ print ('token :: ${apnsToken}' ) ; }
     }
   }
   await initFirebaseMessaging();
-  const Duration fetchdata = Duration(seconds: 15);
   Timer.periodic(fetchdata, (Timer timer) {
     // Fetch data at each interval
     fetchDataAndShowNotifications();
@@ -271,19 +272,6 @@ print ('token :: ${apnsToken}' ) ; }
 
 
 
-  FirebaseMessaging.onMessage.listen((message) {
-    showLocalNotification(
-        message.notification?.title  ??'', message.notification?.body ?? '');  });
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    print("Opened app from notification: ${message.notification?.body}");
-    // Extract data and perform actions when the app is opened from a notification
-  });
-
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    print("Opened app from notification: ${message.notification?.body}");
-    // Extract data and navigate to a specific screen
-    Get.toNamed('/WelcomeScreen', arguments: message.data);
-  });
 
   // Add the background message handler function
   Workmanager().initialize(
@@ -336,33 +324,69 @@ class NotificationModel {
   });
 }
 
+
+
+
+
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
+
+  Future<bool> _onWillPop() async {
+    final shouldPop = await showDialog<bool>(
+      context: Get.context!,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Exit App'),
+          content: Text('Are you sure you want to leave the app?'),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.pop(context, false),
+            ),
+            TextButton(
+              child: Text('Confirm'),
+              onPressed: () => Navigator.pop(context, true),
+            ),
+          ],
+        );
+      },
+    );
+    return shouldPop ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context);
-    return     WillPopScope(
-      onWillPop: () async {
-        return await Get.defaultDialog(
-          title: 'Exit App?',
-          content: Text('Do you want to close the app?'),
-          confirm: TextButton(
-            onPressed: () => Get.back(result: true),
-            child: Text('Close'),
-          ),
-          cancel: TextButton(
-            onPressed: () => Get.back(result: false),
-            child: Text('Stay'),
-          ),
-        ) ?? false;
+    return PopScope(
+      canPop: true, // Indicates whether the current route can be popped
+      onPopInvoked: (didPop) async {
+        final shouldPop = await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Exit App'),
+              content: Text('Are you sure you want to leave the app?'),
+              actions: [
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () => Navigator.pop(context, false),
+                ),
+                TextButton(
+                  child: Text('Confirm'),
+                  onPressed: () => Navigator.pop(context, true),
+                ),
+              ],
+            );
+          },
+        );
+        if (shouldPop ?? false) {
+          // Proceed with the back navigation
+          didPop;
+        }
       },
-
       child: GetMaterialApp(
         debugShowCheckedModeBanner: false,
-
         title: 'Work Done',
-
         theme: ThemeData(
           primaryColorLight: HexColor('#4D8D6E'),
           appBarTheme: AppBarTheme(color: HexColor('#4D8D6E')),
@@ -372,11 +396,7 @@ class MyApp extends StatelessWidget {
             headlineMedium: TextStyle(color: HexColor('#292929')),
           ),
         ),
-
-
         initialRoute: '/CustomSplashScreen',
-        // You can define your initial route here
-
         getPages: [
           GetPage(name: '/Moreworker', page: () => Moreworker()),
           GetPage(name: '/CustomSplashScreen', page: () => CustomSplashScreen()),
@@ -384,12 +404,8 @@ class MyApp extends StatelessWidget {
           GetPage(name: '/OnBoardingWorker', page: () => OnBoardingWorker()),
           GetPage(name: '/projectPost', page: () => projectPost()),
           GetPage(name: '/WelcomeScreen', page: () => WelcomeScreen()),
-
-          // GetPage(name: '/Homescreen', page: () => Homescreen()),
-          // GetPage(name: '/From firstpage', page: () => Firstpage()),
         ],
       ),
     );
-
   }
 }

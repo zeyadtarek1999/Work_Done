@@ -24,6 +24,7 @@ class inboxtest extends StatefulWidget {
   State<inboxtest> createState() => _inboxtestState();
 }
 late Future<List<Item>> futurechatusers;
+late Future<List<Item>> futurebtangan;
 
 Future<void> fetchLastMessageAndTime(Item chatItem) async {
   String chatId = chatItem.chat_id; // Assuming chat_id corresponds to Firebase chat document ID
@@ -138,6 +139,10 @@ Future<List<Item>> fetchchatusers() async {
   } catch (e) {
     throw Exception('Error: $e');
   }
+}
+late Future<List<Item>> futureProjects;
+void refreshProjects() {
+  futureProjects  =    fetchchatusers();
 }
 
 class _inboxtestState extends State<inboxtest> with SingleTickerProviderStateMixin {
@@ -326,85 +331,89 @@ centerTitle: true,
 
       ),
       backgroundColor: HexColor('EDEBEB'),
-      body: RefreshIndicator(
-        color: HexColor('4D8D6E'),
-        backgroundColor: Colors.white,
-        onRefresh: () async {
-          setState(() {
-            fetchchatusers();
-          });
-        },
-        child: Screenshot(
-          controller:screenshotController200 ,
-          child:SingleChildScrollView(
+      body: Screenshot(
+        controller:screenshotController200 ,
+        child:RefreshIndicator(
+          color: HexColor('4D8D6E'),
+          backgroundColor: Colors.white,
+          onRefresh: () async {
+            setState(() {
+              futurechatusers = fetchchatusers().then((chats) async {
+                await updateItemsWithLastMessage(chats); // this becomes an async closure
+                if (mounted) setState(() {}); // Check if the widget is still in the tree
+                return chats; // Returning the updated chats list
+              });
+            });
+          },
+          child: SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+
             child: Column(
               children: [
-                SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                    child: FutureBuilder<List<Item>>(
-                      future: futurechatusers,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(child: RotationTransition(
-                            turns: ciruclaranimation,
-                            child: SvgPicture.asset(
-                              'assets/images/Logo.svg',
-                              semanticsLabel: 'Your SVG Image',
-                              width: 130,
-                              height: 130,
-                            ),
-                          ))
-                          ;
-                        } else if (snapshot.hasError) {
-                          return  Center(
-                            child: Column(
-                              children: [
-                                SvgPicture.asset(
-                                  'assets/images/emptyinbox.svg',
-                                  width: 200.0,
-                                  height: 300.0,
-                                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: FutureBuilder<List<Item>>(
+                    future: futurechatusers,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: RotationTransition(
+                          turns: ciruclaranimation,
+                          child: SvgPicture.asset(
+                            'assets/images/Logo.svg',
+                            semanticsLabel: 'Your SVG Image',
+                            width: 130,
+                            height: 130,
+                          ),
+                        ))
+                        ;
+                      } else if (snapshot.hasError) {
+                        return  Center(
+                          child: Column(
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/emptyinbox.svg',
+                                width: 200.0,
+                                height: 300.0,
+                              ),
 
-                              SizedBox(height: 20,),
-                                Text('Inbox is Empty',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),)
-                              ],
+                            SizedBox(height: 20,),
+                              Text('Inbox is Empty',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),)
+                            ],
 
-                            ),
-                          );
+                          ),
+                        );
 
-                        } else if (snapshot.data!.isEmpty) {
-                          return  SvgPicture.asset(
-                            'assets/images/emptyinbox.svg',
-                            width: 100.0,
-                            height: 100.0,
-                          );
+                      } else if (snapshot.data!.isEmpty) {
+                        return  SvgPicture.asset(
+                          'assets/images/emptyinbox.svg',
+                          width: 100.0,
+                          height: 100.0,
+                        );
 
-                        }else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return  SvgPicture.asset(
-                            'assets/images/emptyinbox.svg',
-                            width: 100.0,
-                            height: 100.0,
-                          );
-                        } else {
-                          // Update the items list
-                          items = snapshot.data!;
+                      }else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return  SvgPicture.asset(
+                          'assets/images/emptyinbox.svg',
+                          width: 100.0,
+                          height: 100.0,
+                        );
+                      } else {
+                        // Update the items list
+                        items = snapshot.data!;
 
-                          return Animate(
-                            effects: [SlideEffect(duration: Duration(milliseconds: 400),),],
-                            child: ListView.builder(
-                              physics: NeverScrollableScrollPhysics(),
-                              shrinkWrap: true,
-                              itemCount: snapshot.data!.length,
-                              itemBuilder: (context, index) {
-                                return buildListItem(snapshot.data![index]);
-                              },
-                            ),
-                          );
+                        return Animate(
+                          effects: [SlideEffect(duration: Duration(milliseconds: 400),),],
+                          child: ListView.builder(
+                            physics: NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              return buildListItem(snapshot.data![index]);
+                            },
+                          ),
+                        );
 
-                        }
-                      },
-                    ),
+                      }
+                    },
                   ),
                 ),
               ],

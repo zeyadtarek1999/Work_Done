@@ -744,7 +744,12 @@ class _SignUpScreenState extends State<SignUpScreen>
                                                 color: Colors.red,
                                                 fontSize: 12,
                                               ),
+                                              counterText: "", // Hide the counter
+
+                                              // Remove default border
                                             ),
+                                            maxLength: 12, // Limit the input to 12 characters
+
                                           ),
                                         ),
                                       ],
@@ -797,7 +802,12 @@ class _SignUpScreenState extends State<SignUpScreen>
 
                                               // Replace with the desired hint text
                                               border: InputBorder.none,
+                                              counterText: "", // Hide the counter
+
+                                              // Remove default border
                                             ),
+                                            maxLength: 12, // Limit the input to 12 characters
+
                                           ),
                                         ),
                                       ),

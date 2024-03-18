@@ -881,7 +881,7 @@ class _exploreWorkerState extends State<exploreWorker> with SingleTickerProvider
                       Column(
                         children: [
                           Text(
-                            'lowest bid',
+                            'Lowest Bid',
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
                                 color: HexColor('393B3E'), // Adjust color as needed

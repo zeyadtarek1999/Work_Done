@@ -594,7 +594,12 @@ bool charater8 =false;
                                                 fontSize:
                                                 12, // Customize error message font size
                                               ),
+                                              counterText: "", // Hide the counter
+
+                                              // Remove default border
                                             ),
+                                            maxLength: 12, // Limit the input to 12 characters
+
                                           ),
                                         ),
                                       ],
@@ -641,7 +646,12 @@ bool charater8 =false;
 
                                               // Replace with the desired hint text
                                               border: InputBorder.none,
+                                              counterText: "", // Hide the counter
+
+                                              // Remove default border
                                             ),
+                                            maxLength: 12, // Limit the input to 12 characters
+
                                           ),
                                         ),
                                       ),

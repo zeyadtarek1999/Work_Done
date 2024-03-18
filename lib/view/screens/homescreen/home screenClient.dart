@@ -578,6 +578,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                 color: HexColor('1A1D1E'),
                 fontSize: 25,
                 fontWeight: FontWeight.bold,
+
               ),
             ),),
               SizedBox(
@@ -1872,8 +1873,8 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                             TextSpan(
                               children: _buildTextSpans(item.client_firstname, searchController.text),
                             ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis, // Use the client name from the fetched data
+                            maxLines: 1,
+                            overflow: TextOverflow.visible, // Use the client name from the fetched data
                             style: TextStyle(
                               color: HexColor('4D8D6E'),
                               fontSize: 18,
@@ -1907,7 +1908,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                       Column(
                         children: [
                           Text(
-                            'lowest bid',
+                            'Lowest Bid',
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
                                 color: HexColor('393B3E'), // Adjust color as needed

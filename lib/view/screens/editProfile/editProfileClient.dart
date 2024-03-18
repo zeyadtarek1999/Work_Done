@@ -710,8 +710,13 @@ class _editProfileState extends State<editProfile> {
                                   decoration: InputDecoration(
                                     hintText: firstname,
                                     border:
-                                        InputBorder.none, // Remove default border
+                                        InputBorder.none,
+                                    counterText: "", // Hide the counter
+
+                                    // Remove default border
                                   ),
+                                  maxLength: 12, // Limit the input to 12 characters
+
                                 ),
                               ))
                         ],
@@ -740,8 +745,12 @@ class _editProfileState extends State<editProfile> {
                                   decoration: InputDecoration(
                                     hintText: secondname,
                                     border:
-                                        InputBorder.none, // Remove default border
+                                        InputBorder.none,
+                                    counterText: "", // Hide the counter
+// Remove default border
                                   ),
+                                  maxLength: 12, // Limit the input to 12 characters
+
                                 ),
                               ))
                         ],

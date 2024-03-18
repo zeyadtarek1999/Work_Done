@@ -836,7 +836,12 @@ bool isLoading =false;
                                     hintText: firstname,
                                     border:
                                     InputBorder.none, // Remove default border
+                                    counterText: "", // Hide the counter
+
+                                    // Remove default border
                                   ),
+                                  maxLength: 12, // Limit the input to 12 characters
+
                                 ),
                               ))
                         ],
@@ -866,7 +871,12 @@ bool isLoading =false;
                                     hintText: secondname,
                                     border:
                                     InputBorder.none, // Remove default border
+                                    counterText: "", // Hide the counter
+
+                                    // Remove default border
                                   ),
+                                  maxLength: 12, // Limit the input to 12 characters
+
                                 ),
                               ))
                         ],

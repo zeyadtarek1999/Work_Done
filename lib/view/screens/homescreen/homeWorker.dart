@@ -1022,7 +1022,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                         child: GestureDetector(
                           child: Icon(Ionicons.notifications, size: 26),
                           onTap: () {
-                            Get.to(NotificationsPageclient());
+                            Get.to(NotificationsPageworker());
                           },
                         ),
                       ),
@@ -1032,7 +1032,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                       child: GestureDetector(
                         child: Icon(Ionicons.notifications_outline, size: 26),
                         onTap: () {
-                          Get.to(NotificationsPageclient());
+                          Get.to(NotificationsPageworker());
                         },
                       ),
                     ),
@@ -1673,7 +1673,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                       ),
                       Spacer(),
                       Text(
-                        'lowest Bid',
+                        'Lowest Bid',
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(
                             color: HexColor('393B3E'),
@@ -1707,15 +1707,18 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                               },
                               child: Text(
                                 project.client_firstname,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.visible,
                                 style: GoogleFonts.openSans(
                                   textStyle: TextStyle(
                                     color: HexColor('43745C'),
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
+
                                   ),
+
                                 ),
                               ))),
-                      SizedBox(width: 5),
                       Spacer(),
                       Text(
                         '\$ ' + '${project.lowest_bids}',
@@ -1724,7 +1727,9 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                             color: HexColor('393B3E'),
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
+
                           ),
+
                         ),
                       ),
                     ],
@@ -1735,6 +1740,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                         Icons.access_time_rounded,
                         size: 18,
                       ),
+                      SizedBox(width: 2,),
                       Text(
                         project.postedFrom,
                         style: GoogleFonts.openSans(
@@ -2028,8 +2034,8 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                               children: _buildTextSpans(
                                   item.client_firstname, searchController.text),
                             ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
+    maxLines: 1,
+    overflow: TextOverflow.visible,
                             // Use the client name from the fetched data
                             style: TextStyle(
                               color: HexColor('4D8D6E'),
@@ -2064,7 +2070,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                       Column(
                         children: [
                           Text(
-                            'lowest bid',
+                            'Lowest Bid',
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
                                 color: HexColor('393B3E'), // Adjust color as needed

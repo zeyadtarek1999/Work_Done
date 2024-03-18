@@ -87,7 +87,7 @@ String usertype='';
             } else if (userType == 'worker') {
               usertype= 'worker';
               setState(() {
-                Reciver=widget.client_id.toString();
+                Reciver= widget.client_id.toString();
                 usertype= 'Worker';
 
               });
@@ -356,6 +356,7 @@ String usertype='';
           .get();
       String? receiverToken = receiverDoc.get('fcmToken'); // Assuming 'fcmToken' is the field name for the FCM token
 print('reciver tokern $receiverToken');
+print('reciver id $Reciver');
       // Send a notification to the receiver
       if (receiverToken != null) {
         await sendNotification("Message from ${widget.myside_firstname} ($usertype)", "${content}", receiverToken);
