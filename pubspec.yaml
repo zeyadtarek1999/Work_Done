@@ -82,7 +82,6 @@ dependencies:
   url_launcher: ^6.2.4
   workmanager: ^0.5.2
   flutter_background_service: ^2.4.6
-  flutter_paypal_native: ^2.1.0
   flutter_animate: ^4.5.0
   flutter_onboarding_slider: ^1.0.11
   showcaseview: ^2.0.3
