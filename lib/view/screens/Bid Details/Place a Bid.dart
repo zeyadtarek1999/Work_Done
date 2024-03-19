@@ -110,7 +110,7 @@ double total =0;
 Get.to(paymentmethod());
                   },
                   style: ElevatedButton.styleFrom(
-                    primary: Color(0xFF4D8D6E), // Use the specified color (replace 0xFF4D8D6E with your color)
+                   backgroundColor: Color(0xFF4D8D6E), // Use the specified color (replace 0xFF4D8D6E with your color)
                   ),
                   child: Text(
                     'Set up PayPal',

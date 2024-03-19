@@ -140,8 +140,8 @@ class _AppLauncherState extends State<AppLauncher> {
                 _handleRefresh();
               },
               style: ElevatedButton.styleFrom(
-                primary: Color(0xFF4D8D6E), // Set the background color
-                onPrimary: Colors.white,   // Set the text color
+               backgroundColor: Color(0xFF4D8D6E), // Set the background color
+               foregroundColor: Colors.white,   // Set the text color
               ),
               child: Text('Refresh'),
             ),

@@ -744,7 +744,7 @@ class _projectsClientState extends State<projectsClient> with SingleTickerProvid
                           },
                           child: Text('Details',style: TextStyle(color: Colors.white),),
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent,
+                           backgroundColor: Colors.transparent,
                             elevation: 0,
                             textStyle: TextStyle(color: Colors.white),
                           ),

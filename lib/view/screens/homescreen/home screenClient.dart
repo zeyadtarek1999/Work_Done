@@ -1297,7 +1297,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                           },
                           style: TextButton.styleFrom(
 
-                            primary: Colors.black45,
+                           backgroundColor: Colors.black45,
 
                           ),
                           child: Text(
@@ -1927,7 +1927,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                           },
                           child: Text('Details',style: TextStyle(color: Colors.white),),
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent,
+                           backgroundColor: Colors.transparent,
                             elevation: 0,
                             textStyle: TextStyle(color: Colors.white),
                           ),

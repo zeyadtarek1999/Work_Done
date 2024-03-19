@@ -682,7 +682,7 @@ print(widget.userId.toString(),);
                     Center(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          primary: Color(0xFF4D8D6E),
+                         backgroundColor: Color(0xFF4D8D6E),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -1370,7 +1370,7 @@ SizedBox(height: 3,),
                           },
                           child: Text('Details',style: TextStyle(color: Colors.white),),
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent,
+                           backgroundColor: Colors.transparent,
                             elevation: 0,
                             textStyle: TextStyle(color: Colors.white),
                           ),

@@ -573,7 +573,7 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
                         },
                         style: TextButton.styleFrom(
         
-                          primary: Colors.redAccent,
+                         backgroundColor: Colors.redAccent,
         
                         ),
                         child: Text(
@@ -604,7 +604,7 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
                       },
                       style: TextButton.styleFrom(
         
-                        primary: Colors.black45,
+                       backgroundColor: Colors.black45,
         
                       ),
                       child: Text(
@@ -932,7 +932,7 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
                           },
                           child: Text('Details',style: TextStyle(color: Colors.white,fontSize: 12),),
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent,
+                           backgroundColor: Colors.transparent,
                             elevation: 0,
                             textStyle: TextStyle(color: Colors.white),
                           ),

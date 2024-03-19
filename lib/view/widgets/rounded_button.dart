@@ -39,7 +39,7 @@ class RoundedButton extends StatelessWidget {
       ),
       onPressed: loading ? null : press, // Disable button during loading
       style: ElevatedButton.styleFrom(
-        primary: HexColor('#4D8D6E'),
+       backgroundColor: HexColor('#4D8D6E'),
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
         textStyle: TextStyle(
           letterSpacing: 2,

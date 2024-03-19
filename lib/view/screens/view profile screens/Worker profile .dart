@@ -662,7 +662,7 @@ SizedBox(height: 10,),
                   Center(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        primary: Color(0xFF4D8D6E),
+                       backgroundColor: Color(0xFF4D8D6E),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -940,7 +940,7 @@ SizedBox(height: 10,),
                                       children: [
                                         ElevatedButton(
                                           style: ElevatedButton.styleFrom(
-                                            primary: Color(0xFF4D8D6E),
+                                           backgroundColor: Color(0xFF4D8D6E),
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(20),
                                             ),
@@ -1118,7 +1118,7 @@ SizedBox(height: 10,),
                                                                       Navigator.of(context).pop(); // Close the bottom sheet
                                                                     },
                                                                     style: ElevatedButton.styleFrom(
-                                                                      primary: HexColor('#4D8D6E'), // Background color
+                                                                     backgroundColor: HexColor('#4D8D6E'), // Background color
                                                                     ),
                                                                     child: Text('Close',style: TextStyle(color: Colors.white),),
                                                                   ),
@@ -1657,7 +1657,7 @@ SizedBox(height: 3,),
                           },
                           child: Text('Details',style: TextStyle(color: Colors.white),),
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent,
+                           backgroundColor: Colors.transparent,
                             elevation: 0,
                             textStyle: TextStyle(color: Colors.white),
                           ),

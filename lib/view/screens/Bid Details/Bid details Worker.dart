@@ -53,7 +53,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
   SfRangeValues _values = SfRangeValues(
       DateTime(2000, 01, 01, 07, 00, 00), DateTime(2000, 01, 01, 17, 00, 00));
   DateTime dateTime = DateTime.now();
-  DateTime _selectedDate = DateTime.now();
   final TextEditingController otpController = TextEditingController();
   final TextEditingController otpControlleraccessproject = TextEditingController();
 
@@ -688,7 +687,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
                           },
                           style: ElevatedButton.styleFrom(
-                            primary: HexColor('4D8D6E'),
+                           backgroundColor: HexColor('4D8D6E'),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                 screenHeight * 0.02,
@@ -714,7 +713,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
                           },
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.red,
+                           backgroundColor: Colors.red,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                 screenHeight * 0.02,
@@ -1645,7 +1644,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                   child: Text('Close',style: TextStyle(fontSize: 15, color: Colors.white), // Adjust the font size
                                                                   ),
                                                                   style: ElevatedButton.styleFrom(
-                                                                    primary: Colors.transparent,
                                                                     backgroundColor: HexColor('4D8D6E'),
                                                                     elevation: 0,
                                                                     textStyle: TextStyle(color: Colors.white),
@@ -1664,7 +1662,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     );
                                                   },
                                                   style: ElevatedButton.styleFrom(
-                                                    primary: HexColor('4D8D6E'), // Set the button color to 4D8D6E
+                                                   backgroundColor: HexColor('4D8D6E'), // Set the button color to 4D8D6E
                                                     shape: RoundedRectangleBorder(
                                                       borderRadius: BorderRadius.circular(30.0), // Adjust the border radius
                                                     ),
@@ -1867,21 +1865,21 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       seconduserimage: projectData.clientData.profileImage,
 
                                                       chatId: projectData
-                                                          .pageaccessdata!.chat_ID,
+                                                          .pageaccessdata.chat_ID,
                                                       currentUser:
                                                       'worker',
                                                       secondUserName:
                                                       projectData
                                                           .clientData.firstname,
                                                       userId: projectData
-                                                          .clientData!
+                                                          .clientData
                                                           .clientId
                                                           .toString(),
                                                     ));
                                                   },
                                                   style: ElevatedButton.styleFrom(
-                                                    primary: HexColor('ED6F53'),
-                                                    onPrimary: Colors.white,
+                                                   backgroundColor: HexColor('ED6F53'),
+                                                   foregroundColor: Colors.white,
                                                     elevation: 5,
                                                     shape: RoundedRectangleBorder(
                                                       borderRadius: BorderRadius.circular(12),
@@ -1925,8 +1923,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         _navigateToNextPage(context);
                                                       },
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('777031'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('777031'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(21),
@@ -2002,8 +2000,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                             verify_project_schedule (widget.projectId,otp);
                                                                           },
                                                                           style: ElevatedButton.styleFrom(
-                                                                            primary: HexColor('4D8D6E'),
-                                                                            onPrimary: Colors.white,
+                                                                           backgroundColor: HexColor('4D8D6E'),
+                                                                           foregroundColor: Colors.white,
                                                                             elevation: 5,
                                                                             shape: RoundedRectangleBorder(
                                                                               borderRadius: BorderRadius.circular(20),
@@ -2024,8 +2022,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         );
                                                       } : null,
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('B6B021'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('B6B021'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(8),
@@ -2126,8 +2124,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                               verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -2149,8 +2147,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         );
                                                       } : null, // The button will be disabled if the condition is false
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('317773'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('317773'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(8),
@@ -2469,8 +2467,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             });
                                                           },
                                                           style: ElevatedButton.styleFrom(
-                                                            primary: HexColor('4D8D6E'),
-                                                            onPrimary: Colors.white,
+                                                           backgroundColor: HexColor('4D8D6E'),
+                                                           foregroundColor: Colors.white,
                                                             elevation: 5,
                                                             shape: RoundedRectangleBorder(
                                                               borderRadius: BorderRadius.circular(12),
@@ -2494,8 +2492,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             });
                                                           },
                                                           style: ElevatedButton.styleFrom(
-                                                            primary: HexColor('#e90404'),
-                                                            onPrimary: Colors.white,
+                                                           backgroundColor: HexColor('#e90404'),
+                                                           foregroundColor: Colors.white,
                                                             elevation: 5,
                                                             shape: RoundedRectangleBorder(
                                                               borderRadius: BorderRadius.circular(12),
@@ -2545,8 +2543,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       ));
                                                     },
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: HexColor('ED6F53'),
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: HexColor('ED6F53'),
+                                                     foregroundColor: Colors.white,
                                                       elevation: 5,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -2571,8 +2569,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         _navigateToNextPage(context);
                                                       },
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('777031'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('777031'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(21),
@@ -2682,8 +2680,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                               verify_project_schedule (widget.projectId,otp);
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -2705,8 +2703,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         );
                                                       } : null,
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('B6B021'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('B6B021'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(8),
@@ -2807,8 +2805,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                               verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -2830,8 +2828,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         );
                                                       } : null, // The button will be disabled if the condition is false
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('317773'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('317773'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(8),
@@ -3154,8 +3152,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       ));
                                                     },
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: HexColor('ED6F53'),
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: HexColor('ED6F53'),
+                                                     foregroundColor: Colors.white,
                                                       elevation: 5,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -3180,8 +3178,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         _navigateToNextPage(context);
                                                       },
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('777031'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('777031'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(21),
@@ -3291,8 +3289,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                               verify_project_schedule (widget.projectId,otp);
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -3314,8 +3312,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         );
                                                       } : null,
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('B6B021'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('B6B021'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(8),
@@ -3416,8 +3414,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                               verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -3439,8 +3437,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         );
                                                       } : null, // The button will be disabled if the condition is false
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('317773'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('317773'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(8),
@@ -3721,8 +3719,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       ));
                                                     },
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: HexColor('ED6F53'),
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: HexColor('ED6F53'),
+                                                     foregroundColor: Colors.white,
                                                       elevation: 5,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -3747,8 +3745,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         _navigateToNextPage(context);
                                                       },
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('777031'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('777031'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(21),
@@ -3858,8 +3856,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                               verify_project_schedule (widget.projectId,otp);
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -3881,8 +3879,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         );
                                                       } : null,
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('B6B021'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('B6B021'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(8),
@@ -3983,8 +3981,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                               verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -4006,8 +4004,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         );
                                                       } : null, // The button will be disabled if the condition is false
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('317773'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('317773'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(8),
@@ -4309,8 +4307,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       ));
                                                     },
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: HexColor('ED6F53'),
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: HexColor('ED6F53'),
+                                                     foregroundColor: Colors.white,
                                                       elevation: 5,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -4335,8 +4333,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         _navigateToNextPage(context);
                                                       },
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('777031'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('777031'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(21),
@@ -4446,8 +4444,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                               verify_project_schedule (widget.projectId,otp);
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -4469,8 +4467,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         );
                                                       } : null,
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('B6B021'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('B6B021'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(8),
@@ -4570,8 +4568,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                                   verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -4593,8 +4591,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         );
                                                       } : null, // The button will be disabled if the condition is false
                                                       style: ElevatedButton.styleFrom(
-                                                        primary: HexColor('317773'),
-                                                        onPrimary: Colors.white,
+                                                       backgroundColor: HexColor('317773'),
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius.circular(8),
@@ -4899,8 +4897,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                     ));
                   },
                   style: ElevatedButton.styleFrom(
-                    primary: HexColor('ED6F53'),
-                    onPrimary: Colors.white,
+                   backgroundColor: HexColor('ED6F53'),
+                   foregroundColor: Colors.white,
                     elevation: 5,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -4925,8 +4923,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                       _navigateToNextPage(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      primary: HexColor('777031'),
-                      onPrimary: Colors.white,
+                     backgroundColor: HexColor('777031'),
+                     foregroundColor: Colors.white,
                       elevation: 8,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(21),
@@ -5036,8 +5034,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             verify_project_schedule (widget.projectId,otp);
                                           },
                                           style: ElevatedButton.styleFrom(
-                                            primary: HexColor('4D8D6E'),
-                                            onPrimary: Colors.white,
+                                           backgroundColor: HexColor('4D8D6E'),
+                                           foregroundColor: Colors.white,
                                             elevation: 5,
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(20),
@@ -5059,8 +5057,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                       );
                     } : null,
                     style: ElevatedButton.styleFrom(
-                      primary: HexColor('B6B021'),
-                      onPrimary: Colors.white,
+                     backgroundColor: HexColor('B6B021'),
+                     foregroundColor: Colors.white,
                       elevation: 8,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -5160,8 +5158,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
                                           },
                                           style: ElevatedButton.styleFrom(
-                                            primary: HexColor('4D8D6E'),
-                                            onPrimary: Colors.white,
+                                           backgroundColor: HexColor('4D8D6E'),
+                                           foregroundColor: Colors.white,
                                             elevation: 5,
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(20),
@@ -5183,8 +5181,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                       );
                     } : null, // The button will be disabled if the condition is false
                     style: ElevatedButton.styleFrom(
-                      primary: HexColor('317773'),
-                      onPrimary: Colors.white,
+                     backgroundColor: HexColor('317773'),
+                     foregroundColor: Colors.white,
                       elevation: 8,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -5831,10 +5829,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary:
+                                                       backgroundColor:
                                                         HexColor('ED6F53'),
                                                         // Background color
-                                                        onPrimary: Colors.white,
+                                                       foregroundColor: Colors.white,
                                                         // Text color
                                                         elevation: 8,
                                                         // Elevation
@@ -6428,7 +6426,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                                   backgroundColor: Colors.transparent,
                                                                                   backgroundImage: projectData.clientData.profileImage== 'https://workdonecorp.com/images/' ||projectData.clientData.profileImage == ''
                                                                                       ? AssetImage('assets/images/default.png') as ImageProvider
-                                                                                      : NetworkImage(projectData.clientData.profileImage ?? 'assets/images/default.png'),
+                                                                                      : NetworkImage(projectData.clientData.profileImage ),
                                                                                 ),
                                                                                 SizedBox(width: 10),
                                                                                 Column(
@@ -6563,10 +6561,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         },
                                                         style: ElevatedButton
                                                             .styleFrom(
-                                                          primary:
-                                                          HexColor('ED6F53'),
+                                                          backgroundColor: HexColor('ED6F53'),
                                                           // Background color
-                                                          onPrimary: Colors.white,
+                                                         foregroundColor: Colors.white,
                                                           // Text color
                                                           elevation: 8,
                                                           // Elevation
@@ -7065,7 +7062,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                 !(item.workerProfilePic.toLowerCase().endsWith('.jpg') || item.workerProfilePic.toLowerCase().endsWith('.png'))
 
                 ? AssetImage('assets/images/default.png') as ImageProvider
-                : NetworkImage(item.workerProfilePic?? 'assets/images/default.png'),
+                : NetworkImage(item.workerProfilePic),
           ),
 
           SizedBox(
@@ -7191,7 +7188,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                       child: Text('Close',style: TextStyle(fontSize: 15, color: Colors.white), // Adjust the font size
                                       ),
                                       style: ElevatedButton.styleFrom(
-                                        primary: Colors.transparent,
                                         backgroundColor: HexColor('4D8D6E'),
                                         elevation: 0,
                                         textStyle: TextStyle(color: Colors.white),
@@ -7258,7 +7254,7 @@ class ProjectData {
 
    int numberOfLikes;
   final String video;
-  final dynamic? lowestBid; // Assuming lowest bid could be null
+  final dynamic lowestBid; // Assuming lowest bid could be null
   final String timeframeStart;
   final String timeframeEnd;
   final List<Bid> bids;
@@ -7608,8 +7604,7 @@ class ModernPopup extends StatelessWidget {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: HexColor('1AA251'), // Adjust opacity here
-                  onPrimary: Colors.white,
+                  foregroundColor: Colors.white,backgroundColor: HexColor('1AA251'),
                   elevation: 5,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),

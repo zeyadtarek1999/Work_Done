@@ -383,11 +383,11 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Work Done',
         theme: ThemeData(
-          primaryColorLight: HexColor('#4D8D6E'),
+         primaryColorLight: HexColor('#4D8D6E'),
           appBarTheme: AppBarTheme(color: HexColor('#4D8D6E')),
           buttonTheme: ButtonThemeData(buttonColor: HexColor('#4D8D6E')),
           scaffoldBackgroundColor: HexColor('#F5F5F5'),
-          primaryTextTheme: TextTheme(
+         primaryTextTheme: TextTheme(
             headlineMedium: TextStyle(color: HexColor('#292929')),
           ),
         ),

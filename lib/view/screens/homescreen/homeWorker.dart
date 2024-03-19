@@ -1393,7 +1393,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                                 });
                               },
                               style: TextButton.styleFrom(
-                                primary: Colors.redAccent,
+                               backgroundColor: Colors.redAccent,
                               ),
                               child: Text(
                                 'Previous Page',
@@ -1425,7 +1425,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                               }
                             },
                             style: TextButton.styleFrom(
-                              primary: Colors.black45,
+                             backgroundColor: Colors.black45,
                             ),
                             child: Text(
                               'Next Page',
@@ -1774,7 +1774,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                             style: TextStyle(color: Colors.white),
                           ),
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent,
+                           backgroundColor: Colors.transparent,
                             elevation: 0,
                             textStyle: TextStyle(color: Colors.white),
                           ),
@@ -2147,7 +2147,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                             style: TextStyle(color: Colors.white),
                           ),
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent,
+                           backgroundColor: Colors.transparent,
                             elevation: 0,
                             textStyle: TextStyle(color: Colors.white),
                           ),

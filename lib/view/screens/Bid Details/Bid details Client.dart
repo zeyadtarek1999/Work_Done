@@ -580,7 +580,7 @@ setState(() {
 
                           },
                           style: ElevatedButton.styleFrom(
-                            primary: HexColor('4D8D6E'),
+                           backgroundColor: HexColor('4D8D6E'),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                 screenHeight * 0.02,
@@ -1510,7 +1510,6 @@ setState(() {
                                                                   child: Text('Close',style: TextStyle(fontSize: 15, color: Colors.white), // Adjust the font size
                                                                   ),
                                                                   style: ElevatedButton.styleFrom(
-                                                                    primary: Colors.transparent,
                                                                     backgroundColor: HexColor('4D8D6E'),
                                                                     elevation: 0,
                                                                     textStyle: TextStyle(color: Colors.white),
@@ -1529,7 +1528,7 @@ setState(() {
                                                     );
                                                   },
                                                   style: ElevatedButton.styleFrom(
-                                                    primary: HexColor('4D8D6E'), // Set the button color to 4D8D6E
+                                                   backgroundColor: HexColor('4D8D6E'), // Set the button color to 4D8D6E
                                                     shape: RoundedRectangleBorder(
                                                       borderRadius: BorderRadius.circular(30.0), // Adjust the border radius
                                                     ),
@@ -2089,9 +2088,9 @@ setState(() {
                                                                                 style:
                                                                                 ElevatedButton
                                                                                     .styleFrom(
-                                                                                  primary: HexColor(
+                                                                                 backgroundColor: HexColor(
                                                                                       'B6212A'),
-                                                                                  onPrimary: Colors
+                                                                                 foregroundColor: Colors
                                                                                       .white,
                                                                                   elevation: 5,
                                                                                   shape: RoundedRectangleBorder(
@@ -2140,9 +2139,9 @@ setState(() {
                                                                                 },
                                                                                 style: ElevatedButton
                                                                                     .styleFrom(
-                                                                                  primary: HexColor(
+                                                                                 backgroundColor: HexColor(
                                                                                       '4D8D6E'),
-                                                                                  onPrimary: Colors
+                                                                                 foregroundColor: Colors
                                                                                       .white,
                                                                                   elevation: 5,
                                                                                   shape: RoundedRectangleBorder(
@@ -2172,9 +2171,9 @@ setState(() {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary:
+                                                       backgroundColor:
                                                         HexColor('34446F'),
-                                                        onPrimary: Colors.white,
+                                                       foregroundColor: Colors.white,
                                                         elevation: 5,
                                                         shape:
                                                         RoundedRectangleBorder(
@@ -2231,10 +2230,10 @@ setState(() {
                                                         },
                                                         style: ElevatedButton
                                                             .styleFrom(
-                                                          primary:
+                                                         backgroundColor:
                                                           HexColor('ED6F53'),
                                                           // Background color
-                                                          onPrimary: Colors.white,
+                                                         foregroundColor: Colors.white,
                                                           // Text color
                                                           elevation: 8,
                                                           // Elevation
@@ -2706,9 +2705,9 @@ setState(() {
                                                       // Set onPressed to null if the condition is not met
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary: HexColor(
+                                                       backgroundColor: HexColor(
                                                             ('66C020')),
-                                                        onPrimary: Colors.white,
+                                                       foregroundColor: Colors.white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
                                                           borderRadius: BorderRadius
@@ -2747,9 +2746,9 @@ setState(() {
                                                           },
                                                           style: ElevatedButton
                                                               .styleFrom(
-                                                            primary: HexColor(
+                                                           backgroundColor: HexColor(
                                                                 '777031'),
-                                                            onPrimary:
+                                                           foregroundColor:
                                                             Colors.white,
                                                             elevation: 8,
                                                             shape:
@@ -3275,8 +3274,8 @@ setState(() {
                                                                             },
                                                                             style:
                                                                             ElevatedButton.styleFrom(
-                                                                              primary: HexColor('B6212A'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('B6212A'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(12),
@@ -3301,8 +3300,8 @@ setState(() {
 
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(12),
@@ -3328,8 +3327,8 @@ setState(() {
                                                   }
                                                       : null, // Set onPressed to null when the condition is false
                                                   style: ElevatedButton.styleFrom(
-                                                    primary:  projectData.pageContent.change == 'maftoo7' ?Colors.blueAccent.withOpacity(0.5): Colors.blueAccent,
-                                                    onPrimary: Colors.white,
+                                                   backgroundColor:  projectData.pageContent.change == 'maftoo7' ?Colors.blueAccent.withOpacity(0.5): Colors.blueAccent,
+                                                   foregroundColor: Colors.white,
                                                     elevation: 0,
                                                     shape: RoundedRectangleBorder(
                                                       borderRadius: BorderRadius.circular(12),
@@ -3433,10 +3432,10 @@ setState(() {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary:
+                                                       backgroundColor:
                                                         HexColor('ED6F53'),
                                                         // Background color
-                                                        onPrimary: Colors.white,
+                                                       foregroundColor: Colors.white,
                                                         // Text color
                                                         elevation: 8,
                                                         // Elevation
@@ -3483,9 +3482,9 @@ setState(() {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary: HexColor(
+                                                       backgroundColor: HexColor(
                                                             '777031'),
-                                                        onPrimary:
+                                                       foregroundColor:
                                                         Colors.white,
                                                         elevation: 8,
                                                         shape:
@@ -3609,8 +3608,8 @@ setState(() {
                                                                               Navigator.pop(context); // Close the showModalBottomSheet
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -3634,8 +3633,8 @@ setState(() {
                                                     }
                                                         : null,
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
+                                                     foregroundColor: Colors.white,
                                                       elevation: 3,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -3763,8 +3762,8 @@ setState(() {
                                                                               Navigator.pop(context); // Close the showModalBottomSheet
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -3788,8 +3787,8 @@ setState(() {
                                                     }
                                                         : null,
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
+                                                     foregroundColor: Colors.white,
                                                       elevation: 3,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -4286,8 +4285,8 @@ setState(() {
                                                     }
                                                         : null, // Set onPressed to null if the condition is not met
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: HexColor(('66C020')),
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: HexColor(('66C020')),
+                                                     foregroundColor: Colors.white,
                                                       elevation: 8,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(8),
@@ -4812,8 +4811,8 @@ setState(() {
                                                                             },
                                                                             style:
                                                                             ElevatedButton.styleFrom(
-                                                                              primary: HexColor('B6212A'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('B6212A'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(12),
@@ -4838,8 +4837,8 @@ setState(() {
 
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(12),
@@ -4865,8 +4864,8 @@ setState(() {
                                                   }
                                                       : null, // Set onPressed to null when the condition is false
                                                   style: ElevatedButton.styleFrom(
-                                                    primary:  projectData.pageContent.change == 'maftoo7' ?Colors.blueAccent.withOpacity(0.5): Colors.blueAccent,
-                                                    onPrimary: Colors.white,
+                                                   backgroundColor:  projectData.pageContent.change == 'maftoo7' ?Colors.blueAccent.withOpacity(0.5): Colors.blueAccent,
+                                                   foregroundColor: Colors.white,
                                                     elevation: 0,
                                                     shape: RoundedRectangleBorder(
                                                       borderRadius: BorderRadius.circular(12),
@@ -4923,10 +4922,10 @@ setState(() {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary:
+                                                       backgroundColor:
                                                         HexColor('ED6F53'),
                                                         // Background color
-                                                        onPrimary: Colors.white,
+                                                       foregroundColor: Colors.white,
                                                         // Text color
                                                         elevation: 8,
                                                         // Elevation
@@ -4973,9 +4972,9 @@ setState(() {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary: HexColor(
+                                                       backgroundColor: HexColor(
                                                             '777031'),
-                                                        onPrimary:
+                                                       foregroundColor:
                                                         Colors.white,
                                                         elevation: 8,
                                                         shape:
@@ -5099,8 +5098,8 @@ setState(() {
                                                                               Navigator.pop(context); // Close the showModalBottomSheet
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -5124,8 +5123,8 @@ setState(() {
                                                     }
                                                         : null,
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
+                                                     foregroundColor: Colors.white,
                                                       elevation: 3,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -5253,8 +5252,8 @@ setState(() {
                                                                               Navigator.pop(context); // Close the showModalBottomSheet
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -5278,8 +5277,8 @@ setState(() {
                                                     }
                                                         : null,
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
+                                                     foregroundColor: Colors.white,
                                                       elevation: 3,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -5776,8 +5775,8 @@ setState(() {
                                                     }
                                                         : null, // Set onPressed to null if the condition is not met
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: HexColor(('66C020')),
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: HexColor(('66C020')),
+                                                     foregroundColor: Colors.white,
                                                       elevation: 8,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(8),
@@ -6302,8 +6301,8 @@ setState(() {
                                                                             },
                                                                             style:
                                                                             ElevatedButton.styleFrom(
-                                                                              primary: HexColor('B6212A'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('B6212A'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(12),
@@ -6328,8 +6327,8 @@ setState(() {
 
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(12),
@@ -6355,8 +6354,8 @@ setState(() {
                                                   }
                                                       : null, // Set onPressed to null when the condition is false
                                                   style: ElevatedButton.styleFrom(
-                                                    primary:  projectData.pageContent.change == 'maftoo7' ?Colors.blueAccent.withOpacity(0.5): Colors.blueAccent,
-                                                    onPrimary: Colors.white,
+                                                   backgroundColor:  projectData.pageContent.change == 'maftoo7' ?Colors.blueAccent.withOpacity(0.5): Colors.blueAccent,
+                                                   foregroundColor: Colors.white,
                                                     elevation: 0,
                                                     shape: RoundedRectangleBorder(
                                                       borderRadius: BorderRadius.circular(12),
@@ -6413,10 +6412,10 @@ setState(() {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary:
+                                                       backgroundColor:
                                                         HexColor('ED6F53'),
                                                         // Background color
-                                                        onPrimary: Colors.white,
+                                                       foregroundColor: Colors.white,
                                                         // Text color
                                                         elevation: 8,
                                                         // Elevation
@@ -6463,9 +6462,9 @@ setState(() {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary: HexColor(
+                                                       backgroundColor: HexColor(
                                                             '777031'),
-                                                        onPrimary:
+                                                       foregroundColor:
                                                         Colors.white,
                                                         elevation: 8,
                                                         shape:
@@ -6589,8 +6588,8 @@ setState(() {
                                                                               Navigator.pop(context); // Close the showModalBottomSheet
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -6614,8 +6613,8 @@ setState(() {
                                                     }
                                                         : null,
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
+                                                     foregroundColor: Colors.white,
                                                       elevation: 3,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -6743,8 +6742,8 @@ setState(() {
                                                                               Navigator.pop(context); // Close the showModalBottomSheet
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -6768,8 +6767,8 @@ setState(() {
                                                     }
                                                         : null,
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
+                                                     foregroundColor: Colors.white,
                                                       elevation: 3,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -7266,8 +7265,8 @@ setState(() {
                                                     }
                                                         : null, // Set onPressed to null if the condition is not met
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: HexColor(('66C020')),
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: HexColor(('66C020')),
+                                                     foregroundColor: Colors.white,
                                                       elevation: 8,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(8),
@@ -7766,8 +7765,8 @@ setState(() {
                                                                             },
                                                                             style:
                                                                             ElevatedButton.styleFrom(
-                                                                              primary: HexColor('B6212A'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('B6212A'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(12),
@@ -7794,8 +7793,8 @@ setState(() {
 
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(12),
@@ -7821,8 +7820,8 @@ setState(() {
                                                   }
                                                       : null, // Set onPressed to null when the condition is false
                                                   style: ElevatedButton.styleFrom(
-                                                    primary:  projectData.pageContent.change == 'maftoo7' ?Colors.blueAccent.withOpacity(0.5): Colors.blueAccent,
-                                                    onPrimary: Colors.white,
+                                                   backgroundColor:  projectData.pageContent.change == 'maftoo7' ?Colors.blueAccent.withOpacity(0.5): Colors.blueAccent,
+                                                   foregroundColor: Colors.white,
                                                     elevation: 0,
                                                     shape: RoundedRectangleBorder(
                                                       borderRadius: BorderRadius.circular(12),
@@ -7879,10 +7878,10 @@ setState(() {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary:
+                                                       backgroundColor:
                                                         HexColor('ED6F53'),
                                                         // Background color
-                                                        onPrimary: Colors.white,
+                                                       foregroundColor: Colors.white,
                                                         // Text color
                                                         elevation: 8,
                                                         // Elevation
@@ -7929,9 +7928,9 @@ setState(() {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary: HexColor(
+                                                       backgroundColor: HexColor(
                                                             '777031'),
-                                                        onPrimary:
+                                                       foregroundColor:
                                                         Colors.white,
                                                         elevation: 8,
                                                         shape:
@@ -8055,8 +8054,8 @@ setState(() {
                                                                               Navigator.pop(context); // Close the showModalBottomSheet
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -8080,8 +8079,8 @@ setState(() {
                                                     }
                                                         : null,
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
+                                                     foregroundColor: Colors.white,
                                                       elevation: 3,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -8209,8 +8208,8 @@ setState(() {
                                                                               Navigator.pop(context); // Close the showModalBottomSheet
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -8234,8 +8233,8 @@ setState(() {
                                                     }
                                                         : null,
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
+                                                     foregroundColor: Colors.white,
                                                       elevation: 3,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -8576,8 +8575,8 @@ setState(() {
                                                     }
                                                         : null, // Set onPressed to null if the condition is not met
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: HexColor(('66C020')),
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: HexColor(('66C020')),
+                                                     foregroundColor: Colors.white,
                                                       elevation: 8,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(8),
@@ -9076,8 +9075,8 @@ setState(() {
                                                                             },
                                                                             style:
                                                                             ElevatedButton.styleFrom(
-                                                                              primary: HexColor('B6212A'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('B6212A'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(12),
@@ -9105,8 +9104,8 @@ setState(() {
 
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(12),
@@ -9132,8 +9131,8 @@ setState(() {
                                                   }
                                                       : null, // Set onPressed to null when the condition is false
                                                   style: ElevatedButton.styleFrom(
-                                                    primary:  projectData.pageContent.change == 'maftoo7' ?Colors.blueAccent.withOpacity(0.5): Colors.blueAccent,
-                                                    onPrimary: Colors.white,
+                                                   backgroundColor:  projectData.pageContent.change == 'maftoo7' ?Colors.blueAccent.withOpacity(0.5): Colors.blueAccent,
+                                                   foregroundColor: Colors.white,
                                                     elevation: 0,
                                                     shape: RoundedRectangleBorder(
                                                       borderRadius: BorderRadius.circular(12),
@@ -9190,10 +9189,10 @@ setState(() {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary:
+                                                       backgroundColor:
                                                         HexColor('ED6F53'),
                                                         // Background color
-                                                        onPrimary: Colors.white,
+                                                       foregroundColor: Colors.white,
                                                         // Text color
                                                         elevation: 8,
                                                         // Elevation
@@ -9240,9 +9239,9 @@ setState(() {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                        primary: HexColor(
+                                                       backgroundColor: HexColor(
                                                             '777031'),
-                                                        onPrimary:
+                                                       foregroundColor:
                                                         Colors.white,
                                                         elevation: 8,
                                                         shape:
@@ -9366,8 +9365,8 @@ setState(() {
                                                                               Navigator.pop(context); // Close the showModalBottomSheet
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -9391,8 +9390,8 @@ setState(() {
                                                     }
                                                         : null,
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: (projectData.pageContent.schedule_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : HexColor('2E6070'), // Set the color when the condition is false
+                                                     foregroundColor: Colors.white,
                                                       elevation: 3,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -9520,8 +9519,8 @@ setState(() {
                                                                               Navigator.pop(context); // Close the showModalBottomSheet
                                                                             },
                                                                             style: ElevatedButton.styleFrom(
-                                                                              primary: HexColor('4D8D6E'),
-                                                                              onPrimary: Colors.white,
+                                                                             backgroundColor: HexColor('4D8D6E'),
+                                                                             foregroundColor: Colors.white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
                                                                                 borderRadius: BorderRadius.circular(20),
@@ -9545,8 +9544,8 @@ setState(() {
                                                     }
                                                         : null,
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: (projectData.pageContent.complete_vc_generate_button == 'mftoo7') ? HexColor('B6B021') : Colors.grey, // Set the color when the condition is false
+                                                     foregroundColor: Colors.white,
                                                       elevation: 3,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(12),
@@ -9594,8 +9593,8 @@ setState(() {
                                                     }
                                                         : null, // Set onPressed to null if the condition is not met
                                                     style: ElevatedButton.styleFrom(
-                                                      primary: HexColor(('66C020')),
-                                                      onPrimary: Colors.white,
+                                                     backgroundColor: HexColor(('66C020')),
+                                                     foregroundColor: Colors.white,
                                                       elevation: 8,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius: BorderRadius.circular(8),
@@ -10550,7 +10549,6 @@ setState(() {
                                       child: Text('Close',style: TextStyle(fontSize: 15, color: Colors.white), // Adjust the font size
                                       ),
                                       style: ElevatedButton.styleFrom(
-                                        primary: Colors.transparent,
                                         backgroundColor: HexColor('4D8D6E'),
                                         elevation: 0,
                                         textStyle: TextStyle(color: Colors.white),
@@ -10613,7 +10611,6 @@ setState(() {
                 style: TextStyle(fontSize: 10, color: Colors.white), // Adjust the font size
               ),
               style: ElevatedButton.styleFrom(
-                primary: Colors.transparent,
                 backgroundColor: HexColor('4D8D6E'),
                 elevation: 0,
                 textStyle: TextStyle(color: Colors.white),
@@ -11047,8 +11044,8 @@ class ModernPopup extends StatelessWidget {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: HexColor('1AA251'), // Adjust opacity here
-                  onPrimary: Colors.white,
+                 backgroundColor: HexColor('1AA251'), // Adjust opacity here
+                 foregroundColor: Colors.white,
                   elevation: 5,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),

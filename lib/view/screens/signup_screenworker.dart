@@ -1000,8 +1000,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                                                         }
                                                       },
                                                 style: ElevatedButton.styleFrom(
-                                                  primary: HexColor('4D8D6E'),
-                                                  onPrimary: Colors.white,
+                                                 backgroundColor: HexColor('4D8D6E'),
+                                                 foregroundColor: Colors.white,
                                                   minimumSize: Size(30, 40),
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius:
@@ -1558,7 +1558,7 @@ SizedBox(width: 8,),
                                                             ),
                                                             style: ElevatedButton
                                                                 .styleFrom(
-                                                              primary: Colors.red,
+                                                             backgroundColor: Colors.red,
                                                             ),
                                                           ),
                                                           SizedBox(
@@ -1600,7 +1600,7 @@ SizedBox(width: 8,),
                                                             ),
                                                             style: ElevatedButton
                                                                 .styleFrom(
-                                                              primary: HexColor(
+                                                             backgroundColor: HexColor(
                                                                   '#4D8D6E'),
                                                             ),
                                                           ),
@@ -2751,7 +2751,7 @@ SizedBox(width: 8,),
 //                   style: TextStyle(color: Colors.white),
 //                 ),
 //                 style: ElevatedButton.styleFrom(
-//                   primary: HexColor('#4D8D6E'),
+//                  backgroundColor: HexColor('#4D8D6E'),
 //                 ),
 //               ),
 //             ],

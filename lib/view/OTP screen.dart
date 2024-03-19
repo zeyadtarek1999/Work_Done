@@ -80,7 +80,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   // Implement your OTP verification logic here
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: HexColor('#4D8D6E'),
+                 backgroundColor: HexColor('#4D8D6E'),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30.0),
                   ),

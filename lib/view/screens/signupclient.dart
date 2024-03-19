@@ -878,7 +878,7 @@ bool charater8 =false;
                                                               style: TextStyle(color: Colors.white),
                                                             ),
                                                             style: ElevatedButton.styleFrom(
-                                                              primary: Colors.red,
+                                                             backgroundColor: Colors.red,
                                                             ),
                                                           ),
                                                           SizedBox(width: 15,),
@@ -906,7 +906,7 @@ bool charater8 =false;
                                                               style: TextStyle(color: Colors.white),
                                                             ),
                                                             style: ElevatedButton.styleFrom(
-                                                              primary: HexColor('#4D8D6E'),
+                                                             backgroundColor: HexColor('#4D8D6E'),
                                                             ),
                                                           ),
                                                         ],

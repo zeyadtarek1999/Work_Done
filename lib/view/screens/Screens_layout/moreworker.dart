@@ -409,7 +409,7 @@ Get.to(paymentmethod());
                 //     );
                 //   },
                 //   style: ElevatedButton.styleFrom(
-                //     primary: Colors.red, // Set the button color to red
+                //    backgroundColor: Colors.red, // Set the button color to red
                 //     shape: RoundedRectangleBorder(
                 //       borderRadius:
                 //           BorderRadius.circular(20.0), // Set circular border

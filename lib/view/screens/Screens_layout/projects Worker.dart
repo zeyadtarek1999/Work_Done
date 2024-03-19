@@ -455,7 +455,7 @@ class _projectsWorkerState extends State<projectsWorker> with SingleTickerProvid
             //         },
             //         style: TextButton.styleFrom(
             //
-            //           primary: Colors.redAccent,
+            //          backgroundColor: Colors.redAccent,
             //
             //         ),
             //         child: Text(
@@ -486,7 +486,7 @@ class _projectsWorkerState extends State<projectsWorker> with SingleTickerProvid
             //       },
             //       style: TextButton.styleFrom(
             //
-            //         primary: Colors.black45,
+            //        backgroundColor: Colors.black45,
             //
             //       ),
             //       child: Text(
@@ -796,7 +796,7 @@ class _projectsWorkerState extends State<projectsWorker> with SingleTickerProvid
                           },
                           child: Text('Details',style: TextStyle(color: Colors.white),),
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent,
+                           backgroundColor: Colors.transparent,
                             elevation: 0,
                             textStyle: TextStyle(color: Colors.white),
                           ),

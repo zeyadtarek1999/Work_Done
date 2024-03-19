@@ -327,7 +327,7 @@ class _paymentmethodState extends State<paymentmethod> {
                                       },
                         child:Text ( 'Submit',style: TextStyle(color: Colors.white),), // Use an elevator icon for demonstration
                         style: ElevatedButton.styleFrom(
-                          primary: Color(0xFF4D8D6E), // Set the button color to 4D8D6E
+                         backgroundColor: Color(0xFF4D8D6E), // Set the button color to 4D8D6E
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30), // Make the button circular
                           ),

@@ -497,7 +497,7 @@ SizedBox(height: 12,),
                     },
                   child: Text('Accept',style: TextStyle(fontSize: 13),),
                   style: ElevatedButton.styleFrom(
-                    primary: Colors.transparent, // Make the button background transparent
+                   backgroundColor: Colors.transparent, // Make the button background transparent
                     elevation: 0, // Remove button elevation
                     textStyle: TextStyle(color: Colors.white), // Set text color to white
                   ),

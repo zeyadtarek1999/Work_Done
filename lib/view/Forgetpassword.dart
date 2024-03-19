@@ -166,8 +166,8 @@ Get.offAll(WelcomeScreen());
                       _forgotPassword();
                     },
                     style: ElevatedButton.styleFrom(
-                      primary: HexColor('4D8D6E'),
-                      onPrimary: Colors.white,
+                     backgroundColor: HexColor('4D8D6E'),
+                     foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
