@@ -1,20 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:action_slider/action_slider.dart';
 import 'package:badges/badges.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:chewie/chewie.dart';
-import 'package:easy_date_timeline/easy_date_timeline.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_neat_and_clean_calendar/flutter_neat_and_clean_calendar.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:flutter_sliding_up_panel/sliding_up_panel_widget.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:get/get.dart';
@@ -25,24 +21,15 @@ import 'package:photo_view/photo_view.dart';
 import 'package:pinput/pinput.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:video_player/video_player.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutWorker.dart';
-import 'package:workdone/view/screens/notifications/notificationScreenclient.dart';
 import 'package:workdone/view/screens/notifications/notificationscreenworker.dart';
-import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
-import '../InboxwithChat/ChatClient.dart';
 import '../InboxwithChat/chat.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
-import '../check out client/checkout.dart';
-import '../homescreen/home screenClient.dart';
 import '../view profile screens/Client profile view.dart';
 import 'package:http/http.dart' as http;
-
 import '../view profile screens/Worker profile .dart';
-import '../view profile screens/Worker profile view.dart';
 import 'Place a Bid.dart';
 import 'package:badges/badges.dart' as badges;
 
@@ -89,8 +76,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
   late ScrollController scrollController2;
 
   ///The controller of sliding up panel
-  SlidingUpPanelController panelController = SlidingUpPanelController();
-  SlidingUpPanelController panelController2 = SlidingUpPanelController();
 
   int notificationnumber =0 ;  Future<void> Notificationnumber() async {
     try {
@@ -784,30 +769,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     int projectId =widget.projectId;
       futureProjects = fetchProjectDetails(projectId);
     visablityofplacebid();
-    scrollController = ScrollController();
-    scrollController.addListener(() {
-      if (scrollController.offset >=
-          scrollController.position.maxScrollExtent &&
-          !scrollController.position.outOfRange) {
-        panelController.expand();
-      } else if (scrollController.offset <=
-          scrollController.position.minScrollExtent &&
-          !scrollController.position.outOfRange) {
-        panelController.anchor();
-      } else {}
-    });
-    scrollController2 = ScrollController();
-    scrollController2.addListener(() {
-      if (scrollController2.offset >=
-          scrollController2.position.maxScrollExtent &&
-          !scrollController2.position.outOfRange) {
-        panelController2.expand();
-      } else if (scrollController2.offset <=
-          scrollController2.position.minScrollExtent &&
-          !scrollController2.position.outOfRange) {
-        panelController2.anchor();
-      } else {}
-    });
+
     projectDetailsFuture =
         fetchProjectDetails(projectId);
     fetchAndPushProjectDetails(projectId);
