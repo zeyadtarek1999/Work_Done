@@ -9,7 +9,7 @@ target 'Runner' do
   pod 'SomeDependency', '~> 1.0.0'
 
   # Configuring iOS settings for Runner target
-  config = use_native_modules!
+  config = use_modular_headers!
   config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'NO'
   config.build_settings['CLANG_WARN_OBJC_LITERAL_CONVERSION'] = 'YES'
 
