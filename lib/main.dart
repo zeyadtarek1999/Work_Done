@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_paypal_native/flutter_paypal_native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/firebase_options.dart';
 import 'package:workdone/view/screens/onBoard/OnboardClient.dart';
@@ -16,15 +14,12 @@ import 'package:workmanager/workmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:workdone/view/screens/Screens_layout/layoutclient.dart';
 import 'model/mediaquery.dart';
-import 'view/screens/Screens_layout/layoutWorker.dart';
 import 'view/screens/Screens_layout/moreworker.dart';
 import 'view/screens/splashscreen.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_admin/firebase_admin.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
