@@ -490,13 +490,13 @@ bool isLoading =false;
   List<Map<String, dynamic>> languagesnumber = [];
   List<Map<String, dynamic>> jobtypenumber = [];
 
-  final ScreenshotController screenshotController = ScreenshotController();
+  final ScreenshotController screenshotController535 = ScreenshotController();
 
 
 
   String unique= 'editprofile' ;
   void _navigateToNextPage(BuildContext context) async {
-    Uint8List? imageBytes = await screenshotController.capture();
+    Uint8List? imageBytes = await screenshotController535.capture();
 
     Navigator.push(
       context,
@@ -563,7 +563,7 @@ bool isLoading =false;
         ),
         body:
         Screenshot(
-          controller:screenshotController ,
+          controller:screenshotController535 ,
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18.0),

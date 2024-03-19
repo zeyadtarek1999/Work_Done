@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
@@ -19,10 +18,7 @@ import '../Explore/Explore Client.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter/services.dart'; // For SystemNavigator.pop
 import 'package:badges/badges.dart';
-
-import '../Reviews/reviews.dart';
 import '../Support Screen/Support.dart';
 import '../editProfile/editProfileClient.dart';
 import '../notifications/notificationScreenclient.dart';
@@ -52,11 +48,15 @@ bool shouldShowNextButton(List<Item>? nextPageData) {
 
 late Future<List<Item>> futureProjects;
 List<Item> items = [];
-TextEditingController searchController = TextEditingController();
+
 Future<void> clearSharedPreferences() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.clear();
 }
+
+String uniques = 'HomeClient';
+
+
 Future<List<Item>> fetchProjects() async {
   try {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -114,7 +114,7 @@ final StreamController<String> _likedStatusController = StreamController<String>
 
 
 Stream<String> get likedStatusStream => _likedStatusController.stream;
-List<String> likedProjects = []; // List to store liked project IDs
+
 Map<int, bool> likedProjectsMap = {};
 
 Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
@@ -198,29 +198,6 @@ final ScreenshotController screenshotController1 = ScreenshotController();
 
 class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateMixin {
 
-  bool showConfirmDialog(BuildContext context) {
-    showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirm'),
-          content: Text('Are you sure you want to exit the app?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.pop(context, false), // Return false (don't exit)
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true), // Return true (exit)
-              child: Text('Exit'),
-            ),
-          ],
-        );
-      },
-    );
-    return false; // Default return value (can be improved)
-  }
   final advancedDrawerController = AdvancedDrawerController();
 
   late AnimationController ciruclaranimation;
@@ -461,48 +438,10 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
     }
   }
 
-  Future<Item> fetchUpdatedProject(int projectId) async {
-    // Fetch updated data for the specific project
-    // You may need to adjust the API endpoint and request parameters
-    final updatedProjects = await fetchProjects();
-    return updatedProjects.firstWhere((project) => project.projectId == projectId);
-  }
 
 
 
   List<Item> filteredItems = [];
-  List<InlineSpan> _buildTextSpans(String text, String query) {
-    final spans = <InlineSpan>[];
-    final matches = RegExp(query, caseSensitive: false).allMatches(text.toLowerCase());
-
-    if (matches.isEmpty) {
-      spans.add(TextSpan(text: text));
-      return spans;
-    }
-
-    int currentIndex = 0;
-    for (var match in matches) {
-      if (match.start > currentIndex) {
-        spans.add(TextSpan(text: text.substring(currentIndex, match.start)));
-      }
-      spans.add(
-        TextSpan(
-          text: text.substring(match.start, match.end),
-          style: TextStyle(
-            backgroundColor: Colors.yellow,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      );
-      currentIndex = match.end;
-    }
-
-    if (currentIndex < text.length) {
-      spans.add(TextSpan(text: text.substring(currentIndex)));
-    }
-
-    return spans;
-  }
 
   String unique= 'homescreenclient' ;
   void _navigateToNextPage(BuildContext context) async {
@@ -518,7 +457,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
   @override
   void dispose() {
     ciruclaranimation.dispose();
-
+    advancedDrawerController.dispose();
     super.dispose();
   }
   @override
@@ -765,6 +704,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
          backgroundColor: HexColor('F0EEEE'),
          floatingActionButton:
 
+
          widget.showCase ==true
 
              ?Showcase(
@@ -785,6 +725,8 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
            description: 'If you have issue click here to send a support ticket',
 
            child: FloatingActionButton(
+             heroTag: 'workdone_${uniques}',
+
              onPressed: () {
                _navigateToNextPage(context);
              },
@@ -793,6 +735,8 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
              shape: CircleBorder(), // Make the button circular
            ),
          ):FloatingActionButton(
+           heroTag: 'workdone_${uniques}',
+
            onPressed: () {
              _navigateToNextPage(context);
            },
@@ -1869,10 +1813,10 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                             fixedSize: Size(50, 30), // Adjust the size as needed
                             padding: EdgeInsets.zero,
                           ),
-                          child: Text.rich(
-                            TextSpan(
-                              children: _buildTextSpans(item.client_firstname, searchController.text),
-                            ),
+                          child:
+                            Text(
+                             "${ item.client_firstname}",
+
                             maxLines: 1,
                             overflow: TextOverflow.visible, // Use the client name from the fetched data
                             style: TextStyle(
@@ -1880,7 +1824,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
-                          ),
+                            )
                         ),
                       ),
                     ],
@@ -1889,10 +1833,10 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                   Row(
                     children: [
                       Expanded(
-                        child: Text.rich(
-                          TextSpan(
-                            children: _buildTextSpans(item.description, searchController.text),
-                          ),
+                        child:
+                          Text(
+                            "${item.description}",
+
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.openSans(

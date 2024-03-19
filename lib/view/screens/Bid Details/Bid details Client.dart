@@ -686,13 +686,7 @@ setState(() {
     Notificationnumber();
 
   }
-  @override
-  void dispose() {
-    super.dispose();
-    _controller.dispose();
-    _chewieController.dispose();
-    ciruclaranimation.dispose();
-  }
+
   String currentbid = '24';
   final ScreenshotController screenshotController8 = ScreenshotController();
 
@@ -738,7 +732,13 @@ setState(() {
       ),
     );
   }
-
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+    _chewieController.dispose();
+    ciruclaranimation.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
