@@ -4,6 +4,7 @@ import 'package:action_slider/action_slider.dart';
 import 'package:badges/badges.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:chewie/chewie.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/foundation.dart';
@@ -23,6 +24,8 @@ import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:video_player/video_player.dart';
+import 'package:workdone/model/firebaseNotification.dart';
+import 'package:workdone/model/save_notification_to_firebase.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutWorker.dart';
 import 'package:workdone/view/screens/notifications/notificationscreenworker.dart';
 import '../InboxwithChat/chat.dart';
@@ -76,7 +79,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
   ///The controller of sliding up panel
 
-  int notificationnumber =0 ;  Future<void> Notificationnumber() async {
+  int notificationnumber =0 ;
+
+  Future<void> Notificationnumber() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final userToken = prefs.getString('user_token') ?? '';
@@ -228,6 +233,131 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
+      if(status=='accepted') {
+        DateTime currentTime = DateTime.now();
+        print('second ${client_id}');
+
+        // Format the current time into your desired format
+        String formattedTime = DateFormat('h:mm a').format(currentTime);
+        Map<String, dynamic> newNotification = {
+          'title': 'Schedule Accepted ⌛✅',
+          'body': 'The worker has accepted the schedule for your project (${projecttitle}). You can now proceed with the next steps of the project.!⏩',
+          'time': formattedTime,
+          // Add other notification data as needed
+        };
+        print('sended notification ${[newNotification]}');
+
+
+        SaveNotificationToFirebase.saveNotificationsToFirestore(
+            client_id.toString(), [newNotification]);
+        print('getting notification');
+
+        // Get the user document reference
+        // Get the user document reference
+        // Get the user document reference
+        DocumentReference userDocRef = FirebaseFirestore.instance.collection(
+            'users').doc(client_id.toString());
+
+// Get the user document
+        DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+        if (doc.exists) {
+          // Extract the FCM token and notifications list from the document
+          String? receiverToken = doc.get('fcmToken');
+          List<Map<String, dynamic>> notifications = doc.get('notifications')
+              .cast<Map<String, dynamic>>();
+
+          // Check if the new notification is not null and not already in the list
+          if (newNotification != null &&
+              !notifications.any((notification) => notification['id'] ==
+                  newNotification['id'])) {
+            // Add the new notification to the beginning of the list
+            notifications.insert(0, newNotification);
+
+            // Update the user document with the new notifications list
+            await userDocRef.update({
+              'notifications': notifications,
+            });
+
+            print('Notifications saved for user ${client_id}');
+          }
+
+          // Display the notifications list in the app
+          print('Notifications for user ${client_id}:');
+          for (var notification in notifications) {
+            String? title = notification['title'];
+            String? body = notification['body'];
+            print('Title: $title, Body: $body');
+            await NotificationUtil.sendNotification(
+                title ?? 'Default Title', body ?? 'Default Body',
+                receiverToken ?? '2', DateTime.now());
+            print('Last notification sent to ${client_id}');
+          }
+        } else {
+          print('User document not found for user ${client_id}');
+        }
+      }else{
+        DateTime currentTime = DateTime.now();
+        print('second ${client_id}');
+
+        // Format the current time into your desired format
+        String formattedTime = DateFormat('h:mm a').format(currentTime);
+        Map<String, dynamic> newNotification = {
+          'title': 'Schedule Rejected ⌛❌',
+          'body': 'The worker has rejected the schedule for your project (${projecttitle}). Please review and adjust the schedule accordingly.!🟥',
+          'time': formattedTime,
+          // Add other notification data as needed
+        };
+        print('sended notification ${[newNotification]}');
+
+
+        SaveNotificationToFirebase.saveNotificationsToFirestore(client_id.toString(), [newNotification]);
+        print('getting notification');
+
+        // Get the user document reference
+        // Get the user document reference
+        // Get the user document reference
+        DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(client_id.toString());
+
+// Get the user document
+        DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+        if (doc.exists) {
+          // Extract the FCM token and notifications list from the document
+          String? receiverToken = doc.get('fcmToken');
+          List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+          // Check if the new notification is not null and not already in the list
+          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            // Add the new notification to the beginning of the list
+            notifications.insert(0, newNotification);
+
+            // Update the user document with the new notifications list
+            await userDocRef.update({
+              'notifications': notifications,
+            });
+
+            print('Notifications saved for user ${client_id}');
+          }
+
+          // Display the notifications list in the app
+          print('Notifications for user ${client_id}:');
+          for (var notification in notifications) {
+            String? title = notification['title'];
+            String? body = notification['body'];
+            print('Title: $title, Body: $body');
+            await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+            print('Last notification sent to ${client_id}');
+          }
+        } else {
+          print('User document not found for user ${client_id}');
+        }
+
+
+      }
+
       setState(() {
             projectDetailsFuture = fetchProjectDetails(widget.projectId);
       });
@@ -339,6 +469,64 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
       if (responseBody['status'] == 'success') {
+
+        DateTime currentTime = DateTime.now();
+        print('second ${client_id}');
+
+        // Format the current time into your desired format
+        String formattedTime = DateFormat('h:mm a').format(currentTime);
+        Map<String, dynamic> newNotification = {
+          'title': 'Meeting Confirmed 🤝',
+          'body': 'The worker has submitted the generated code to confirm the meeting with you Let\'s Start Work!😁',
+          'time': formattedTime,
+          // Add other notification data as needed
+        };
+        print('sended notification ${[newNotification]}');
+
+
+        SaveNotificationToFirebase.saveNotificationsToFirestore(client_id.toString(), [newNotification]);
+        print('getting notification');
+
+        // Get the user document reference
+        // Get the user document reference
+        // Get the user document reference
+        DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(client_id.toString());
+
+// Get the user document
+        DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+        if (doc.exists) {
+          // Extract the FCM token and notifications list from the document
+          String? receiverToken = doc.get('fcmToken');
+          List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+          // Check if the new notification is not null and not already in the list
+          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            // Add the new notification to the beginning of the list
+            notifications.insert(0, newNotification);
+
+            // Update the user document with the new notifications list
+            await userDocRef.update({
+              'notifications': notifications,
+            });
+
+            print('Notifications saved for user ${client_id}');
+          }
+
+          // Display the notifications list in the app
+          print('Notifications for user ${client_id}:');
+          for (var notification in notifications) {
+            String? title = notification['title'];
+            String? body = notification['body'];
+            print('Title: $title, Body: $body');
+            await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+            print('Last notification sent to ${client_id}');
+          }
+        } else {
+          print('User document not found for user ${client_id}');
+        }
+
         showResponseDialog(
           context: context,
           isSuccess: true,
@@ -411,6 +599,63 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       if (response.statusCode == 200) {
         print('Success: ${response.body}');
 
+        DateTime currentTime = DateTime.now();
+        print('second ${client_id}');
+
+        // Format the current time into your desired format
+        String formattedTime = DateFormat('h:mm a').format(currentTime);
+        Map<String, dynamic> newNotification = {
+          'title': 'Worker Review Submitted ⭐',
+          'body': 'The worker has submitted a review about you. Please check the review section to view their feedback!🌟',
+          'time': formattedTime,
+          // Add other notification data as needed
+        };
+        print('sended notification ${[newNotification]}');
+
+
+        SaveNotificationToFirebase.saveNotificationsToFirestore(client_id.toString(), [newNotification]);
+        print('getting notification');
+
+        // Get the user document reference
+        // Get the user document reference
+        // Get the user document reference
+        DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(client_id.toString());
+
+// Get the user document
+        DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+        if (doc.exists) {
+          // Extract the FCM token and notifications list from the document
+          String? receiverToken = doc.get('fcmToken');
+          List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+          // Check if the new notification is not null and not already in the list
+          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            // Add the new notification to the beginning of the list
+            notifications.insert(0, newNotification);
+
+            // Update the user document with the new notifications list
+            await userDocRef.update({
+              'notifications': notifications,
+            });
+
+            print('Notifications saved for user ${client_id}');
+          }
+
+          // Display the notifications list in the app
+          print('Notifications for user ${client_id}:');
+          for (var notification in notifications) {
+            String? title = notification['title'];
+            String? body = notification['body'];
+            print('Title: $title, Body: $body');
+            await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+            print('Last notification sent to ${client_id}');
+          }
+        } else {
+          print('User document not found for user ${client_id}');
+        }
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -457,6 +702,66 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
       if (responseBody['status'] == 'success') {
+
+
+        DateTime currentTime = DateTime.now();
+        print('second ${client_id}');
+
+        // Format the current time into your desired format
+        String formattedTime = DateFormat('h:mm a').format(currentTime);
+        Map<String, dynamic> newNotification = {
+          'title': 'End The Project 💡',
+          'body': 'you can end the project ${projecttitle} and review the worker!✨',
+          'time': formattedTime,
+          // Add other notification data as needed
+        };
+        print('sended notification ${[newNotification]}');
+
+
+        SaveNotificationToFirebase.saveNotificationsToFirestore(client_id.toString(), [newNotification]);
+        print('getting notification');
+
+        // Get the user document reference
+        // Get the user document reference
+        // Get the user document reference
+        DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(client_id.toString());
+
+// Get the user document
+        DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+        if (doc.exists) {
+          // Extract the FCM token and notifications list from the document
+          String? receiverToken = doc.get('fcmToken');
+          List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+          // Check if the new notification is not null and not already in the list
+          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            // Add the new notification to the beginning of the list
+            notifications.insert(0, newNotification);
+
+            // Update the user document with the new notifications list
+            await userDocRef.update({
+              'notifications': notifications,
+            });
+
+            print('Notifications saved for user ${client_id}');
+          }
+
+          // Display the notifications list in the app
+          print('Notifications for user ${client_id}:');
+          for (var notification in notifications) {
+            String? title = notification['title'];
+            String? body = notification['body'];
+            print('Title: $title, Body: $body');
+            await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+            print('Last notification sent to ${client_id}');
+          }
+        } else {
+          print('User document not found for user ${client_id}');
+        }
+
+
         showResponseDialog(
           context: context,
           isSuccess: true,
@@ -774,7 +1079,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     fetchAndPushProjectDetails(projectId);
     fetchvideo();
 
-    Notificationnumber();
+    // Notificationnumber();
 
 
     ciruclaranimation = AnimationController(
@@ -1519,168 +1824,156 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               CircleAvatar(
                                                 radius: 28,
                                                 backgroundColor: Colors.transparent,
-                                                backgroundImage: projectData.selectworkerbid.worker_profile_pic  == '' || projectData.selectworkerbid.worker_profile_pic .isEmpty
-                                                    || projectData.selectworkerbid.worker_profile_pic  == "https://workdonecorp.com/storage/" ||
-                                                    !(projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.jpg') || projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.png'))
-
+                                                backgroundImage: projectData.selectworkerbid.worker_profile_pic.isEmpty ||
+                                                    projectData.selectworkerbid.worker_profile_pic == "https://workdonecorp.com/storage/" ||
+                                                    !(projectData.selectworkerbid.worker_profile_pic.toLowerCase().endsWith('.jpg') ||
+                                                        projectData.selectworkerbid.worker_profile_pic.toLowerCase().endsWith('.png'))
                                                     ? AssetImage('assets/images/default.png') as ImageProvider
                                                     : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
                                               ),
-
-                                              SizedBox(
-                                                width: 15,
-                                              ),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.start,
-                                                    children: [
-                                                      GestureDetector(
-                                                        onTap: () {
-                                                          Get.to(Workerprofileother
-                                                            (
-                                                              userId: projectData
-                                                                  .selectworkerbid!.worker_id
-                                                                  .toString())
-                                                            ,
-                                                            transition: Transition.fadeIn, // You can choose a different transition
-                                                            duration: Duration(milliseconds: 700),
-                                                          );
-                                                        },
-                                                        child: Text(
-                                                          projectData.selectworkerbid.worker_firstname,
+                                              SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.start,
+                                                      children: [
+                                                        GestureDetector(
+                                                          onTap: () {
+                                                            Get.to(
+                                                              Workerprofileother(
+                                                                userId: projectData.selectworkerbid!.worker_id.toString(),
+                                                              ),
+                                                              transition: Transition.fadeIn,
+                                                              duration: Duration(milliseconds: 700),
+                                                            );
+                                                          },
+                                                          child: Text(
+                                                            projectData.selectworkerbid.worker_firstname,
+                                                            style: GoogleFonts.openSans(
+                                                              textStyle: TextStyle(
+                                                                color: HexColor('4D8D6E'),
+                                                                fontSize: 17,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 10),
+                                                        Icon(
+                                                          Icons.star,
+                                                          color: HexColor('F3ED51'),
+                                                          size: 20,
+                                                        ),
+                                                        SizedBox(width: 2),
+                                                        Text('${projectData.selectworkerbid.avg_rating}'),
+                                                      ],
+                                                    ),
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                          '\$ ${projectData.selectworkerbid.amount}',
                                                           style: GoogleFonts.openSans(
                                                             textStyle: TextStyle(
-                                                              color: HexColor('4D8D6E'),
-                                                              fontSize: 17,
-                                                              fontWeight: FontWeight.bold,
+                                                              color: HexColor('353B3B'),
+                                                              fontSize: 18,
+                                                              fontWeight: FontWeight.w500,
                                                             ),
                                                           ),
                                                         ),
-                                                      ),
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-                                                      Icon(
-                                                        Icons.star,
-                                                        color: HexColor('F3ED51'),
-                                                        size: 20,
-                                                      ),
-                                                      SizedBox(
-                                                        width: 2,
-                                                      ),
-                                                      Text('${projectData.selectworkerbid.avg_rating}'),
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-
-                                                    children: [
-
-                                                      Text(
-                                                        '\$  ' + projectData.selectworkerbid.amount.toString(),
-                                                        style: GoogleFonts.openSans(
-                                                          textStyle: TextStyle(
-                                                            color: HexColor('353B3B'),
-                                                            fontSize: 18,
-                                                            fontWeight: FontWeight.w500,
-                                                          ),
-                                                        ),
-                                                      ),
-
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                              Spacer(),
-                                              Padding(
-                                                padding: const EdgeInsets.only(right: 8.0),
-                                                child: ElevatedButton(
-                                                  onPressed: () {
-                                                    showDialog(
-                                                      context: context,
-                                                      builder: (BuildContext context) {
-                                                        return AlertDialog(
-                                                          backgroundColor: Colors.white,
-                                                          title:    Center(
-                                                            child: Column(
-                                                              children: [
-                                                                Text(
-                                                                  'Comment',
-                                                                  style: TextStyle(
-                                                                    fontSize: 20,
-                                                                    fontWeight: FontWeight.bold,
-                                                                  ),
-                                                                ),
-                                                                Divider(
-                                                                  color: Colors.black, // Adjust the color of the underline
-                                                                  thickness: 1.0, // Adjust the thickness of the underline
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          content: SingleChildScrollView( // Allows the dialog content to be scrollable
-                                                            child: ListBody( // Use ListBody for better handling of the space inside scroll view
-                                                              // Refrain from using MainAxisSize if you have dynamic content and wrap it with SingleChildScrollView
-                                                              children: [
-                                                                Center(
-                                                                  child: Text(
-                                                                    projectData.selectworkerbid.comment,
-                                                                    style: GoogleFonts.openSans(
-                                                                      textStyle: TextStyle(
-                                                                        color: HexColor('4D8D6E'),
-                                                                        fontSize: 20,
-                                                                        fontWeight: FontWeight.w500,
+                                                        Flexible(
+                                                          child: ElevatedButton(
+                                                            onPressed: () {
+                                                              showDialog(
+                                                                context: context,
+                                                                builder: (BuildContext context) {
+                                                                  return AlertDialog(
+                                                                    backgroundColor: Colors.white,
+                                                                    title: Center(
+                                                                      child: Column(
+                                                                        children: [
+                                                                          Text(
+                                                                            'Comment',
+                                                                            style: TextStyle(
+                                                                              fontSize: 20,
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                          ),
+                                                                          Divider(
+                                                                            color: Colors.black,
+                                                                            thickness: 1.0,
+                                                                          ),
+                                                                        ],
                                                                       ),
                                                                     ),
-                                                                  ),
+                                                                    content: SingleChildScrollView(
+                                                                      child: ListBody(
+                                                                        children: [
+                                                                          Center(
+                                                                            child: Text(
+                                                                              projectData.selectworkerbid.comment,
+                                                                              style: GoogleFonts.openSans(
+                                                                                textStyle: TextStyle(
+                                                                                  color: HexColor('4D8D6E'),
+                                                                                  fontSize: 20,
+                                                                                  fontWeight: FontWeight.w500,
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                          SizedBox(height: 23),
+                                                                          ElevatedButton(
+                                                                            onPressed: () {
+                                                                              Navigator.pop(context);
+                                                                            },
+                                                                            child: Text(
+                                                                              'Close',
+                                                                              style: TextStyle(fontSize: 15, color: Colors.white),
+                                                                            ),
+                                                                            style: ElevatedButton.styleFrom(
+                                                                              backgroundColor: HexColor('4D8D6E'),
+                                                                              elevation: 0,
+                                                                              textStyle: TextStyle(color: Colors.white),
+                                                                              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                    shape: RoundedRectangleBorder(
+                                                                      borderRadius: BorderRadius.circular(30.0),
+                                                                    ),
+                                                                  );
+                                                                },
+                                                              );
+                                                            },
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor: HexColor('4D8D6E'),
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.circular(30.0),
+                                                              ),
+                                                              minimumSize: Size(30, 20),
+                                                              padding: EdgeInsets.all(8),
+                                                            ),
+                                                            child: Text(
+                                                              'Comment',
+                                                              style: GoogleFonts.openSans(
+                                                                textStyle: TextStyle(
+                                                                  color: Colors.white,
+                                                                  fontSize: 12,
+                                                                  fontWeight: FontWeight.w500,
                                                                 ),
-                                                                SizedBox(height: 23,),
-                                                                ElevatedButton(
-                                                                  onPressed: () {
-                                                                    Navigator.pop(context); // Close the dialog
-                                                                  },
-                                                                  child: Text('Close',style: TextStyle(fontSize: 15, color: Colors.white), // Adjust the font size
-                                                                  ),
-                                                                  style: ElevatedButton.styleFrom(
-                                                                    backgroundColor: HexColor('4D8D6E'),
-                                                                    elevation: 0,
-                                                                    textStyle: TextStyle(color: Colors.white),
-                                                                    padding: EdgeInsets.symmetric(vertical:12, horizontal: 12), // Adjust padding
-                                                                  ),
-                                                                ),
-
-                                                              ],
+                                                              ),
                                                             ),
                                                           ),
-                                                          shape: RoundedRectangleBorder(
-                                                            borderRadius: BorderRadius.circular(30.0), // Adjust the border radius
-                                                          ),
-                                                        );
-                                                      },
-                                                    );
-                                                  },
-                                                  style: ElevatedButton.styleFrom(
-                                                   backgroundColor: HexColor('4D8D6E'), // Set the button color to 4D8D6E
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius: BorderRadius.circular(30.0), // Adjust the border radius
+                                                        ),
+                                                      ],
                                                     ),
-                                                    minimumSize: Size(30, 20), // Set the minimum size
-                                                    padding: EdgeInsets.all(8), // Set the padding
-                                                  ),
-                                                  child: Text(
-                                                    'Comment',
-                                                    style: GoogleFonts.openSans(
-                                                      textStyle: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 12,
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ),
+                                                  ],
                                                 ),
-                                              )
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -5867,7 +6160,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   ),
                                                 ),
                                               ],
-                                            ) :Container(),
+                                            ) :
+
+                                            Container(),
 
 
 
@@ -7006,6 +7301,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                     onPressed: () {
                       Get.to(Placebid(
                         projectId: widget.projectId,
+                        clientid: client_id,
                       )
                         ,
                         transition: Transition.downToUp, // You can choose a different transition

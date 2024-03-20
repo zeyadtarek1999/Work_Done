@@ -80,71 +80,33 @@ print ('fetching user id');
   }
 }
 
-Future<void> fetchDataAndShowNotifications() async {
-  final String apiUrl = 'https://www.workdonecorp.com/api/get_new_notification';
-
-  try {
-    final response = await http.get(Uri.parse(apiUrl));
-    print('Starting fetching');
-
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      print('Fetched');
-
-      if (jsonResponse['status'] == 'success') {
-        final List<dynamic> data = jsonResponse['data'];
-        print('Success fetching');
-print (userId);
-        // Loop through each notification in the data list
-        for (final dynamic notification in data) {
-          final int userIdR = notification['user_id'];
-          final String message = notification['msg'];
-
-          // Check if the user is the target user
-          if (userId == userIdR) {
-            await showLocalNotification('New Notification' ,message);
-            print('Notifications shown successfully');
-          }
-        }
-
-
-      } else {
-        print('Error: ${jsonResponse['msg']}');
-      }
-    } else {
-      print('Request failed with status: ${response.statusCode}');
-    }
-  } catch (e) {
-    print('Error: $e');
-  }
-}
 
 // Function to show a local notification
 
 
-void callbackDispatcher() async {
-  print('Fetching user profile...');
-
-  try {
-    print('Fetching user profile...');
-    await _getUserProfile();
-    print('User profile fetched successfully.');
-
-    print('Fetching data and showing notifications...');
-    await fetchDataAndShowNotifications();
-    print('Notifications shown successfully.');
-
-    print('Background task completed successfully');
-  } catch (e) {
-    print('Error in background task: $e');
-  }
-}
-void startPeriodicSync() {
-  const Duration fetchInterval = Duration(minutes: 15);
-  Timer.periodic(fetchInterval, (Timer timer) {
-    callbackDispatcher();
-  });
-}
+// void callbackDispatcher() async {
+//   print('Fetching user profile...');
+//
+//   try {
+//     print('Fetching user profile...');
+//     await _getUserProfile();
+//     print('User profile fetched successfully.');
+//
+//     print('Fetching data and showing notifications...');
+//     await fetchDataAndShowNotifications();
+//     print('Notifications shown successfully.');
+//
+//     print('Background task completed successfully');
+//   } catch (e) {
+//     print('Error in background task: $e');
+//   }
+// }
+// void startPeriodicSync() {
+//   const Duration fetchInterval = Duration(minutes: 15);
+//   Timer.periodic(fetchInterval, (Timer timer) {
+//     callbackDispatcher();
+//   });
+// }
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -165,7 +127,6 @@ void saveDeviceTokenToFirestore(String token) {
   });
   print(' the token is done sended $token  and the user $userId');
 }
-const Duration fetchdata = Duration(seconds: 15);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -227,11 +188,11 @@ print ('token :: ${apnsToken}' ) ; }
     }
   }
   await initFirebaseMessaging();
-  Timer.periodic(fetchdata, (Timer timer) {
-    // Fetch data at each interval
-    fetchDataAndShowNotifications();
-
-  });
+  // Timer.periodic(fetchdata, (Timer timer) {
+  //   // Fetch data at each interval
+  //   fetchDataAndShowNotifications();
+  //
+  // });
 
   await AwesomeNotifications().initialize(
     null,
@@ -269,15 +230,15 @@ print ('token :: ${apnsToken}' ) ; }
 
 
   // Add the background message handler function
-  Workmanager().initialize(
-    callbackDispatcher,
-    isInDebugMode: false, // Disable debug notifications
-  );
-
-  Workmanager().registerOneOffTask(
-    "1", // unique task name
-    "backgroundFetchTask",
-  );
+  // Workmanager().initialize(
+  //   callbackDispatcher,
+  //   isInDebugMode: false, // Disable debug notifications
+  // );
+  //
+  // Workmanager().registerOneOffTask(
+  //   "1", // unique task name
+  //   "backgroundFetchTask",
+  // );
 
   await _getUserProfile();
   // FirebaseMessaging.instance.getToken().then((token) {
@@ -285,7 +246,7 @@ print ('token :: ${apnsToken}' ) ; }
   //   saveDeviceTokenToFirestore(token!);
   // });
 
-  startPeriodicSync();
+  // startPeriodicSync();
 
   bool isAllowedToSendNotification =
   await AwesomeNotifications().isNotificationAllowed();
@@ -293,10 +254,10 @@ print ('token :: ${apnsToken}' ) ; }
     AwesomeNotifications().requestPermissionToSendNotifications();
   }
 
-  const Duration fetchInterval = Duration(minutes: 15);
-  Timer.periodic(fetchInterval, (Timer timer) {
-    callbackDispatcher();
-  });
+  // const Duration fetchInterval = Duration(minutes: 15);
+  // Timer.periodic(fetchInterval, (Timer timer) {
+  //   callbackDispatcher();
+  // });
 
   runApp(MyApp());
 }

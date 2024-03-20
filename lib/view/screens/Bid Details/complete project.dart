@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:action_slider/action_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -12,9 +13,12 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/model/firebaseNotification.dart';
+import 'package:workdone/model/save_notification_to_firebase.dart';
 
 import '../InboxwithChat/chatbody.dart';
 import '../Support Screen/Support.dart';
@@ -24,8 +28,10 @@ import 'Bid details Client.dart';
 
 class completeprojectscreen extends StatefulWidget {
   final int projectId;
+  final String selectedworkerid;
+  final String projecttitle;
 
-  completeprojectscreen({required this.projectId});
+  completeprojectscreen({required this.projectId,required this.selectedworkerid,required this.projecttitle});
   @override
   State<completeprojectscreen> createState() => _completeprojectscreenState();
 }
@@ -190,6 +196,61 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
         setState(() {
           isLoading = false;
         });
+        DateTime currentTime = DateTime.now();
+
+        // Format the current time into your desired format
+        String formattedTime = DateFormat('h:mm a').format(currentTime);
+        Map<String, dynamic> newNotification = {
+          'title': 'Project Ended',
+          'body': 'The client has ended the project (${widget.projecttitle}) and left a review for you🌟 -Now you can review you Client😉',
+          'time': formattedTime,
+          // Add other notification data as needed
+        };
+        print('sended notification ${[newNotification]}');
+
+
+        SaveNotificationToFirebase.saveNotificationsToFirestore(widget.selectedworkerid.toString(), [newNotification]);
+        print('getting notification');
+
+        // Get the user document reference
+        // Get the user document reference
+        // Get the user document reference
+        DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(widget.selectedworkerid.toString());
+
+// Get the user document
+        DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+        if (doc.exists) {
+          // Extract the FCM token and notifications list from the document
+          String? receiverToken = doc.get('fcmToken');
+          List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+          // Check if the new notification is not null and not already in the list
+          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            // Add the new notification to the beginning of the list
+            notifications.insert(0, newNotification);
+
+            // Update the user document with the new notifications list
+            await userDocRef.update({
+              'notifications': notifications,
+            });
+
+            print('Notifications saved for user ${widget.selectedworkerid}');
+          }
+
+          // Display the notifications list in the app
+          print('Notifications for user ${widget.selectedworkerid}');
+          for (var notification in notifications) {
+            String? title = notification['title'];
+            String? body = notification['body'];
+            print('Title: $title, Body: $body');
+            await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+            print('Last notification sent to ${widget.selectedworkerid}');
+          }
+        } else {
+          print('User document not found for user ${widget.selectedworkerid}');
+        }
         print('Success: ${response.body}');
         setState(() {
           _toggleUploadingState(false);

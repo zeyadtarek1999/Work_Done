@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -6,7 +7,10 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:screenshot/screenshot.dart';
+import 'package:workdone/model/firebaseNotification.dart';
+import 'package:workdone/model/save_notification_to_firebase.dart';
 import 'package:workdone/view/screens/Payment%20Method/Payment_method.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
@@ -19,8 +23,9 @@ import 'Bid details Worker.dart';
 
 class Placebid extends StatefulWidget {
   final int projectId;
+  final String clientid;
 
-  Placebid({required this.projectId});
+  Placebid({required this.projectId,required this.clientid   });
   @override
   State<Placebid> createState() => _PlacebidState();
 }
@@ -245,6 +250,65 @@ bool _isLoading =false;
 
         // Check the status in the response
         if (responseBody['status'] == 'success') {
+          DateTime currentTime = DateTime.now();
+print('first ${widget.clientid}');
+print('second ${client_id}');
+
+          // Format the current time into your desired format
+          String formattedTime = DateFormat('h:mm a').format(currentTime);
+          Map<String, dynamic> newNotification = {
+            'title': 'Bid Placed on Your Project 💰',
+            'body': 'A worker has placed a bid (${total}) on your project (${projecttitle}). Review the bid details and take action!🔴',
+            'time': formattedTime,
+            // Add other notification data as needed
+          };
+          print('sended notification ${[newNotification]}');
+
+
+          SaveNotificationToFirebase.saveNotificationsToFirestore(client_id.toString(), [newNotification]);
+          print('getting notification');
+
+          // Get the user document reference
+          // Get the user document reference
+          // Get the user document reference
+          DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(client_id.toString());
+
+// Get the user document
+          DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+          if (doc.exists) {
+            // Extract the FCM token and notifications list from the document
+            String? receiverToken = doc.get('fcmToken');
+            List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+            // Check if the new notification is not null and not already in the list
+            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+              // Add the new notification to the beginning of the list
+              notifications.insert(0, newNotification);
+
+              // Update the user document with the new notifications list
+              await userDocRef.update({
+                'notifications': notifications,
+              });
+
+              print('Notifications saved for user ${widget.clientid}');
+            }
+
+            // Display the notifications list in the app
+            print('Notifications for user ${widget.clientid}:');
+            for (var notification in notifications) {
+              String? title = notification['title'];
+              String? body = notification['body'];
+              print('Title: $title, Body: $body');
+              await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+              print('Last notification sent to ${widget.clientid}');
+            }
+          } else {
+            print('User document not found for user ${widget.clientid}');
+          }
+
+
           Fluttertoast.showToast(
             msg: 'Bid inserted successfully',
             toastLength: Toast.LENGTH_SHORT,

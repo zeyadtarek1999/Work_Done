@@ -239,13 +239,13 @@ class _exploreWorkerState extends State<exploreWorker> with SingleTickerProvider
     super.initState();
     // Call the function that fetches projects and assign the result to futureProjects
     futureProjects = fetchProjects();
-    Notificationnumber();
-    const Duration fetchdata = Duration(seconds: 15);
-    Timer.periodic(fetchdata, (Timer timer) {
-      // Fetch data at each interval
-      Notificationnumber();
-
-    });
+    // Notificationnumber();
+    // const Duration fetchdata = Duration(seconds: 15);
+    // Timer.periodic(fetchdata, (Timer timer) {
+    //   // Fetch data at each interval
+    //   Notificationnumber();
+    //
+    // });
     ciruclaranimation = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),

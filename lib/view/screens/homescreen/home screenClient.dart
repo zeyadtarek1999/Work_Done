@@ -254,7 +254,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
       print('Error getting profile information: $error');
     }
   }
-   Duration fetchdata = Duration(seconds: 15);
+   // Duration fetchdata = Duration(seconds: 15);
 
   @override
   void initState() {
@@ -263,11 +263,11 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
     _getUserid();
     _getUserProfile();
 
-    Timer.periodic(fetchdata, (Timer timer) {
-      // Fetch data at each interval
-      Notificationnumber();
-
-    });
+    // Timer.periodic(fetchdata, (Timer timer) {
+    //   // Fetch data at each interval
+    //   Notificationnumber();
+    //
+    // });
     if (widget.showCase == true) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ShowCaseWidget.of(context).startShowCase([_two, _one ,_three ,_four]);
@@ -341,53 +341,53 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
   }
   int notificationnumber =0 ;
 
-  Future<void> Notificationnumber() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final userToken = prefs.getString('user_token') ?? '';
-      print(userToken);
-
-      if (userToken.isNotEmpty) {
-        // Replace the API endpoint with your actual endpoint
-        final String apiUrl = 'https://workdonecorp.com/api/unread_notification_number';
-        print(userToken);
-
-        final response = await http.post(
-          Uri.parse(apiUrl),
-          headers: {'Authorization': 'Bearer $userToken'},
-        );
-
-        if (response.statusCode == 200) {
-          Map<String, dynamic> responseData = json.decode(response.body);
-
-          if (responseData.containsKey('counter')) {
-            int profileData = responseData['counter'];
-
-            setState(() {
-              notificationnumber= profileData;
-            });
-
-            print('Response of notification number : $profileData');
-            print('notification number: $notificationnumber');
-          } else {
-            print(
-                'Error: Response data does not contain the expected structure.');
-            throw Exception('Failed to load notification number');
-          }
-        } else {
-          // Handle error response
-          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
-          throw Exception('Failed to load notification number');
-        }
-      }
-      setState(() {
-        isLoading = false;
-      });
-    } catch (error) {
-      // Handle errors
-      print('Error getting notification number: $error');
-    }
-  }
+  // Future<void> Notificationnumber() async {
+  //   try {
+  //     final SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     final userToken = prefs.getString('user_token') ?? '';
+  //     print(userToken);
+  //
+  //     if (userToken.isNotEmpty) {
+  //       // Replace the API endpoint with your actual endpoint
+  //       final String apiUrl = 'https://workdonecorp.com/api/unread_notification_number';
+  //       print(userToken);
+  //
+  //       final response = await http.post(
+  //         Uri.parse(apiUrl),
+  //         headers: {'Authorization': 'Bearer $userToken'},
+  //       );
+  //
+  //       if (response.statusCode == 200) {
+  //         Map<String, dynamic> responseData = json.decode(response.body);
+  //
+  //         if (responseData.containsKey('counter')) {
+  //           int profileData = responseData['counter'];
+  //
+  //           setState(() {
+  //             notificationnumber= profileData;
+  //           });
+  //
+  //           print('Response of notification number : $profileData');
+  //           print('notification number: $notificationnumber');
+  //         } else {
+  //           print(
+  //               'Error: Response data does not contain the expected structure.');
+  //           throw Exception('Failed to load notification number');
+  //         }
+  //       } else {
+  //         // Handle error response
+  //         print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+  //         throw Exception('Failed to load notification number');
+  //       }
+  //     }
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   } catch (error) {
+  //     // Handle errors
+  //     print('Error getting notification number: $error');
+  //   }
+  // }
 
 
   void refreshProjects() async{

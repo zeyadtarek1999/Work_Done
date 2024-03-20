@@ -5,6 +5,7 @@ import 'package:action_slider/action_slider.dart';
 import 'package:badges/badges.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:chewie/chewie.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_date_timeline/easy_date_timeline.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -25,6 +26,8 @@ import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:video_player/video_player.dart';
+import 'package:workdone/model/firebaseNotification.dart';
+import 'package:workdone/model/save_notification_to_firebase.dart';
 import 'package:workdone/view/screens/InboxwithChat/chat.dart';
 import 'package:workdone/view/screens/notifications/notificationScreenclient.dart';
 import '../Screens_layout/layoutclient.dart';
@@ -302,9 +305,63 @@ class _bidDetailsClientState extends State<bidDetailsClient>  with SingleTickerP
         setState(() {
           _toggleUploadingState(false);
         });
+        DateTime currentTime = DateTime.now();
 
-setState(() {
-  futureProjects = fetchProjectDetails(widget.projectId);
+        // Format the current time into your desired format
+        String formattedTime = DateFormat('h:mm a').format(currentTime);
+        Map<String, dynamic> newNotification = {
+          'title': 'Project Ended',
+          'body': 'The client has ended the project (${projecttitle}) and left a review for you🌟',
+          'time': formattedTime,
+          // Add other notification data as needed
+        };
+        print('sended notification ${[newNotification]}');
+
+
+        SaveNotificationToFirebase.saveNotificationsToFirestore(SelectedWorkerid.toString(), [newNotification]);
+        print('getting notification');
+
+
+        // Get the user document reference
+        DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(SelectedWorkerid.toString());
+
+// Get the user document
+        DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+        if (doc.exists) {
+          // Extract the FCM token and notifications list from the document
+          String? receiverToken = doc.get('fcmToken');
+          List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+          // Check if the new notification is not null and not already in the list
+          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            // Add the new notification to the beginning of the list
+            notifications.insert(0, newNotification);
+
+            // Update the user document with the new notifications list
+            await userDocRef.update({
+              'notifications': notifications,
+            });
+
+            print('Notifications saved for user $SelectedWorkerid');
+          }
+
+          // Display the notifications list in the app
+          print('Notifications for user $SelectedWorkerid:');
+          for (var notification in notifications) {
+            String? title = notification['title'];
+            String? body = notification['body'];
+            print('Title: $title, Body: $body');
+            await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+            print('Last notification sent to $SelectedWorkerid');
+          }
+        } else {
+          print('User document not found for user $SelectedWorkerid');
+        }
+
+        setState(() {
+  projectDetailsFuture = fetchProjectDetails(widget.projectId);
 
 });
         // Handle success
@@ -451,11 +508,66 @@ setState(() {
       // Handle successful response
       await fetchProjectDetails(projectId);
 setState(() {
-  futureProjects = fetchProjectDetails(widget.projectId);
+  projectDetailsFuture = fetchProjectDetails(widget.projectId);
 
 });
 
-      // Call fetchProjectDetails here
+      DateTime currentTime = DateTime.now();
+
+      // Format the current time into your desired format
+      String formattedTime = DateFormat('h:mm a').format(currentTime);
+      Map<String, dynamic> newNotification = {
+        'title': 'Project Scheduled 💼',
+        'body': 'A project has been scheduled (${projecttitle}). Check your schedule for details!😊',
+        'time': formattedTime,
+        // Add other notification data as needed
+      };
+      print('sended notification ${[newNotification]}');
+
+
+      SaveNotificationToFirebase.saveNotificationsToFirestore(SelectedWorkerid.toString(), [newNotification]);
+      print('getting notification');
+
+      // Get the user document reference
+      // Get the user document reference
+      // Get the user document reference
+      DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(SelectedWorkerid.toString());
+
+// Get the user document
+      DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+      if (doc.exists) {
+        // Extract the FCM token and notifications list from the document
+        String? receiverToken = doc.get('fcmToken');
+        List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+        // Check if the new notification is not null and not already in the list
+        if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+          // Add the new notification to the beginning of the list
+          notifications.insert(0, newNotification);
+
+          // Update the user document with the new notifications list
+          await userDocRef.update({
+            'notifications': notifications,
+          });
+
+          print('Notifications saved for user $SelectedWorkerid');
+        }
+
+        // Display the notifications list in the app
+        print('Notifications for user $SelectedWorkerid:');
+        for (var notification in notifications) {
+          String? title = notification['title'];
+          String? body = notification['body'];
+          print('Title: $title, Body: $body');
+          await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+          print('Last notification sent to $SelectedWorkerid');
+        }
+      } else {
+        print('User document not found for user $SelectedWorkerid');
+      }
+
       Fluttertoast.showToast(
         msg: 'Schedule sent successfully!\n selected day: ${selectedDay.toString()} , Selected interval: ${selectedInterval.toString()}',
         toastLength: Toast.LENGTH_SHORT,
@@ -472,9 +584,8 @@ setState(() {
       print('Response body: ${response.body}');
     }
   }
-  late Future<ProjectData> futureProjects;
   // void refreshProjects() async{
-  //   futureProjects = fetchProjectDetails(widget.projectId);
+  //   projectDetailsFuture = fetchProjectDetails(widget.projectId);
   // }
   Future<ProjectData> fetchProjectDetails(int projectId) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -527,11 +638,13 @@ setState(() {
     print('Buttons Value: $buttonsValue');
   }
   bool _controllerInitialized = false;
-
+int? SelectedWorkerid ;
   Future<void> fetchvideo() async {
     // Assuming you have a function to fetch project details
     final ProjectData projectData = await fetchProjectDetails(widget.projectId);
+    SelectedWorkerid=projectData.selectworkerbid.worker_id;
 
+    print('selectedworkerid ${SelectedWorkerid}');
   video = projectData.video;
     if (projectData.pageContent.scheduleStatus == "reject") {
       showModalBottomSheet(
@@ -626,18 +739,18 @@ setState(() {
   }
   late VideoPlayerController _controller;
   late AnimationController ciruclaranimation;
-   Duration fetchdata = Duration(seconds: 15);
+   // Duration fetchdata = Duration(seconds: 15);
 
   @override
   void initState() {
     super.initState();
       // Fetch data at each interval
-      Notificationnumber();
+      // Notificationnumber();
 
     int projectId =widget.projectId;
-    futureProjects = fetchProjectDetails(projectId);
+    projectDetailsFuture = fetchProjectDetails(projectId);
     likedProjectsMap= {};
-
+    
     projectDetailsFuture = fetchProjectDetails(projectId); // Use the projectId in the call
 
     ciruclaranimation = AnimationController(
@@ -812,7 +925,7 @@ setState(() {
             backgroundColor: Colors.white,
             onRefresh: () async {
               setState(() {
-                futureProjects = fetchProjectDetails(widget.projectId);
+                projectDetailsFuture = fetchProjectDetails(widget.projectId);
               });
             },
             child:  Screenshot(
@@ -1217,7 +1330,7 @@ setState(() {
                                                   .toString())),
                                         ).then((_) {
                                           // Fetch data here after popping the second screen
-                                          futureProjects = fetchProjectDetails(widget.projectId);
+                                          projectDetailsFuture = fetchProjectDetails(widget.projectId);
                                         });
 
                                       },
@@ -1378,7 +1491,8 @@ setState(() {
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Container(
-                                        child: Padding(
+                                        child:
+                                        Padding(
                                           padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 12),
                                           child: Row(
                                             children: [
@@ -1403,17 +1517,17 @@ setState(() {
                                                     children: [
                                                       GestureDetector(
                                                         onTap: () {
-                        Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => Workerprofileother
-                        (
-                        userId: projectData
-                            .selectworkerbid!.worker_id
-                            .toString())),
-                        ).then((_) {
-                          futureProjects = fetchProjectDetails(widget.projectId);
-                        });
-                        },
+                                                          Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(builder: (context) => Workerprofileother
+                                                              (
+                                                                userId: projectData
+                                                                    .selectworkerbid!.worker_id
+                                                                    .toString())),
+                                                          ).then((_) {
+                                                            projectDetailsFuture = fetchProjectDetails(widget.projectId);
+                                                          });
+                                                        },
                                                         child: Text(
                                                           projectData.selectworkerbid.worker_firstname,
                                                           style: GoogleFonts.openSans(
@@ -1528,7 +1642,7 @@ setState(() {
                                                     );
                                                   },
                                                   style: ElevatedButton.styleFrom(
-                                                   backgroundColor: HexColor('4D8D6E'), // Set the button color to 4D8D6E
+                                                    backgroundColor: HexColor('4D8D6E'), // Set the button color to 4D8D6E
                                                     shape: RoundedRectangleBorder(
                                                       borderRadius: BorderRadius.circular(30.0), // Adjust the border radius
                                                     ),
@@ -1550,6 +1664,7 @@ setState(() {
                                             ],
                                           ),
                                         ),
+
                                       ),
                                     ),
                                   ),
@@ -1557,7 +1672,7 @@ setState(() {
 
                                 SizedBox(height: 20,),
                                 FutureBuilder<ProjectData>(
-                                  future: futureProjects,
+                                  future: projectDetailsFuture,
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState ==
                                         ConnectionState.waiting) {
@@ -9589,7 +9704,7 @@ setState(() {
                                                   child: ElevatedButton(
                                                     onPressed: projectData.pageContent. project_complete_button == "maftoo7"
                                                         ? () {
-                                                     Get.to(completeprojectscreen(projectId: widget.projectId,));
+                                                     Get.to(completeprojectscreen(projectId: widget.projectId,selectedworkerid:SelectedWorkerid.toString() ,projecttitle: projecttitle,));
                                                     }
                                                         : null, // Set onPressed to null if the condition is not met
                                                     style: ElevatedButton.styleFrom(
@@ -9978,7 +10093,7 @@ setState(() {
                                                                 .selectworkerbid!.worker_id
                                                                 .toString())),
                                                       ).then((_) {
-                                                        futureProjects = fetchProjectDetails(widget.projectId);
+                                                        projectDetailsFuture = fetchProjectDetails(widget.projectId);
                                                       });
                                                     },
 
@@ -10409,8 +10524,15 @@ setState(() {
 
   Widget buildListItem(Bid item) {
 
-    bool isMoneyLessOrEqual =
-        double.parse(item.amount.toString()) <= double.parse(currentbid);
+    double? itemAmount = double.tryParse(item.amount.toString());
+    double? currentBidAmount = double.tryParse(currentbid);
+    bool isMoneyLessOrEqual = true;
+
+    if (itemAmount != null && currentBidAmount != null) {
+      isMoneyLessOrEqual = itemAmount <= currentBidAmount;
+    } else {
+      isMoneyLessOrEqual = true;
+    }
 
     // Check if Money is less than currentbid, and update currentbid if needed
 

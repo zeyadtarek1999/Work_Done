@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:carousel_slider/carousel_controller.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_paypal_checkout/flutter_paypal_checkout.dart';
@@ -10,9 +11,12 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/model/firebaseNotification.dart';
+import 'package:workdone/model/save_notification_to_firebase.dart';
 import 'package:workdone/view/screens/check%20out%20client/payment.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutclient.dart';
 import 'package:workdone/view/screens/check%20out%20client/paypal%20checkout.dart';
@@ -793,8 +797,63 @@ class _checkOutClientState extends State<checkOutClient> {
                                       content: Text('Thank you for your payment!'),
                                       actions: <Widget>[
                                         TextButton(
-                                          onPressed: () {
-                                            // Close the dialog
+                                          onPressed: () async {
+                                            DateTime currentTime = DateTime.now();
+
+                                            // Format the current time into your desired format
+                                            String formattedTime = DateFormat('h:mm a').format(currentTime);
+                                            Map<String, dynamic> newNotification = {
+                                              'title': 'Bid Accepted 💵',
+                                              'body': 'Your bid has been accepted for the project (${widget.projecttitle}). Get ready to start working on it 😊',
+                                              'time': formattedTime,
+                                              // Add other notification data as needed
+                                            };
+                                            print('sended notification ${[newNotification]}');
+
+
+                                            SaveNotificationToFirebase.saveNotificationsToFirestore(widget.workerId.toString(), [newNotification]);
+                                            print('getting notification');
+
+                                            // Get the user document reference
+                                            // Get the user document reference
+                                            // Get the user document reference
+                                            DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(widget.workerId.toString());
+
+// Get the user document
+                                            DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+                                            if (doc.exists) {
+                                              // Extract the FCM token and notifications list from the document
+                                              String? receiverToken = doc.get('fcmToken');
+                                              List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+                                              // Check if the new notification is not null and not already in the list
+                                              if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+                                                // Add the new notification to the beginning of the list
+                                                notifications.insert(0, newNotification);
+
+                                                // Update the user document with the new notifications list
+                                                await userDocRef.update({
+                                                  'notifications': notifications,
+                                                });
+
+                                                print('Notifications saved for user ${widget.workerId}');
+                                              }
+
+                                              // Display the notifications list in the app
+                                              print('Notifications for user ${widget.workerId}:');
+                                              for (var notification in notifications) {
+                                                String? title = notification['title'];
+                                                String? body = notification['body'];
+                                                print('Title: $title, Body: $body');
+                                                await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+                                                print('Last notification sent to ${widget.workerId}');
+                                              }
+                                            } else {
+                                              print('User document not found for user ${widget.workerId}');
+                                            }
+
                                             Get.off(bidDetailsClient(projectId: projectIdAsInt));
 
                                           },

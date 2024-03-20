@@ -253,53 +253,54 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
       return '${words.take(numberOfWords).join(' ')}...';
     }
   }
-  int notificationnumber =0 ;  Future<void> Notificationnumber() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final userToken = prefs.getString('user_token') ?? '';
-      print(userToken);
-
-      if (userToken.isNotEmpty) {
-        // Replace the API endpoint with your actual endpoint
-        final String apiUrl = 'https://workdonecorp.com/api/unread_notification_number';
-        print(userToken);
-
-        final response = await http.post(
-          Uri.parse(apiUrl),
-          headers: {'Authorization': 'Bearer $userToken'},
-        );
-
-        if (response.statusCode == 200) {
-          Map<String, dynamic> responseData = json.decode(response.body);
-
-          if (responseData.containsKey('counter')) {
-            int profileData = responseData['counter'];
-
-            setState(() {
-              notificationnumber= profileData;
-            });
-
-            print('Response of notification number : $profileData');
-            print('notification number: $notificationnumber');
-          } else {
-            print(
-                'Error: Response data does not contain the expected structure.');
-            throw Exception('Failed to load notification number');
-          }
-        } else {
-          // Handle error response
-          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
-          throw Exception('Failed to load notification number');
-        }
-      }
-      setState(() {
-        isLoading = false;
-      });
-    } catch (error) {
-      // Handle errors
-      print('Error getting notification number: $error');
-    }
-  }
+  int notificationnumber =0 ;
+  // Future<void> Notificationnumber() async {
+  //   try {
+  //     final SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     final userToken = prefs.getString('user_token') ?? '';
+  //     print(userToken);
+  //
+  //     if (userToken.isNotEmpty) {
+  //       // Replace the API endpoint with your actual endpoint
+  //       final String apiUrl = 'https://workdonecorp.com/api/unread_notification_number';
+  //       print(userToken);
+  //
+  //       final response = await http.post(
+  //         Uri.parse(apiUrl),
+  //         headers: {'Authorization': 'Bearer $userToken'},
+  //       );
+  //
+  //       if (response.statusCode == 200) {
+  //         Map<String, dynamic> responseData = json.decode(response.body);
+  //
+  //         if (responseData.containsKey('counter')) {
+  //           int profileData = responseData['counter'];
+  //
+  //           setState(() {
+  //             notificationnumber= profileData;
+  //           });
+  //
+  //           print('Response of notification number : $profileData');
+  //           print('notification number: $notificationnumber');
+  //         } else {
+  //           print(
+  //               'Error: Response data does not contain the expected structure.');
+  //           throw Exception('Failed to load notification number');
+  //         }
+  //       } else {
+  //         // Handle error response
+  //         print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+  //         throw Exception('Failed to load notification number');
+  //       }
+  //     }
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   } catch (error) {
+  //     // Handle errors
+  //     print('Error getting notification number: $error');
+  //   }
+  // }
   final advancedDrawerController = AdvancedDrawerController();
   String profile_pic ='' ;
   String firstname ='' ;
@@ -414,13 +415,13 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
     _getUserid();
     initializeProjects();
     _getUserProfile();
-    Notificationnumber();
-    const Duration fetchdata = Duration(seconds: 15);
-    Timer.periodic(fetchdata, (Timer timer) {
-      // Fetch data at each interval
-      Notificationnumber();
-
-    });
+    // Notificationnumber();
+    // const Duration fetchdata = Duration(seconds: 15);
+    // Timer.periodic(fetchdata, (Timer timer) {
+    //   // Fetch data at each interval
+    //   Notificationnumber();
+    //
+    // });
 
     print('the show case work == ${widget.showCase}');
     if (widget.showCase == true) {
