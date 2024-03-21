@@ -1268,7 +1268,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                             ),
                             child: Text(
                               'Previous Page',
-                              style: TextStyle(fontSize: 16,),
+                              style: TextStyle(fontSize: 16,color: Colors.white),
                             ),
                           ),
                         TextButton(
@@ -1295,14 +1295,10 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                                   nextPageProjects);
                             }
                           },
-                          style: TextButton.styleFrom(
 
-                           backgroundColor: Colors.black45,
-
-                          ),
                           child: Text(
                             'Next Page',
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(fontSize: 16,color: Colors.black54),
                           ),
                         ),
                       ],

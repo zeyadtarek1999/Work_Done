@@ -260,7 +260,9 @@ print('second ${client_id}');
             'title': 'Bid Placed on Your Project 💰',
             'body': 'A worker has placed a bid (${total}) on your project (${projecttitle}). Review the bid details and take action!🔴',
             'time': formattedTime,
-            // Add other notification data as needed
+            'id' :widget.projectId,
+            'type': 'projectclient'
+
           };
           print('sended notification ${[newNotification]}');
 

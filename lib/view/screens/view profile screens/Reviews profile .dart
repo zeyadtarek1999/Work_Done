@@ -32,7 +32,54 @@ class reviewprofile extends StatefulWidget {
 
 class _reviewprofileState extends State<reviewprofile> {
 
+  String? usertype;
+  Future<void> _getusertype() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
 
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_user_type';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('user_type')) {
+            String userType = responseData['user_type'];
+
+            // Navigate based on user type
+            if (userType == 'client') {
+              usertype= 'client';
+            } else if (userType == 'worker') {
+              usertype= 'worker';
+
+            } else {
+              print('Error: Unknown user type.');
+              throw Exception('Failed to load profile information');
+            }
+          } else {
+            print('Error: Response data does not contain user_type.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
   bool shouldShowNextButton(List<Item>? nextPageData) {
     // Add your condition to check if the next page is not empty here
     return nextPageData != null && nextPageData.isNotEmpty;
@@ -245,22 +292,20 @@ double widthofbar = 150;
   super.initState();
 
   futureProjects = fetchUserProfile();
-  _getUserProfile();
+  _getusertype();
 
+  _getUserProfile();
   initializeProjects();
   // _getUserProfile();
   likedProjectsMap= {};
   super.initState();
-  _getusertype();
   // _getUserProfile();
   // numberofprojects();
-  _getusertype();
   get_review();
   }
 
   String email = '';
   String phone = '';
-  String usertype = '';
   int projectnumber = 0;
   dynamic stars_5 = 0;
   dynamic stars_4 = 0;
@@ -337,53 +382,6 @@ double widthofbar = 150;
     }
   }
 
-  Future<void> _getusertype() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final userToken = prefs.getString('user_token') ?? '';
-      print(userToken);
-
-      if (userToken.isNotEmpty) {
-        // Replace the API endpoint with your actual endpoint
-        final String apiUrl = 'https://workdonecorp.com/api/get_user_type';
-        print(userToken);
-
-        final response = await http.post(
-          Uri.parse(apiUrl),
-          headers: {'Authorization': 'Bearer $userToken'},
-        );
-
-        if (response.statusCode == 200) {
-          Map<String, dynamic> responseData = json.decode(response.body);
-
-          if (responseData.containsKey('user_type')) {
-            String userType = responseData['user_type'];
-
-            // Navigate based on user type
-            if (userType == 'client') {
-              usertype= 'client';
-            } else if (userType == 'worker') {
-              usertype= 'worker';
-
-            } else {
-              print('Error: Unknown user type.');
-              throw Exception('Failed to load profile information');
-            }
-          } else {
-            print('Error: Response data does not contain user_type.');
-            throw Exception('Failed to load profile information');
-          }
-        } else {
-          // Handle error response
-          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
-          throw Exception('Failed to load profile information');
-        }
-      }
-    } catch (error) {
-      // Handle errors
-      print('Error getting profile information: $error');
-    }
-  }
 
   Future<void> _getUserProfile() async {
     try {
@@ -1143,7 +1141,16 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
     return GestureDetector(
       onTap: () {
         Get.to(
-              () => bidDetailsClient(projectId: project.projectId),  );    },
+              () =>
+
+                  usertype=='client'?
+                  bidDetailsClient(projectId: project.projectId):
+                  bidDetailsWorker(projectId: project.projectId),
+
+
+
+
+        );    },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
         padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
@@ -1444,7 +1451,9 @@ SizedBox(height: 3,),
                         child: ElevatedButton(
                           onPressed: () {
                             Get.to(
-                                  () => bidDetailsClient(projectId: project.projectId),  );
+                                  () => usertype=='client'?
+                                  bidDetailsClient(projectId: project.projectId):
+                                  bidDetailsWorker(projectId: project.projectId),);
                             // Handle button press
                           },
                           child: Text('Details',style: TextStyle(color: Colors.white),),

@@ -283,61 +283,6 @@ class _projectPostState extends State<projectPost>
             : ''; // Provide a default or a placeholder image path if no image is available
         String title = titleController.text;
 
-        DateTime currentTime = DateTime.now();
-
-        // Format the current time into your desired format
-        String formattedTime = DateFormat('h:mm a').format(currentTime);
-
-        Map<String, dynamic> newNotification = {
-          'title': 'Project Posted',
-          'body': 'Your project $title has been successfully posted! ',
-          'time': formattedTime,
-        };
-        print('sended notification ${[newNotification]}');
-
-
-        SaveNotificationToFirebase.saveNotificationsToFirestore(userId.toString(), [newNotification]);
-        print('getting notification');
-
-        // Get the user document reference
-        // Get the user document reference
-        // Get the user document reference
-        DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(userId.toString());
-
-// Get the user document
-        DocumentSnapshot doc = await userDocRef.get();
-
-// Check if the document exists
-        if (doc.exists) {
-          // Extract the FCM token and notifications list from the document
-          String? receiverToken = doc.get('fcmToken');
-          List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
-
-          // Check if the new notification is not null and not already in the list
-          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
-            // Add the new notification to the beginning of the list
-            notifications.insert(0, newNotification);
-
-            // Update the user document with the new notifications list
-            await userDocRef.update({
-              'notifications': notifications,
-            });
-
-            print('Notifications saved for user $userId');
-          }
-
-          // Display the notifications list in the app
-          print('Notifications for user $userId:');
-          for (var notification in notifications) {
-            String? title = notification['title'];
-            String? body = notification['body'];
-            print('Title: $title, Body: $body');
-            await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
-            print('Last notification sent to $userId');
-          }
-        } else {
-          print('User document not found for user $userId');
-        }
 
 
         // await AwesomeNotifications().createNotification(
@@ -355,6 +300,64 @@ class _projectPostState extends State<projectPost>
         if (responseData['status'] == 'success') {
           int projectId = responseData['project_id'];
           print('Success: ${response.body}');
+
+          DateTime currentTime = DateTime.now();
+
+          // Format the current time into your desired format
+          String formattedTime = DateFormat('h:mm a').format(currentTime);
+
+          Map<String, dynamic> newNotification = {
+            'title': 'Project Posted ✅',
+            'body': 'Your project $title has been successfully posted!📭 ',
+            'time': formattedTime,
+            'id' :projectId,
+            'type': 'postproject'
+          };
+          print('sended notification ${[newNotification]}');
+
+
+          SaveNotificationToFirebase.saveNotificationsToFirestore(userId.toString(), [newNotification]);
+          print('getting notification');
+
+          // Get the user document reference
+          // Get the user document reference
+          // Get the user document reference
+          DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(userId.toString());
+
+// Get the user document
+          DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+          if (doc.exists) {
+            // Extract the FCM token and notifications list from the document
+            String? receiverToken = doc.get('fcmToken');
+            List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+            // Check if the new notification is not null and not already in the list
+            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+              // Add the new notification to the beginning of the list
+              notifications.insert(0, newNotification);
+
+              // Update the user document with the new notifications list
+              await userDocRef.update({
+                'notifications': notifications,
+              });
+
+              print('Notifications saved for user $userId');
+            }
+
+            // Display the notifications list in the app
+            print('Notifications for user $userId:');
+            for (var notification in notifications) {
+              String? title = notification['title'];
+              String? body = notification['body'];
+              print('Title: $title, Body: $body');
+              await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+              print('Last notification sent to $userId');
+            }
+          } else {
+            print('User document not found for user $userId');
+          }
 
           // Use Get.to to navigate to bidDetailsClient and pass the projectId
           Get.to(() => bidDetailsClient(projectId: projectId));

@@ -204,7 +204,8 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
           'title': 'Project Ended',
           'body': 'The client has ended the project (${widget.projecttitle}) and left a review for you🌟 -Now you can review you Client😉',
           'time': formattedTime,
-          // Add other notification data as needed
+          'id' :widget.projectId,
+          'type': 'projectworker'
         };
         print('sended notification ${[newNotification]}');
 

@@ -806,7 +806,9 @@ class _checkOutClientState extends State<checkOutClient> {
                                               'title': 'Bid Accepted 💵',
                                               'body': 'Your bid has been accepted for the project (${widget.projecttitle}). Get ready to start working on it 😊',
                                               'time': formattedTime,
-                                              // Add other notification data as needed
+                                              'id' :projectIdAsInt,
+                                              'type': 'projectworker'
+
                                             };
                                             print('sended notification ${[newNotification]}');
 

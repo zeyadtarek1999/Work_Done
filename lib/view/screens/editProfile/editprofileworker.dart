@@ -411,7 +411,9 @@ bool isLoading =false;
             }
           } else {
             print('User document not found for user $userId');
-          }          Fluttertoast.showToast(
+          }
+
+          Fluttertoast.showToast(
             msg: "Profile updated successfully",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,

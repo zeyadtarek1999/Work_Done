@@ -243,7 +243,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           'title': 'Schedule Accepted ⌛✅',
           'body': 'The worker has accepted the schedule for your project (${projecttitle}). You can now proceed with the next steps of the project.!⏩',
           'time': formattedTime,
-          // Add other notification data as needed
+          'id' :widget.projectId,
+          'type': 'projectclient'
+
         };
         print('sended notification ${[newNotification]}');
 
@@ -307,7 +309,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           'title': 'Schedule Rejected ⌛❌',
           'body': 'The worker has rejected the schedule for your project (${projecttitle}). Please review and adjust the schedule accordingly.!🟥',
           'time': formattedTime,
-          // Add other notification data as needed
+          'id' :widget.projectId,
+          'type': 'projectclient'
         };
         print('sended notification ${[newNotification]}');
 
@@ -479,8 +482,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           'title': 'Meeting Confirmed 🤝',
           'body': 'The worker has submitted the generated code to confirm the meeting with you Let\'s Start Work!😁',
           'time': formattedTime,
-          // Add other notification data as needed
-        };
+          'id' :widget.projectId,
+          'type': 'projectclient'         };
         print('sended notification ${[newNotification]}');
 
 
@@ -608,7 +611,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           'title': 'Worker Review Submitted ⭐',
           'body': 'The worker has submitted a review about you. Please check the review section to view their feedback!🌟',
           'time': formattedTime,
-          // Add other notification data as needed
+          'id' :widget.projectId,
+          'type': 'projectclient'
         };
         print('sended notification ${[newNotification]}');
 
@@ -713,8 +717,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           'title': 'End The Project 💡',
           'body': 'you can end the project ${projecttitle} and review the worker!✨',
           'time': formattedTime,
-          // Add other notification data as needed
-        };
+          'id' :widget.projectId,
+          'type': 'projectclient'         };
         print('sended notification ${[newNotification]}');
 
 

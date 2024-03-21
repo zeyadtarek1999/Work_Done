@@ -313,6 +313,8 @@ class _bidDetailsClientState extends State<bidDetailsClient>  with SingleTickerP
           'title': 'Project Ended',
           'body': 'The client has ended the project (${projecttitle}) and left a review for you🌟',
           'time': formattedTime,
+          'id' :widget.projectId,
+          'type': 'projectworker'
           // Add other notification data as needed
         };
         print('sended notification ${[newNotification]}');
@@ -520,7 +522,9 @@ setState(() {
         'title': 'Project Scheduled 💼',
         'body': 'A project has been scheduled (${projecttitle}). Check your schedule for details!😊',
         'time': formattedTime,
-        // Add other notification data as needed
+        'id' :widget.projectId,
+        'type': 'projectworker'
+
       };
       print('sended notification ${[newNotification]}');
 
@@ -1491,180 +1495,166 @@ int? SelectedWorkerid ;
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Container(
-                                        child:
-                                        Padding(
+                                        child: Padding(
                                           padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 12),
                                           child: Row(
                                             children: [
                                               CircleAvatar(
                                                 radius: 28,
                                                 backgroundColor: Colors.transparent,
-                                                backgroundImage:  projectData.selectworkerbid.worker_profile_pic  == '' || projectData.selectworkerbid.worker_profile_pic .isEmpty
-                                                    || projectData.selectworkerbid.worker_profile_pic  == "https://workdonecorp.com/storage/" ||
-                                                    !(projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.jpg') || projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.png'))
-
+                                                backgroundImage: projectData.selectworkerbid.worker_profile_pic.isEmpty ||
+                                                    projectData.selectworkerbid.worker_profile_pic == "https://workdonecorp.com/storage/" ||
+                                                    !(projectData.selectworkerbid.worker_profile_pic.toLowerCase().endsWith('.jpg') ||
+                                                        projectData.selectworkerbid.worker_profile_pic.toLowerCase().endsWith('.png'))
                                                     ? AssetImage('assets/images/default.png') as ImageProvider
                                                     : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
                                               ),
-                                              SizedBox(
-                                                width: 15,
-                                              ),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.start,
-                                                    children: [
-                                                      GestureDetector(
-                                                        onTap: () {
-                                                          Navigator.push(
-                                                            context,
-                                                            MaterialPageRoute(builder: (context) => Workerprofileother
-                                                              (
-                                                                userId: projectData
-                                                                    .selectworkerbid!.worker_id
-                                                                    .toString())),
-                                                          ).then((_) {
-                                                            projectDetailsFuture = fetchProjectDetails(widget.projectId);
-                                                          });
-                                                        },
-                                                        child: Text(
-                                                          projectData.selectworkerbid.worker_firstname,
+                                              SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.start,
+                                                      children: [
+                                                        GestureDetector(
+                                                          onTap: () {
+                                                            Get.to(
+                                                              Workerprofileother(
+                                                                userId: projectData.selectworkerbid!.worker_id.toString(),
+                                                              ),
+                                                              transition: Transition.fadeIn,
+                                                              duration: Duration(milliseconds: 700),
+                                                            );
+                                                          },
+                                                          child: Text(
+                                                            projectData.selectworkerbid.worker_firstname,
+                                                            style: GoogleFonts.openSans(
+                                                              textStyle: TextStyle(
+                                                                color: HexColor('4D8D6E'),
+                                                                fontSize: 17,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 10),
+                                                        Icon(
+                                                          Icons.star,
+                                                          color: HexColor('F3ED51'),
+                                                          size: 20,
+                                                        ),
+                                                        SizedBox(width: 2),
+                                                        Text('${projectData.selectworkerbid.avg_rating}'),
+                                                      ],
+                                                    ),
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                          '\$ ${projectData.selectworkerbid.amount}',
                                                           style: GoogleFonts.openSans(
                                                             textStyle: TextStyle(
-                                                              color: HexColor('4D8D6E'),
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight.bold,
+                                                              color: HexColor('353B3B'),
+                                                              fontSize: 18,
+                                                              fontWeight: FontWeight.w500,
                                                             ),
                                                           ),
                                                         ),
-                                                      ),
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-                                                      Icon(
-                                                        Icons.star,
-                                                        color: HexColor('F3ED51'),
-                                                        size: 20,
-                                                      ),
-                                                      SizedBox(
-                                                        width: 2,
-                                                      ),
-                                                      Text('${projectData.selectworkerbid.avg_rating}'),
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-
-                                                    children: [
-
-                                                      Text(
-                                                        '\$  ' + projectData.selectworkerbid.amount.toString(),
-                                                        style: GoogleFonts.openSans(
-                                                          textStyle: TextStyle(
-                                                            color: HexColor('353B3B'),
-                                                            fontSize: 18,
-                                                            fontWeight: FontWeight.w500,
-                                                          ),
-                                                        ),
-                                                      ),
-
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                              Spacer(),
-                                              Padding(
-                                                padding: const EdgeInsets.only(right: 8.0),
-                                                child: ElevatedButton(
-                                                  onPressed: () {
-                                                    showDialog(
-                                                      context: context,
-                                                      builder: (BuildContext context) {
-                                                        return AlertDialog(
-                                                          backgroundColor: Colors.white,
-                                                          title:    Center(
-                                                            child: Column(
-                                                              children: [
-                                                                Text(
-                                                                  'Comment',
-                                                                  style: TextStyle(
-                                                                    fontSize: 20,
-                                                                    fontWeight: FontWeight.bold,
-                                                                  ),
-                                                                ),
-                                                                Divider(
-                                                                  color: Colors.black, // Adjust the color of the underline
-                                                                  thickness: 1.0, // Adjust the thickness of the underline
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          content: SingleChildScrollView( // Allows the dialog content to be scrollable
-                                                            child: ListBody( // Use ListBody for better handling of the space inside scroll view
-                                                              // Refrain from using MainAxisSize if you have dynamic content and wrap it with SingleChildScrollView
-                                                              children: [
-                                                                Center(
-                                                                  child: Text(
-                                                                    projectData.selectworkerbid.comment,
-                                                                    style: GoogleFonts.openSans(
-                                                                      textStyle: TextStyle(
-                                                                        color: HexColor('4D8D6E'),
-                                                                        fontSize: 20,
-                                                                        fontWeight: FontWeight.w500,
+                                                        Flexible(
+                                                          child: ElevatedButton(
+                                                            onPressed: () {
+                                                              showDialog(
+                                                                context: context,
+                                                                builder: (BuildContext context) {
+                                                                  return AlertDialog(
+                                                                    backgroundColor: Colors.white,
+                                                                    title: Center(
+                                                                      child: Column(
+                                                                        children: [
+                                                                          Text(
+                                                                            'Comment',
+                                                                            style: TextStyle(
+                                                                              fontSize: 20,
+                                                                              fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                          ),
+                                                                          Divider(
+                                                                            color: Colors.black,
+                                                                            thickness: 1.0,
+                                                                          ),
+                                                                        ],
                                                                       ),
                                                                     ),
-                                                                  ),
+                                                                    content: SingleChildScrollView(
+                                                                      child: ListBody(
+                                                                        children: [
+                                                                          Center(
+                                                                            child: Text(
+                                                                              projectData.selectworkerbid.comment,
+                                                                              style: GoogleFonts.openSans(
+                                                                                textStyle: TextStyle(
+                                                                                  color: HexColor('4D8D6E'),
+                                                                                  fontSize: 20,
+                                                                                  fontWeight: FontWeight.w500,
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                          SizedBox(height: 23),
+                                                                          ElevatedButton(
+                                                                            onPressed: () {
+                                                                              Navigator.pop(context);
+                                                                            },
+                                                                            child: Text(
+                                                                              'Close',
+                                                                              style: TextStyle(fontSize: 15, color: Colors.white),
+                                                                            ),
+                                                                            style: ElevatedButton.styleFrom(
+                                                                              backgroundColor: HexColor('4D8D6E'),
+                                                                              elevation: 0,
+                                                                              textStyle: TextStyle(color: Colors.white),
+                                                                              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                    shape: RoundedRectangleBorder(
+                                                                      borderRadius: BorderRadius.circular(30.0),
+                                                                    ),
+                                                                  );
+                                                                },
+                                                              );
+                                                            },
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor: HexColor('4D8D6E'),
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.circular(30.0),
+                                                              ),
+                                                              minimumSize: Size(30, 20),
+                                                              padding: EdgeInsets.all(8),
+                                                            ),
+                                                            child: Text(
+                                                              'Comment',
+                                                              style: GoogleFonts.openSans(
+                                                                textStyle: TextStyle(
+                                                                  color: Colors.white,
+                                                                  fontSize: 12,
+                                                                  fontWeight: FontWeight.w500,
                                                                 ),
-                                                                SizedBox(height: 23,),
-                                                                ElevatedButton(
-                                                                  onPressed: () {
-                                                                    Navigator.pop(context); // Close the dialog
-                                                                  },
-                                                                  child: Text('Close',style: TextStyle(fontSize: 15, color: Colors.white), // Adjust the font size
-                                                                  ),
-                                                                  style: ElevatedButton.styleFrom(
-                                                                    backgroundColor: HexColor('4D8D6E'),
-                                                                    elevation: 0,
-                                                                    textStyle: TextStyle(color: Colors.white),
-                                                                    padding: EdgeInsets.symmetric(vertical:12, horizontal: 12), // Adjust padding
-                                                                  ),
-                                                                ),
-
-                                                              ],
+                                                              ),
                                                             ),
                                                           ),
-                                                          shape: RoundedRectangleBorder(
-                                                            borderRadius: BorderRadius.circular(30.0), // Adjust the border radius
-                                                          ),
-                                                        );
-                                                      },
-                                                    );
-                                                  },
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: HexColor('4D8D6E'), // Set the button color to 4D8D6E
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius: BorderRadius.circular(30.0), // Adjust the border radius
+                                                        ),
+                                                      ],
                                                     ),
-                                                    minimumSize: Size(30, 20), // Set the minimum size
-                                                    padding: EdgeInsets.all(8), // Set the padding
-                                                  ),
-                                                  child: Text(
-                                                    'Comment',
-                                                    style: GoogleFonts.openSans(
-                                                      textStyle: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 12,
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ),
+                                                  ],
                                                 ),
-                                              )
+                                              ),
                                             ],
                                           ),
                                         ),
-
                                       ),
                                     ),
                                   ),
