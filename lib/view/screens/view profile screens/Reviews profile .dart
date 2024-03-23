@@ -13,6 +13,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:workdone/view/screens/view%20profile%20screens/Client%20profile%20view.dart';
 
 import '../../../model/mediaquery.dart';
 import '../Bid Details/Bid details Client.dart';
@@ -1323,25 +1324,30 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: TextButton(
-                          onPressed: () {
-                            // Get.to(reviewprofile(userId:project.clientId.toString()));
-                          },
-                          style: TextButton.styleFrom(
-                            fixedSize: Size(50, 30), // Adjust the size as needed
-                            padding: EdgeInsets.zero,
-                          ),
-                          child:
+                            onPressed: () {
+                              Get.to(ProfilePageClient(userId:project.clientId.toString(),
+                              ),
+                                transition: Transition.fadeIn, // You can choose a different transition
+                                duration: Duration(milliseconds: 700), // Set the duration of the transition
 
-                               Text(project.clientFirstname,
-
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis, // Use the client name from the fetched data
-                            style: TextStyle(
-                              color: HexColor('4D8D6E'),
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              fixedSize: Size(50, 30), // Adjust the size as needed
+                              padding: EdgeInsets.zero,
                             ),
-                      )
+                            child:
+                            Text(
+                              "${project.clientFirstname}",
+
+                              maxLines: 1,
+                              overflow: TextOverflow.visible, // Use the client name from the fetched data
+                              style: TextStyle(
+                                color: HexColor('4D8D6E'),
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
                         ),
                       ),
                     ],

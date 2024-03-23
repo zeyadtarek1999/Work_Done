@@ -248,8 +248,8 @@ class _LoginScreenclientState extends State<LoginScreenclient>  with SingleTicke
             child: SvgPicture.asset(
               'assets/images/Logo.svg',
               semanticsLabel: 'Your SVG Image',
-              width: 100,
-              height: 130,
+              width: 70,
+              height: 80,
             ),
           )),
 

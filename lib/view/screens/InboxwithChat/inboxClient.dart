@@ -11,6 +11,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/view/screens/InboxwithChat/ChatClient.dart';
 import 'package:http/http.dart' as http;
+import 'package:workdone/view/screens/Screens_layout/layoutWorker.dart';
 
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
@@ -71,7 +72,32 @@ Future<void> updateItemsWithLastMessage(List<Item> items) async {
 // Now 'items' contains the merged data and can be used in the ListView.builder
 List<Item> items = [];
 
+Stream<QuerySnapshot> getNewMessages({required String userId2} ) {
+  // Get the stream of new messages
+  Stream<QuerySnapshot> newMessagesStream = FirebaseFirestore.instance
+      .collection('messages')
+      .doc(userId2.toString())
+      .collection('messages')
+      .where('seen', isEqualTo: false)
+      .where('recieverid', isEqualTo: userId2)
+      .snapshots();
 
+  // Listen to the stream and update the 'seen' field for each new message
+  newMessagesStream.listen((QuerySnapshot querySnapshot) {
+    querySnapshot.docs.forEach((doc) {
+      FirebaseFirestore.instance
+          .collection('messages')
+          .doc(userId2.toString())
+          .collection('messages')
+          .doc(doc.id)
+          .update({'seen': true})
+          .then((_) => print('Successfully updated seen status'))
+          .catchError((error) => print('Failed to update seen status: $error'));
+    });
+  });
+
+  return newMessagesStream;
+}
 
 Future<List<Item>> fetchchatusers() async {
   try {
@@ -183,12 +209,59 @@ setState(() {
     }
   }
 late AnimationController ciruclaranimation;
+int? userId;
+Future<void> _getUserid() async {
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final userToken = prefs.getString('user_token') ?? '';
+    print(userToken);
+    print ('fetching user id');
+    if (userToken.isNotEmpty) {
+      // Replace the API endpoint with your actual endpoint
+      final String apiUrl = 'https://www.workdonecorp.com/api/get_user_id_by_token';
+      print(userToken);
 
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Authorization': 'Bearer $userToken'},
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseData = json.decode(response.body);
+        print ('done  user id');
+
+        if (responseData.containsKey('user_id')) {
+
+          userId = responseData['user_id'];
+
+          // Now, userId contains the extracted user_id value
+          print('User ID: $userId');
+
+          // Optionally, save the user_id to SharedPreferences
+          prefs.setInt('user_id', userId ?? 0);
+        } else {
+          print('Error: Response data does not contain the expected structure.');
+          throw Exception('Failed to load profile information');
+        }
+      } else {
+        // Handle error response
+        print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+        throw Exception('Failed to load profile information');
+      }
+    }
+  } catch (error) {
+    // Handle errors
+    print('Error getting profile information: $error');
+  }
+}
   @override
   void initState() {
     super.initState();
     _getUserProfile();
+    _getUserid();
     _getusertype();
+    getNewMessages (userId2: userId.toString());
+
     ciruclaranimation = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
@@ -335,8 +408,8 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                             child: SvgPicture.asset(
                               'assets/images/Logo.svg',
                               semanticsLabel: 'Your SVG Image',
-                              width: 100,
-                              height: 130,
+                              width: 70,
+                              height: 80,
                             ),
                           ))
                           ;

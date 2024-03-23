@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -5,8 +8,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:intl/intl.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/model/firebaseNotification.dart';
+import 'package:workdone/model/save_notification_to_firebase.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutclient.dart';
 import '../../../model/mediaquery.dart';
 import '../Bid Details/Bid details Client.dart';
@@ -39,6 +45,114 @@ class _projectsClientState extends State<projectsClient> with SingleTickerProvid
   TextEditingController searchController = TextEditingController();
   void refreshProjects() {
     futureProjects = fetchProjects();
+  }
+  final StreamController<String> _likedStatusController = StreamController<String>();
+  Stream<String> get likedStatusStream => _likedStatusController.stream;
+
+
+  Future<Map<String, dynamic>> addProjectToLikes(String projectId,String name ,String Title ,String id) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String userToken = prefs.getString('user_token') ?? '';
+
+      final response = await http.post(
+        Uri.parse('https://workdonecorp.com/api/add_project_to_likes'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer $userToken',
+        },
+        body: {
+          'project_id': projectId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseBody = json.decode(response.body);
+
+        if (responseBody['status'] == 'success') {
+
+          DateTime currentTime = DateTime.now();
+
+          // Format the current time into your desired format
+          String formattedTime = DateFormat('h:mm a').format(currentTime);
+
+          Map<String, dynamic> newNotification = {
+            'title': 'New Like Received from $name 💚',
+            'body': 'Your post $Title has received a new like from $name 😊',
+            'time' : formattedTime,
+            'id' :projectId,
+            'type': 'projectworker'
+            // Add other notification data as needed
+          };
+          print('sended notification ${[newNotification]}');
+
+          id!= userId.toString()?     SaveNotificationToFirebase.saveNotificationsToFirestore(id.toString(), [newNotification]) :null;
+          print('getting notification');
+          print(' notificationwe  ${id}');
+          print(' notificationwe  ${ userId.toString()}');
+          // Get the user document reference
+          // Get the user document reference
+          // Get the user document reference
+          DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(id.toString()) ;
+
+// Get the user document
+          DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+          if (doc.exists &&  id!= userId.toString()) {
+            // Extract the FCM token and notifications list from the document
+            String? receiverToken = doc.get('fcmToken');
+            List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+            // Check if the new notification is not null and not already in the list
+            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+              // Add the new notification to the beginning of the list
+              notifications.insert(0, newNotification);
+
+              // Update the user document with the new notifications list
+              await userDocRef.update({
+                'notifications': notifications.last,
+              });
+
+              print('Notifications saved for user $id');
+            }
+
+            // Display the notifications list in the app
+            print('Notifications for user $id:');
+            for (var notification in notifications) {
+              String? title = notification['title'];
+              String? body = notification['body'];
+              print('Title: $title, Body: $body');
+              await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+              print('Last notification sent to ${id.toString()}');
+            }
+          } else {
+            print('User document not found for user $id');
+          }
+
+          // Project added to likes successfully
+          print('Project added to likes successfully');
+          _likedStatusController.add("true");
+
+        } else if (responseBody['msg'] == 'This Project is Already in Likes !') {
+          // Project is already liked
+          print('Project is already liked');
+        } else {
+          // Handle other error scenarios
+          print('Error: ${responseBody['msg']}');
+        }
+
+        return responseBody;
+      } else {
+        // Handle other status codes
+        print('Failed to add project to likes. Status code: ${response.statusCode}');
+        return {'status': 'error', 'msg': 'Failed to add project to likes'};
+      }
+    } catch (e) {
+      // Handle exception
+      print('Error: $e');
+      return {'status': 'error', 'msg': 'An error occurred'};
+    }
   }
 
   Future<List<Item>> fetchProjects() async {
@@ -111,11 +225,65 @@ class _projectsClientState extends State<projectsClient> with SingleTickerProvid
 
   final ScreenshotController screenshotController4 = ScreenshotController();
   late AnimationController ciruclaranimation;
+  String firstname = '';
+
+  Future<void> _getUserProfile() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_profile_info';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $userToken',
+          },
+
+        );
+
+        if (response.statusCode == 200) {
+          Map<dynamic, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('data')) {
+            Map<dynamic, dynamic> profileData = responseData['data'];
+
+            String languageString;
+
+            setState(() {
+              firstname = profileData['firstname'] ?? '';
+
+
+              // Add this line
+            });
+
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
   @override
   void initState() {
     super.initState();
     // Call the function that fetches projects and assign the result to futureProjects
     futureProjects = fetchProjects();
+    _getUserProfile();
     ciruclaranimation = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
@@ -354,8 +522,8 @@ class _projectsClientState extends State<projectsClient> with SingleTickerProvid
                         child: SvgPicture.asset(
                           'assets/images/Logo.svg',
                           semanticsLabel: 'Your SVG Image',
-                          width: 100,
-                          height: 130,
+                          width: 70,
+                          height: 80,
                         ),
                       ))
                       ,SizedBox(height: 80,)
@@ -551,7 +719,7 @@ class _projectsClientState extends State<projectsClient> with SingleTickerProvid
                                     }
                                   } else {
                                     // If not liked, add like
-                                    final response = await addProjectToLikes(item.projectId.toString());
+                                    final response = await addProjectToLikes(item.projectId.toString(),firstname ,item.title,item.client_id.toString());
 
                                     if (response['status'] == 'success') {
                                       // If successfully added to likes

@@ -3,14 +3,18 @@ import 'dart:convert';
 
 import 'package:badges/badges.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:intl/intl.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/model/firebaseNotification.dart';
+import 'package:workdone/model/save_notification_to_firebase.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
@@ -21,7 +25,10 @@ import 'package:http/http.dart' as http;
 import 'package:badges/badges.dart' as badges;
 
 class exploreClient extends StatefulWidget {
-   exploreClient({super.key});
+
+  final String useridw;
+
+  exploreClient({required this.useridw});
 
   @override
   State<exploreClient> createState() => _exploreClientState();
@@ -39,7 +46,7 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
 
 
   Stream<String> get likedStatusStream => _likedStatusController.stream;
-  Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
+  Future<Map<String, dynamic>> addProjectToLikes(String projectId,String name ,String Title ,String id) async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String userToken = prefs.getString('user_token') ?? '';
@@ -59,6 +66,67 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
         final Map<String, dynamic> responseBody = json.decode(response.body);
 
         if (responseBody['status'] == 'success') {
+
+          DateTime currentTime = DateTime.now();
+
+          // Format the current time into your desired format
+          String formattedTime = DateFormat('h:mm a').format(currentTime);
+
+          Map<String, dynamic> newNotification = {
+            'title': 'New Like Received from $name 💚',
+            'body': 'Your post $Title has received a new like from $name 😊',
+            'time' : formattedTime,
+
+            'id' :projectId,
+            'type': 'projectworker'
+            // Add other notification data as needed
+          };
+          print('sended notification ${[newNotification]}');
+
+          id!= userId.toString()?     SaveNotificationToFirebase.saveNotificationsToFirestore(id.toString(), [newNotification]) :null;
+          print('getting notification');
+          print(' notificationwe  ${id}');
+          print(' notificationwe  ${ userId.toString()}');
+          // Get the user document reference
+          // Get the user document reference
+          // Get the user document reference
+          DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(id.toString()) ;
+
+// Get the user document
+          DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+          if (doc.exists &&  id!= userId.toString()) {
+            // Extract the FCM token and notifications list from the document
+            String? receiverToken = doc.get('fcmToken');
+            List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+            // Check if the new notification is not null and not already in the list
+            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+              // Add the new notification to the beginning of the list
+              notifications.insert(0, newNotification);
+
+              // Update the user document with the new notifications list
+              await userDocRef.update({
+                'notifications': notifications.last,
+              });
+
+              print('Notifications saved for user $id');
+            }
+
+            // Display the notifications list in the app
+            print('Notifications for user $id:');
+            for (var notification in notifications) {
+              String? title = notification['title'];
+              String? body = notification['body'];
+              print('Title: $title, Body: $body');
+              await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+              print('Last notification sent to ${id.toString()}');
+            }
+          } else {
+            print('User document not found for user $id');
+          }
+
           // Project added to likes successfully
           print('Project added to likes successfully');
           _likedStatusController.add("true");
@@ -116,12 +184,60 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
     }
   }
 
+  int? userId;
+  Future<void> _getUserid() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+      print ('fetching user id');
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://www.workdonecorp.com/api/get_user_id_by_token';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+          print ('done  user id');
+
+          if (responseData.containsKey('user_id')) {
+
+            userId = responseData['user_id'];
+
+            // Now, userId contains the extracted user_id value
+            print('User ID: $userId');
+
+            // Optionally, save the user_id to SharedPreferences
+            prefs.setInt('user_id', userId ?? 0);
+          } else {
+            print('Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
+
 
   bool shouldShowNextButton(List<Item>? nextPageData) {
     // Add your condition to check if the next page is not empty here
     return nextPageData != null && nextPageData.isNotEmpty;
   }
   Timer? searchDebouncer;
+  StreamController<DocumentSnapshot> _streamController = StreamController<DocumentSnapshot>();
+
   // int notificationnumber =0 ;  Future<void> Notificationnumber() async {
   //   try {
   //     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -230,11 +346,67 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
 
   List<Item> filteredItems = [];
   late AnimationController ciruclaranimation;
+  String firstname = '';
+
+  Future<void> _getUserProfile() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_profile_info';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $userToken',
+          },
+
+        );
+
+        if (response.statusCode == 200) {
+          Map<dynamic, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('data')) {
+            Map<dynamic, dynamic> profileData = responseData['data'];
+
+            String languageString;
+
+            setState(() {
+              firstname = profileData['firstname'] ?? '';
+
+
+              // Add this line
+            });
+
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
   @override
   void initState() {
     super.initState();
-    // Call the function that fetches projects and assign the result to futureProjects
+    _getUserid();
+    _getUserProfile();
     futureProjects = fetchProjects();
+
+
     // Notificationnumber();
     // const Duration fetchdata = Duration(seconds: 15);
     // Timer.periodic(fetchdata, (Timer timer) {
@@ -252,6 +424,7 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
   @override
   void dispose() {
     ciruclaranimation.dispose();
+
     super.dispose();
   }
 
@@ -361,38 +534,73 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
         actions: [
 
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child:
-            // notificationnumber!=0?
+            StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('notify')
+                  .doc('${widget.useridw}')
+                  .snapshots(),
 
-            badges.Badge(
-              badgeStyle: badges.BadgeStyle(
-                badgeColor: Colors.red,
-                shape: badges.BadgeShape.circle,
-              ),
-              position: BadgePosition.topEnd(),
-              badgeContent: Text('0',style: TextStyle(color: Colors.white),),
-              badgeAnimation: badges.BadgeAnimation.rotation(
-                animationDuration: Duration(seconds: 1),
-                colorChangeAnimationDuration: Duration(seconds: 1),
-                loopAnimation: false,
-                curve: Curves.fastOutSlowIn,
-                colorChangeAnimationCurve: Curves.easeInCubic,
-              ),
-              child: GestureDetector(
-                onTap:
-                    (){Get.to(NotificationsPageclient());
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return SvgPicture.asset(
+                    'assets/icons/iconnotification.svg',
+                    width: 48.0,
+                    height: 48.0,
+                  ); // Show a loading indicator while waiting for data
+                } else if (snapshot.hasData && snapshot.data!.exists) {
+                  // Check if 'notifications' field exists and is not null
+                  if (snapshot.data!['notifications'] != null)
+                  {
+                    List<dynamic> notifications = snapshot.data!['notifications'];
+                    // Filter notifications where 'isRead' is not available or is false
+                    int unreadCount = notifications.where((notification) =>
+                    notification['isRead'] == null || notification['isRead'] == false).length;
+
+                    return unreadCount > 0 ?
+                    badges.Badge(
+                      badgeStyle: badges.BadgeStyle(
+                        badgeColor: unreadCount > 9 ? Colors.red : Colors.orange,
+                        shape: badges.BadgeShape.circle,
+                      ),
+                      position: BadgePosition.topEnd(),
+                      badgeContent: Text(unreadCount > 9 ? '+9' : '${unreadCount}',
+                          style: TextStyle(color: Colors.white)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: GestureDetector(
+                          child: SvgPicture.asset(
+                            'assets/icons/iconnotification.svg',
+                            width: 48.0,
+                            height: 48.0,
+                          ),
+                          onTap: () {
+                            Get.to(NotificationsPageclient());
+                          },
+                        ),
+                      ),
+                    ) :
+                    GestureDetector(
+                      child: SvgPicture.asset(
+                        'assets/icons/iconnotification.svg',
+                        width: 48.0,
+                        height: 48.0,
+                      ),
+                      onTap: () {
+                        Get.to(NotificationsPageclient());
+                      },
+                    );
+                  } else {
+                    // Handle the case where 'notifications' field does not exist
+                    return Text('No notifications available');
+                  }
+                } else {
+                  // Handle the case where the document does not exist
+                  return Text(' ${userId.toString()}No notifications document found');
                 }
-                ,
-                child: SvgPicture.asset(
-                  'assets/icons/iconnotification.svg',
-                  width: 48.0,
-                  height:48.0,
-                ),
-
-              ),
-            )
-
+              },
+            ),
           )
 
         ],
@@ -402,209 +610,215 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
       body:
       Screenshot(
         controller:screenshotController ,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 13.0),
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(7.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5), // Color of the shadow
-                          spreadRadius: 2, // Spread radius
-                          blurRadius: 4, // Blur radius
-                          offset: Offset(0, 2), // Offset in the x and y direction
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              color: HexColor('4D8D6E'),
-                              borderRadius: BorderRadius.circular(7.0),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'All',
-                                style: GoogleFonts.openSans(
-                                  textStyle: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15 ,
-                                      fontWeight: FontWeight.w600),
+        child:  RefreshIndicator(
+          color: HexColor('4D8D6E'),
+          backgroundColor: Colors.white,
+
+          onRefresh: () async {
+            setState(() {
+              futureProjects = fetchProjects();
+            });
+          },
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 13.0),
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(7.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5), // Color of the shadow
+                            spreadRadius: 2, // Spread radius
+                            blurRadius: 4, // Blur radius
+                            offset: Offset(0, 2), // Offset in the x and y direction
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: EdgeInsets.all(16.0),
+                              decoration: BoxDecoration(
+                                color: HexColor('4D8D6E'),
+                                borderRadius: BorderRadius.circular(7.0),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'All',
+                                  style: GoogleFonts.openSans(
+                                    textStyle: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15 ,
+                                        fontWeight: FontWeight.w600),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-        
-                        Expanded(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 16.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(7.0),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.search,
-                                  color: HexColor('878A8E'),
-                                ),
-                                SizedBox(width: 8.0),
-                                Expanded(
-                                  child: TextField(
-                                    controller: searchController,
-                                    onChanged: (query) {
-                                      // Use a debounce mechanism to delay the refresh and avoid unnecessary API calls
-                                      if (searchDebouncer?.isActive ?? false) {
-                                        searchDebouncer!.cancel();
-                                      }
-        
-                                      searchDebouncer = Timer(Duration(milliseconds: 500), () {
-        
-                                       setState(() {
-                                         refreshProjects();
-        
-                                       }); // Trigger the refresh after a delay (e.g., 500 milliseconds)
-                                      });
-                                    },
-                                    onSubmitted: (query) {
-                                      // Trigger the refresh when the user presses "Done" on the keyboard
-                                      setState(() {
-                                        refreshProjects();
-        
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: 'Search',
-                                      hintStyle: TextStyle(color: HexColor('878A8E')),
-                                      border: InputBorder.none,
-                                    ),
-                                    style: TextStyle(color: Colors.black),
-                                  )
-        
-        
-                                  ,
-        
-                                ),
-                              ],
+
+                          Expanded(
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 16.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(7.0),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.search,
+                                    color: HexColor('878A8E'),
+                                  ),
+                                  SizedBox(width: 8.0),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: searchController,
+                                      onChanged: (query) {
+                                        // Use a debounce mechanism to delay the refresh and avoid unnecessary API calls
+                                        if (searchDebouncer?.isActive ?? false) {
+                                          searchDebouncer!.cancel();
+                                        }
+
+                                        searchDebouncer = Timer(Duration(milliseconds: 500), () {
+
+                                         setState(() {
+                                           refreshProjects();
+
+                                         }); // Trigger the refresh after a delay (e.g., 500 milliseconds)
+                                        });
+                                      },
+                                      onSubmitted: (query) {
+                                        // Trigger the refresh when the user presses "Done" on the keyboard
+                                        setState(() {
+                                          refreshProjects();
+
+                                        });
+                                      },
+                                      decoration: InputDecoration(
+                                        hintText: 'Search',
+                                        hintStyle: TextStyle(color: HexColor('878A8E')),
+                                        border: InputBorder.none,
+                                      ),
+                                      style: TextStyle(color: Colors.black),
+                                    )
+
+
+                                    ,
+
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-        
-                FutureBuilder<List<Item>>(
-                  future: futureProjects,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Column(
-                        children: [
-                          SizedBox(height: 80,),        Center(child: RotationTransition(
-                            turns: ciruclaranimation,
-                            child: SvgPicture.asset(
-                              'assets/images/Logo.svg',
-                              semanticsLabel: 'Your SVG Image',
-                              width: 100,
-                              height: 130,
-                            ),
-                          ))
-                          ,SizedBox(height: 80,)
-                        ],
-                      );
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else if (snapshot.data != null && snapshot.data!.isEmpty) {
-                      // If projects list is empty, reset current page to 0 and refresh
-                      currentPage = 0;
-                      refreshProjects();
-                      return Center(
-                        child: SvgPicture.asset(
-                          'assets/images/empty.svg',
-                          semanticsLabel: 'Your SVG Image',
-                          width: 150,
-                          height: 200,
+
+                  FutureBuilder<List<Item>>(
+                    future: futureProjects,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Column(
+                          children: [
+                            SizedBox(height: 80,),        Center(child: RotationTransition(
+                              turns: ciruclaranimation,
+                              child: SvgPicture.asset(
+                                'assets/images/Logo.svg',
+                                semanticsLabel: 'Your SVG Image',
+                                width: 70,
+                                height: 80,
+                              ),
+                            ))
+                            ,SizedBox(height: 80,)
+                          ],
+                        );
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else if (snapshot.data != null && snapshot.data!.isEmpty) {
+                        // If projects list is empty, reset current page to 0 and refresh
+                        currentPage = 0;
+                        refreshProjects();
+                        return Center(
+                          child: SvgPicture.asset(
+                            'assets/images/empty.svg',
+                            semanticsLabel: 'Your SVG Image',
+                            width: 150,
+                            height: 200,
+                          ),
+                        );
+                      } else {
+                        return ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (context, index) {
+                            return buildListItem(snapshot.data![index]);
+                          },
+                        );
+                      }
+                    },
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      if (currentPage > 0)
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              currentPage--;
+                              refreshProjects(); // Use refreshProjects instead of fetchProjects
+                            });
+                          },
+                          style: TextButton.styleFrom(
+
+                           backgroundColor: Colors.redAccent,
+
+                          ),
+                          child: Text(
+                            'Previous Page',
+                            style: TextStyle(fontSize: 16, ),
+                          ),
                         ),
-                      );
-                    } else {
-                      return ListView.builder(
-                        physics: NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, index) {
-                          return buildListItem(snapshot.data![index]);
-                        },
-                      );
-                    }
-                  },
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    if (currentPage > 0)
                       TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           setState(() {
-                            currentPage--;
-                            refreshProjects(); // Use refreshProjects instead of fetchProjects
-                          });
-                        },
-                        style: TextButton.styleFrom(
-        
-                         backgroundColor: Colors.redAccent,
-        
-                        ),
-                        child: Text(
-                          'Previous Page',
-                          style: TextStyle(fontSize: 16, ),
-                        ),
-                      ),
-                    TextButton(
-                      onPressed: () async {
-                        setState(() {
-                          currentPage++;
-                          refreshProjects();
-                        });
-        
-                        // Fetch the projects for the next page
-                        List<Item>? nextPageProjects = await fetchProjects();
-        
-                        // Check if the next page is empty or no data and hide the button accordingly
-                        if (!shouldShowNextButton(nextPageProjects)) {
-                          setState(() {
-                            currentPage = 0;
+                            currentPage++;
                             refreshProjects();
                           });
-                        } else {
-                          // Update the futureProjects with the fetched projects
-                          futureProjects = Future.value(nextPageProjects);
-                        }
-                      },
-                      style: TextButton.styleFrom(
-        
-                       backgroundColor: Colors.black45,
-        
+
+                          // Fetch the projects for the next page
+                          List<Item>? nextPageProjects = await fetchProjects();
+
+                          // Check if the next page is empty or no data and hide the button accordingly
+                          if (!shouldShowNextButton(nextPageProjects)) {
+                            setState(() {
+                              currentPage = 0;
+                              refreshProjects();
+                            });
+                          } else {
+                            // Update the futureProjects with the fetched projects
+                            futureProjects = Future.value(nextPageProjects);
+                          }
+                        },
+
+                        child: Text(
+                          'Next Page',
+                          style: TextStyle(fontSize: 16,color: Colors.black45),
+                        ),
                       ),
-                      child: Text(
-                        'Next Page',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 50,)
-              ],
+                    ],
+                  ),
+                  SizedBox(height: 50,)
+                ],
+              ),
             ),
           ),
         ),
@@ -727,7 +941,7 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
                                     }
                                   } else {
                                     // If not liked, add like
-                                    final response = await addProjectToLikes(item.projectId.toString());
+                                    final response = await addProjectToLikes(item.projectId.toString(),firstname,item.title,item.client_id.toString());
 
                                     if (response['status'] == 'success') {
                                       // If successfully added to likes

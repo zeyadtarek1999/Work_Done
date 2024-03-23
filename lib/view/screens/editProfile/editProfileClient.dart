@@ -298,6 +298,7 @@ class _editProfileState extends State<editProfile> {
             'title': 'Profile Updated',
             'body': 'Your profile information has been successfully updated 😊',
             'time': formattedTime,
+            'isRead':false
             // Add other notification data as needed
           };
           print('sended notification ${[newNotification]}');

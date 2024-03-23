@@ -171,8 +171,8 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                 offset: Offset(_animation.value, 0),
                 child: SvgPicture.asset(
                   'assets/images/Logo.svg',
-                  width: 150.0,
-                  height: 180.0,
+                  width: 70,
+                  height: 80,
                 ),
               ),
             ),
@@ -197,7 +197,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                     ),
                     duration:   Duration(seconds: 1),
                    ),
-                  ScaleAnimatedText(
+                  FadeAnimatedText(
                     'WorkDone ',
                     textStyle: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -208,7 +208,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                     ),
 
 
-                    duration:  const Duration(seconds: 2),
+                    duration:  const Duration(seconds: 1),
                   ),
                 ],
               ),

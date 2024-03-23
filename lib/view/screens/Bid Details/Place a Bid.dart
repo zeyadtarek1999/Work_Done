@@ -96,7 +96,7 @@ double total =0;
   String paypalvalidation ='';
   void checkPayPalValidation() {
     // Replace the condition with your actual check
-    if (paypalvalidation == 'no paypal Email') {
+    if (paypalvalidation == 'no paypal Email' ||paypalvalidation == '' ) {
       // Show the PayPal pop-up
       showDialog(
         context: context,
@@ -158,7 +158,7 @@ Get.to(paymentmethod());
           Map<dynamic, dynamic> responseData = json.decode(response.body);
 
           if (responseData.containsKey('data')) {
-            String profileData = responseData['data'];
+            String profileData = responseData['data'] ?? '';
 
 
             setState(() {

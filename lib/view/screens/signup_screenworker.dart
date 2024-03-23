@@ -659,8 +659,8 @@ class _SignUpScreenState extends State<SignUpScreen>
             child: SvgPicture.asset(
               'assets/images/Logo.svg',
               semanticsLabel: 'Your SVG Image',
-              width: 100,
-              height: 130,
+              width: 70,
+              height: 80,
             ),
           )),
 
@@ -2446,8 +2446,8 @@ SizedBox(width: 8,),
                                           child: SvgPicture.asset(
                                             'assets/images/Logo.svg',
                                             semanticsLabel: 'Your SVG Image',
-                                            width: 100,
-                                            height: 130,
+                                            width: 70,
+                                            height: 80,
                                           ),
                                         ),
                                       )

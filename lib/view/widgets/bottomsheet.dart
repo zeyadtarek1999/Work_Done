@@ -70,7 +70,7 @@ class ChooseRoleBottomSheet extends StatelessWidget {
                         height: ScreenUtil.imageheight,
                         width: ScreenUtil.imagewidth,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: HexColor('#4D8D6E'),
                           image: DecorationImage(
                             image: AssetImage('assets/images/client.png'),
                             fit: BoxFit.cover,
@@ -144,7 +144,7 @@ class ChooseRoleBottomSheet extends StatelessWidget {
                         height: ScreenUtil.imageheight,
                         width: ScreenUtil.imagewidth,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: HexColor('#4D8D6E'),
                           image: DecorationImage(
                             image: AssetImage('assets/images/workerlogo.png'),
                             fit: BoxFit.cover,

@@ -233,6 +233,55 @@ double widthofbar = 150;
       ),
     );
   }
+  String usertype = '';
+
+  Future<void> _getusertype() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_user_type';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('user_type')) {
+            String userType = responseData['user_type'];
+
+            // Navigate based on user type
+            if (userType == 'client') {
+              usertype= 'client';
+            } else if (userType == 'worker') {
+              usertype= 'worker';
+
+            } else {
+              print('Error: Unknown user type.');
+              throw Exception('Failed to load profile information');
+            }
+          } else {
+            print('Error: Response data does not contain user_type.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
 
 
 
@@ -264,7 +313,6 @@ double widthofbar = 150;
   String profile_pic = '';
   String phone = '';
   String language = '';
-  String usertype = '';
   int projectnumber = 0;
   dynamic stars_5 = 0;
   dynamic stars_4 = 0;
@@ -343,53 +391,6 @@ double widthofbar = 150;
     }
   }
 
-  Future<void> _getusertype() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final userToken = prefs.getString('user_token') ?? '';
-      print(userToken);
-
-      if (userToken.isNotEmpty) {
-        // Replace the API endpoint with your actual endpoint
-        final String apiUrl = 'https://workdonecorp.com/api/get_user_type';
-        print(userToken);
-
-        final response = await http.post(
-          Uri.parse(apiUrl),
-          headers: {'Authorization': 'Bearer $userToken'},
-        );
-
-        if (response.statusCode == 200) {
-          Map<String, dynamic> responseData = json.decode(response.body);
-
-          if (responseData.containsKey('user_type')) {
-            String userType = responseData['user_type'];
-
-            // Navigate based on user type
-            if (userType == 'client') {
-              usertype= 'client';
-            } else if (userType == 'worker') {
-              usertype= 'worker';
-
-            } else {
-              print('Error: Unknown user type.');
-              throw Exception('Failed to load profile information');
-            }
-          } else {
-            print('Error: Response data does not contain user_type.');
-            throw Exception('Failed to load profile information');
-          }
-        } else {
-          // Handle error response
-          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
-          throw Exception('Failed to load profile information');
-        }
-      }
-    } catch (error) {
-      // Handle errors
-      print('Error getting profile information: $error');
-    }
-  }
 
 
   Future<UserProfile> fetchUserProfile(String userId) async {
@@ -988,8 +989,8 @@ print(widget.userId.toString(),);
                               child: SvgPicture.asset(
                                 'assets/images/Logo.svg',
                                 semanticsLabel: 'Your SVG Image',
-                                width: 100,
-                                height: 130,
+                                width: 70,
+                                height: 80,
                               ),
                             ))
                             ,SizedBox(height: 80,)
@@ -1064,7 +1065,12 @@ print(widget.userId.toString(),);
     return GestureDetector(
       onTap: () {
         Get.to(
-              () => bidDetailsClient(projectId: project.projectId),  );    },
+              () =>  usertype=='client'?
+              bidDetailsClient(projectId: project.projectId):
+              bidDetailsWorker(projectId: project.projectId),
+
+
+        );    },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
         padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
@@ -1237,25 +1243,30 @@ print(widget.userId.toString(),);
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: TextButton(
-                          onPressed: () {
-                            Get.to(ProfilePageClient(userId:project.clientId.toString()));
-                          },
-                          style: TextButton.styleFrom(
-                            fixedSize: Size(50, 30), // Adjust the size as needed
-                            padding: EdgeInsets.zero,
-                          ),
-                          child: Text.rich(
-                            TextSpan(
-                              children: _buildTextSpans(project.clientFirstname, searchController.text),
+                            onPressed: () {
+                              Get.to(ProfilePageClient(userId:project.clientId.toString(),
+                              ),
+                                transition: Transition.fadeIn, // You can choose a different transition
+                                duration: Duration(milliseconds: 700), // Set the duration of the transition
+
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              fixedSize: Size(50, 30), // Adjust the size as needed
+                              padding: EdgeInsets.zero,
                             ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis, // Use the client name from the fetched data
-                            style: TextStyle(
-                              color: HexColor('4D8D6E'),
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                            child:
+                            Text(
+                              "${project.clientFirstname}",
+
+                              maxLines: 1,
+                              overflow: TextOverflow.visible, // Use the client name from the fetched data
+                              style: TextStyle(
+                                color: HexColor('4D8D6E'),
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
                         ),
                       ),
                     ],
@@ -1519,9 +1530,9 @@ class Reviews {
   factory Reviews.fromJson(Map<String, dynamic> json) {
     return Reviews(
       reviewOnWorker: json['review_on_worker'],
-      ratingOnWorker: json['rating_on_worker'],
+      ratingOnWorker: json['rating_on_worker'] ??0,
       reviewOnClient: json['review_on_client'],
-      ratingOnClient: json['rating_on_client'],
+      ratingOnClient: json['rating_on_client']??0,
     );
   }
 }

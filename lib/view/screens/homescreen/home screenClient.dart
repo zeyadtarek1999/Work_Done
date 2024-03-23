@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
@@ -8,11 +9,15 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:intl/intl.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'package:workdone/main.dart';
+import 'package:workdone/model/firebaseNotification.dart';
+import 'package:workdone/model/save_notification_to_firebase.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Explore/Explore Client.dart';
 import '../Profile (client-worker)/profilescreenClient.dart';
@@ -45,6 +50,11 @@ bool shouldShowNextButton(List<Item>? nextPageData) {
   // Add your condition to check if the next page is not empty here
   return nextPageData != null && nextPageData.isNotEmpty;
 }
+
+
+
+
+
 
 late Future<List<Item>> futureProjects;
 List<Item> items = [];
@@ -87,6 +97,7 @@ Future<List<Item>> fetchProjects() async {
             client_id:  json['client_id'],
             title: json['title'],
             description: json['desc'],
+              video:json['video'],
             imageUrl: json['images'] != null ? List<String>.from(json['images']) : [], // This creates a list from the JSON array
             postedFrom: json['posted_from'],
             client_firstname: json['client_firstname'],
@@ -116,8 +127,9 @@ final StreamController<String> _likedStatusController = StreamController<String>
 Stream<String> get likedStatusStream => _likedStatusController.stream;
 
 Map<int, bool> likedProjectsMap = {};
+int? userId;
 
-Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
+Future<Map<String, dynamic>> addProjectToLikes(String projectId,String name ,String Title ,String id) async {
   try {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String userToken = prefs.getString('user_token') ?? '';
@@ -137,6 +149,66 @@ Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
       final Map<String, dynamic> responseBody = json.decode(response.body);
 
       if (responseBody['status'] == 'success') {
+
+        DateTime currentTime = DateTime.now();
+
+        // Format the current time into your desired format
+        String formattedTime = DateFormat('h:mm a').format(currentTime);
+
+        Map<String, dynamic> newNotification = {
+          'title': 'New Like Received from $name 💚',
+          'body': 'Your post $Title has received a new like from $name 😊',
+          'time' : formattedTime,
+          'id' :projectId,
+          'type': 'projectworker'
+          // Add other notification data as needed
+        };
+        print('sended notification ${[newNotification]}');
+
+        id!= userId.toString()?     SaveNotificationToFirebase.saveNotificationsToFirestore(id.toString(), [newNotification]) :null;
+        print('getting notification');
+        print(' notificationwe  ${id}');
+        print(' notificationwe  ${ userId.toString()}');
+        // Get the user document reference
+        // Get the user document reference
+        // Get the user document reference
+        DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(id.toString()) ;
+
+// Get the user document
+        DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+        if (doc.exists &&  id!= userId.toString()) {
+          // Extract the FCM token and notifications list from the document
+          String? receiverToken = doc.get('fcmToken');
+          List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+          // Check if the new notification is not null and not already in the list
+          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            // Add the new notification to the beginning of the list
+            notifications.insert(0, newNotification);
+
+            // Update the user document with the new notifications list
+            await userDocRef.update({
+              'notifications': notifications.last,
+            });
+
+            print('Notifications saved for user $id');
+          }
+
+          // Display the notifications list in the app
+          print('Notifications for user $id:');
+          for (var notification in notifications) {
+            String? title = notification['title'];
+            String? body = notification['body'];
+            print('Title: $title, Body: $body');
+            await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+            print('Last notification sent to ${id.toString()}');
+          }
+        } else {
+          print('User document not found for user $id');
+        }
+
         // Project added to likes successfully
         print('Project added to likes successfully');
         _likedStatusController.add("true");
@@ -209,7 +281,6 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
  final GlobalKey _two = GlobalKey();
  final GlobalKey _three = GlobalKey();
  final GlobalKey _four = GlobalKey();
-  int? userId;
   Future<void> _getUserid() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -255,11 +326,18 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
     }
   }
    // Duration fetchdata = Duration(seconds: 15);
-
+  // Future<int> _getUnseenMessagesNumber() async {
+  //   DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+  //       .collection('notify')
+  //       .doc(userId.toString())
+  //       .get();
+  //   return docSnapshot['notifications'].length;
+  // }
   @override
   void initState() {
     super.initState();
     initializeProjects();
+    _getUserid();
     _getUserid();
     _getUserProfile();
 
@@ -289,6 +367,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
   String firstname ='' ;
   String secondname ='' ;
   String email ='' ;
+
   Future<void> _getUserProfile() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -405,38 +484,38 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
     }
   }
 
-  Future<void> handleLikeAction(Item item) async {
-    try {
-      if (item.isLiked == "true") {
-        // If liked, remove like
-        final response = await removeProjectFromLikes(item.projectId.toString());
-
-        if (response['status'] == 'success') {
-          // If successfully removed from likes
-          print('Project removed from likes');
-        } else {
-          // Handle the case where the project is not removed from likes
-          print('Error: ${response['msg']}');
-        }
-      } else {
-        // If not liked, add like
-        final response = await addProjectToLikes(item.projectId.toString());
-
-        if (response['status'] == 'success') {
-          // If successfully added to likes, fetch updated data for the project
-          print('Project added to likes');
-        } else if (response['msg'] == 'This Project is Already in Likes !') {
-          // If the project is already liked, switch to Icons.favorite_border
-          print('Project is already liked');
-        } else {
-          // Handle the case where the project is not added to likes
-          print('Error: ${response['msg']}');
-        }
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
+  // Future<void> handleLikeAction(Item item) async {
+  //   try {
+  //     if (item.isLiked == "true") {
+  //       // If liked, remove like
+  //       final response = await removeProjectFromLikes(item.projectId.toString());
+  //
+  //       if (response['status'] == 'success') {
+  //         // If successfully removed from likes
+  //         print('Project removed from likes');
+  //       } else {
+  //         // Handle the case where the project is not removed from likes
+  //         print('Error: ${response['msg']}');
+  //       }
+  //     } else {
+  //       // If not liked, add like
+  //       final response = await addProjectToLikes(item.projectId.toString(),item.client_firstname ,item.title,item.client_id.toString());
+  //
+  //       if (response['status'] == 'success') {
+  //         // If successfully added to likes, fetch updated data for the project
+  //         print('Project added to likes');
+  //       } else if (response['msg'] == 'This Project is Already in Likes !') {
+  //         // If the project is already liked, switch to Icons.favorite_border
+  //         print('Project is already liked');
+  //       } else {
+  //         // Handle the case where the project is not added to likes
+  //         print('Error: ${response['msg']}');
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print('Error: $e');
+  //   }
+  // }
 
 
 
@@ -675,23 +754,27 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                       fontWeight: FontWeight.normal),
                 ),
               ),
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    'assets/images/Logo.svg',
-                    fit: BoxFit.cover,
-                    width: 60.0,
-                    height: 75.0,
-                  ),
-                  Text('Workdone Corp.',
-                    style: GoogleFonts.poppins(
-                      textStyle: TextStyle(
-                          color: HexColor('595B5B'),
-                          fontSize: 14,
-                          fontWeight: FontWeight.normal),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 11.0,horizontal: 8),
+                child: Row(
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/Logo.svg',
+                      fit: BoxFit.cover,
+                      width: 55.0,
+                      height: 55.0,
                     ),
-                  ),
-                ],
+                    SizedBox(width: 7,),
+                    Text('Workdone Corp.',
+                      style: GoogleFonts.poppins(
+                        textStyle: TextStyle(
+                            color: HexColor('595B5B'),
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               SizedBox(height: 12,),
 
@@ -838,40 +921,60 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
               padding: const EdgeInsets.only(right: 12.0, top: 8, bottom: 8),
               child: Row(
                 children: [
-                  notificationnumber!=0?
-                  badges.Badge(
-                    badgeStyle: badges.BadgeStyle(
-                      badgeColor: Colors.red,
-                      shape: badges.BadgeShape.circle,
-                    ),
-                    position: BadgePosition.topEnd(),
-                    badgeContent: Text('$notificationnumber', style: TextStyle(color: Colors.white)),
-                    badgeAnimation: badges.BadgeAnimation.rotation(
-                      animationDuration: Duration(seconds: 1),
-                      colorChangeAnimationDuration: Duration(seconds: 1),
-                      loopAnimation: false,
-                      curve: Curves.fastOutSlowIn,
-                      colorChangeAnimationCurve: Curves.easeInCubic,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(6.0),
-                      child: GestureDetector(
-                        child: Icon(Ionicons.notifications, size: 26),
-                        onTap: () {
-                          Get.to(NotificationsPageclient());
-                        },
-                      ),
-                    ),
-                  ):
-                  Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: GestureDetector(
-              child: Icon(Ionicons.notifications_outline, size: 26),
-              onTap: () {
-                Get.to(NotificationsPageclient());
-              },
-            ),
-          ),
+                  StreamBuilder<DocumentSnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('notify')
+                        .doc(userId.toString())
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+
+                        return Icon(Ionicons.notifications, size: 26); // Show a loading indicator while waiting for data
+                      } else if (snapshot.hasData && snapshot.data!.exists) {
+                        // Check if 'notifications' field exists and is not null
+                        if (snapshot.data!['notifications'] != null) {
+                          List<dynamic> notifications = snapshot.data!['notifications'];
+                          // Filter notifications where 'isRead' is not available or is false
+                          int unreadCount = notifications.where((notification) =>
+                          notification['isRead'] == null || notification['isRead'] == false).length;
+
+                          return
+                            unreadCount > 0 ?
+                            badges.Badge(
+                            badgeStyle: badges.BadgeStyle(
+                              badgeColor: unreadCount > 9 ? Colors.red : Colors.orange,
+                              shape: badges.BadgeShape.circle,
+                            ),
+                            position: BadgePosition.topEnd(),
+                            badgeContent: Text(unreadCount > 9 ? '+9' : '${unreadCount}'
+                                , style: TextStyle(color: Colors.white)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(6.0),
+                              child: GestureDetector(
+                                child: Icon(Ionicons.notifications, size: 26),
+                                onTap: () {
+                                  Get.to(NotificationsPageclient());
+                                },
+                              ),
+                            ),
+                          ):
+                            GestureDetector(
+                              child: Icon(Ionicons.notifications, size: 26),
+                              onTap: () {
+                                Get.to(NotificationsPageclient());});
+
+                        } else {
+                          // Handle the case where 'notifications' field does not exist
+                          return Icon(Ionicons.notifications, size: 26); // Show a loading indicator while waiting for data
+                        }
+                      } else {
+                        // Handle the case where the document does not exist
+                        return Icon(Ionicons.notifications, size: 26); // Show a loading indicator while waiting for data
+                      }
+                    },
+                  ),
+
+
                   SizedBox(width: 20,),
                   widget.showCase == true
                       ? Showcase(
@@ -970,7 +1073,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
-                                    exploreClient()),
+                                    exploreClient(useridw: userId.toString(),)),
                           );
                         },
                         child: Text(
@@ -1003,8 +1106,10 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                                 child: SvgPicture.asset(
                                   'assets/images/Logo.svg',
                                   semanticsLabel: 'Your SVG Image',
-                                  width: 100,
-                                  height: 130,
+                                  fit: BoxFit.cover,
+
+                                  width: 70,
+                                  height: 80,
                                 ),
                               ));
                         } else if (snapshot.hasError) {
@@ -1126,7 +1231,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                               context,
                               MaterialPageRoute(
                                   builder: (context) =>
-                                      exploreClient()),
+                                      exploreClient(useridw: userId.toString(),)),
                             );
                           },
                           child: Text(
@@ -1146,7 +1251,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
-                                    exploreClient()),
+                                    exploreClient(useridw: userId.toString(),)),
                           );
                         },
                         child: Text(
@@ -1182,8 +1287,8 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                                     child: SvgPicture.asset(
                                       'assets/images/Logo.svg',
                                       semanticsLabel: 'Your SVG Image',
-                                      width: 100,
-                                      height: 130,
+                                      width: 70,
+                                      height: 80,
                                     ),
                                   ))
                               ,
@@ -1467,7 +1572,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                                   }
                                 } else {
                                   // If not liked, add like
-                                  final response = await addProjectToLikes(item.projectId.toString());
+                                  final response = await addProjectToLikes(item.projectId.toString(),firstname ,item.title,item.client_id.toString());
 
                                   if (response['status'] == 'success') {
                                     // If successfully added to likes
@@ -1721,7 +1826,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                                       }
                                     } else {
                                       // If not liked, add like
-                                      final response = await addProjectToLikes(item.projectId.toString());
+                                      final response = await addProjectToLikes(item.projectId.toString(),firstname ,item.title,item.client_id.toString());
 
                                       if (response['status'] == 'success') {
                                         // If successfully added to likes
@@ -1980,7 +2085,9 @@ class Item {
   final String client_firstname;
   late  String liked;
   final String description;
+  final String video;
   final List<String> imageUrl;
+
    int numbers_of_likes;
   final String postedFrom;
   String isLiked;
@@ -1991,6 +2098,7 @@ class Item {
     required this.projectId,
     required this.client_id,
     required this.lowest_bids,
+    required this.video,
     required this.title,
     required this.client_firstname,
     required this.description,

@@ -327,6 +327,7 @@ String usertype='';
           backgroundColor: Colors.red,
           textColor: Colors.white,
         );
+
         return;
       }
 
@@ -335,8 +336,37 @@ String usertype='';
         imageUrl = await uploadImageToStorage(image);
       }
 
-      // Add message to Firestore
-      await FirebaseFirestore.instance
+
+      if (content .isNotEmpty){
+
+
+        await FirebaseFirestore.instance
+            .collection('messages')
+            .doc('${Reciver}')
+            .collection('messages')
+            .add({
+          'sender': widget.myside_firstname,
+          'recieverid': Reciver,
+          'content': content,
+          'image': imageUrl, // Store image URL or path
+          'timestamp': FieldValue.serverTimestamp(),
+          'seen': false, // Initialize as not seen
+        });
+
+
+      }else{
+
+        Fluttertoast.showToast(
+          msg: "Empty message. Please write a message or select an image.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+
+      }
+
+          await FirebaseFirestore.instance
           .collection('chats')
           .doc(widget.chatId)
           .collection('messages')

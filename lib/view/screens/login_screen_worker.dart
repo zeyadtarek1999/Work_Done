@@ -238,8 +238,8 @@ class _LoginScreenworkerState extends State<LoginScreenworker> with SingleTicker
             child: SvgPicture.asset(
               'assets/images/Logo.svg',
               semanticsLabel: 'Your SVG Image',
-              width: 100,
-              height: 130,
+              width: 70,
+              height: 80,
             ),
           )),
 

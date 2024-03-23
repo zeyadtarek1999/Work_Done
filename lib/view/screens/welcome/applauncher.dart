@@ -122,8 +122,8 @@ class _AppLauncherState extends State<AppLauncher> {
         centerTitle: true,
         title:  SvgPicture.asset(
           'assets/images/Logo.svg',
-          width: 100.0,
-          height: 100.0,
+          width: 80,
+          height: 90,
         ),
 
       ),

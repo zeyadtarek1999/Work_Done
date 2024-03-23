@@ -128,6 +128,8 @@ class _paymentmethodState extends State<paymentmethod> {
           );
           Get.back( // You can choose a different transition// Set the duration of the transition
           );
+          Get.back( // You can choose a different transition// Set the duration of the transition
+          );
         } else if (responseBody['status'] == 'success') {
           // Check the specific error message
           String errorMsg = responseBody['msg'];

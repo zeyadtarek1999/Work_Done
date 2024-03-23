@@ -115,6 +115,29 @@ class _NotificationsPageclientState extends State<NotificationsPageclient> {
       print('Error getting profile information: $error');
     }
   }
+  void markNotificationsAsRead() async {
+    // Fetch the current state of notifications
+    DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+        .collection('notify')
+        .doc(userId.toString())
+        .get();
+
+    // Assuming 'notifications' is an array of notification objects
+    List<Map<String, dynamic>> notifications = List<Map<String, dynamic>>.from(docSnapshot['notifications']);
+
+    // Mark all notifications as read
+    for (var notification in notifications) {
+      notification['isRead'] = true;
+    }
+
+    // Write the modified notifications back to Firestore
+    await FirebaseFirestore.instance
+        .collection('notify')
+        .doc(userId.toString())
+        .update({'notifications': notifications});
+  }
+
+
   Future<List<Notification>> fetchNotifications(String userId) async {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
     final DocumentSnapshot documentSnapshot = await firestore.collection('notify').doc(userId).get();
@@ -130,6 +153,7 @@ class _NotificationsPageclientState extends State<NotificationsPageclient> {
   void initState() {
     super.initState();
     _initializeData();
+
   }
 
   Future<void> _initializeData() async {
@@ -137,8 +161,9 @@ class _NotificationsPageclientState extends State<NotificationsPageclient> {
       _getUserid(),
       _getusertype(),
 
+
     ]);
-    // Now that userId and usertype are set, fetch notifications
+    markNotificationsAsRead();
     List<Notification> fetchedNotifications = await fetchNotifications('${userId.toString()}');
     // Reverse the list of notifications
     fetchedNotifications = fetchedNotifications.reversed.toList();
@@ -271,6 +296,8 @@ Get.back()     ;     },
                                 ? Icons.lock:
                             notification.title.toLowerCase().contains('profile')?
                             Icons.account_circle_rounded:
+                            notification.title.toLowerCase().contains('like')?
+                            Icons.favorite :
                             notification.title.toLowerCase().contains('address')?
                             Icons.location_on:
                             notification.title.toLowerCase().contains('bid')?
@@ -336,11 +363,14 @@ Get.back()     ;     },
                         notification.title.toLowerCase().contains('bid')
                         &&  usertype=='client'?
                         Get.to(bidDetailsClient(projectId:  notification.id)):
-                            usertype=='worker'?
-                            Get.to(ProfileScreenworker()):
-                            usertype=='client'?
-                            Get.to(ProfileScreenClient2()):
-                            Get.to(ProfileScreenClient2());
+                        notification.title.toLowerCase().contains('profile')||                             notification.title.toLowerCase().contains('address')?
+                        Get.to(ProfileScreenClient2()):
+                        //
+                        // usertype=='worker'?
+                            // Get.to(ProfileScreenworker()):
+                            // usertype=='client'?
+                            // Get.to(ProfileScreenClient2()):
+                            null;
 
 
 

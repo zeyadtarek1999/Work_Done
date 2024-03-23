@@ -231,6 +231,53 @@ double widthofbar = 150;
   }
 
 
+  Future<void> _getusertype() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_user_type';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('user_type')) {
+            String userType = responseData['user_type'];
+
+            // Navigate based on user type
+            if (userType == 'client') {
+              usertype= 'client';
+            } else if (userType == 'worker') {
+              usertype= 'worker';
+
+            } else {
+              print('Error: Unknown user type.');
+              throw Exception('Failed to load profile information');
+            }
+          } else {
+            print('Error: Response data does not contain user_type.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
 
   int _currentIndex = 0;
   @override
@@ -242,7 +289,6 @@ double widthofbar = 150;
   _getusertype();
   _getUserProfile();
   numberofprojects();
-  _getusertype();
   get_review();
   }
 
@@ -332,53 +378,6 @@ double widthofbar = 150;
     }
   }
 
-  Future<void> _getusertype() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final userToken = prefs.getString('user_token') ?? '';
-      print(userToken);
-
-      if (userToken.isNotEmpty) {
-        // Replace the API endpoint with your actual endpoint
-        final String apiUrl = 'https://workdonecorp.com/api/get_user_type';
-        print(userToken);
-
-        final response = await http.post(
-          Uri.parse(apiUrl),
-          headers: {'Authorization': 'Bearer $userToken'},
-        );
-
-        if (response.statusCode == 200) {
-          Map<String, dynamic> responseData = json.decode(response.body);
-
-          if (responseData.containsKey('user_type')) {
-            String userType = responseData['user_type'];
-
-            // Navigate based on user type
-            if (userType == 'client') {
-              usertype= 'client';
-            } else if (userType == 'worker') {
-              usertype= 'worker';
-
-            } else {
-              print('Error: Unknown user type.');
-              throw Exception('Failed to load profile information');
-            }
-          } else {
-            print('Error: Response data does not contain user_type.');
-            throw Exception('Failed to load profile information');
-          }
-        } else {
-          // Handle error response
-          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
-          throw Exception('Failed to load profile information');
-        }
-      }
-    } catch (error) {
-      // Handle errors
-      print('Error getting profile information: $error');
-    }
-  }
 
 
   Future<UserProfile> fetchUserProfile(String userId) async {
@@ -1351,7 +1350,12 @@ SizedBox(height: 10,),
     return GestureDetector(
       onTap: () {
         Get.to(
-              () => bidDetailsClient(projectId: project.projectId),  );    },
+              () =>  usertype=='client'?
+              bidDetailsClient(projectId: project.projectId):
+              bidDetailsWorker(projectId: project.projectId),
+
+
+        );    },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
         padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
@@ -1524,25 +1528,30 @@ SizedBox(height: 10,),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: TextButton(
-                          onPressed: () {
-                            Get.to(Workerprofileother(userId:project.clientId.toString()));
-                          },
-                          style: TextButton.styleFrom(
-                            fixedSize: Size(50, 30), // Adjust the size as needed
-                            padding: EdgeInsets.zero,
-                          ),
-                          child: Text.rich(
-                            TextSpan(
-                              children: _buildTextSpans(project.clientFirstname, searchController.text),
+                            onPressed: () {
+                              Get.to(Workerprofileother(userId:project.clientId.toString(),
+                              ),
+                                transition: Transition.fadeIn, // You can choose a different transition
+                                duration: Duration(milliseconds: 700), // Set the duration of the transition
+
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              fixedSize: Size(50, 30), // Adjust the size as needed
+                              padding: EdgeInsets.zero,
                             ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis, // Use the client name from the fetched data
-                            style: TextStyle(
-                              color: HexColor('4D8D6E'),
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                            child:
+                            Text(
+                              "${project.clientFirstname}",
+
+                              maxLines: 1,
+                              overflow: TextOverflow.visible, // Use the client name from the fetched data
+                              style: TextStyle(
+                                color: HexColor('4D8D6E'),
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
                         ),
                       ),
                     ],
@@ -1652,7 +1661,12 @@ SizedBox(height: 3,),
                         child: ElevatedButton(
                           onPressed: () {
                             Get.to(
-                                  () => bidDetailsClient(projectId: project.projectId),  );
+                                  () =>  usertype=='client'?
+                                  bidDetailsClient(projectId: project.projectId):
+                                  bidDetailsWorker(projectId: project.projectId),
+
+
+                            );
                             // Handle button press
                           },
                           child: Text('Details',style: TextStyle(color: Colors.white),),
@@ -1821,9 +1835,9 @@ class Reviews {
   factory Reviews.fromJson(Map<String, dynamic> json) {
     return Reviews(
       reviewOnWorker: json['review_on_worker'],
-      ratingOnWorker: json['rating_on_worker'],
+      ratingOnWorker: json['rating_on_worker']??0,
       reviewOnClient: json['review_on_client'],
-      ratingOnClient: json['rating_on_client'],
+      ratingOnClient: json['rating_on_client']??0,
     );
   }
 }

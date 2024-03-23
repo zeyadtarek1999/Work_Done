@@ -115,6 +115,29 @@ class _NotificationsPageworkerState extends State<NotificationsPageworker> {
       print('Error getting profile information: $error');
     }
   }
+
+  void markNotificationsAsRead() async {
+    // Fetch the current state of notifications
+    DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+        .collection('notify')
+        .doc(userId.toString())
+        .get();
+
+    // Assuming 'notifications' is an array of notification objects
+    List<Map<String, dynamic>> notifications = List<Map<String, dynamic>>.from(docSnapshot['notifications']);
+
+    // Mark all notifications as read
+    for (var notification in notifications) {
+      notification['isRead'] = true;
+    }
+
+    // Write the modified notifications back to Firestore
+    await FirebaseFirestore.instance
+        .collection('notify')
+        .doc(userId.toString())
+        .update({'notifications': notifications});
+  }
+
   Future<List<Notification>> fetchNotifications(String userId) async {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
     final DocumentSnapshot documentSnapshot = await firestore.collection('notify').doc(userId).get();
@@ -142,7 +165,7 @@ class _NotificationsPageworkerState extends State<NotificationsPageworker> {
     ]);
     // Now that userId and usertype are set, fetch notifications
     List<Notification> fetchedNotifications = await fetchNotifications('${userId.toString()}');
-    // Reverse the list of notifications
+    markNotificationsAsRead();
     fetchedNotifications = fetchedNotifications.reversed.toList();
     setState(() {
       notifications = fetchedNotifications;

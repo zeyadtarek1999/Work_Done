@@ -26,6 +26,7 @@ import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:video_player/video_player.dart';
 import 'package:workdone/model/firebaseNotification.dart';
 import 'package:workdone/model/save_notification_to_firebase.dart';
+import 'package:workdone/view/screens/Payment%20Method/Payment_method.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutWorker.dart';
 import 'package:workdone/view/screens/notifications/notificationscreenworker.dart';
 import '../InboxwithChat/chat.dart';
@@ -45,7 +46,8 @@ class bidDetailsWorker extends StatefulWidget {
   State<bidDetailsWorker> createState() => _bidDetailsWorkerState();
 }
 
-class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerProviderStateMixin {
+class _bidDetailsWorkerState extends State<bidDetailsWorker>
+    with SingleTickerProviderStateMixin {
   bool showAdditionalContent = false;
   bool showprojectcomplete = false;
   bool accessprojectcomplete = false;
@@ -62,12 +64,107 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
   String formatTime(DateTime time) {
     return DateFormat('h:mm a').format(time);
   }
-  final StreamController<ProjectData> projectDetailsController = StreamController<ProjectData>();
+  String paypalvalidation ='';
+
+  void checkPayPalValidation() {
+    if (paypalvalidation == 'no paypal Email'||paypalvalidation == '' ) {
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent closing the pop-up by tapping outside
+        builder: (BuildContext context) {
+          return WillPopScope(
+            onWillPop: () => Future.value(false), // Prevent closing the dialog by pressing the back button
+            child: AlertDialog(
+              title: Text('No Paypal Email'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('You need to set up your PayPal email.'),
+                  SizedBox(height: 8,),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Add your logic to handle setting up PayPal here
+                      Get.to(paymentmethod());
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF4D8D6E), // Use the specified color (replace 0xFF4D8D6E with your color)
+                    ),
+                    child: Text(
+                      'Set up PayPal',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  Future<void> paypal() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://www.workdonecorp.com/api/check_paypal_account';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $userToken',
+          },
+
+        );
+
+        if (response.statusCode == 200) {
+          Map<dynamic, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('data')) {
+            String profileData = responseData['data']??'';
+
+
+            setState(() {
+              paypalvalidation = profileData;
+              checkPayPalValidation();
+
+            });
+
+            print('Response: $profileData');
+            print('paypalvalidation : $paypalvalidation');
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to paypalvalidation');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load paypalvalidation');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting paypalvalidation: $error');
+    }
+  }
+
+  final StreamController<
+      ProjectData> projectDetailsController = StreamController<ProjectData>();
 
   late Future<ProjectData> projectDetailsFuture;
   String client_id = '';
   String worker_id = '';
-  List<String> projectimage=[];
+  List<String> projectimage = [];
   String projecttitle = '';
   String projectdesc = '';
   String selectedworkername = '';
@@ -79,7 +176,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
   ///The controller of sliding up panel
 
-  int notificationnumber =0 ;
+  int notificationnumber = 0;
 
   Future<void> Notificationnumber() async {
     try {
@@ -104,7 +201,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
             int profileData = responseData['counter'];
 
             setState(() {
-              notificationnumber= profileData;
+              notificationnumber = profileData;
             });
 
             print('Response of notification number : $profileData');
@@ -135,10 +232,12 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
   double upperBound = 1.0;
   Map<int, bool> likedProjectsMap = {};
 
-  final StreamController<String> _likedStatusController = StreamController<String>();
+  final StreamController<String> _likedStatusController = StreamController<
+      String>();
 
   Stream<String> get likedStatusStream => _likedStatusController.stream;
-  Future<Map<String, dynamic>> addProjectToLikes(String projectId) async {
+
+  Future<Map<String, dynamic>> addProjectToLikes(String projectId,String name ,String Title ,String id) async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String userToken = prefs.getString('user_token') ?? '';
@@ -158,6 +257,63 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
         final Map<String, dynamic> responseBody = json.decode(response.body);
 
         if (responseBody['status'] == 'success') {
+          DateTime currentTime = DateTime.now();
+
+          // Format the current time into your desired format
+          String formattedTime = DateFormat('h:mm a').format(currentTime);
+          Map<String, dynamic> newNotification = {
+            'title': 'New Like Received from $name 💚',
+            'body': 'Your post $Title has received a new like from $name 😊',
+            'time': formattedTime,
+            'id' :projectId,
+            'type': 'projectclient'             // Add other notification data as needed
+          };
+          print('sended notification ${[newNotification]}');
+
+
+          SaveNotificationToFirebase.saveNotificationsToFirestore(id.toString(), [newNotification]);
+          print('getting notification');
+
+          // Get the user document reference
+          // Get the user document reference
+          // Get the user document reference
+          DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(id.toString());
+
+// Get the user document
+          DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+          if (doc.exists) {
+            // Extract the FCM token and notifications list from the document
+            String? receiverToken = doc.get('fcmToken');
+            List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+
+            // Check if the new notification is not null and not already in the list
+            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+              // Add the new notification to the beginning of the list
+              notifications.insert(0, newNotification);
+
+              // Update the user document with the new notifications list
+              await userDocRef.update({
+                'notifications': notifications,
+              });
+
+              print('Notifications saved for user $id');
+            }
+
+            // Display the notifications list in the app
+            print('Notifications for user $id:');
+            for (var notification in notifications) {
+              String? title = notification['title'];
+              String? body = notification['body'];
+              print('Title: $title, Body: $body');
+              await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+              print('Last notification sent to ${id.toString()}');
+            }
+          } else {
+            print('User document not found for user $id');
+          }
+
           // Project added to likes successfully
           print('Project added to likes successfully');
           _likedStatusController.add("true");
@@ -182,6 +338,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       return {'status': 'error', 'msg': 'An error occurred'};
     }
   }
+
   Future<Map<String, dynamic>> removeProjectFromLikes(String projectId) async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -200,11 +357,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       if (response.statusCode == 200) {
         // Successful request, you can handle the response here if needed
         print('Project removed from likes successfully');
-        return {'status': 'success', 'msg': 'Project removed from likes successfully'};
+        return {
+          'status': 'success',
+          'msg': 'Project removed from likes successfully'
+        };
       } else {
         // Handle error
-        print('Failed to remove project from likes. Status code: ${response.statusCode}');
-        return {'status': 'error', 'msg': 'Failed to remove project from likes'};
+        print('Failed to remove project from likes. Status code: ${response
+            .statusCode}');
+        return {
+          'status': 'error',
+          'msg': 'Failed to remove project from likes'
+        };
       }
     } catch (e) {
       // Handle exception
@@ -213,12 +377,57 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     }
   }
 
+  int? userId;
+  Future<void> _getUserid() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+      print ('fetching user id');
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://www.workdonecorp.com/api/get_user_id_by_token';
+        print(userToken);
 
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Authorization': 'Bearer $userToken'},
+        );
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> responseData = json.decode(response.body);
+          print ('done  user id');
+
+          if (responseData.containsKey('user_id')) {
+
+            userId = responseData['user_id'];
+
+            // Now, userId contains the extracted user_id value
+            print('User ID: $userId');
+
+            // Optionally, save the user_id to SharedPreferences
+            prefs.setInt('user_id', userId ?? 0);
+          } else {
+            print('Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
   Future<void> changeScheduleStatus(int projectId, String status) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String userToken = prefs.getString('user_token') ?? '';
 
-    final url = Uri.parse('https://www.workdonecorp.com/api/change_schedule_status'); // Replace with the actual base URL
+    final url = Uri.parse(
+        'https://www.workdonecorp.com/api/change_schedule_status'); // Replace with the actual base URL
     final response = await http.post(
       url,
       headers: {
@@ -233,7 +442,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
-      if(status=='accepted') {
+      if (status == 'accepted') {
         DateTime currentTime = DateTime.now();
         print('second ${client_id}');
 
@@ -243,9 +452,74 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           'title': 'Schedule Accepted ⌛✅',
           'body': 'The worker has accepted the schedule for your project (${projecttitle}). You can now proceed with the next steps of the project.!⏩',
           'time': formattedTime,
-          'id' :widget.projectId,
+          'id': widget.projectId,
           'type': 'projectclient'
+        };
+        print('sended notification ${[newNotification]}');
 
+
+        SaveNotificationToFirebase.saveNotificationsToFirestore(
+            client_id.toString(), [newNotification]);
+        print('getting notification');
+
+        // Get the user document reference
+        // Get the user document reference
+        // Get the user document reference
+        DocumentReference userDocRef = FirebaseFirestore.instance.collection(
+            'users').doc(client_id.toString());
+
+// Get the user document
+        DocumentSnapshot doc = await userDocRef.get();
+
+// Check if the document exists
+        if (doc.exists) {
+          // Extract the FCM token and notifications list from the document
+          String? receiverToken = doc.get('fcmToken');
+          List<Map<String, dynamic>> notifications = doc.get('notifications')
+              .cast<Map<String, dynamic>>();
+
+          // Check if the new notification is not null and not already in the list
+          if (newNotification != null &&
+              !notifications.any((notification) =>
+              notification['id'] ==
+                  newNotification['id'])) {
+            // Add the new notification to the beginning of the list
+            notifications.insert(0, newNotification);
+
+            // Update the user document with the new notifications list
+            await userDocRef.update({
+              'notifications': notifications,
+            });
+
+            print('Notifications saved for user ${client_id}');
+          }
+
+          // Display the notifications list in the app
+          print('Notifications for user ${client_id}:');
+          for (var notification in notifications) {
+            String? title = notification['title'];
+            String? body = notification['body'];
+            print('Title: $title, Body: $body');
+            await NotificationUtil.sendNotification(
+                title ?? 'Default Title', body ?? 'Default Body',
+                receiverToken ?? '2', DateTime.now());
+            print('Last notification sent to ${client_id}');
+          }
+        } else {
+          print('User document not found for user ${client_id}');
+        }
+      } else {
+        DateTime currentTime = DateTime.now();
+        print('second ${client_id}');
+
+        // Format the current time into your desired format
+        String formattedTime = DateFormat('h:mm a').format(currentTime);
+        Map<String, dynamic> newNotification = {
+          'title': 'Schedule Rejected ⌛❌',
+          'body': 'The worker has rejected the schedule for your project (${projecttitle}). Please review and adjust the schedule accordingly.!🟥',
+          'time': formattedTime,
+          'id': widget.projectId,
+          'type': 'projectclient'
         };
         print('sended notification ${[newNotification]}');
 
@@ -299,79 +573,19 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
         } else {
           print('User document not found for user ${client_id}');
         }
-      }else{
-        DateTime currentTime = DateTime.now();
-        print('second ${client_id}');
-
-        // Format the current time into your desired format
-        String formattedTime = DateFormat('h:mm a').format(currentTime);
-        Map<String, dynamic> newNotification = {
-          'title': 'Schedule Rejected ⌛❌',
-          'body': 'The worker has rejected the schedule for your project (${projecttitle}). Please review and adjust the schedule accordingly.!🟥',
-          'time': formattedTime,
-          'id' :widget.projectId,
-          'type': 'projectclient'
-        };
-        print('sended notification ${[newNotification]}');
-
-
-        SaveNotificationToFirebase.saveNotificationsToFirestore(client_id.toString(), [newNotification]);
-        print('getting notification');
-
-        // Get the user document reference
-        // Get the user document reference
-        // Get the user document reference
-        DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(client_id.toString());
-
-// Get the user document
-        DocumentSnapshot doc = await userDocRef.get();
-
-// Check if the document exists
-        if (doc.exists) {
-          // Extract the FCM token and notifications list from the document
-          String? receiverToken = doc.get('fcmToken');
-          List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
-
-          // Check if the new notification is not null and not already in the list
-          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
-            // Add the new notification to the beginning of the list
-            notifications.insert(0, newNotification);
-
-            // Update the user document with the new notifications list
-            await userDocRef.update({
-              'notifications': notifications,
-            });
-
-            print('Notifications saved for user ${client_id}');
-          }
-
-          // Display the notifications list in the app
-          print('Notifications for user ${client_id}:');
-          for (var notification in notifications) {
-            String? title = notification['title'];
-            String? body = notification['body'];
-            print('Title: $title, Body: $body');
-            await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
-            print('Last notification sent to ${client_id}');
-          }
-        } else {
-          print('User document not found for user ${client_id}');
-        }
-
-
       }
 
       setState(() {
-            projectDetailsFuture = fetchProjectDetails(widget.projectId);
+        projectDetailsFuture = fetchProjectDetails(widget.projectId);
       });
-
 
 
       print(responseBody);
     } else {
       setState(() {
         projectDetailsFuture = fetchProjectDetails(widget.projectId);
-      });      print('Request failed with status: ${response.statusCode}.');
+      });
+      print('Request failed with status: ${response.statusCode}.');
     }
   }
 
@@ -386,11 +600,13 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
             content: Text('Are you sure you want to exit the app?'),
             actions: <Widget>[
               TextButton(
-                onPressed: () => Navigator.pop(context, false), // Return false (don't exit)
+                onPressed: () => Navigator.pop(context, false),
+                // Return false (don't exit)
                 child: Text('Cancel'),
               ),
               TextButton(
-                onPressed: () => Navigator.pop(context, true), // Return true (exit)
+                onPressed: () => Navigator.pop(context, true),
+                // Return true (exit)
                 child: Text('Exit'),
               ),
             ],
@@ -398,65 +614,70 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
         },
       ).whenComplete(() {});
     } else {
-      return Future.value(false); // No screens to go back to, so don't show the dialog
+      return Future.value(
+          false); // No screens to go back to, so don't show the dialog
     }
   }
 
 
-  void showResponseDialog({required BuildContext context, required bool isSuccess, String message = ''}) {
-
-
+  void showResponseDialog(
+      {required BuildContext context, required bool isSuccess, String message = ''}) {
     showDialog(
-      barrierDismissible: false, // Add this line to prevent dismissing on tap outside
+      barrierDismissible: false,
+      // Add this line to prevent dismissing on tap outside
 
       context: context,
-      builder: (context) => AlertDialog(
-        content: SingleChildScrollView( // Making the AlertDialog scrollable
-          child: ListBody(
-            children: <Widget>[
-              FadeInImage.assetNetwork(
-                placeholder: 'assets/images/workdonelogo.jpg', // Local asset image as placeholder
-                image: isSuccess
-                    ? 'https://cdn.pixabay.com/photo/2012/04/23/16/14/correct-38751_1280.png'
-                    : 'https://cdn.pixabay.com/photo/2017/02/12/21/29/false-2061131_1280.png',
-                width: 150, // Preferred width for the image
-                height: 150, // Preferred height for the image
+      builder: (context) =>
+          AlertDialog(
+            content: SingleChildScrollView( // Making the AlertDialog scrollable
+              child: ListBody(
+                children: <Widget>[
+                  FadeInImage.assetNetwork(
+                    placeholder: 'assets/images/workdonelogo.jpg',
+                    // Local asset image as placeholder
+                    image: isSuccess
+                        ? 'https://cdn.pixabay.com/photo/2012/04/23/16/14/correct-38751_1280.png'
+                        : 'https://cdn.pixabay.com/photo/2017/02/12/21/29/false-2061131_1280.png',
+                    width: 150,
+                    // Preferred width for the image
+                    height: 150, // Preferred height for the image
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        projectDetailsFuture =
+                            fetchProjectDetails(widget.projectId);
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                      });
+                    },
+                    child: Text('Okay'),
+                  ),
+                ],
               ),
-              SizedBox(height: 20),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    projectDetailsFuture = fetchProjectDetails(widget.projectId);
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  });
-
-
-                },
-                child: Text( 'Okay' ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
+
   bool showFirstSheet = true;
 
   Future<void> verify_project_schedule(int projectId, int vc) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String userToken = prefs.getString('user_token') ?? '';
 
-    final url = Uri.parse('https://www.workdonecorp.com/api/verify_project_schedule'); // Replace with the actual base URL
+    final url = Uri.parse(
+        'https://www.workdonecorp.com/api/verify_project_schedule'); // Replace with the actual base URL
     final response = await http.post(
       url,
       headers: {
@@ -472,7 +693,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
       if (responseBody['status'] == 'success') {
-
         DateTime currentTime = DateTime.now();
         print('second ${client_id}');
 
@@ -482,18 +702,20 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           'title': 'Meeting Confirmed 🤝',
           'body': 'The worker has submitted the generated code to confirm the meeting with you Let\'s Start Work!😁',
           'time': formattedTime,
-          'id' :widget.projectId,
-          'type': 'projectclient'         };
+          'id': widget.projectId,
+          'type': 'projectclient'};
         print('sended notification ${[newNotification]}');
 
 
-        SaveNotificationToFirebase.saveNotificationsToFirestore(client_id.toString(), [newNotification]);
+        SaveNotificationToFirebase.saveNotificationsToFirestore(
+            client_id.toString(), [newNotification]);
         print('getting notification');
 
         // Get the user document reference
         // Get the user document reference
         // Get the user document reference
-        DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(client_id.toString());
+        DocumentReference userDocRef = FirebaseFirestore.instance.collection(
+            'users').doc(client_id.toString());
 
 // Get the user document
         DocumentSnapshot doc = await userDocRef.get();
@@ -502,10 +724,13 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
         if (doc.exists) {
           // Extract the FCM token and notifications list from the document
           String? receiverToken = doc.get('fcmToken');
-          List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+          List<Map<String, dynamic>> notifications = doc.get('notifications')
+              .cast<Map<String, dynamic>>();
 
           // Check if the new notification is not null and not already in the list
-          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+          if (newNotification != null &&
+              !notifications.any((notification) => notification['id'] ==
+                  newNotification['id'])) {
             // Add the new notification to the beginning of the list
             notifications.insert(0, newNotification);
 
@@ -523,7 +748,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
             String? title = notification['title'];
             String? body = notification['body'];
             print('Title: $title, Body: $body');
-            await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+            await NotificationUtil.sendNotification(
+                title ?? 'Default Title', body ?? 'Default Body',
+                receiverToken ?? '2', DateTime.now());
             print('Last notification sent to ${client_id}');
           }
         } else {
@@ -535,7 +762,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           isSuccess: true,
           message: 'Nice, Project is Now Processing',
         );
-
       } else {
         showResponseDialog(
           context: context,
@@ -553,9 +779,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       );
     }
   }
+
   bool isLoading = false;
   int _currentPageIndex = 0;
   final CarouselController _carouselController = CarouselController();
+
   Future<void> Reviewproject() async {
     print('Fetching user token from SharedPreferences...');
 
@@ -570,7 +798,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       // 'Content-Type': 'multipart/form-data', This is added automatically when adding files to the MultipartRequest.
     };
 
-    var request = http.MultipartRequest('POST', Uri.parse('https://www.workdonecorp.com/api/worker_make_review_on_client'))
+    var request = http.MultipartRequest('POST', Uri.parse(
+        'https://www.workdonecorp.com/api/worker_make_review_on_client'))
       ..headers.addAll(headers)
       ..fields['project_id'] = widget.projectId.toString()
       ..fields['review'] = reviewcontroller.text
@@ -611,19 +840,21 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           'title': 'Worker Review Submitted ⭐',
           'body': 'The worker has submitted a review about you. Please check the review section to view their feedback!🌟',
           'time': formattedTime,
-          'id' :widget.projectId,
+          'id': widget.projectId,
           'type': 'projectclient'
         };
         print('sended notification ${[newNotification]}');
 
 
-        SaveNotificationToFirebase.saveNotificationsToFirestore(client_id.toString(), [newNotification]);
+        SaveNotificationToFirebase.saveNotificationsToFirestore(
+            client_id.toString(), [newNotification]);
         print('getting notification');
 
         // Get the user document reference
         // Get the user document reference
         // Get the user document reference
-        DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(client_id.toString());
+        DocumentReference userDocRef = FirebaseFirestore.instance.collection(
+            'users').doc(client_id.toString());
 
 // Get the user document
         DocumentSnapshot doc = await userDocRef.get();
@@ -632,10 +863,13 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
         if (doc.exists) {
           // Extract the FCM token and notifications list from the document
           String? receiverToken = doc.get('fcmToken');
-          List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+          List<Map<String, dynamic>> notifications = doc.get('notifications')
+              .cast<Map<String, dynamic>>();
 
           // Check if the new notification is not null and not already in the list
-          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+          if (newNotification != null &&
+              !notifications.any((notification) => notification['id'] ==
+                  newNotification['id'])) {
             // Add the new notification to the beginning of the list
             notifications.insert(0, newNotification);
 
@@ -653,7 +887,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
             String? title = notification['title'];
             String? body = notification['body'];
             print('Title: $title, Body: $body');
-            await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+            await NotificationUtil.sendNotification(
+                title ?? 'Default Title', body ?? 'Default Body',
+                receiverToken ?? '2', DateTime.now());
             print('Last notification sent to ${client_id}');
           }
         } else {
@@ -690,7 +926,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String userToken = prefs.getString('user_token') ?? '';
 
-    final url = Uri.parse('https://www.workdonecorp.com/api/verify_project_finalizing'); // Replace with the actual base URL
+    final url = Uri.parse(
+        'https://www.workdonecorp.com/api/verify_project_finalizing'); // Replace with the actual base URL
     final response = await http.post(
       url,
       headers: {
@@ -706,8 +943,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
       if (responseBody['status'] == 'success') {
-
-
         DateTime currentTime = DateTime.now();
         print('second ${client_id}');
 
@@ -717,18 +952,20 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           'title': 'End The Project 💡',
           'body': 'you can end the project ${projecttitle} and review the worker!✨',
           'time': formattedTime,
-          'id' :widget.projectId,
-          'type': 'projectclient'         };
+          'id': widget.projectId,
+          'type': 'projectclient'};
         print('sended notification ${[newNotification]}');
 
 
-        SaveNotificationToFirebase.saveNotificationsToFirestore(client_id.toString(), [newNotification]);
+        SaveNotificationToFirebase.saveNotificationsToFirestore(
+            client_id.toString(), [newNotification]);
         print('getting notification');
 
         // Get the user document reference
         // Get the user document reference
         // Get the user document reference
-        DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(client_id.toString());
+        DocumentReference userDocRef = FirebaseFirestore.instance.collection(
+            'users').doc(client_id.toString());
 
 // Get the user document
         DocumentSnapshot doc = await userDocRef.get();
@@ -737,10 +974,13 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
         if (doc.exists) {
           // Extract the FCM token and notifications list from the document
           String? receiverToken = doc.get('fcmToken');
-          List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
+          List<Map<String, dynamic>> notifications = doc.get('notifications')
+              .cast<Map<String, dynamic>>();
 
           // Check if the new notification is not null and not already in the list
-          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+          if (newNotification != null &&
+              !notifications.any((notification) => notification['id'] ==
+                  newNotification['id'])) {
             // Add the new notification to the beginning of the list
             notifications.insert(0, newNotification);
 
@@ -758,7 +998,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
             String? title = notification['title'];
             String? body = notification['body'];
             print('Title: $title, Body: $body');
-            await NotificationUtil.sendNotification(title ?? 'Default Title', body ?? 'Default Body', receiverToken ?? '2',DateTime.now());
+            await NotificationUtil.sendNotification(
+                title ?? 'Default Title', body ?? 'Default Body',
+                receiverToken ?? '2', DateTime.now());
             print('Last notification sent to ${client_id}');
           }
         } else {
@@ -771,7 +1013,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           isSuccess: true,
           message: 'Nice , Verification code is correct \n Now you can access the project complete button to end or finish the project ',
         );
-
       } else {
         showResponseDialog(
           context: context,
@@ -790,8 +1031,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     }
   }
 
-  Future<void> scheduleProject(
-      int projectId, String selectedDay, String selectedInterval) async {
+  Future<void> scheduleProject(int projectId, String selectedDay,
+      String selectedInterval) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String userToken = prefs.getString('user_token') ?? '';
     final url = Uri.parse(
@@ -823,10 +1064,13 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       print('Response body: ${response.body}');
     }
   }
+
   late Future<ProjectData> futureProjects;
-  void refreshProjects() async{
+
+  void refreshProjects() async {
     projectDetailsFuture = fetchProjectDetails(widget.projectId);
   }
+
   Future<ProjectData> fetchProjectDetails(int projectId) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String userToken = prefs.getString('user_token') ?? '';
@@ -855,7 +1099,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       } else {
         // This else block catches cases where 'status' isn't 'success'.
         final message =
-            responseData != null ? responseData['message'] : 'Unknown error';
+        responseData != null ? responseData['message'] : 'Unknown error';
         throw Exception('Failed to load project details from API: $message');
       }
     } else {
@@ -864,9 +1108,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           ? json.decode(response.body)['message']
           : 'No error message provided';
       throw Exception(
-          'Failed to load project details. Status code: ${response.statusCode}, Message: $message');
+          'Failed to load project details. Status code: ${response
+              .statusCode}, Message: $message');
     }
   }
+
   void fetchAndPushProjectDetails(int projectId) {
     fetchProjectDetails(projectId).then((data) {
       projectDetailsController.add(data);
@@ -874,7 +1120,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       projectDetailsController.addError(error);
     });
   }
-  String video ='';
+
+  String video = '';
   bool _videoInitialized = false;
   late ChewieController _chewieController;
   int activeStep = 0;
@@ -882,20 +1129,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
   String? buttonsValue;
   String? visableofplacebid;
   bool visableplacebid = false;
+
   Future<void> visablityofplacebid() async {
     final ProjectData projectData = await fetchProjectDetails(widget.projectId);
-    visableofplacebid= projectData.status;
-    if (visableofplacebid == 'under_bidding'){
+    visableofplacebid = projectData.status;
+    if (visableofplacebid == 'under_bidding') {
       setState(() {
-        visableplacebid =true;
-
+        visableplacebid = true;
       });
     }
-
-
   }
 
-    Future<void> fetchData() async {
+  Future<void> fetchData() async {
     // Assuming you have a function to fetch project details
     final ProjectData projectData = await fetchProjectDetails(widget.projectId);
 
@@ -903,6 +1148,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     buttonsValue = projectData.pageContent.buttons;
     print('Buttons Value: $buttonsValue');
   }
+
   bool _controllerInitialized = false;
 
   Future<void> fetchvideo() async {
@@ -913,7 +1159,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
-          double screenHeight = MediaQuery.of(context).size.height;
+          double screenHeight = MediaQuery
+              .of(context)
+              .size
+              .height;
 
           return SafeArea(
             child: Container(
@@ -992,11 +1241,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                             });
 
                             Navigator.pop(context);
-
-
                           },
                           style: ElevatedButton.styleFrom(
-                           backgroundColor: HexColor('4D8D6E'),
+                            backgroundColor: HexColor('4D8D6E'),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                 screenHeight * 0.02,
@@ -1019,10 +1266,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                   widget.projectId, 'reject');
                             });
                             Navigator.pop(context);
-
                           },
                           style: ElevatedButton.styleFrom(
-                           backgroundColor: Colors.red,
+                            backgroundColor: Colors.red,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                 screenHeight * 0.02,
@@ -1047,35 +1293,95 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     }
 
     video = projectData.video;
-    print('this is url'+video);
+    print('this is url' + video);
 
     _controller = VideoPlayerController.networkUrl(Uri.parse(
-        '${video}'))      ..initialize().then((_) {
-      setState(() {
-        _controllerInitialized = true;
-        _chewieController = ChewieController(
-          videoPlayerController: _controller,
-          aspectRatio: 16 / 9, // Adjust as needed
-          autoPlay: false, // Set to true if you want the video to play automatically
-          looping: false, // Set to true if you want the video to loop
-          // ... Other ChewieController configurations
-        );
+        '${video}'))
+      ..initialize().then((_) {
+        setState(() {
+          _controllerInitialized = true;
+          _chewieController = ChewieController(
+            videoPlayerController: _controller,
+            aspectRatio: 16 / 9,
+            // Adjust as needed
+            autoPlay: false,
+            // Set to true if you want the video to play automatically
+            looping: false, // Set to true if you want the video to loop
+            // ... Other ChewieController configurations
+          );
+        });
+      }).catchError((error) {
+        print(video);
+        print(error);
       });
-    }).catchError((error) {
-      print(video);
-      print(error);
-    });
     print(video);
   }
+
   late VideoPlayerController _controller;
   late AnimationController ciruclaranimation;
+  String firstname = '';
+
+  Future<void> _getUserProfile() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userToken = prefs.getString('user_token') ?? '';
+      print(userToken);
+
+      if (userToken.isNotEmpty) {
+        // Replace the API endpoint with your actual endpoint
+        final String apiUrl = 'https://workdonecorp.com/api/get_profile_info';
+        print(userToken);
+
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $userToken',
+          },
+
+        );
+
+        if (response.statusCode == 200) {
+          Map<dynamic, dynamic> responseData = json.decode(response.body);
+
+          if (responseData.containsKey('data')) {
+            Map<dynamic, dynamic> profileData = responseData['data'];
+
+            String languageString;
+
+            setState(() {
+              firstname = profileData['firstname'] ?? '';
+
+
+              // Add this line
+            });
+
+          } else {
+            print(
+                'Error: Response data does not contain the expected structure.');
+            throw Exception('Failed to load profile information');
+          }
+        } else {
+          // Handle error response
+          print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+          throw Exception('Failed to load profile information');
+        }
+      }
+    } catch (error) {
+      // Handle errors
+      print('Error getting profile information: $error');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+
+    _getUserid();
+    _getUserProfile();
     likedProjectsMap = {};
-    int projectId =widget.projectId;
-      futureProjects = fetchProjectDetails(projectId);
+    int projectId = widget.projectId;
+    futureProjects = fetchProjectDetails(projectId);
     visablityofplacebid();
 
     projectDetailsFuture =
@@ -1093,9 +1399,9 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     ciruclaranimation.repeat(reverse: false);
 
 
-
     fetchData();
   }
+
   @override
   void dispose() {
     super.dispose();
@@ -1103,7 +1409,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
     _chewieController.dispose();
     projectDetailsController.close();
     ciruclaranimation.dispose();
-
   }
 
 
@@ -1130,17 +1435,24 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       statusBarColor: HexColor('FFFFFF'),
       // Change this color to the desired one
       statusBarIconBrightness:
-          Brightness.dark, // Change the status bar icons' color (dark or light)
+      Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenheight = MediaQuery.of(context).size.height;
+    double screenWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
+    double screenheight = MediaQuery
+        .of(context)
+        .size
+        .height;
     // Define the focus nodes for each text field
     FocusNode focusNode1 = FocusNode();
     FocusNode focusNode2 = FocusNode();
     FocusNode focusNode3 = FocusNode();
     FocusNode focusNode4 = FocusNode();
     MediaQueryData mediaQuery = MediaQuery.of(context);
-    double heightAvailable = mediaQuery.size.height - mediaQuery.viewInsets.bottom;
+    double heightAvailable = mediaQuery.size.height -
+        mediaQuery.viewInsets.bottom;
     // These functions help to change focus from one text field to the next.
     // They are passed to onChanged property of the text fields.
     void nextField({required String value, FocusNode? focusNode}) {
@@ -1154,13 +1466,16 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
       WillPopScope(
         onWillPop: () async {
           Get.offAll(layoutworker(showCase: false),
-            transition: Transition.fadeIn, // You can choose a different transition
-            duration: Duration(milliseconds: 700), ); // Navigate to the layoutworker screen
+            transition: Transition.fadeIn,
+            // You can choose a different transition
+            duration: Duration(
+                milliseconds: 700),); // Navigate to the layoutworker screen
           return false; // Return false to indicate that the back button was handled
         },
         child: Scaffold(
           key: _scaffoldKey,
-          resizeToAvoidBottomInset: true, // This line should be present
+          resizeToAvoidBottomInset: true,
+          // This line should be present
           floatingActionButton: FloatingActionButton(
             heroTag: 'workdone_${unique}',
 
@@ -1176,77 +1491,118 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
           backgroundColor: HexColor('FFFFFF'),
           appBar: AppBar(
-            backgroundColor: HexColor('FFFFFF'),
-            systemOverlayStyle: SystemUiOverlayStyle.dark,
-            elevation: 0,
-            toolbarHeight: 60,
-            leading: IconButton(
-              onPressed: () {
-        Get.to(layoutworker(showCase: false),
-          transition: Transition.fadeIn, // You can choose a different transition
-          duration: Duration(milliseconds: 700), );
-
-        },
-              icon: Icon(Icons.arrow_back_sharp),
-              color: Colors.black,
-            ),
-            title: Text(
-              'Bid Details',
-              style: GoogleFonts.roboto(
-                textStyle: TextStyle(
-                  color: HexColor('454545'),
-                  fontSize: 19,
-                  fontWeight: FontWeight.bold,
+              backgroundColor: HexColor('FFFFFF'),
+              systemOverlayStyle: SystemUiOverlayStyle.dark,
+              elevation: 0,
+              toolbarHeight: 60,
+              leading: IconButton(
+                onPressed: () {
+                  Get.to(layoutworker(showCase: false),
+                    transition: Transition.fadeIn,
+                    // You can choose a different transition
+                    duration: Duration(milliseconds: 700),);
+                },
+                icon: Icon(Icons.arrow_back_sharp),
+                color: Colors.black,
+              ),
+              title: Text(
+                'Bid Details',
+                style: GoogleFonts.roboto(
+                  textStyle: TextStyle(
+                    color: HexColor('454545'),
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            centerTitle: true,
-            actions: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child:
-                notificationnumber!=0?
-                badges.Badge(
-                  badgeStyle: badges.BadgeStyle(
-                    badgeColor: Colors.red,
-                    shape: badges.BadgeShape.circle,
-                  ),
-                  position: BadgePosition.topEnd(),
-                  badgeContent: Text('$notificationnumber', style: TextStyle(color: Colors.white)),
-                  badgeAnimation: badges.BadgeAnimation.rotation(
-                    animationDuration: Duration(seconds: 1),
-                    colorChangeAnimationDuration: Duration(seconds: 1),
-                    loopAnimation: false,
-                    curve: Curves.fastOutSlowIn,
-                    colorChangeAnimationCurve: Curves.easeInCubic,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: GestureDetector(
-                      child: Icon(Ionicons.notifications, size: 26),
-                      onTap: () {
-                        Get.to(NotificationsPageworker
-                          ());
+              centerTitle: true,
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child:
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: StreamBuilder<DocumentSnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('notify')
+                          .doc(userId.toString())
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return SvgPicture.asset(
+                            'assets/icons/iconnotification.svg',
+                            width: 48.0,
+                            height: 48.0,
+                          ); // Show a loading indicator while waiting for data
+                        } else if (snapshot.hasData && snapshot.data!.exists) {
+                          // Check if 'notifications' field exists and is not null
+                          if (snapshot.data!['notifications'] != null) {
+                            List<dynamic> notifications = snapshot
+                                .data!['notifications'];
+                            // Filter notifications where 'isRead' is not available or is false
+                            int unreadCount = notifications.where((
+                                notification) =>
+                            notification['isRead'] == null ||
+                                notification['isRead'] == false).length;
+
+                            return
+                              unreadCount > 0 ?
+                              badges.Badge(
+                                badgeStyle: badges.BadgeStyle(
+                                  badgeColor: unreadCount > 9
+                                      ? Colors.red
+                                      : Colors.orange,
+                                  shape: badges.BadgeShape.circle,
+                                ),
+                                position: BadgePosition.topEnd(),
+                                badgeContent: Text(
+                                    unreadCount > 9 ? '+9' : '${unreadCount}'
+                                    , style: TextStyle(color: Colors.white)),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(6.0),
+                                  child: GestureDetector(
+                                    child: SvgPicture.asset(
+                                      'assets/icons/iconnotification.svg',
+                                      width: 40.0,
+                                      height: 40.0,
+                                    ),
+                                    onTap: () {
+                                      Get.to(NotificationsPageworker());
+                                    },
+                                  ),
+                                ),
+                              ) :
+                              GestureDetector(
+                                  child: SvgPicture.asset(
+                                    'assets/icons/iconnotification.svg',
+                                    width: 40.0,
+                                    height: 40.0,
+                                  ),
+                                  onTap: () {
+                                    Get.to(NotificationsPageworker());
+                                  });
+                          } else {
+                            // Handle the case where 'notifications' field does not exist
+                            return SvgPicture.asset(
+                              'assets/icons/iconnotification.svg',
+                              width: 40.0,
+                              height: 40.0,
+                            ); // Show a loading indicator while waiting for data
+                          }
+                        } else {
+                          // Handle the case where the document does not exist
+                          return SvgPicture.asset(
+                            'assets/icons/iconnotification.svg',
+                            width: 40.0,
+                            height: 40.0,
+                          ); // Show a loading indicator while waiting for data
+                        }
                       },
                     ),
                   ),
-                ): GestureDetector(
-                  onTap:
-                      (){Get.to(NotificationsPageworker
-                        ());
-                  }
-                  ,
-                  child: SvgPicture.asset(
-                    'assets/icons/iconnotification.svg',
-                    width: 41.0,
-                    height:41.0,
-                  ),
-
-                ),
-
-              )
-
-            ],
+                )
+              ]
           ),
           body: Screenshot(
             controller: screenshotController9,
@@ -1262,33 +1618,38 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                 physics: AlwaysScrollableScrollPhysics(),
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
+                  const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
                   child: FutureBuilder<ProjectData>(
                       future: projectDetailsFuture,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return   Center(child: RotationTransition(
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(child: RotationTransition(
                             turns: ciruclaranimation,
                             child: SvgPicture.asset(
                               'assets/images/Logo.svg',
                               semanticsLabel: 'Your SVG Image',
-                              width: 100,
-                              height: 130,
+                              width: 70,
+                              height: 80,
                             ),
                           ))
                           ;
                         } else if (snapshot.hasError) {
-                          return Center(child: Text('Error: ${snapshot.error}'));
+                          return Center(
+                              child: Text('Error: ${snapshot.error}'));
                         } else if (!snapshot.hasData) {
                           return Center(child: Text('No data available'));
                         } else {
                           ProjectData projectData = snapshot.data!;
                           currentbid = projectData.lowestBid.toString();
-                          client_id = projectData.clientData!.clientId.toString();
+                          client_id =
+                              projectData.clientData!.clientId.toString();
                           projectimage = projectData.images;
                           ;
-                          selectedworkername=projectData.selectworkerbid.worker_firstname;
-                          selectedworkerimage=projectData.selectworkerbid.worker_profile_pic;
+                          selectedworkername =
+                              projectData.selectworkerbid.worker_firstname;
+                          selectedworkerimage =
+                              projectData.selectworkerbid.worker_profile_pic;
                           projecttitle = projectData.title.toString();
                           ;
                           projectdesc = projectData.desc.toString();
@@ -1310,7 +1671,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                         reverse: false,
                                         autoPlay: false,
                                         autoPlayInterval: Duration(seconds: 3),
-                                        autoPlayAnimationDuration: Duration(milliseconds: 500),
+                                        autoPlayAnimationDuration: Duration(
+                                            milliseconds: 500),
                                         autoPlayCurve: Curves.fastOutSlowIn,
                                         scrollDirection: Axis.horizontal,
                                         onPageChanged: (index, reason) {
@@ -1331,81 +1693,107 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     child: GestureDetector(
                                                       onTap: () {
                                                         if (_controllerInitialized) {
-                                                          if (_controller.value.isPlaying) {
+                                                          if (_controller.value
+                                                              .isPlaying) {
                                                             _controller.pause();
-                                                            _chewieController!.pause();
+                                                            _chewieController!
+                                                                .pause();
                                                           } else {
                                                             _controller.play();
-                                                            _chewieController!.play();
+                                                            _chewieController!
+                                                                .play();
                                                           }
                                                         }
                                                       },
                                                       child: Icon(
                                                         _controllerInitialized
-                                                            ? _controller.value.isPlaying
+                                                            ? _controller.value
+                                                            .isPlaying
                                                             ? Icons.pause
                                                             : Icons.play_arrow
-                                                            : Icons.play_arrow, // Show play icon while initializing
+                                                            : Icons.play_arrow,
+                                                        // Show play icon while initializing
                                                         size: 30,
                                                         color: Colors.black,
                                                       ),
                                                     ),
                                                   ),
                                                   Container(
-                                                    width: MediaQuery.of(context).size.width,
+                                                    width: MediaQuery
+                                                        .of(context)
+                                                        .size
+                                                        .width,
                                                     height: 210,
                                                     child: _controllerInitialized
-                                                        ? Chewie(controller: _chewieController!)
-                                                        : Center(child: CircularProgressIndicator(
-                                                      color: Colors.green,
-                                                      strokeWidth: 2,
-                                                    )),
+                                                        ? Chewie(
+                                                        controller: _chewieController!)
+                                                        : Center(
+                                                        child: CircularProgressIndicator(
+                                                          color: Colors.green,
+                                                          strokeWidth: 2,
+                                                        )),
                                                   ),
                                                 ],
                                               );
                                             },
                                           ),
                                         if (projectData.video.isEmpty)
-                                          Center(child: CircularProgressIndicator(
-                                            color: Colors.green,
-                                            strokeWidth: 2,
-                                          )),
+                                          Center(
+                                              child: CircularProgressIndicator(
+                                                color: Colors.green,
+                                                strokeWidth: 2,
+                                              )),
                                         ...projectData.images.map((image) {
                                           return Builder(
                                             builder: (BuildContext context) {
                                               return GestureDetector(
                                                 onTap: () {
-                                                  Navigator.of(context).push(MaterialPageRoute(
-                                                    builder: (_) => Scaffold(
-                                                      backgroundColor: Colors.black,
-                                                      appBar: AppBar(
-                                                        backgroundColor: Colors.black,
-                                                        elevation: 0,
-                                                      ),
-                                                      body: Center(
-                                                        child: InteractiveViewer(
-                                                          child: Image.network(
-                                                            image,
-                                                            fit: BoxFit.contain,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ));
+                                                  Navigator.of(context).push(
+                                                      MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            Scaffold(
+                                                              backgroundColor: Colors
+                                                                  .black,
+                                                              appBar: AppBar(
+                                                                backgroundColor: Colors
+                                                                    .black,
+                                                                elevation: 0,
+                                                              ),
+                                                              body: Center(
+                                                                child: InteractiveViewer(
+                                                                  child: Image
+                                                                      .network(
+                                                                    image,
+                                                                    fit: BoxFit
+                                                                        .contain,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                      ));
                                                 },
                                                 child: ClipRRect(
-                                                  borderRadius: BorderRadius.circular(30),
+                                                  borderRadius: BorderRadius
+                                                      .circular(30),
                                                   child: Image.network(
                                                     image,
                                                     fit: BoxFit.cover,
-                                                    width: MediaQuery.of(context).size.width,
+                                                    width: MediaQuery
+                                                        .of(context)
+                                                        .size
+                                                        .width,
                                                     height: double.infinity,
-                                                    loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                                                      if (loadingProgress == null) return child;
-                                                      return Center(child: CircularProgressIndicator(
-                                                        color: Colors.green,
-                                                        strokeWidth: 2,
-                                                      ));
+                                                    loadingBuilder: (
+                                                        BuildContext context,
+                                                        Widget child,
+                                                        ImageChunkEvent? loadingProgress) {
+                                                      if (loadingProgress ==
+                                                          null) return child;
+                                                      return Center(
+                                                          child: CircularProgressIndicator(
+                                                            color: Colors.green,
+                                                            strokeWidth: 2,
+                                                          ));
                                                     },
                                                   ),
                                                 ),
@@ -1418,7 +1806,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment
+                                            .center,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Spacer(),
@@ -1426,69 +1815,113 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             height: 50,
                                             padding: EdgeInsets.all(10),
                                             decoration: BoxDecoration(
-                                              color: Colors.grey.withOpacity(0.3),
-                                              borderRadius: BorderRadius.circular(20),
+                                              color: Colors.grey.withOpacity(
+                                                  0.3),
+                                              borderRadius: BorderRadius
+                                                  .circular(20),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              mainAxisAlignment: MainAxisAlignment
+                                                  .center,
+                                              crossAxisAlignment: CrossAxisAlignment
+                                                  .center,
                                               children: [
                                                 Padding(
-                                                  padding: const EdgeInsets.only(top: 8.0, left: 5),
+                                                  padding: const EdgeInsets
+                                                      .only(top: 8.0, left: 5),
                                                   child: Text(
-                                                    "${projectData.numberOfLikes}",
-                                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                                                    "${projectData
+                                                        .numberOfLikes}",
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight
+                                                            .bold,
+                                                        fontSize: 15),
                                                   ),
                                                 ),
                                                 SizedBox(width: 8),
                                                 IconButton(
                                                   iconSize: 22,
                                                   icon: Icon(
-                                                    likedProjectsMap[widget.projectId] ?? projectData.liked == "true"
+                                                    likedProjectsMap[widget
+                                                        .projectId] ??
+                                                        projectData.liked ==
+                                                            "true"
                                                         ? Icons.favorite
                                                         : Icons.favorite_border,
-                                                    color: likedProjectsMap[widget.projectId] ?? projectData.liked == "true"
+                                                    color: likedProjectsMap[widget
+                                                        .projectId] ??
+                                                        projectData.liked ==
+                                                            "true"
                                                         ? Colors.red
                                                         : Colors.grey,
                                                   ),
                                                   onPressed: () async {
                                                     try {
-                                                      if (likedProjectsMap[widget.projectId] ?? projectData.liked == "true") {
+                                                      if (likedProjectsMap[widget
+                                                          .projectId] ??
+                                                          projectData.liked ==
+                                                              "true") {
                                                         // If liked, remove like
-                                                        final response = await removeProjectFromLikes(widget.projectId.toString());
+                                                        final response = await removeProjectFromLikes(
+                                                            widget.projectId
+                                                                .toString());
 
-                                                        if (response['status'] == 'success') {
+                                                        if (response['status'] ==
+                                                            'success') {
                                                           // If successfully removed from likes
                                                           setState(() {
-                                                            likedProjectsMap[widget.projectId] = false;
-                                                            projectData.numberOfLikes = (projectData.numberOfLikes ?? 0) - 1;
+                                                            likedProjectsMap[widget
+                                                                .projectId] =
+                                                            false;
+                                                            projectData
+                                                                .numberOfLikes =
+                                                                (projectData
+                                                                    .numberOfLikes ??
+                                                                    0) - 1;
                                                           });
-                                                          print('Project removed from likes');
+                                                          print(
+                                                              'Project removed from likes');
                                                         } else {
                                                           // Handle the case where the project is not removed from likes
-                                                          print('Error: ${response['msg']}');
+                                                          print(
+                                                              'Error: ${response['msg']}');
                                                         }
                                                       } else {
                                                         // If not liked, add like
-                                                        final response = await addProjectToLikes(widget.projectId.toString());
+                                                        final response = await addProjectToLikes(widget.projectId.toString(),firstname,projectData.title,userId.toString());
 
-                                                        if (response['status'] == 'success') {
+                                                        if (response['status'] ==
+                                                            'success') {
                                                           // If successfully added to likes
                                                           setState(() {
-                                                            likedProjectsMap[widget.projectId] = true;
-                                                            projectData.numberOfLikes = (projectData.numberOfLikes ?? 0) + 1;
+                                                            likedProjectsMap[widget
+                                                                .projectId] =
+                                                            true;
+                                                            projectData
+                                                                .numberOfLikes =
+                                                                (projectData
+                                                                    .numberOfLikes ??
+                                                                    0) + 1;
                                                           });
-                                                          print('Project added to likes');
-                                                        } else if (response['msg'] == 'This Project is Already in Likes !') {
+                                                          print(
+                                                              'Project added to likes');
+                                                        } else
+                                                        if (response['msg'] ==
+                                                            'This Project is Already in Likes !') {
                                                           // If the project is already liked, switch to Icons.favorite_border
                                                           setState(() {
-                                                            likedProjectsMap[widget.projectId] = false;
+                                                            likedProjectsMap[widget
+                                                                .projectId] =
+                                                            false;
                                                           });
-                                                          print('Project is already liked');
+                                                          print(
+                                                              'Project is already liked');
                                                         } else {
                                                           // Handle the case where the project is not added to likes
-                                                          print('Error: ${response['msg']}');
+                                                          print(
+                                                              'Error: ${response['msg']}');
                                                         }
                                                       }
                                                     } catch (e) {
@@ -1509,38 +1942,48 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: List.generate(
-                                    projectData.images.length + (video != '' ? 1 : 0),
+                                    projectData.images.length +
+                                        (video != '' ? 1 : 0),
                                         (index) {
-                                      return GestureDetector(        onTap: () {
-                                        _carouselController.animateToPage(index);
+                                      return GestureDetector(onTap: () {
+                                        _carouselController.animateToPage(
+                                            index);
                                       },
                                         child: Container(
                                           width: 10,
                                           height: 10,
-                                          margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                          margin: EdgeInsets.symmetric(
+                                              vertical: 8, horizontal: 4),
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
-                                            color: _currentPageIndex == index ? Colors.green : Colors.grey[300],
+                                            color: _currentPageIndex == index
+                                                ? Colors.green
+                                                : Colors.grey[300],
                                           ),
                                         ),
                                       );
                                     },
                                   ),
-                                ),                                SizedBox(
+                                ), SizedBox(
                                   height: 12,
                                 ),
                                 Row(
                                   children: [
                                     Container(
                                       height: 45,
-                                      width: MediaQuery.of(context).size.width * 0.26, // Adjust the width as needed
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width * 0.26,
+                                      // Adjust the width as needed
                                       decoration: BoxDecoration(
                                         color: HexColor('4D8D6E'),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Center(
                                         child: Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 10),
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 10),
                                           child: Text(
                                             projectData.projectType,
                                             style: GoogleFonts.roboto(
@@ -1561,9 +2004,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Padding(
-                                        padding: EdgeInsets.symmetric(horizontal: 10),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 10),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment
+                                              .center,
                                           children: [
                                             Icon(
                                               Icons.badge,
@@ -1585,7 +2030,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                     ),
                                     Spacer(),
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      crossAxisAlignment: CrossAxisAlignment
+                                          .end,
                                       children: [
                                         Icon(
                                           Icons.access_time_rounded,
@@ -1611,9 +2057,13 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                   height: 12,
                                 ),
                                 Animate(
-                                  effects: [FadeEffect(duration: Duration(milliseconds: 500),),],
+                                  effects: [
+                                    FadeEffect(
+                                      duration: Duration(milliseconds: 500),),
+                                  ],
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6.0),
                                     child: Text(
                                       projectData.title,
                                       style: GoogleFonts.openSans(
@@ -1634,12 +2084,24 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                     CircleAvatar(
                                       radius: 23,
                                       backgroundColor: Colors.transparent,
-                                      backgroundImage: projectData.clientData.profileImage == '' || projectData.clientData.profileImage.isEmpty
-                                          || projectData.clientData.profileImage == "https://workdonecorp.com/storage/" ||
-                                          !(projectData.clientData.profileImage.toLowerCase().endsWith('.jpg') || projectData.clientData.profileImage.toLowerCase().endsWith('.png'))
+                                      backgroundImage: projectData.clientData
+                                          .profileImage == '' ||
+                                          projectData.clientData.profileImage
+                                              .isEmpty
+                                          ||
+                                          projectData.clientData.profileImage ==
+                                              "https://workdonecorp.com/storage/" ||
+                                          !(projectData.clientData.profileImage
+                                              .toLowerCase().endsWith('.jpg') ||
+                                              projectData.clientData
+                                                  .profileImage.toLowerCase()
+                                                  .endsWith('.png'))
 
-                                          ? AssetImage('assets/images/default.png') as ImageProvider
-                                          : NetworkImage(projectData.clientData.profileImage?? 'assets/images/default.png'),
+                                          ? AssetImage(
+                                          'assets/images/default.png') as ImageProvider
+                                          : NetworkImage(
+                                          projectData.clientData.profileImage ??
+                                              'assets/images/default.png'),
                                     ),
 
                                     SizedBox(
@@ -1649,15 +2111,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                       onTap: () {
                                         Navigator.push(
                                           context,
-                                          MaterialPageRoute(builder: (context) =>  ProfilePageClient(
-                                              userId: projectData
-                                                  .clientData!.clientId
-                                                  .toString())),
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ProfilePageClient(
+                                                      userId: projectData
+                                                          .clientData!.clientId
+                                                          .toString())),
                                         ).then((_) {
                                           // Fetch data here after popping the second screen
-                                          futureProjects = fetchProjectDetails(widget.projectId);
+                                          futureProjects = fetchProjectDetails(
+                                              widget.projectId);
                                         });
-
                                       },
 
                                       child: Text(
@@ -1665,7 +2129,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                         //client first name
                                         style: TextStyle(
                                           color: HexColor('4D8D6E'),
-                                          fontSize: MediaQuery.of(context).size.width > 400 ? 25 : 16,
+                                          fontSize: MediaQuery
+                                              .of(context)
+                                              .size
+                                              .width > 400 ? 25 : 16,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -1691,7 +2158,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                         ],
                                       ),
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment: MainAxisAlignment
+                                            .center,
                                         children: [
                                           Center(
                                             child: Text(
@@ -1710,7 +2178,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                           ),
                                           Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.center,
+                                            MainAxisAlignment.center,
                                             children: [
                                               Text(
                                                 '\$',
@@ -1726,7 +2194,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 width: 3,
                                               ),
                                               Text(
-                                                '${projectData.lowestBid?.toString() ?? "No Bid"}',
+                                                '${projectData.lowestBid
+                                                    ?.toString() ?? "No Bid"}',
                                                 style: GoogleFonts.openSans(
                                                   textStyle: TextStyle(
                                                     color: HexColor('4D8D6E'),
@@ -1744,7 +2213,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                 ),
                                 Padding(
                                   padding:
-                                      const EdgeInsets.symmetric(horizontal: 6.0),
+                                  const EdgeInsets.symmetric(horizontal: 6.0),
                                   child: Text(
                                     'Description',
                                     style: GoogleFonts.openSans(
@@ -1760,7 +2229,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                   height: 8,
                                 ),
                                 Animate(
-                                  effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                  effects: [
+                                    SlideEffect(
+                                      duration: Duration(milliseconds: 500),),
+                                  ],
                                   child: Padding(
                                     padding:
                                     const EdgeInsets.symmetric(horizontal: 5.0),
@@ -1782,13 +2254,15 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                   height: 16,
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6.0),
                                   child: Row(
                                     mainAxisAlignment:
                                     MainAxisAlignment.start,
                                     children: [
                                       Text(
-                                        projectData.selectworkerbid.worker_firstname != ''
+                                        projectData.selectworkerbid
+                                            .worker_firstname != ''
                                             ? 'Selected Worker'
                                             : '',
                                         style: GoogleFonts.openSans(
@@ -1809,10 +2283,13 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
                                 //accepted worker
                                 Visibility(
-                                  visible: projectData.selectworkerbid.worker_firstname != '', // Check if select_worker_bid exists
+                                  visible: projectData.selectworkerbid
+                                      .worker_firstname != '',
+                                  // Check if select_worker_bid exists
 
                                   child: Visibility(
-                                    visible: projectData.selectworkerbid.worker_firstname.isNotEmpty,
+                                    visible: projectData.selectworkerbid
+                                        .worker_firstname.isNotEmpty,
                                     // Check if select_worker_bid exists and has a non-empty worker_firstname
 
                                     child: DecoratedBox(
@@ -1822,44 +2299,75 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                       ),
                                       child: Container(
                                         child: Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 12),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 6.0, vertical: 12),
                                           child: Row(
                                             children: [
                                               CircleAvatar(
                                                 radius: 28,
-                                                backgroundColor: Colors.transparent,
-                                                backgroundImage: projectData.selectworkerbid.worker_profile_pic.isEmpty ||
-                                                    projectData.selectworkerbid.worker_profile_pic == "https://workdonecorp.com/storage/" ||
-                                                    !(projectData.selectworkerbid.worker_profile_pic.toLowerCase().endsWith('.jpg') ||
-                                                        projectData.selectworkerbid.worker_profile_pic.toLowerCase().endsWith('.png'))
-                                                    ? AssetImage('assets/images/default.png') as ImageProvider
-                                                    : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
+                                                backgroundColor: Colors
+                                                    .transparent,
+                                                backgroundImage: projectData
+                                                    .selectworkerbid
+                                                    .worker_profile_pic
+                                                    .isEmpty ||
+                                                    projectData.selectworkerbid
+                                                        .worker_profile_pic ==
+                                                        "https://workdonecorp.com/storage/" ||
+                                                    !(projectData
+                                                        .selectworkerbid
+                                                        .worker_profile_pic
+                                                        .toLowerCase().endsWith(
+                                                        '.jpg') ||
+                                                        projectData
+                                                            .selectworkerbid
+                                                            .worker_profile_pic
+                                                            .toLowerCase()
+                                                            .endsWith('.png'))
+                                                    ? AssetImage(
+                                                    'assets/images/default.png') as ImageProvider
+                                                    : NetworkImage(
+                                                    projectData.selectworkerbid
+                                                        .worker_profile_pic ??
+                                                        'assets/images/default.png'),
                                               ),
                                               SizedBox(width: 12),
                                               Expanded(
                                                 child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  crossAxisAlignment: CrossAxisAlignment
+                                                      .start,
                                                   children: [
                                                     Row(
-                                                      mainAxisAlignment: MainAxisAlignment.start,
+                                                      mainAxisAlignment: MainAxisAlignment
+                                                          .start,
                                                       children: [
                                                         GestureDetector(
                                                           onTap: () {
                                                             Get.to(
                                                               Workerprofileother(
-                                                                userId: projectData.selectworkerbid!.worker_id.toString(),
+                                                                userId: projectData
+                                                                    .selectworkerbid!
+                                                                    .worker_id
+                                                                    .toString(),
                                                               ),
-                                                              transition: Transition.fadeIn,
-                                                              duration: Duration(milliseconds: 700),
+                                                              transition: Transition
+                                                                  .fadeIn,
+                                                              duration: Duration(
+                                                                  milliseconds: 700),
                                                             );
                                                           },
                                                           child: Text(
-                                                            projectData.selectworkerbid.worker_firstname,
-                                                            style: GoogleFonts.openSans(
+                                                            projectData
+                                                                .selectworkerbid
+                                                                .worker_firstname,
+                                                            style: GoogleFonts
+                                                                .openSans(
                                                               textStyle: TextStyle(
-                                                                color: HexColor('4D8D6E'),
+                                                                color: HexColor(
+                                                                    '4D8D6E'),
                                                                 fontSize: 17,
-                                                                fontWeight: FontWeight.bold,
+                                                                fontWeight: FontWeight
+                                                                    .bold,
                                                               ),
                                                             ),
                                                           ),
@@ -1867,23 +2375,32 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         SizedBox(width: 10),
                                                         Icon(
                                                           Icons.star,
-                                                          color: HexColor('F3ED51'),
+                                                          color: HexColor(
+                                                              'F3ED51'),
                                                           size: 20,
                                                         ),
                                                         SizedBox(width: 2),
-                                                        Text('${projectData.selectworkerbid.avg_rating}'),
+                                                        Text('${projectData
+                                                            .selectworkerbid
+                                                            .avg_rating}'),
                                                       ],
                                                     ),
                                                     Row(
-                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      mainAxisAlignment: MainAxisAlignment
+                                                          .spaceBetween,
                                                       children: [
                                                         Text(
-                                                          '\$ ${projectData.selectworkerbid.amount}',
-                                                          style: GoogleFonts.openSans(
+                                                          '\$ ${projectData
+                                                              .selectworkerbid
+                                                              .amount}',
+                                                          style: GoogleFonts
+                                                              .openSans(
                                                             textStyle: TextStyle(
-                                                              color: HexColor('353B3B'),
+                                                              color: HexColor(
+                                                                  '353B3B'),
                                                               fontSize: 18,
-                                                              fontWeight: FontWeight.w500,
+                                                              fontWeight: FontWeight
+                                                                  .w500,
                                                             ),
                                                           ),
                                                         ),
@@ -1892,9 +2409,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             onPressed: () {
                                                               showDialog(
                                                                 context: context,
-                                                                builder: (BuildContext context) {
+                                                                builder: (
+                                                                    BuildContext context) {
                                                                   return AlertDialog(
-                                                                    backgroundColor: Colors.white,
+                                                                    backgroundColor: Colors
+                                                                        .white,
                                                                     title: Center(
                                                                       child: Column(
                                                                         children: [
@@ -1902,11 +2421,13 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                             'Comment',
                                                                             style: TextStyle(
                                                                               fontSize: 20,
-                                                                              fontWeight: FontWeight.bold,
+                                                                              fontWeight: FontWeight
+                                                                                  .bold,
                                                                             ),
                                                                           ),
                                                                           Divider(
-                                                                            color: Colors.black,
+                                                                            color: Colors
+                                                                                .black,
                                                                             thickness: 1.0,
                                                                           ),
                                                                         ],
@@ -1917,57 +2438,86 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                         children: [
                                                                           Center(
                                                                             child: Text(
-                                                                              projectData.selectworkerbid.comment,
-                                                                              style: GoogleFonts.openSans(
+                                                                              projectData
+                                                                                  .selectworkerbid
+                                                                                  .comment,
+                                                                              style: GoogleFonts
+                                                                                  .openSans(
                                                                                 textStyle: TextStyle(
-                                                                                  color: HexColor('4D8D6E'),
+                                                                                  color: HexColor(
+                                                                                      '4D8D6E'),
                                                                                   fontSize: 20,
-                                                                                  fontWeight: FontWeight.w500,
+                                                                                  fontWeight: FontWeight
+                                                                                      .w500,
                                                                                 ),
                                                                               ),
                                                                             ),
                                                                           ),
-                                                                          SizedBox(height: 23),
+                                                                          SizedBox(
+                                                                              height: 23),
                                                                           ElevatedButton(
                                                                             onPressed: () {
-                                                                              Navigator.pop(context);
+                                                                              Navigator
+                                                                                  .pop(
+                                                                                  context);
                                                                             },
                                                                             child: Text(
                                                                               'Close',
-                                                                              style: TextStyle(fontSize: 15, color: Colors.white),
+                                                                              style: TextStyle(
+                                                                                  fontSize: 15,
+                                                                                  color: Colors
+                                                                                      .white),
                                                                             ),
-                                                                            style: ElevatedButton.styleFrom(
-                                                                              backgroundColor: HexColor('4D8D6E'),
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              backgroundColor: HexColor(
+                                                                                  '4D8D6E'),
                                                                               elevation: 0,
-                                                                              textStyle: TextStyle(color: Colors.white),
-                                                                              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                                                                              textStyle: TextStyle(
+                                                                                  color: Colors
+                                                                                      .white),
+                                                                              padding: EdgeInsets
+                                                                                  .symmetric(
+                                                                                  vertical: 12,
+                                                                                  horizontal: 12),
                                                                             ),
                                                                           ),
                                                                         ],
                                                                       ),
                                                                     ),
                                                                     shape: RoundedRectangleBorder(
-                                                                      borderRadius: BorderRadius.circular(30.0),
+                                                                      borderRadius: BorderRadius
+                                                                          .circular(
+                                                                          30.0),
                                                                     ),
                                                                   );
                                                                 },
                                                               );
                                                             },
-                                                            style: ElevatedButton.styleFrom(
-                                                              backgroundColor: HexColor('4D8D6E'),
+                                                            style: ElevatedButton
+                                                                .styleFrom(
+                                                              backgroundColor: HexColor(
+                                                                  '4D8D6E'),
                                                               shape: RoundedRectangleBorder(
-                                                                borderRadius: BorderRadius.circular(30.0),
+                                                                borderRadius: BorderRadius
+                                                                    .circular(
+                                                                    30.0),
                                                               ),
-                                                              minimumSize: Size(30, 20),
-                                                              padding: EdgeInsets.all(8),
+                                                              minimumSize: Size(
+                                                                  30, 20),
+                                                              padding: EdgeInsets
+                                                                  .all(8),
                                                             ),
                                                             child: Text(
                                                               'Comment',
-                                                              style: GoogleFonts.openSans(
+                                                              style: GoogleFonts
+                                                                  .openSans(
                                                                 textStyle: TextStyle(
-                                                                  color: Colors.white,
+                                                                  color: Colors
+                                                                      .white,
                                                                   fontSize: 12,
-                                                                  fontWeight: FontWeight.w500,
+                                                                  fontWeight: FontWeight
+                                                                      .w500,
                                                                 ),
                                                               ),
                                                             ),
@@ -1992,18 +2542,20 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                 FutureBuilder<ProjectData>(
                                   future: projectDetailsFuture,
                                   builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return    Center(child: RotationTransition(
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Center(child: RotationTransition(
                                         turns: ciruclaranimation,
                                         child: SvgPicture.asset(
                                           'assets/images/Logo.svg',
                                           semanticsLabel: 'Your SVG Image',
-                                          width: 100,
-                                          height: 130,
+                                          width: 70,
+                                          height: 80,
                                         ),
                                       ));
                                     } else if (snapshot.hasError) {
-                                      return Center(child: Text('Error: ${snapshot.error}'));
+                                      return Center(child: Text(
+                                          'Error: ${snapshot.error}'));
                                     } else if (!snapshot.hasData) {
                                       return Center(
                                         child: Text(
@@ -2020,16 +2572,21 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                     } else {
                                       ProjectData projectData = snapshot.data!;
 
-                                      if (projectData.pageContent.currentUserRole ==
-                                              'worker' &&
+                                      if (projectData.pageContent
+                                          .currentUserRole ==
+                                          'worker' &&
                                           (projectData.status == 'bid_accepted'
-                                      )&&   (projectData.pageContent.schedule_vc== 'ma2foul'
+                                          ) && (projectData.pageContent
+                                          .schedule_vc == 'ma2foul'
                                       )) {
-              activeStep=1;                                    return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                                        activeStep = 1;
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .start,
                                           children: [
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
                                                 'Progress',
                                                 style: GoogleFonts.openSans(
@@ -2044,15 +2601,21 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             SizedBox(height: 17,),
 
                                             Container(
-                                              height:150,
+                                              height: 150,
                                               child: Center(
                                                 child: Container(
-                                                  padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 10),
                                                   child: EasyStepper(
-                                                    activeStepBackgroundColor:HexColor('4D8D6E') ,
-                                                    activeStepIconColor: Colors.white,
-                                                    activeStepBorderColor:HexColor('4D8D6E')  ,
-                                                    activeStepTextColor: HexColor('4D8D6E'),
+                                                    activeStepBackgroundColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepIconColor: Colors
+                                                        .white,
+                                                    activeStepBorderColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepTextColor: HexColor(
+                                                        '4D8D6E'),
 
                                                     showScrollbar: true,
                                                     enableStepTapping: false,
@@ -2063,25 +2626,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     borderThickness: 1,
                                                     internalPadding: 15,
                                                     stepRadius: 32,
-                                                    finishedStepBorderColor: HexColor('8d4d6c'),
-                                                    finishedStepTextColor: HexColor('8d4d6c'),
-                                                    finishedStepBackgroundColor: HexColor('8d4d6c'),
-                                                    finishedStepIconColor: Colors.white,
-                                                    finishedStepBorderType: BorderType.normal,
+                                                    finishedStepBorderColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepTextColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepBackgroundColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepIconColor: Colors
+                                                        .white,
+                                                    finishedStepBorderType: BorderType
+                                                        .normal,
                                                     showLoadingAnimation: false,
                                                     showStepBorder: true,
                                                     lineStyle: LineStyle(
                                                       lineLength: 45,
                                                       lineType: LineType.dashed,
 
-                                                      activeLineColor: HexColor('#8d4d6c'),
-                                                      defaultLineColor: HexColor('#8d4d6c'),
-                                                      unreachedLineColor: HexColor('#172a21'),
+                                                      activeLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      defaultLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      unreachedLineColor: HexColor(
+                                                          '#172a21'),
                                                       lineThickness: 3,
                                                       lineSpace: 2,
                                                       lineWidth: 10,
 
-                                                      unreachedLineType: LineType.dashed,
+                                                      unreachedLineType: LineType
+                                                          .dashed,
 
                                                     ),
 
@@ -2090,7 +2662,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.money_16_regular,
+                                                          FluentIcons
+                                                              .money_16_regular,
                                                         ),
                                                         title: 'Under Bidding',
 
@@ -2106,14 +2679,16 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       ),
                                                       EasyStep(
                                                         icon: Icon(
-                                                          FluentIcons.calendar_12_filled ,
+                                                          FluentIcons
+                                                              .calendar_12_filled,
                                                         ),
                                                         title: 'Schedule',
                                                       ),
                                                       EasyStep(
 
                                                         icon: Icon(
-                                                          FluentIcons.spinner_ios_16_filled ,
+                                                          FluentIcons
+                                                              .spinner_ios_16_filled,
                                                         ),
                                                         title: 'Processing',
 
@@ -2122,7 +2697,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.checkmark_circle_square_16_filled ,
+                                                          FluentIcons
+                                                              .checkmark_circle_square_16_filled,
                                                         ),
                                                         title: 'Finilizing',
 
@@ -2131,14 +2707,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.flag_16_filled  ,
+                                                          FluentIcons
+                                                              .flag_16_filled,
                                                         ),
                                                         title: 'Completed',
 
                                                       ),
 
                                                     ],
-                                                    onStepReached: (index) => setState(() => activeStep = index),
+                                                    onStepReached: (index) =>
+                                                        setState(() =>
+                                                        activeStep = index),
                                                   ),
                                                 ),
 
@@ -2150,19 +2729,25 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 ElevatedButton(
                                                   onPressed: () {
                                                     Get.to(chat(
-                                                      worker_id:projectData
-                                                          .selectworkerbid.worker_id ,
-                                                      myside_image:projectData
-                                                          .selectworkerbid.worker_profile_pic ,
+                                                      worker_id: projectData
+                                                          .selectworkerbid
+                                                          .worker_id,
+                                                      myside_image: projectData
+                                                          .selectworkerbid
+                                                          .worker_profile_pic,
                                                       myside_firstname: projectData
-                                                          .selectworkerbid.worker_firstname,
+                                                          .selectworkerbid
+                                                          .worker_firstname,
                                                       client_id: projectData
-                                                          .clientData!.clientId ,
+                                                          .clientData!.clientId,
 
-                                                      seconduserimage: projectData.clientData.profileImage,
+                                                      seconduserimage: projectData
+                                                          .clientData
+                                                          .profileImage,
 
                                                       chatId: projectData
-                                                          .pageaccessdata.chat_ID,
+                                                          .pageaccessdata
+                                                          .chat_ID,
                                                       currentUser:
                                                       'worker',
                                                       secondUserName:
@@ -2174,18 +2759,24 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                           .toString(),
                                                     ));
                                                   },
-                                                  style: ElevatedButton.styleFrom(
-                                                   backgroundColor: HexColor('ED6F53'),
-                                                   foregroundColor: Colors.white,
+                                                  style: ElevatedButton
+                                                      .styleFrom(
+                                                    backgroundColor: HexColor(
+                                                        'ED6F53'),
+                                                    foregroundColor: Colors
+                                                        .white,
                                                     elevation: 5,
                                                     shape: RoundedRectangleBorder(
-                                                      borderRadius: BorderRadius.circular(12),
+                                                      borderRadius: BorderRadius
+                                                          .circular(12),
                                                     ),
-                                                    fixedSize: Size(70, 50), // Set the desired width and height
+                                                    fixedSize: Size(70,
+                                                        50), // Set the desired width and height
                                                   ),
                                                   child: Text(
                                                     'Chat',
-                                                    style: TextStyle(fontSize: 10),
+                                                    style: TextStyle(
+                                                        fontSize: 10),
                                                   ),
                                                 ),
                                                 SizedBox(width: 5),
@@ -2196,14 +2787,22 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         color: Colors.grey,
                                                         width: 1.3, // Adjust the border width as needed
                                                       ),
-                                                      borderRadius: BorderRadius.circular(12.0), // Adjust the radius as needed
+                                                      borderRadius: BorderRadius
+                                                          .circular(
+                                                          12.0), // Adjust the radius as needed
                                                     ),
                                                     child: Padding(
-                                                      padding: const EdgeInsets.symmetric(vertical: 8.0), // Adjust padding as needed
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          vertical: 8.0),
+                                                      // Adjust padding as needed
                                                       child: Center(
                                                         child: Text(
                                                           'Wait for the Client to Schedule time \& date \n or Go to the chat to discuss work timing',
-                                                          style: TextStyle(fontSize: 8 ,fontWeight: FontWeight.bold),
+                                                          style: TextStyle(
+                                                              fontSize: 8,
+                                                              fontWeight: FontWeight
+                                                                  .bold),
                                                         ),
                                                       ),
                                                     ),
@@ -2214,26 +2813,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   tag: 'workdone_$unique',
                                                   child: Container(
                                                     height: 50,
-                                                    width: 80, // Set the desired width
+                                                    width: 80,
+                                                    // Set the desired width
                                                     child: ElevatedButton(
                                                       onPressed: () {
-                                                        _navigateToNextPage(context);
+                                                        _navigateToNextPage(
+                                                            context);
                                                       },
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('777031'),
-                                                       foregroundColor: Colors.white,
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            '777031'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(21),
+                                                          borderRadius: BorderRadius
+                                                              .circular(21),
                                                         ),
                                                       ),
                                                       child: Text(
                                                         'Support',
-                                                        style: GoogleFonts.roboto(
+                                                        style: GoogleFonts
+                                                            .roboto(
                                                           textStyle: TextStyle(
                                                             color: Colors.white,
                                                             fontSize: 8.5,
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight: FontWeight
+                                                                .bold,
                                                           ),
                                                         ), // Add ellipsis (...) for overflow
                                                       ),
@@ -2250,63 +2857,112 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 Expanded(
                                                   child: Opacity(
                                                     // Change the opacity based on the condition
-                                                    opacity: projectData.pageContent.enter_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                    opacity: projectData
+                                                        .pageContent
+                                                        .enter_verification_code_button ==
+                                                        "mftoo7" ? 1.0 : 0.5,
                                                     child: ElevatedButton(
                                                       // Disable or enable the button based on the condition
-                                                      onPressed: projectData.pageContent.enter_verification_code_button == "mftoo7" ? () {
+                                                      onPressed: projectData
+                                                          .pageContent
+                                                          .enter_verification_code_button ==
+                                                          "mftoo7" ? () {
                                                         showModalBottomSheet(
                                                           context: context,
                                                           isScrollControlled: true,
-                                                          builder: (BuildContext context) {
-                                                            int otp = int.tryParse(otpController.text) ?? 0;
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            int otp = int
+                                                                .tryParse(
+                                                                otpController
+                                                                    .text) ?? 0;
 
                                                             return StatefulBuilder(
-                                                              builder: (BuildContext context, StateSetter setState) {
+                                                              builder: (
+                                                                  BuildContext context,
+                                                                  StateSetter setState) {
                                                                 return Container(
-                                                                  padding: EdgeInsets.all(16.0),
+                                                                  padding: EdgeInsets
+                                                                      .all(
+                                                                      16.0),
                                                                   child: Column(
-                                                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                                                    mainAxisSize: MainAxisSize.min,
+                                                                    crossAxisAlignment: CrossAxisAlignment
+                                                                        .center,
+                                                                    mainAxisSize: MainAxisSize
+                                                                        .min,
                                                                     children: [
-                                                                      Center(child: Text('Write a \n Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-                                                                      SizedBox(height: 12,),
+                                                                      Center(
+                                                                          child: Text(
+                                                                            'Write a \n Verification Code',
+                                                                            style: TextStyle(
+                                                                                fontSize: 30,
+                                                                                color: HexColor(
+                                                                                    '000000'),
+                                                                                fontWeight: FontWeight
+                                                                                    .bold),)),
+                                                                      SizedBox(
+                                                                        height: 12,),
 
-                                                                      Text('Take verification code from client ' , style: TextStyle(fontSize: 19, color: HexColor('706F6F') , fontWeight: FontWeight.normal),),
-                                                                      SizedBox(height: 25),
+                                                                      Text(
+                                                                        'Take verification code from client ',
+                                                                        style: TextStyle(
+                                                                            fontSize: 19,
+                                                                            color: HexColor(
+                                                                                '706F6F'),
+                                                                            fontWeight: FontWeight
+                                                                                .normal),),
+                                                                      SizedBox(
+                                                                          height: 25),
                                                                       Pinput(
-                                                                        length: 4, // The total length of the OTP
-                                                                        controller: otpController, // The single controller for the OTP
-                                                                        focusNode: focusNode1, // Current focus node
-                                                                        pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                                                                        onCompleted: (pin) {
+                                                                        length: 4,
+                                                                        // The total length of the OTP
+                                                                        controller: otpController,
+                                                                        // The single controller for the OTP
+                                                                        focusNode: focusNode1,
+                                                                        // Current focus node
+                                                                        pinputAutovalidateMode: PinputAutovalidateMode
+                                                                            .onSubmit,
+                                                                        onCompleted: (
+                                                                            pin) {
                                                                           // You can use the entered OTP for verification when the user has completed entering it.
-                                                                          print('Completed: $pin');
+                                                                          print(
+                                                                              'Completed: $pin');
                                                                         },
                                                                         // This function will be called when the input operation is submitted (usually on the keyboard).
-                                                                        onSubmitted: (pin) {
+                                                                        onSubmitted: (
+                                                                            pin) {
                                                                           // Don't forget to validate OTP and then send to API or whatever is required next.
                                                                         },
                                                                       ),
 
-                                                                      SizedBox(height: 30),
+                                                                      SizedBox(
+                                                                          height: 30),
                                                                       Center(
                                                                         child: ElevatedButton(
                                                                           onPressed:
                                                                               () {
-
-                                                                            verify_project_schedule (widget.projectId,otp);
+                                                                            verify_project_schedule(
+                                                                                widget
+                                                                                    .projectId,
+                                                                                otp);
                                                                           },
-                                                                          style: ElevatedButton.styleFrom(
-                                                                           backgroundColor: HexColor('4D8D6E'),
-                                                                           foregroundColor: Colors.white,
+                                                                          style: ElevatedButton
+                                                                              .styleFrom(
+                                                                            backgroundColor: HexColor(
+                                                                                '4D8D6E'),
+                                                                            foregroundColor: Colors
+                                                                                .white,
                                                                             elevation: 5,
                                                                             shape: RoundedRectangleBorder(
-                                                                              borderRadius: BorderRadius.circular(20),
+                                                                              borderRadius: BorderRadius
+                                                                                  .circular(
+                                                                                  20),
                                                                             ),
                                                                           ),
                                                                           child: Text(
                                                                             'Confirm',
-                                                                            style: TextStyle(fontSize: 18),
+                                                                            style: TextStyle(
+                                                                                fontSize: 18),
                                                                           ),
                                                                         ),
                                                                       ),
@@ -2318,18 +2974,27 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                           },
                                                         );
                                                       } : null,
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('B6B021'),
-                                                       foregroundColor: Colors.white,
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            'B6B021'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
                                                         ),
-                                                        fixedSize: Size(double.infinity, 50),
+                                                        fixedSize: Size(
+                                                            double.infinity,
+                                                            50),
                                                       ),
                                                       child: Text(
                                                         'With the client! Let\'s Enter the Verification Code',
-                                                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                                        style: TextStyle(
+                                                            fontSize: 12.5,
+                                                            fontWeight: FontWeight
+                                                                .bold),
                                                       ),
                                                     ),
                                                   ),
@@ -2346,91 +3011,161 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 Expanded(
                                                   child: Opacity(
                                                     // Change the opacity based on the condition for the second button
-                                                    opacity: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                    opacity: projectData
+                                                        .pageContent
+                                                        .enter_complete_project_verification_code_button ==
+                                                        "mftoo7" ? 1.0 : 0.5,
                                                     child: ElevatedButton(
-                                                      onPressed: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? () {
+                                                      onPressed: projectData
+                                                          .pageContent
+                                                          .enter_complete_project_verification_code_button ==
+                                                          "mftoo7" ? () {
                                                         showModalBottomSheet(
                                                           context: context,
                                                           isScrollControlled: true,
-                                                          builder: (BuildContext context) {
-                                                            int otpaccessprojectcomplete = int.tryParse(otpControlleraccessproject.text) ?? 0;
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            int otpaccessprojectcomplete = int
+                                                                .tryParse(
+                                                                otpControlleraccessproject
+                                                                    .text) ?? 0;
                                                             return StatefulBuilder(
-                                                              builder: (BuildContext context, StateSetter setState) {
+                                                              builder: (
+                                                                  BuildContext context,
+                                                                  StateSetter setState) {
                                                                 return SingleChildScrollView(
-                                                                  padding: EdgeInsets.only(
-                                                                    bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                    bottom: MediaQuery
+                                                                        .of(
+                                                                        context)
+                                                                        .viewInsets
+                                                                        .bottom, // Adjust padding based on the keyboard height
                                                                   ),
                                                                   child: Container(
-                                                                    padding: EdgeInsets.all(16.0),
+                                                                    padding: EdgeInsets
+                                                                        .all(
+                                                                        16.0),
                                                                     child: Column(
-                                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                                      mainAxisSize: MainAxisSize.min,
+                                                                      crossAxisAlignment: CrossAxisAlignment
+                                                                          .center,
+                                                                      mainAxisSize: MainAxisSize
+                                                                          .min,
                                                                       children: [
 
-                                                                        Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-                                                                        Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              'Write a ',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              ' Verification Code',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
 
-                                                                        SizedBox(height: 12,),
+                                                                        SizedBox(
+                                                                          height: 12,),
 
                                                                         Center(
                                                                           child: Text(
                                                                             'Take verification code from client\nTo Start Work',
                                                                             style: TextStyle(
                                                                               fontSize: 16,
-                                                                              color: HexColor('706F6F'),
-                                                                              fontWeight: FontWeight.normal,
+                                                                              color: HexColor(
+                                                                                  '706F6F'),
+                                                                              fontWeight: FontWeight
+                                                                                  .normal,
                                                                             ),
-                                                                            textAlign: TextAlign.center,
+                                                                            textAlign: TextAlign
+                                                                                .center,
                                                                           ),
                                                                         ),
-                                                                        SizedBox(height: 25),
+                                                                        SizedBox(
+                                                                            height: 25),
                                                                         Pinput(
-                                                                          length: 4, // The total length of the OTP
-                                                                          controller: otpControlleraccessproject, // The single controller for the OTP
-                                                                          focusNode: focusNode1, // Current focus node
-                                                                          pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                                                                          onCompleted: (pin) {
+                                                                          length: 4,
+                                                                          // The total length of the OTP
+                                                                          controller: otpControlleraccessproject,
+                                                                          // The single controller for the OTP
+                                                                          focusNode: focusNode1,
+                                                                          // Current focus node
+                                                                          pinputAutovalidateMode: PinputAutovalidateMode
+                                                                              .onSubmit,
+                                                                          onCompleted: (
+                                                                              pin) {
                                                                             // You can use the entered OTP for verification when the user has completed entering it.
-                                                                            print('Completed: $pin');
+                                                                            print(
+                                                                                'Completed: $pin');
                                                                           },
                                                                           // This function will be called when the input operation is submitted (usually on the keyboard).
-                                                                          onSubmitted: (pin) {
+                                                                          onSubmitted: (
+                                                                              pin) {
                                                                             // Don't forget to validate OTP and then send to API or whatever is required next.
                                                                           },
-                                                                          pinAnimationType: PinAnimationType.rotation,
+                                                                          pinAnimationType: PinAnimationType
+                                                                              .rotation,
                                                                           defaultPinTheme: PinTheme(
-                                                                            width: 60, // Example width of the field, adjust accordingly
-                                                                            height: 70, // Example height of the field, adjust accordingly
+                                                                            width: 60,
+                                                                            // Example width of the field, adjust accordingly
+                                                                            height: 70,
+                                                                            // Example height of the field, adjust accordingly
                                                                             textStyle: TextStyle(
                                                                                 fontSize: 24,
-                                                                                color: Colors.black,
-                                                                                fontWeight: FontWeight.bold // Text is bold
+                                                                                color: Colors
+                                                                                    .black,
+                                                                                fontWeight: FontWeight
+                                                                                    .bold // Text is bold
                                                                             ),
                                                                             decoration: BoxDecoration(
-                                                                              border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
-                                                                              borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
+                                                                              border: Border
+                                                                                  .all(
+                                                                                  color: HexColor(
+                                                                                      '4D8D6E'),
+                                                                                  width: 2),
+                                                                              // Border color as HexColor
+                                                                              borderRadius: BorderRadius
+                                                                                  .circular(
+                                                                                  12), // Circular shape with half width/height as radius
                                                                             ),
                                                                           ),),
 
-                                                                        SizedBox(height: 30),
+                                                                        SizedBox(
+                                                                            height: 30),
                                                                         Center(
                                                                           child: ElevatedButton(
                                                                             onPressed:
                                                                                 () {
-
-                                                                              verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
+                                                                              verify_Project_complete(
+                                                                                  widget
+                                                                                      .projectId,
+                                                                                  otpaccessprojectcomplete);
                                                                             },
-                                                                            style: ElevatedButton.styleFrom(
-                                                                             backgroundColor: HexColor('4D8D6E'),
-                                                                             foregroundColor: Colors.white,
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              backgroundColor: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              foregroundColor: Colors
+                                                                                  .white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.circular(20),
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    20),
                                                                               ),
                                                                             ),
                                                                             child: Text(
                                                                               'Confirm',
-                                                                              style: TextStyle(fontSize: 18),
+                                                                              style: TextStyle(
+                                                                                  fontSize: 18),
                                                                             ),
                                                                           ),
                                                                         ),
@@ -2442,20 +3177,30 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             );
                                                           },
                                                         );
-                                                      } : null, // The button will be disabled if the condition is false
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('317773'),
-                                                       foregroundColor: Colors.white,
+                                                      } : null,
+                                                      // The button will be disabled if the condition is false
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            '317773'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
                                                         ),
-                                                        fixedSize: Size(double.infinity, 50),
+                                                        fixedSize: Size(
+                                                            double.infinity,
+                                                            50),
                                                       ),
                                                       child: Center(
                                                         child: Text(
                                                           'Generate the Verification Code to access project complete',
-                                                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
+                                                          style: TextStyle(
+                                                              fontSize: 10.5,
+                                                              fontWeight: FontWeight
+                                                                  .bold),
                                                         ),
                                                       ),
                                                     ),
@@ -2465,11 +3210,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
 
 
-
-
-              SizedBox(height: 20,),
+                                            SizedBox(height: 20,),
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Row(
                                                 mainAxisAlignment:
                                                 MainAxisAlignment.start,
@@ -2478,9 +3222,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     'Workers Bids',
                                                     style: GoogleFonts.openSans(
                                                       textStyle: TextStyle(
-                                                        color: HexColor('454545'),
+                                                        color: HexColor(
+                                                            '454545'),
                                                         fontSize: 22,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight: FontWeight
+                                                            .bold,
                                                       ),
                                                     ),
                                                   ),
@@ -2489,13 +3235,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
                                             SizedBox(height: 12,),
                                             Animate(
-                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              effects: [
+                                                SlideEffect(duration: Duration(
+                                                    milliseconds: 500),),
+                                              ],
                                               child: ListView.builder(
                                                 physics: NeverScrollableScrollPhysics(),
                                                 shrinkWrap: true,
-                                                itemCount: projectData.bids.length,
+                                                itemCount: projectData.bids
+                                                    .length,
                                                 itemBuilder: (context, index) {
-                                                  Bid bid = projectData.bids[index];
+                                                  Bid bid = projectData
+                                                      .bids[index];
                                                   return buildListItem(bid);
                                                 },
                                               ),
@@ -2504,16 +3255,23 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                           ],
                                         );
                                       }
-                                      else if (  projectData.status == 'scheduled' && projectData.pageContent.scheduleStatus == 'pending'&&projectData.pageContent.selectedDate.isNotEmpty){
-                                        activeStep=2;
+                                      else
+                                      if (projectData.status == 'scheduled' &&
+                                          projectData.pageContent
+                                              .scheduleStatus == 'pending' &&
+                                          projectData.pageContent.selectedDate
+                                              .isNotEmpty) {
+                                        activeStep = 2;
 
-                                        return  Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .start,
 
 
                                           children: [
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
                                                 'Progress',
                                                 style: GoogleFonts.openSans(
@@ -2528,15 +3286,21 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             SizedBox(height: 17,),
 
                                             Container(
-                                              height:150,
+                                              height: 150,
                                               child: Center(
                                                 child: Container(
-                                                  padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 10),
                                                   child: EasyStepper(
-                                                    activeStepBackgroundColor:HexColor('4D8D6E') ,
-                                                    activeStepIconColor: Colors.white,
-                                                    activeStepBorderColor:HexColor('4D8D6E')  ,
-                                                    activeStepTextColor: HexColor('4D8D6E'),
+                                                    activeStepBackgroundColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepIconColor: Colors
+                                                        .white,
+                                                    activeStepBorderColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepTextColor: HexColor(
+                                                        '4D8D6E'),
 
                                                     showScrollbar: true,
                                                     enableStepTapping: false,
@@ -2547,25 +3311,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     borderThickness: 1,
                                                     internalPadding: 15,
                                                     stepRadius: 32,
-                                                    finishedStepBorderColor: HexColor('8d4d6c'),
-                                                    finishedStepTextColor: HexColor('8d4d6c'),
-                                                    finishedStepBackgroundColor: HexColor('8d4d6c'),
-                                                    finishedStepIconColor: Colors.white,
-                                                    finishedStepBorderType: BorderType.normal,
+                                                    finishedStepBorderColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepTextColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepBackgroundColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepIconColor: Colors
+                                                        .white,
+                                                    finishedStepBorderType: BorderType
+                                                        .normal,
                                                     showLoadingAnimation: false,
                                                     showStepBorder: true,
                                                     lineStyle: LineStyle(
                                                       lineLength: 45,
                                                       lineType: LineType.dashed,
 
-                                                      activeLineColor: HexColor('#8d4d6c'),
-                                                      defaultLineColor: HexColor('#8d4d6c'),
-                                                      unreachedLineColor: HexColor('#172a21'),
+                                                      activeLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      defaultLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      unreachedLineColor: HexColor(
+                                                          '#172a21'),
                                                       lineThickness: 3,
                                                       lineSpace: 2,
                                                       lineWidth: 10,
 
-                                                      unreachedLineType: LineType.dashed,
+                                                      unreachedLineType: LineType
+                                                          .dashed,
 
                                                     ),
 
@@ -2574,7 +3347,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.money_16_regular,
+                                                          FluentIcons
+                                                              .money_16_regular,
                                                         ),
                                                         title: 'Under Bidding',
 
@@ -2590,14 +3364,16 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       ),
                                                       EasyStep(
                                                         icon: Icon(
-                                                          FluentIcons.calendar_12_filled ,
+                                                          FluentIcons
+                                                              .calendar_12_filled,
                                                         ),
                                                         title: 'Schedule',
                                                       ),
                                                       EasyStep(
 
                                                         icon: Icon(
-                                                          FluentIcons.spinner_ios_16_filled ,
+                                                          FluentIcons
+                                                              .spinner_ios_16_filled,
                                                         ),
                                                         title: 'Processing',
 
@@ -2606,7 +3382,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.checkmark_circle_square_16_filled ,
+                                                          FluentIcons
+                                                              .checkmark_circle_square_16_filled,
                                                         ),
                                                         title: 'Finilizing',
 
@@ -2615,21 +3392,25 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.flag_16_filled  ,
+                                                          FluentIcons
+                                                              .flag_16_filled,
                                                         ),
                                                         title: 'Completed',
 
                                                       ),
 
                                                     ],
-                                                    onStepReached: (index) => setState(() => activeStep = index),
+                                                    onStepReached: (index) =>
+                                                        setState(() =>
+                                                        activeStep = index),
                                                   ),
                                                 ),
 
                                               ),
                                             ),
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
                                                 'Details',
                                                 style: GoogleFonts.openSans(
@@ -2644,59 +3425,89 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             SizedBox(height: 8,),
                                             Center(
                                               child: Container(
-                                                width: double.infinity, // Set your desired width
-                                                height: 86, // Set your desired height
+                                                width: double.infinity,
+                                                // Set your desired width
+                                                height: 86,
+                                                // Set your desired height
                                                 decoration: BoxDecoration(
-                                                  border: Border.all(color: Colors.black),
-                                                  borderRadius: BorderRadius.circular(20), // Half of the width or height to make it circular
+                                                  border: Border.all(
+                                                      color: Colors.black),
+                                                  borderRadius: BorderRadius
+                                                      .circular(
+                                                      20), // Half of the width or height to make it circular
 
                                                 ),
                                                 child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  crossAxisAlignment: CrossAxisAlignment
+                                                      .start,
+                                                  mainAxisAlignment: MainAxisAlignment
+                                                      .center,
                                                   children: [
                                                     Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      crossAxisAlignment: CrossAxisAlignment
+                                                          .center,
+                                                      mainAxisAlignment: MainAxisAlignment
+                                                          .center,
                                                       children: [
                                                         Text('Date : ',
-                                                          style: GoogleFonts.roboto(
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.black,
+                                                              color: Colors
+                                                                  .black,
                                                               fontSize: 18,
-                                                              fontWeight: FontWeight.bold,
+                                                              fontWeight: FontWeight
+                                                                  .bold,
                                                             ),
                                                           ),),
-                                                        SizedBox(width: 8), // Adjust spacing between text widgets
-                                                        Text('${projectData.pageContent.selectedDate}',
-                                                          style: GoogleFonts.roboto(
+                                                        SizedBox(width: 8),
+                                                        // Adjust spacing between text widgets
+                                                        Text('${projectData
+                                                            .pageContent
+                                                            .selectedDate}',
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.grey[800],
+                                                              color: Colors
+                                                                  .grey[800],
                                                               fontSize: 16,
-                                                              fontWeight: FontWeight.w500,
+                                                              fontWeight: FontWeight
+                                                                  .w500,
                                                             ),
                                                           ),),
                                                       ],
                                                     ),
                                                     Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      crossAxisAlignment: CrossAxisAlignment
+                                                          .center,
+                                                      mainAxisAlignment: MainAxisAlignment
+                                                          .center,
                                                       children: [
-                                                        Text('Time (Interval): ',
-                                                          style: GoogleFonts.roboto(
+                                                        Text(
+                                                          'Time (Interval): ',
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.black,
+                                                              color: Colors
+                                                                  .black,
                                                               fontSize: 18,
-                                                              fontWeight: FontWeight.bold,
+                                                              fontWeight: FontWeight
+                                                                  .bold,
                                                             ),
                                                           ),),
-                                                        SizedBox(width: 8), // Adjust spacing between text widgets
-                                                        Text('${projectData.pageContent.selectedInterval}',
-                                                          style: GoogleFonts.roboto(
+                                                        SizedBox(width: 8),
+                                                        // Adjust spacing between text widgets
+                                                        Text('${projectData
+                                                            .pageContent
+                                                            .selectedInterval}',
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.grey[800],
+                                                              color: Colors
+                                                                  .grey[800],
                                                               fontSize: 16,
-                                                              fontWeight: FontWeight.w500,
+                                                              fontWeight: FontWeight
+                                                                  .w500,
                                                             ),
                                                           ),),
                                                       ],
@@ -2710,14 +3521,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               height: 9,
                                             ),
                                             Container(
-                                              margin: EdgeInsets.symmetric(horizontal: 9,vertical: 16),
-                                              padding: EdgeInsets.symmetric(horizontal: 9,vertical: 16),
+                                              margin: EdgeInsets.symmetric(
+                                                  horizontal: 9, vertical: 16),
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 9, vertical: 16),
                                               decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.all(Radius.circular(10)),
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(10)),
                                                 color: Colors.white,
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: Colors.grey.withOpacity(0.3),
+                                                    color: Colors.grey
+                                                        .withOpacity(0.3),
                                                     spreadRadius: 2,
                                                     blurRadius: 5,
                                                     offset: Offset(0, 3),
@@ -2725,14 +3540,16 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 ],
                                               ),
                                               child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                mainAxisAlignment: MainAxisAlignment
+                                                    .center,
                                                 children: [
                                                   Center(
                                                     child: Text(
                                                       'Are you accepting this Schedule?',
                                                       style: TextStyle(
                                                         fontSize: 18,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight: FontWeight
+                                                            .bold,
                                                         color: Colors.grey[800],
                                                       ),
                                                     ),
@@ -2745,7 +3562,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         fontSize: 16,
                                                         color: Colors.grey[600],
                                                       ),
-                                                      textAlign: TextAlign.center,
+                                                      textAlign: TextAlign
+                                                          .center,
 
                                                     ),
                                                   ),
@@ -2757,22 +3575,30 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                           onPressed: () {
                                                             // TODO: Handle accept logic
                                                             setState(() {
-                                                              changeScheduleStatus(widget.projectId, 'accepted');
-
-
-
+                                                              changeScheduleStatus(
+                                                                  widget
+                                                                      .projectId,
+                                                                  'accepted');
                                                             });
                                                           },
-                                                          style: ElevatedButton.styleFrom(
-                                                           backgroundColor: HexColor('4D8D6E'),
-                                                           foregroundColor: Colors.white,
+                                                          style: ElevatedButton
+                                                              .styleFrom(
+                                                            backgroundColor: HexColor(
+                                                                '4D8D6E'),
+                                                            foregroundColor: Colors
+                                                                .white,
                                                             elevation: 5,
                                                             shape: RoundedRectangleBorder(
-                                                              borderRadius: BorderRadius.circular(12),
+                                                              borderRadius: BorderRadius
+                                                                  .circular(12),
                                                             ),
-                                                            fixedSize: Size(70, 50), // Set the desired width and height
+                                                            fixedSize: Size(70,
+                                                                50), // Set the desired width and height
                                                           ),
-                                                          child: Text('Accept', style: TextStyle(color: Colors.white)),
+                                                          child: Text('Accept',
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white)),
                                                         ),
                                                       ),
 
@@ -2783,21 +3609,29 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             // TODO: Handle accept logic
                                                             setState(() {
                                                               changeScheduleStatus(
-                                                                  widget.projectId, 'reject');
-
-
+                                                                  widget
+                                                                      .projectId,
+                                                                  'reject');
                                                             });
                                                           },
-                                                          style: ElevatedButton.styleFrom(
-                                                           backgroundColor: HexColor('#e90404'),
-                                                           foregroundColor: Colors.white,
+                                                          style: ElevatedButton
+                                                              .styleFrom(
+                                                            backgroundColor: HexColor(
+                                                                '#e90404'),
+                                                            foregroundColor: Colors
+                                                                .white,
                                                             elevation: 5,
                                                             shape: RoundedRectangleBorder(
-                                                              borderRadius: BorderRadius.circular(12),
+                                                              borderRadius: BorderRadius
+                                                                  .circular(12),
                                                             ),
-                                                            fixedSize: Size(70, 50), // Set the desired width and height
+                                                            fixedSize: Size(70,
+                                                                50), // Set the desired width and height
                                                           ),
-                                                          child: Text('Reject', style: TextStyle(color: Colors.white)),
+                                                          child: Text('Reject',
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white)),
                                                         ),
                                                       ),
 
@@ -2815,42 +3649,56 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   child: ElevatedButton(
                                                     onPressed: () {
                                                       Get.to(chat(
-                                                        worker_id:projectData
-                                                            .selectworkerbid.worker_id ,
-                                                        myside_image:projectData
-                                                            .selectworkerbid.worker_profile_pic ,
+                                                        worker_id: projectData
+                                                            .selectworkerbid
+                                                            .worker_id,
+                                                        myside_image: projectData
+                                                            .selectworkerbid
+                                                            .worker_profile_pic,
                                                         myside_firstname: projectData
-                                                            .selectworkerbid.worker_firstname,
+                                                            .selectworkerbid
+                                                            .worker_firstname,
                                                         client_id: projectData
-                                                            .clientData!.clientId ,
+                                                            .clientData!
+                                                            .clientId,
 
-                                                        seconduserimage: projectData.clientData.profileImage,
+                                                        seconduserimage: projectData
+                                                            .clientData
+                                                            .profileImage,
 
                                                         chatId: projectData
-                                                            .pageaccessdata!.chat_ID,
+                                                            .pageaccessdata!
+                                                            .chat_ID,
                                                         currentUser:
                                                         'worker',
                                                         secondUserName:
                                                         projectData
-                                                            .clientData.firstname,
+                                                            .clientData
+                                                            .firstname,
                                                         userId: projectData
                                                             .clientData!
                                                             .clientId
                                                             .toString(),
                                                       ));
                                                     },
-                                                    style: ElevatedButton.styleFrom(
-                                                     backgroundColor: HexColor('ED6F53'),
-                                                     foregroundColor: Colors.white,
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor: HexColor(
+                                                          'ED6F53'),
+                                                      foregroundColor: Colors
+                                                          .white,
                                                       elevation: 5,
                                                       shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(12),
+                                                        borderRadius: BorderRadius
+                                                            .circular(12),
                                                       ),
-                                                      fixedSize: Size(70, 50), // Set the desired width and height
+                                                      fixedSize: Size(70,
+                                                          50), // Set the desired width and height
                                                     ),
                                                     child: Text(
                                                       'Chat',
-                                                      style: TextStyle(fontSize: 10),
+                                                      style: TextStyle(
+                                                          fontSize: 10),
                                                     ),
                                                   ),
                                                 ),
@@ -2860,26 +3708,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   tag: 'workdone_$unique',
                                                   child: Container(
                                                     height: 50,
-                                                    width: 80, // Set the desired width
+                                                    width: 80,
+                                                    // Set the desired width
                                                     child: ElevatedButton(
                                                       onPressed: () {
-                                                        _navigateToNextPage(context);
+                                                        _navigateToNextPage(
+                                                            context);
                                                       },
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('777031'),
-                                                       foregroundColor: Colors.white,
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            '777031'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(21),
+                                                          borderRadius: BorderRadius
+                                                              .circular(21),
                                                         ),
                                                       ),
                                                       child: Text(
                                                         'Support',
-                                                        style: GoogleFonts.roboto(
+                                                        style: GoogleFonts
+                                                            .roboto(
                                                           textStyle: TextStyle(
                                                             color: Colors.white,
                                                             fontSize: 8.5,
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight: FontWeight
+                                                                .bold,
                                                           ),
                                                         ), // Add ellipsis (...) for overflow
                                                       ),
@@ -2894,99 +3750,168 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
 
 
-
                                             Row(
                                               children: [
                                                 Expanded(
                                                   child: Opacity(
                                                     // Change the opacity based on the condition
-                                                    opacity: projectData.pageContent.enter_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                    opacity: projectData
+                                                        .pageContent
+                                                        .enter_verification_code_button ==
+                                                        "mftoo7" ? 1.0 : 0.5,
                                                     child: ElevatedButton(
                                                       // Disable or enable the button based on the condition
-                                                      onPressed: projectData.pageContent.enter_verification_code_button == "mftoo7" ? () {
+                                                      onPressed: projectData
+                                                          .pageContent
+                                                          .enter_verification_code_button ==
+                                                          "mftoo7" ? () {
                                                         showModalBottomSheet(
                                                           context: context,
                                                           isScrollControlled: true,
-                                                          builder: (BuildContext context) {
-                                                            int otp = int.tryParse(otpController.text) ?? 0;
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            int otp = int
+                                                                .tryParse(
+                                                                otpController
+                                                                    .text) ?? 0;
 
                                                             return StatefulBuilder(
-                                                              builder: (BuildContext context, StateSetter setState) {
+                                                              builder: (
+                                                                  BuildContext context,
+                                                                  StateSetter setState) {
                                                                 return SingleChildScrollView(
-                                                                  padding: EdgeInsets.only(
-                                                                    bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                    bottom: MediaQuery
+                                                                        .of(
+                                                                        context)
+                                                                        .viewInsets
+                                                                        .bottom, // Adjust padding based on the keyboard height
                                                                   ),
                                                                   child: Container(
-                                                                    padding: EdgeInsets.all(16.0),
+                                                                    padding: EdgeInsets
+                                                                        .all(
+                                                                        16.0),
                                                                     child: Column(
-                                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                                      mainAxisSize: MainAxisSize.min,
+                                                                      crossAxisAlignment: CrossAxisAlignment
+                                                                          .center,
+                                                                      mainAxisSize: MainAxisSize
+                                                                          .min,
                                                                       children: [
 
-                                                                        Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-                                                                        Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              'Write a ',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              ' Verification Code',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
 
-                                                                        SizedBox(height: 12,),
+                                                                        SizedBox(
+                                                                          height: 12,),
 
                                                                         Center(
                                                                           child: Text(
                                                                             'Take verification code from client\nTo Start Work',
                                                                             style: TextStyle(
                                                                               fontSize: 16,
-                                                                              color: HexColor('706F6F'),
-                                                                              fontWeight: FontWeight.normal,
+                                                                              color: HexColor(
+                                                                                  '706F6F'),
+                                                                              fontWeight: FontWeight
+                                                                                  .normal,
                                                                             ),
-                                                                            textAlign: TextAlign.center,
+                                                                            textAlign: TextAlign
+                                                                                .center,
                                                                           ),
                                                                         ),
-                                                                        SizedBox(height: 25),
+                                                                        SizedBox(
+                                                                            height: 25),
                                                                         Pinput(
-                                                                          length: 4, // The total length of the OTP
-                                                                          controller: otpController, // The single controller for the OTP
-                                                                          focusNode: focusNode1, // Current focus node
-                                                                          pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                                                                          onCompleted: (pin) {
+                                                                          length: 4,
+                                                                          // The total length of the OTP
+                                                                          controller: otpController,
+                                                                          // The single controller for the OTP
+                                                                          focusNode: focusNode1,
+                                                                          // Current focus node
+                                                                          pinputAutovalidateMode: PinputAutovalidateMode
+                                                                              .onSubmit,
+                                                                          onCompleted: (
+                                                                              pin) {
                                                                             // You can use the entered OTP for verification when the user has completed entering it.
-                                                                            print('Completed: $pin');
+                                                                            print(
+                                                                                'Completed: $pin');
                                                                           },
                                                                           // This function will be called when the input operation is submitted (usually on the keyboard).
-                                                                          onSubmitted: (pin) {
+                                                                          onSubmitted: (
+                                                                              pin) {
                                                                             // Don't forget to validate OTP and then send to API or whatever is required next.
                                                                           },
-                                                                          pinAnimationType: PinAnimationType.rotation,
+                                                                          pinAnimationType: PinAnimationType
+                                                                              .rotation,
                                                                           defaultPinTheme: PinTheme(
-                                                                            width: 60, // Example width of the field, adjust accordingly
-                                                                            height: 70, // Example height of the field, adjust accordingly
+                                                                            width: 60,
+                                                                            // Example width of the field, adjust accordingly
+                                                                            height: 70,
+                                                                            // Example height of the field, adjust accordingly
                                                                             textStyle: TextStyle(
                                                                                 fontSize: 24,
-                                                                                color: Colors.black,
-                                                                                fontWeight: FontWeight.bold // Text is bold
+                                                                                color: Colors
+                                                                                    .black,
+                                                                                fontWeight: FontWeight
+                                                                                    .bold // Text is bold
                                                                             ),
                                                                             decoration: BoxDecoration(
-                                                                              border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
-                                                                              borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
+                                                                              border: Border
+                                                                                  .all(
+                                                                                  color: HexColor(
+                                                                                      '4D8D6E'),
+                                                                                  width: 2),
+                                                                              // Border color as HexColor
+                                                                              borderRadius: BorderRadius
+                                                                                  .circular(
+                                                                                  12), // Circular shape with half width/height as radius
                                                                             ),
                                                                           ),),
 
-                                                                        SizedBox(height: 30),
+                                                                        SizedBox(
+                                                                            height: 30),
                                                                         Center(
                                                                           child: ElevatedButton(
                                                                             onPressed:
                                                                                 () {
-
-                                                                              verify_project_schedule (widget.projectId,otp);
+                                                                              verify_project_schedule(
+                                                                                  widget
+                                                                                      .projectId,
+                                                                                  otp);
                                                                             },
-                                                                            style: ElevatedButton.styleFrom(
-                                                                             backgroundColor: HexColor('4D8D6E'),
-                                                                             foregroundColor: Colors.white,
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              backgroundColor: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              foregroundColor: Colors
+                                                                                  .white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.circular(20),
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    20),
                                                                               ),
                                                                             ),
                                                                             child: Text(
                                                                               'Confirm',
-                                                                              style: TextStyle(fontSize: 18),
+                                                                              style: TextStyle(
+                                                                                  fontSize: 18),
                                                                             ),
                                                                           ),
                                                                         ),
@@ -2999,18 +3924,27 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                           },
                                                         );
                                                       } : null,
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('B6B021'),
-                                                       foregroundColor: Colors.white,
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            'B6B021'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
                                                         ),
-                                                        fixedSize: Size(double.infinity, 50),
+                                                        fixedSize: Size(
+                                                            double.infinity,
+                                                            50),
                                                       ),
                                                       child: Text(
                                                         'With the client! Let\'s Enter the Verification Code',
-                                                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                                        style: TextStyle(
+                                                            fontSize: 12.5,
+                                                            fontWeight: FontWeight
+                                                                .bold),
                                                       ),
                                                     ),
                                                   ),
@@ -3027,91 +3961,161 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 Expanded(
                                                   child: Opacity(
                                                     // Change the opacity based on the condition for the second button
-                                                    opacity: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                    opacity: projectData
+                                                        .pageContent
+                                                        .enter_complete_project_verification_code_button ==
+                                                        "mftoo7" ? 1.0 : 0.5,
                                                     child: ElevatedButton(
-                                                      onPressed: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? () {
+                                                      onPressed: projectData
+                                                          .pageContent
+                                                          .enter_complete_project_verification_code_button ==
+                                                          "mftoo7" ? () {
                                                         showModalBottomSheet(
                                                           context: context,
                                                           isScrollControlled: true,
-                                                          builder: (BuildContext context) {
-                                                            int otpaccessprojectcomplete = int.tryParse(otpControlleraccessproject.text) ?? 0;
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            int otpaccessprojectcomplete = int
+                                                                .tryParse(
+                                                                otpControlleraccessproject
+                                                                    .text) ?? 0;
                                                             return StatefulBuilder(
-                                                              builder: (BuildContext context, StateSetter setState) {
+                                                              builder: (
+                                                                  BuildContext context,
+                                                                  StateSetter setState) {
                                                                 return SingleChildScrollView(
-                                                                  padding: EdgeInsets.only(
-                                                                    bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                    bottom: MediaQuery
+                                                                        .of(
+                                                                        context)
+                                                                        .viewInsets
+                                                                        .bottom, // Adjust padding based on the keyboard height
                                                                   ),
                                                                   child: Container(
-                                                                    padding: EdgeInsets.all(16.0),
+                                                                    padding: EdgeInsets
+                                                                        .all(
+                                                                        16.0),
                                                                     child: Column(
-                                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                                      mainAxisSize: MainAxisSize.min,
+                                                                      crossAxisAlignment: CrossAxisAlignment
+                                                                          .center,
+                                                                      mainAxisSize: MainAxisSize
+                                                                          .min,
                                                                       children: [
 
-                                                                        Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-                                                                        Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              'Write a ',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              ' Verification Code',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
 
-                                                                        SizedBox(height: 12,),
+                                                                        SizedBox(
+                                                                          height: 12,),
 
                                                                         Center(
                                                                           child: Text(
                                                                             'Take verification code from client\nTo Start Work',
                                                                             style: TextStyle(
                                                                               fontSize: 16,
-                                                                              color: HexColor('706F6F'),
-                                                                              fontWeight: FontWeight.normal,
+                                                                              color: HexColor(
+                                                                                  '706F6F'),
+                                                                              fontWeight: FontWeight
+                                                                                  .normal,
                                                                             ),
-                                                                            textAlign: TextAlign.center,
+                                                                            textAlign: TextAlign
+                                                                                .center,
                                                                           ),
                                                                         ),
-                                                                        SizedBox(height: 25),
+                                                                        SizedBox(
+                                                                            height: 25),
                                                                         Pinput(
-                                                                          length: 4, // The total length of the OTP
-                                                                          controller: otpControlleraccessproject, // The single controller for the OTP
-                                                                          focusNode: focusNode1, // Current focus node
-                                                                          pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                                                                          onCompleted: (pin) {
+                                                                          length: 4,
+                                                                          // The total length of the OTP
+                                                                          controller: otpControlleraccessproject,
+                                                                          // The single controller for the OTP
+                                                                          focusNode: focusNode1,
+                                                                          // Current focus node
+                                                                          pinputAutovalidateMode: PinputAutovalidateMode
+                                                                              .onSubmit,
+                                                                          onCompleted: (
+                                                                              pin) {
                                                                             // You can use the entered OTP for verification when the user has completed entering it.
-                                                                            print('Completed: $pin');
+                                                                            print(
+                                                                                'Completed: $pin');
                                                                           },
                                                                           // This function will be called when the input operation is submitted (usually on the keyboard).
-                                                                          onSubmitted: (pin) {
+                                                                          onSubmitted: (
+                                                                              pin) {
                                                                             // Don't forget to validate OTP and then send to API or whatever is required next.
                                                                           },
-                                                                          pinAnimationType: PinAnimationType.rotation,
+                                                                          pinAnimationType: PinAnimationType
+                                                                              .rotation,
                                                                           defaultPinTheme: PinTheme(
-                                                                            width: 60, // Example width of the field, adjust accordingly
-                                                                            height: 70, // Example height of the field, adjust accordingly
+                                                                            width: 60,
+                                                                            // Example width of the field, adjust accordingly
+                                                                            height: 70,
+                                                                            // Example height of the field, adjust accordingly
                                                                             textStyle: TextStyle(
                                                                                 fontSize: 24,
-                                                                                color: Colors.black,
-                                                                                fontWeight: FontWeight.bold // Text is bold
+                                                                                color: Colors
+                                                                                    .black,
+                                                                                fontWeight: FontWeight
+                                                                                    .bold // Text is bold
                                                                             ),
                                                                             decoration: BoxDecoration(
-                                                                              border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
-                                                                              borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
+                                                                              border: Border
+                                                                                  .all(
+                                                                                  color: HexColor(
+                                                                                      '4D8D6E'),
+                                                                                  width: 2),
+                                                                              // Border color as HexColor
+                                                                              borderRadius: BorderRadius
+                                                                                  .circular(
+                                                                                  12), // Circular shape with half width/height as radius
                                                                             ),
                                                                           ),),
 
-                                                                        SizedBox(height: 30),
+                                                                        SizedBox(
+                                                                            height: 30),
                                                                         Center(
                                                                           child: ElevatedButton(
                                                                             onPressed:
                                                                                 () {
-
-                                                                              verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
+                                                                              verify_Project_complete(
+                                                                                  widget
+                                                                                      .projectId,
+                                                                                  otpaccessprojectcomplete);
                                                                             },
-                                                                            style: ElevatedButton.styleFrom(
-                                                                             backgroundColor: HexColor('4D8D6E'),
-                                                                             foregroundColor: Colors.white,
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              backgroundColor: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              foregroundColor: Colors
+                                                                                  .white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.circular(20),
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    20),
                                                                               ),
                                                                             ),
                                                                             child: Text(
                                                                               'Confirm',
-                                                                              style: TextStyle(fontSize: 18),
+                                                                              style: TextStyle(
+                                                                                  fontSize: 18),
                                                                             ),
                                                                           ),
                                                                         ),
@@ -3123,20 +4127,30 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             );
                                                           },
                                                         );
-                                                      } : null, // The button will be disabled if the condition is false
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('317773'),
-                                                       foregroundColor: Colors.white,
+                                                      } : null,
+                                                      // The button will be disabled if the condition is false
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            '317773'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
                                                         ),
-                                                        fixedSize: Size(double.infinity, 50),
+                                                        fixedSize: Size(
+                                                            double.infinity,
+                                                            50),
                                                       ),
                                                       child: Center(
                                                         child: Text(
                                                           'Generate the Verification Code to access project complete',
-                                                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
+                                                          style: TextStyle(
+                                                              fontSize: 10.5,
+                                                              fontWeight: FontWeight
+                                                                  .bold),
                                                         ),
                                                       ),
                                                     ),
@@ -3146,11 +4160,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
 
 
-
                                             SizedBox(height: 20,),
 
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Row(
                                                 mainAxisAlignment:
                                                 MainAxisAlignment.start,
@@ -3159,9 +4173,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     'Workers Bids',
                                                     style: GoogleFonts.openSans(
                                                       textStyle: TextStyle(
-                                                        color: HexColor('454545'),
+                                                        color: HexColor(
+                                                            '454545'),
                                                         fontSize: 22,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight: FontWeight
+                                                            .bold,
                                                       ),
                                                     ),
                                                   ),
@@ -3170,13 +4186,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
                                             SizedBox(height: 12,),
                                             Animate(
-                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              effects: [
+                                                SlideEffect(duration: Duration(
+                                                    milliseconds: 500),),
+                                              ],
                                               child: ListView.builder(
                                                 physics: NeverScrollableScrollPhysics(),
                                                 shrinkWrap: true,
-                                                itemCount: projectData.bids.length,
+                                                itemCount: projectData.bids
+                                                    .length,
                                                 itemBuilder: (context, index) {
-                                                  Bid bid = projectData.bids[index];
+                                                  Bid bid = projectData
+                                                      .bids[index];
                                                   return buildListItem(bid);
                                                 },
                                               ),
@@ -3185,18 +4206,24 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
                                           ],
                                         );
-
                                       }
-                                      else if (  projectData.status == 'scheduled' && projectData.pageContent.scheduleStatus == 'accepted'&&projectData.pageContent.selectedDate.isNotEmpty){
-                                        activeStep=2;
+                                      else
+                                      if (projectData.status == 'scheduled' &&
+                                          projectData.pageContent
+                                              .scheduleStatus == 'accepted' &&
+                                          projectData.pageContent.selectedDate
+                                              .isNotEmpty) {
+                                        activeStep = 2;
 
-                                        return  Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .start,
 
 
                                           children: [
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
                                                 'Progress',
                                                 style: GoogleFonts.openSans(
@@ -3211,15 +4238,21 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             SizedBox(height: 17,),
 
                                             Container(
-                                              height:150,
+                                              height: 150,
                                               child: Center(
                                                 child: Container(
-                                                  padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 10),
                                                   child: EasyStepper(
-                                                    activeStepBackgroundColor:HexColor('4D8D6E') ,
-                                                    activeStepIconColor: Colors.white,
-                                                    activeStepBorderColor:HexColor('4D8D6E')  ,
-                                                    activeStepTextColor: HexColor('4D8D6E'),
+                                                    activeStepBackgroundColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepIconColor: Colors
+                                                        .white,
+                                                    activeStepBorderColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepTextColor: HexColor(
+                                                        '4D8D6E'),
 
                                                     showScrollbar: true,
                                                     enableStepTapping: false,
@@ -3230,25 +4263,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     borderThickness: 1,
                                                     internalPadding: 15,
                                                     stepRadius: 32,
-                                                    finishedStepBorderColor: HexColor('8d4d6c'),
-                                                    finishedStepTextColor: HexColor('8d4d6c'),
-                                                    finishedStepBackgroundColor: HexColor('8d4d6c'),
-                                                    finishedStepIconColor: Colors.white,
-                                                    finishedStepBorderType: BorderType.normal,
+                                                    finishedStepBorderColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepTextColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepBackgroundColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepIconColor: Colors
+                                                        .white,
+                                                    finishedStepBorderType: BorderType
+                                                        .normal,
                                                     showLoadingAnimation: false,
                                                     showStepBorder: true,
                                                     lineStyle: LineStyle(
                                                       lineLength: 45,
                                                       lineType: LineType.dashed,
 
-                                                      activeLineColor: HexColor('#8d4d6c'),
-                                                      defaultLineColor: HexColor('#8d4d6c'),
-                                                      unreachedLineColor: HexColor('#172a21'),
+                                                      activeLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      defaultLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      unreachedLineColor: HexColor(
+                                                          '#172a21'),
                                                       lineThickness: 3,
                                                       lineSpace: 2,
                                                       lineWidth: 10,
 
-                                                      unreachedLineType: LineType.dashed,
+                                                      unreachedLineType: LineType
+                                                          .dashed,
 
                                                     ),
 
@@ -3257,7 +4299,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.money_16_regular,
+                                                          FluentIcons
+                                                              .money_16_regular,
                                                         ),
                                                         title: 'Under Bidding',
 
@@ -3273,14 +4316,16 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       ),
                                                       EasyStep(
                                                         icon: Icon(
-                                                          FluentIcons.calendar_12_filled ,
+                                                          FluentIcons
+                                                              .calendar_12_filled,
                                                         ),
                                                         title: 'Schedule',
                                                       ),
                                                       EasyStep(
 
                                                         icon: Icon(
-                                                          FluentIcons.spinner_ios_16_filled ,
+                                                          FluentIcons
+                                                              .spinner_ios_16_filled,
                                                         ),
                                                         title: 'Processing',
 
@@ -3289,7 +4334,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.checkmark_circle_square_16_filled ,
+                                                          FluentIcons
+                                                              .checkmark_circle_square_16_filled,
                                                         ),
                                                         title: 'Finilizing',
 
@@ -3298,41 +4344,52 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.flag_16_filled  ,
+                                                          FluentIcons
+                                                              .flag_16_filled,
                                                         ),
                                                         title: 'Completed',
 
                                                       ),
 
                                                     ],
-                                                    onStepReached: (index) => setState(() => activeStep = index),
+                                                    onStepReached: (index) =>
+                                                        setState(() =>
+                                                        activeStep = index),
                                                   ),
                                                 ),
 
                                               ),
                                             ),
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Row(
                                                 children: [
                                                   Text(
                                                     'Details',
                                                     style: GoogleFonts.openSans(
                                                       textStyle: TextStyle(
-                                                        color: HexColor('454545'),
+                                                        color: HexColor(
+                                                            '454545'),
                                                         fontSize: 22,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight: FontWeight
+                                                            .bold,
                                                       ),
                                                     ),
                                                   ),
                                                   SizedBox(width: 20),
-                                                  projectData.pageContent.scheduleStatus == "accepted"?
+                                                  projectData.pageContent
+                                                      .scheduleStatus ==
+                                                      "accepted" ?
                                                   Container(
                                                     height: 35,
                                                     width: 70
                                                     ,
                                                     decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(15),color: HexColor('#3e861f')
+                                                        borderRadius: BorderRadius
+                                                            .circular(15),
+                                                        color: HexColor(
+                                                            '#3e861f')
 
                                                     ),
                                                     child: Center(
@@ -3341,70 +4398,101 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                         style: TextStyle(
                                                           color: Colors.white,
                                                           fontSize: 14,
-                                                          fontWeight: FontWeight.bold,
+                                                          fontWeight: FontWeight
+                                                              .bold,
                                                         ),
                                                       ),
                                                     ),
-                                                  ):
+                                                  ) :
                                                   Container(),
                                                 ],
                                               ),
-                                            ),                                            SizedBox(height: 8,),
+                                            ), SizedBox(height: 8,),
                                             Center(
                                               child: Container(
-                                                width: double.infinity, // Set your desired width
-                                                height: 86, // Set your desired height
+                                                width: double.infinity,
+                                                // Set your desired width
+                                                height: 86,
+                                                // Set your desired height
                                                 decoration: BoxDecoration(
-                                                  border: Border.all(color: Colors.black),
-                                                  borderRadius: BorderRadius.circular(20), // Half of the width or height to make it circular
+                                                  border: Border.all(
+                                                      color: Colors.black),
+                                                  borderRadius: BorderRadius
+                                                      .circular(
+                                                      20), // Half of the width or height to make it circular
 
                                                 ),
                                                 child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  crossAxisAlignment: CrossAxisAlignment
+                                                      .start,
+                                                  mainAxisAlignment: MainAxisAlignment
+                                                      .center,
                                                   children: [
                                                     Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      crossAxisAlignment: CrossAxisAlignment
+                                                          .center,
+                                                      mainAxisAlignment: MainAxisAlignment
+                                                          .center,
                                                       children: [
                                                         Text('Date : ',
-                                                          style: GoogleFonts.roboto(
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.black,
+                                                              color: Colors
+                                                                  .black,
                                                               fontSize: 18,
-                                                              fontWeight: FontWeight.bold,
+                                                              fontWeight: FontWeight
+                                                                  .bold,
                                                             ),
                                                           ),),
-                                                        SizedBox(width: 8), // Adjust spacing between text widgets
-                                                        Text('${projectData.pageContent.selectedDate}',
-                                                          style: GoogleFonts.roboto(
+                                                        SizedBox(width: 8),
+                                                        // Adjust spacing between text widgets
+                                                        Text('${projectData
+                                                            .pageContent
+                                                            .selectedDate}',
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.grey[800],
+                                                              color: Colors
+                                                                  .grey[800],
                                                               fontSize: 16,
-                                                              fontWeight: FontWeight.w500,
+                                                              fontWeight: FontWeight
+                                                                  .w500,
                                                             ),
                                                           ),),
                                                       ],
                                                     ),
                                                     Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      crossAxisAlignment: CrossAxisAlignment
+                                                          .center,
+                                                      mainAxisAlignment: MainAxisAlignment
+                                                          .center,
                                                       children: [
-                                                        Text('Time (Interval): ',
-                                                          style: GoogleFonts.roboto(
+                                                        Text(
+                                                          'Time (Interval): ',
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.black,
+                                                              color: Colors
+                                                                  .black,
                                                               fontSize: 18,
-                                                              fontWeight: FontWeight.bold,
+                                                              fontWeight: FontWeight
+                                                                  .bold,
                                                             ),
                                                           ),),
-                                                        SizedBox(width: 8), // Adjust spacing between text widgets
-                                                        Text('${projectData.pageContent.selectedInterval}',
-                                                          style: GoogleFonts.roboto(
+                                                        SizedBox(width: 8),
+                                                        // Adjust spacing between text widgets
+                                                        Text('${projectData
+                                                            .pageContent
+                                                            .selectedInterval}',
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.grey[800],
+                                                              color: Colors
+                                                                  .grey[800],
                                                               fontSize: 16,
-                                                              fontWeight: FontWeight.w500,
+                                                              fontWeight: FontWeight
+                                                                  .w500,
                                                             ),
                                                           ),),
                                                       ],
@@ -3424,42 +4512,56 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   child: ElevatedButton(
                                                     onPressed: () {
                                                       Get.to(chat(
-                                                        worker_id:projectData
-                                                            .selectworkerbid.worker_id ,
-                                                        myside_image:projectData
-                                                            .selectworkerbid.worker_profile_pic ,
+                                                        worker_id: projectData
+                                                            .selectworkerbid
+                                                            .worker_id,
+                                                        myside_image: projectData
+                                                            .selectworkerbid
+                                                            .worker_profile_pic,
                                                         myside_firstname: projectData
-                                                            .selectworkerbid.worker_firstname,
+                                                            .selectworkerbid
+                                                            .worker_firstname,
                                                         client_id: projectData
-                                                            .clientData!.clientId ,
+                                                            .clientData!
+                                                            .clientId,
 
-                                                        seconduserimage: projectData.clientData.profileImage,
+                                                        seconduserimage: projectData
+                                                            .clientData
+                                                            .profileImage,
 
                                                         chatId: projectData
-                                                            .pageaccessdata!.chat_ID,
+                                                            .pageaccessdata!
+                                                            .chat_ID,
                                                         currentUser:
                                                         'worker',
                                                         secondUserName:
                                                         projectData
-                                                            .clientData.firstname,
+                                                            .clientData
+                                                            .firstname,
                                                         userId: projectData
                                                             .clientData!
                                                             .clientId
                                                             .toString(),
                                                       ));
                                                     },
-                                                    style: ElevatedButton.styleFrom(
-                                                     backgroundColor: HexColor('ED6F53'),
-                                                     foregroundColor: Colors.white,
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor: HexColor(
+                                                          'ED6F53'),
+                                                      foregroundColor: Colors
+                                                          .white,
                                                       elevation: 5,
                                                       shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(12),
+                                                        borderRadius: BorderRadius
+                                                            .circular(12),
                                                       ),
-                                                      fixedSize: Size(70, 50), // Set the desired width and height
+                                                      fixedSize: Size(70,
+                                                          50), // Set the desired width and height
                                                     ),
                                                     child: Text(
                                                       'Chat',
-                                                      style: TextStyle(fontSize: 10),
+                                                      style: TextStyle(
+                                                          fontSize: 10),
                                                     ),
                                                   ),
                                                 ),
@@ -3469,26 +4571,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   tag: 'workdone_$unique',
                                                   child: Container(
                                                     height: 50,
-                                                    width: 80, // Set the desired width
+                                                    width: 80,
+                                                    // Set the desired width
                                                     child: ElevatedButton(
                                                       onPressed: () {
-                                                        _navigateToNextPage(context);
+                                                        _navigateToNextPage(
+                                                            context);
                                                       },
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('777031'),
-                                                       foregroundColor: Colors.white,
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            '777031'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(21),
+                                                          borderRadius: BorderRadius
+                                                              .circular(21),
                                                         ),
                                                       ),
                                                       child: Text(
                                                         'Support',
-                                                        style: GoogleFonts.roboto(
+                                                        style: GoogleFonts
+                                                            .roboto(
                                                           textStyle: TextStyle(
                                                             color: Colors.white,
                                                             fontSize: 8.5,
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight: FontWeight
+                                                                .bold,
                                                           ),
                                                         ), // Add ellipsis (...) for overflow
                                                       ),
@@ -3503,99 +4613,168 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
 
 
-
                                             Row(
                                               children: [
                                                 Expanded(
                                                   child: Opacity(
                                                     // Change the opacity based on the condition
-                                                    opacity: projectData.pageContent.enter_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                    opacity: projectData
+                                                        .pageContent
+                                                        .enter_verification_code_button ==
+                                                        "mftoo7" ? 1.0 : 0.5,
                                                     child: ElevatedButton(
                                                       // Disable or enable the button based on the condition
-                                                      onPressed: projectData.pageContent.enter_verification_code_button == "mftoo7" ? () {
+                                                      onPressed: projectData
+                                                          .pageContent
+                                                          .enter_verification_code_button ==
+                                                          "mftoo7" ? () {
                                                         showModalBottomSheet(
                                                           context: context,
                                                           isScrollControlled: true,
-                                                          builder: (BuildContext context) {
-                                                            int otp = int.tryParse(otpController.text) ?? 0;
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            int otp = int
+                                                                .tryParse(
+                                                                otpController
+                                                                    .text) ?? 0;
 
                                                             return StatefulBuilder(
-                                                              builder: (BuildContext context, StateSetter setState) {
+                                                              builder: (
+                                                                  BuildContext context,
+                                                                  StateSetter setState) {
                                                                 return SingleChildScrollView(
-                                                                  padding: EdgeInsets.only(
-                                                                    bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                    bottom: MediaQuery
+                                                                        .of(
+                                                                        context)
+                                                                        .viewInsets
+                                                                        .bottom, // Adjust padding based on the keyboard height
                                                                   ),
                                                                   child: Container(
-                                                                    padding: EdgeInsets.all(16.0),
+                                                                    padding: EdgeInsets
+                                                                        .all(
+                                                                        16.0),
                                                                     child: Column(
-                                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                                      mainAxisSize: MainAxisSize.min,
+                                                                      crossAxisAlignment: CrossAxisAlignment
+                                                                          .center,
+                                                                      mainAxisSize: MainAxisSize
+                                                                          .min,
                                                                       children: [
 
-                                                                        Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-                                                                        Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              'Write a ',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              ' Verification Code',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
 
-                                                                        SizedBox(height: 12,),
+                                                                        SizedBox(
+                                                                          height: 12,),
 
                                                                         Center(
                                                                           child: Text(
                                                                             'Take verification code from client\nTo Start Work',
                                                                             style: TextStyle(
                                                                               fontSize: 16,
-                                                                              color: HexColor('706F6F'),
-                                                                              fontWeight: FontWeight.normal,
+                                                                              color: HexColor(
+                                                                                  '706F6F'),
+                                                                              fontWeight: FontWeight
+                                                                                  .normal,
                                                                             ),
-                                                                            textAlign: TextAlign.center,
+                                                                            textAlign: TextAlign
+                                                                                .center,
                                                                           ),
                                                                         ),
-                                                                        SizedBox(height: 25),
+                                                                        SizedBox(
+                                                                            height: 25),
                                                                         Pinput(
-                                                                          length: 4, // The total length of the OTP
-                                                                          controller: otpController, // The single controller for the OTP
-                                                                          focusNode: focusNode1, // Current focus node
-                                                                          pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                                                                          onCompleted: (pin) {
+                                                                          length: 4,
+                                                                          // The total length of the OTP
+                                                                          controller: otpController,
+                                                                          // The single controller for the OTP
+                                                                          focusNode: focusNode1,
+                                                                          // Current focus node
+                                                                          pinputAutovalidateMode: PinputAutovalidateMode
+                                                                              .onSubmit,
+                                                                          onCompleted: (
+                                                                              pin) {
                                                                             // You can use the entered OTP for verification when the user has completed entering it.
-                                                                            print('Completed: $pin');
+                                                                            print(
+                                                                                'Completed: $pin');
                                                                           },
                                                                           // This function will be called when the input operation is submitted (usually on the keyboard).
-                                                                          onSubmitted: (pin) {
+                                                                          onSubmitted: (
+                                                                              pin) {
                                                                             // Don't forget to validate OTP and then send to API or whatever is required next.
                                                                           },
-                                                                          pinAnimationType: PinAnimationType.rotation,
+                                                                          pinAnimationType: PinAnimationType
+                                                                              .rotation,
                                                                           defaultPinTheme: PinTheme(
-                                                                            width: 60, // Example width of the field, adjust accordingly
-                                                                            height: 70, // Example height of the field, adjust accordingly
+                                                                            width: 60,
+                                                                            // Example width of the field, adjust accordingly
+                                                                            height: 70,
+                                                                            // Example height of the field, adjust accordingly
                                                                             textStyle: TextStyle(
                                                                                 fontSize: 24,
-                                                                                color: Colors.black,
-                                                                                fontWeight: FontWeight.bold // Text is bold
+                                                                                color: Colors
+                                                                                    .black,
+                                                                                fontWeight: FontWeight
+                                                                                    .bold // Text is bold
                                                                             ),
                                                                             decoration: BoxDecoration(
-                                                                              border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
-                                                                              borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
+                                                                              border: Border
+                                                                                  .all(
+                                                                                  color: HexColor(
+                                                                                      '4D8D6E'),
+                                                                                  width: 2),
+                                                                              // Border color as HexColor
+                                                                              borderRadius: BorderRadius
+                                                                                  .circular(
+                                                                                  12), // Circular shape with half width/height as radius
                                                                             ),
                                                                           ),),
 
-                                                                        SizedBox(height: 30),
+                                                                        SizedBox(
+                                                                            height: 30),
                                                                         Center(
                                                                           child: ElevatedButton(
                                                                             onPressed:
                                                                                 () {
-
-                                                                              verify_project_schedule (widget.projectId,otp);
+                                                                              verify_project_schedule(
+                                                                                  widget
+                                                                                      .projectId,
+                                                                                  otp);
                                                                             },
-                                                                            style: ElevatedButton.styleFrom(
-                                                                             backgroundColor: HexColor('4D8D6E'),
-                                                                             foregroundColor: Colors.white,
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              backgroundColor: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              foregroundColor: Colors
+                                                                                  .white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.circular(20),
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    20),
                                                                               ),
                                                                             ),
                                                                             child: Text(
                                                                               'Confirm',
-                                                                              style: TextStyle(fontSize: 18),
+                                                                              style: TextStyle(
+                                                                                  fontSize: 18),
                                                                             ),
                                                                           ),
                                                                         ),
@@ -3608,18 +4787,27 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                           },
                                                         );
                                                       } : null,
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('B6B021'),
-                                                       foregroundColor: Colors.white,
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            'B6B021'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
                                                         ),
-                                                        fixedSize: Size(double.infinity, 50),
+                                                        fixedSize: Size(
+                                                            double.infinity,
+                                                            50),
                                                       ),
                                                       child: Text(
                                                         'With the client! Let\'s Enter the Verification Code',
-                                                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                                        style: TextStyle(
+                                                            fontSize: 12.5,
+                                                            fontWeight: FontWeight
+                                                                .bold),
                                                       ),
                                                     ),
                                                   ),
@@ -3636,91 +4824,161 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 Expanded(
                                                   child: Opacity(
                                                     // Change the opacity based on the condition for the second button
-                                                    opacity: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                    opacity: projectData
+                                                        .pageContent
+                                                        .enter_complete_project_verification_code_button ==
+                                                        "mftoo7" ? 1.0 : 0.5,
                                                     child: ElevatedButton(
-                                                      onPressed: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? () {
+                                                      onPressed: projectData
+                                                          .pageContent
+                                                          .enter_complete_project_verification_code_button ==
+                                                          "mftoo7" ? () {
                                                         showModalBottomSheet(
                                                           context: context,
                                                           isScrollControlled: true,
-                                                          builder: (BuildContext context) {
-                                                            int otpaccessprojectcomplete = int.tryParse(otpControlleraccessproject.text) ?? 0;
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            int otpaccessprojectcomplete = int
+                                                                .tryParse(
+                                                                otpControlleraccessproject
+                                                                    .text) ?? 0;
                                                             return StatefulBuilder(
-                                                              builder: (BuildContext context, StateSetter setState) {
+                                                              builder: (
+                                                                  BuildContext context,
+                                                                  StateSetter setState) {
                                                                 return SingleChildScrollView(
-                                                                  padding: EdgeInsets.only(
-                                                                    bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                    bottom: MediaQuery
+                                                                        .of(
+                                                                        context)
+                                                                        .viewInsets
+                                                                        .bottom, // Adjust padding based on the keyboard height
                                                                   ),
                                                                   child: Container(
-                                                                    padding: EdgeInsets.all(16.0),
+                                                                    padding: EdgeInsets
+                                                                        .all(
+                                                                        16.0),
                                                                     child: Column(
-                                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                                      mainAxisSize: MainAxisSize.min,
+                                                                      crossAxisAlignment: CrossAxisAlignment
+                                                                          .center,
+                                                                      mainAxisSize: MainAxisSize
+                                                                          .min,
                                                                       children: [
 
-                                                                        Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-                                                                        Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              'Write a ',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              ' Verification Code',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
 
-                                                                        SizedBox(height: 12,),
+                                                                        SizedBox(
+                                                                          height: 12,),
 
                                                                         Center(
                                                                           child: Text(
                                                                             'Take verification code from client\nTo Start Work',
                                                                             style: TextStyle(
                                                                               fontSize: 16,
-                                                                              color: HexColor('706F6F'),
-                                                                              fontWeight: FontWeight.normal,
+                                                                              color: HexColor(
+                                                                                  '706F6F'),
+                                                                              fontWeight: FontWeight
+                                                                                  .normal,
                                                                             ),
-                                                                            textAlign: TextAlign.center,
+                                                                            textAlign: TextAlign
+                                                                                .center,
                                                                           ),
                                                                         ),
-                                                                        SizedBox(height: 25),
+                                                                        SizedBox(
+                                                                            height: 25),
                                                                         Pinput(
-                                                                          length: 4, // The total length of the OTP
-                                                                          controller: otpControlleraccessproject, // The single controller for the OTP
-                                                                          focusNode: focusNode1, // Current focus node
-                                                                          pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                                                                          onCompleted: (pin) {
+                                                                          length: 4,
+                                                                          // The total length of the OTP
+                                                                          controller: otpControlleraccessproject,
+                                                                          // The single controller for the OTP
+                                                                          focusNode: focusNode1,
+                                                                          // Current focus node
+                                                                          pinputAutovalidateMode: PinputAutovalidateMode
+                                                                              .onSubmit,
+                                                                          onCompleted: (
+                                                                              pin) {
                                                                             // You can use the entered OTP for verification when the user has completed entering it.
-                                                                            print('Completed: $pin');
+                                                                            print(
+                                                                                'Completed: $pin');
                                                                           },
                                                                           // This function will be called when the input operation is submitted (usually on the keyboard).
-                                                                          onSubmitted: (pin) {
+                                                                          onSubmitted: (
+                                                                              pin) {
                                                                             // Don't forget to validate OTP and then send to API or whatever is required next.
                                                                           },
-                                                                          pinAnimationType: PinAnimationType.rotation,
+                                                                          pinAnimationType: PinAnimationType
+                                                                              .rotation,
                                                                           defaultPinTheme: PinTheme(
-                                                                            width: 60, // Example width of the field, adjust accordingly
-                                                                            height: 70, // Example height of the field, adjust accordingly
+                                                                            width: 60,
+                                                                            // Example width of the field, adjust accordingly
+                                                                            height: 70,
+                                                                            // Example height of the field, adjust accordingly
                                                                             textStyle: TextStyle(
                                                                                 fontSize: 24,
-                                                                                color: Colors.black,
-                                                                                fontWeight: FontWeight.bold // Text is bold
+                                                                                color: Colors
+                                                                                    .black,
+                                                                                fontWeight: FontWeight
+                                                                                    .bold // Text is bold
                                                                             ),
                                                                             decoration: BoxDecoration(
-                                                                              border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
-                                                                              borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
+                                                                              border: Border
+                                                                                  .all(
+                                                                                  color: HexColor(
+                                                                                      '4D8D6E'),
+                                                                                  width: 2),
+                                                                              // Border color as HexColor
+                                                                              borderRadius: BorderRadius
+                                                                                  .circular(
+                                                                                  12), // Circular shape with half width/height as radius
                                                                             ),
                                                                           ),),
 
-                                                                        SizedBox(height: 30),
+                                                                        SizedBox(
+                                                                            height: 30),
                                                                         Center(
                                                                           child: ElevatedButton(
                                                                             onPressed:
                                                                                 () {
-
-                                                                              verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
+                                                                              verify_Project_complete(
+                                                                                  widget
+                                                                                      .projectId,
+                                                                                  otpaccessprojectcomplete);
                                                                             },
-                                                                            style: ElevatedButton.styleFrom(
-                                                                             backgroundColor: HexColor('4D8D6E'),
-                                                                             foregroundColor: Colors.white,
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              backgroundColor: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              foregroundColor: Colors
+                                                                                  .white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.circular(20),
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    20),
                                                                               ),
                                                                             ),
                                                                             child: Text(
                                                                               'Confirm',
-                                                                              style: TextStyle(fontSize: 18),
+                                                                              style: TextStyle(
+                                                                                  fontSize: 18),
                                                                             ),
                                                                           ),
                                                                         ),
@@ -3732,20 +4990,30 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             );
                                                           },
                                                         );
-                                                      } : null, // The button will be disabled if the condition is false
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('317773'),
-                                                       foregroundColor: Colors.white,
+                                                      } : null,
+                                                      // The button will be disabled if the condition is false
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            '317773'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
                                                         ),
-                                                        fixedSize: Size(double.infinity, 50),
+                                                        fixedSize: Size(
+                                                            double.infinity,
+                                                            50),
                                                       ),
                                                       child: Center(
                                                         child: Text(
                                                           'Generate the Verification Code to access project complete',
-                                                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
+                                                          style: TextStyle(
+                                                              fontSize: 10.5,
+                                                              fontWeight: FontWeight
+                                                                  .bold),
                                                         ),
                                                       ),
                                                     ),
@@ -3755,11 +5023,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
 
 
-
                                             SizedBox(height: 20,),
 
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Row(
                                                 mainAxisAlignment:
                                                 MainAxisAlignment.start,
@@ -3768,9 +5036,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     'Workers Bids',
                                                     style: GoogleFonts.openSans(
                                                       textStyle: TextStyle(
-                                                        color: HexColor('454545'),
+                                                        color: HexColor(
+                                                            '454545'),
                                                         fontSize: 22,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight: FontWeight
+                                                            .bold,
                                                       ),
                                                     ),
                                                   ),
@@ -3779,13 +5049,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
                                             SizedBox(height: 12,),
                                             Animate(
-                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              effects: [
+                                                SlideEffect(duration: Duration(
+                                                    milliseconds: 500),),
+                                              ],
                                               child: ListView.builder(
                                                 physics: NeverScrollableScrollPhysics(),
                                                 shrinkWrap: true,
-                                                itemCount: projectData.bids.length,
+                                                itemCount: projectData.bids
+                                                    .length,
                                                 itemBuilder: (context, index) {
-                                                  Bid bid = projectData.bids[index];
+                                                  Bid bid = projectData
+                                                      .bids[index];
                                                   return buildListItem(bid);
                                                 },
                                               ),
@@ -3794,18 +5069,22 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
                                           ],
                                         );
-
                                       }
-                                      else if (  projectData.status == 'scheduled'&&projectData.pageContent.selectedDate.isNotEmpty ){
-                                        activeStep=2;
+                                      else
+                                      if (projectData.status == 'scheduled' &&
+                                          projectData.pageContent.selectedDate
+                                              .isNotEmpty) {
+                                        activeStep = 2;
 
-                                        return  Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .start,
 
 
                                           children: [
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
                                                 'Progress',
                                                 style: GoogleFonts.openSans(
@@ -3820,15 +5099,21 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             SizedBox(height: 17,),
 
                                             Container(
-                                              height:150,
+                                              height: 150,
                                               child: Center(
                                                 child: Container(
-                                                  padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 10),
                                                   child: EasyStepper(
-                                                    activeStepBackgroundColor:HexColor('4D8D6E') ,
-                                                    activeStepIconColor: Colors.white,
-                                                    activeStepBorderColor:HexColor('4D8D6E')  ,
-                                                    activeStepTextColor: HexColor('4D8D6E'),
+                                                    activeStepBackgroundColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepIconColor: Colors
+                                                        .white,
+                                                    activeStepBorderColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepTextColor: HexColor(
+                                                        '4D8D6E'),
 
                                                     showScrollbar: true,
                                                     enableStepTapping: false,
@@ -3839,25 +5124,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     borderThickness: 1,
                                                     internalPadding: 15,
                                                     stepRadius: 32,
-                                                    finishedStepBorderColor: HexColor('8d4d6c'),
-                                                    finishedStepTextColor: HexColor('8d4d6c'),
-                                                    finishedStepBackgroundColor: HexColor('8d4d6c'),
-                                                    finishedStepIconColor: Colors.white,
-                                                    finishedStepBorderType: BorderType.normal,
+                                                    finishedStepBorderColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepTextColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepBackgroundColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepIconColor: Colors
+                                                        .white,
+                                                    finishedStepBorderType: BorderType
+                                                        .normal,
                                                     showLoadingAnimation: false,
                                                     showStepBorder: true,
                                                     lineStyle: LineStyle(
                                                       lineLength: 45,
                                                       lineType: LineType.dashed,
 
-                                                      activeLineColor: HexColor('#8d4d6c'),
-                                                      defaultLineColor: HexColor('#8d4d6c'),
-                                                      unreachedLineColor: HexColor('#172a21'),
+                                                      activeLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      defaultLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      unreachedLineColor: HexColor(
+                                                          '#172a21'),
                                                       lineThickness: 3,
                                                       lineSpace: 2,
                                                       lineWidth: 10,
 
-                                                      unreachedLineType: LineType.dashed,
+                                                      unreachedLineType: LineType
+                                                          .dashed,
 
                                                     ),
 
@@ -3866,7 +5160,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.money_16_regular,
+                                                          FluentIcons
+                                                              .money_16_regular,
                                                         ),
                                                         title: 'Under Bidding',
 
@@ -3882,14 +5177,16 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       ),
                                                       EasyStep(
                                                         icon: Icon(
-                                                          FluentIcons.calendar_12_filled ,
+                                                          FluentIcons
+                                                              .calendar_12_filled,
                                                         ),
                                                         title: 'Schedule',
                                                       ),
                                                       EasyStep(
 
                                                         icon: Icon(
-                                                          FluentIcons.spinner_ios_16_filled ,
+                                                          FluentIcons
+                                                              .spinner_ios_16_filled,
                                                         ),
                                                         title: 'Processing',
 
@@ -3898,7 +5195,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.checkmark_circle_square_16_filled ,
+                                                          FluentIcons
+                                                              .checkmark_circle_square_16_filled,
                                                         ),
                                                         title: 'Finilizing',
 
@@ -3907,21 +5205,25 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.flag_16_filled  ,
+                                                          FluentIcons
+                                                              .flag_16_filled,
                                                         ),
                                                         title: 'Completed',
 
                                                       ),
 
                                                     ],
-                                                    onStepReached: (index) => setState(() => activeStep = index),
+                                                    onStepReached: (index) =>
+                                                        setState(() =>
+                                                        activeStep = index),
                                                   ),
                                                 ),
 
                                               ),
                                             ),
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
                                                 'Details',
                                                 style: GoogleFonts.openSans(
@@ -3936,26 +5238,37 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             SizedBox(height: 8,),
                                             Center(
                                               child: Container(
-                                                width: double.infinity, // Set your desired width
-                                                height: 92, // Set your desired height
+                                                width: double.infinity,
+                                                // Set your desired width
+                                                height: 92,
+                                                // Set your desired height
                                                 decoration: BoxDecoration(
-                                                  border: Border.all(color: Colors.black),
-                                                  borderRadius: BorderRadius.circular(20), // Half of the width or height to make it circular
+                                                  border: Border.all(
+                                                      color: Colors.black),
+                                                  borderRadius: BorderRadius
+                                                      .circular(
+                                                      20), // Half of the width or height to make it circular
 
                                                 ),
                                                 child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                  mainAxisAlignment: MainAxisAlignment
+                                                      .center,
+                                                  crossAxisAlignment: CrossAxisAlignment
+                                                      .center,
                                                   children: [
                                                     Center(
                                                       child: Padding(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                                        padding: const EdgeInsets
+                                                            .symmetric(
+                                                            horizontal: 4.0),
                                                         child: Text('Note ',
-                                                          style: GoogleFonts.roboto(
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
                                                               color: Colors.red,
                                                               fontSize: 15,
-                                                              fontWeight: FontWeight.bold,
+                                                              fontWeight: FontWeight
+                                                                  .bold,
                                                             ),
                                                           ),),
                                                       ),
@@ -3963,17 +5276,25 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
                                                     Center(
                                                       child: Padding(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                                        child: Text('You Reject The Schedule That The Client Provide \n So , You Can go chat and Discuss New Schedule with the Client',
-                                                          style: GoogleFonts.roboto(
+                                                        padding: const EdgeInsets
+                                                            .symmetric(
+                                                            horizontal: 4.0),
+                                                        child: Text(
+                                                          'You Reject The Schedule That The Client Provide \n So , You Can go chat and Discuss New Schedule with the Client',
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.black54,
+                                                              color: Colors
+                                                                  .black54,
                                                               fontSize: 14,
-                                                              fontWeight: FontWeight.bold,
+                                                              fontWeight: FontWeight
+                                                                  .bold,
 
                                                             ),
 
-                                                          ),textAlign: TextAlign.center,),
+                                                          ),
+                                                          textAlign: TextAlign
+                                                              .center,),
                                                       ),
                                                     ),
                                                   ],
@@ -3991,42 +5312,56 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   child: ElevatedButton(
                                                     onPressed: () {
                                                       Get.to(chat(
-                                                        worker_id:projectData
-                                                            .selectworkerbid.worker_id ,
-                                                        myside_image:projectData
-                                                            .selectworkerbid.worker_profile_pic ,
+                                                        worker_id: projectData
+                                                            .selectworkerbid
+                                                            .worker_id,
+                                                        myside_image: projectData
+                                                            .selectworkerbid
+                                                            .worker_profile_pic,
                                                         myside_firstname: projectData
-                                                            .selectworkerbid.worker_firstname,
+                                                            .selectworkerbid
+                                                            .worker_firstname,
                                                         client_id: projectData
-                                                            .clientData!.clientId ,
+                                                            .clientData!
+                                                            .clientId,
 
-                                                        seconduserimage: projectData.clientData.profileImage,
+                                                        seconduserimage: projectData
+                                                            .clientData
+                                                            .profileImage,
 
                                                         chatId: projectData
-                                                            .pageaccessdata!.chat_ID,
+                                                            .pageaccessdata!
+                                                            .chat_ID,
                                                         currentUser:
                                                         'worker',
                                                         secondUserName:
                                                         projectData
-                                                            .clientData.firstname,
+                                                            .clientData
+                                                            .firstname,
                                                         userId: projectData
                                                             .clientData!
                                                             .clientId
                                                             .toString(),
                                                       ));
                                                     },
-                                                    style: ElevatedButton.styleFrom(
-                                                     backgroundColor: HexColor('ED6F53'),
-                                                     foregroundColor: Colors.white,
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor: HexColor(
+                                                          'ED6F53'),
+                                                      foregroundColor: Colors
+                                                          .white,
                                                       elevation: 5,
                                                       shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(12),
+                                                        borderRadius: BorderRadius
+                                                            .circular(12),
                                                       ),
-                                                      fixedSize: Size(70, 50), // Set the desired width and height
+                                                      fixedSize: Size(70,
+                                                          50), // Set the desired width and height
                                                     ),
                                                     child: Text(
                                                       'Chat',
-                                                      style: TextStyle(fontSize: 10),
+                                                      style: TextStyle(
+                                                          fontSize: 10),
                                                     ),
                                                   ),
                                                 ),
@@ -4036,26 +5371,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   tag: 'workdone_$unique',
                                                   child: Container(
                                                     height: 50,
-                                                    width: 80, // Set the desired width
+                                                    width: 80,
+                                                    // Set the desired width
                                                     child: ElevatedButton(
                                                       onPressed: () {
-                                                        _navigateToNextPage(context);
+                                                        _navigateToNextPage(
+                                                            context);
                                                       },
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('777031'),
-                                                       foregroundColor: Colors.white,
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            '777031'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(21),
+                                                          borderRadius: BorderRadius
+                                                              .circular(21),
                                                         ),
                                                       ),
                                                       child: Text(
                                                         'Support',
-                                                        style: GoogleFonts.roboto(
+                                                        style: GoogleFonts
+                                                            .roboto(
                                                           textStyle: TextStyle(
                                                             color: Colors.white,
                                                             fontSize: 8.5,
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight: FontWeight
+                                                                .bold,
                                                           ),
                                                         ), // Add ellipsis (...) for overflow
                                                       ),
@@ -4070,99 +5413,168 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
 
 
-
                                             Row(
                                               children: [
                                                 Expanded(
                                                   child: Opacity(
                                                     // Change the opacity based on the condition
-                                                    opacity: projectData.pageContent.enter_verification_code_button != "mftoo7" ? 1.0 : 0.5,
+                                                    opacity: projectData
+                                                        .pageContent
+                                                        .enter_verification_code_button !=
+                                                        "mftoo7" ? 1.0 : 0.5,
                                                     child: ElevatedButton(
                                                       // Disable or enable the button based on the condition
-                                                      onPressed: projectData.pageContent.enter_verification_code_button != "mftoo7" ? () {
+                                                      onPressed: projectData
+                                                          .pageContent
+                                                          .enter_verification_code_button !=
+                                                          "mftoo7" ? () {
                                                         showModalBottomSheet(
                                                           context: context,
                                                           isScrollControlled: true,
-                                                          builder: (BuildContext context) {
-                                                            int otp = int.tryParse(otpController.text) ?? 0;
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            int otp = int
+                                                                .tryParse(
+                                                                otpController
+                                                                    .text) ?? 0;
 
                                                             return StatefulBuilder(
-                                                              builder: (BuildContext context, StateSetter setState) {
+                                                              builder: (
+                                                                  BuildContext context,
+                                                                  StateSetter setState) {
                                                                 return SingleChildScrollView(
-                                                                  padding: EdgeInsets.only(
-                                                                    bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                    bottom: MediaQuery
+                                                                        .of(
+                                                                        context)
+                                                                        .viewInsets
+                                                                        .bottom, // Adjust padding based on the keyboard height
                                                                   ),
                                                                   child: Container(
-                                                                    padding: EdgeInsets.all(16.0),
+                                                                    padding: EdgeInsets
+                                                                        .all(
+                                                                        16.0),
                                                                     child: Column(
-                                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                                      mainAxisSize: MainAxisSize.min,
+                                                                      crossAxisAlignment: CrossAxisAlignment
+                                                                          .center,
+                                                                      mainAxisSize: MainAxisSize
+                                                                          .min,
                                                                       children: [
 
-                                                                        Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-                                                                        Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              'Write a ',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              ' Verification Code',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
 
-                                                                        SizedBox(height: 12,),
+                                                                        SizedBox(
+                                                                          height: 12,),
 
                                                                         Center(
                                                                           child: Text(
                                                                             'Take verification code from client\nTo Start Work',
                                                                             style: TextStyle(
                                                                               fontSize: 16,
-                                                                              color: HexColor('706F6F'),
-                                                                              fontWeight: FontWeight.normal,
+                                                                              color: HexColor(
+                                                                                  '706F6F'),
+                                                                              fontWeight: FontWeight
+                                                                                  .normal,
                                                                             ),
-                                                                            textAlign: TextAlign.center,
+                                                                            textAlign: TextAlign
+                                                                                .center,
                                                                           ),
                                                                         ),
-                                                                        SizedBox(height: 25),
+                                                                        SizedBox(
+                                                                            height: 25),
                                                                         Pinput(
-                                                                          length: 4, // The total length of the OTP
-                                                                          controller: otpController, // The single controller for the OTP
-                                                                          focusNode: focusNode1, // Current focus node
-                                                                          pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                                                                          onCompleted: (pin) {
+                                                                          length: 4,
+                                                                          // The total length of the OTP
+                                                                          controller: otpController,
+                                                                          // The single controller for the OTP
+                                                                          focusNode: focusNode1,
+                                                                          // Current focus node
+                                                                          pinputAutovalidateMode: PinputAutovalidateMode
+                                                                              .onSubmit,
+                                                                          onCompleted: (
+                                                                              pin) {
                                                                             // You can use the entered OTP for verification when the user has completed entering it.
-                                                                            print('Completed: $pin');
+                                                                            print(
+                                                                                'Completed: $pin');
                                                                           },
                                                                           // This function will be called when the input operation is submitted (usually on the keyboard).
-                                                                          onSubmitted: (pin) {
+                                                                          onSubmitted: (
+                                                                              pin) {
                                                                             // Don't forget to validate OTP and then send to API or whatever is required next.
                                                                           },
-                                                                          pinAnimationType: PinAnimationType.rotation,
+                                                                          pinAnimationType: PinAnimationType
+                                                                              .rotation,
                                                                           defaultPinTheme: PinTheme(
-                                                                            width: 60, // Example width of the field, adjust accordingly
-                                                                            height: 70, // Example height of the field, adjust accordingly
+                                                                            width: 60,
+                                                                            // Example width of the field, adjust accordingly
+                                                                            height: 70,
+                                                                            // Example height of the field, adjust accordingly
                                                                             textStyle: TextStyle(
                                                                                 fontSize: 24,
-                                                                                color: Colors.black,
-                                                                                fontWeight: FontWeight.bold // Text is bold
+                                                                                color: Colors
+                                                                                    .black,
+                                                                                fontWeight: FontWeight
+                                                                                    .bold // Text is bold
                                                                             ),
                                                                             decoration: BoxDecoration(
-                                                                              border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
-                                                                              borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
+                                                                              border: Border
+                                                                                  .all(
+                                                                                  color: HexColor(
+                                                                                      '4D8D6E'),
+                                                                                  width: 2),
+                                                                              // Border color as HexColor
+                                                                              borderRadius: BorderRadius
+                                                                                  .circular(
+                                                                                  12), // Circular shape with half width/height as radius
                                                                             ),
                                                                           ),),
 
-                                                                        SizedBox(height: 30),
+                                                                        SizedBox(
+                                                                            height: 30),
                                                                         Center(
                                                                           child: ElevatedButton(
                                                                             onPressed:
                                                                                 () {
-
-                                                                              verify_project_schedule (widget.projectId,otp);
+                                                                              verify_project_schedule(
+                                                                                  widget
+                                                                                      .projectId,
+                                                                                  otp);
                                                                             },
-                                                                            style: ElevatedButton.styleFrom(
-                                                                             backgroundColor: HexColor('4D8D6E'),
-                                                                             foregroundColor: Colors.white,
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              backgroundColor: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              foregroundColor: Colors
+                                                                                  .white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.circular(20),
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    20),
                                                                               ),
                                                                             ),
                                                                             child: Text(
                                                                               'Confirm',
-                                                                              style: TextStyle(fontSize: 18),
+                                                                              style: TextStyle(
+                                                                                  fontSize: 18),
                                                                             ),
                                                                           ),
                                                                         ),
@@ -4175,18 +5587,27 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                           },
                                                         );
                                                       } : null,
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('B6B021'),
-                                                       foregroundColor: Colors.white,
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            'B6B021'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
                                                         ),
-                                                        fixedSize: Size(double.infinity, 50),
+                                                        fixedSize: Size(
+                                                            double.infinity,
+                                                            50),
                                                       ),
                                                       child: Text(
                                                         'With the client! Let\'s Enter the Verification Code',
-                                                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                                        style: TextStyle(
+                                                            fontSize: 12.5,
+                                                            fontWeight: FontWeight
+                                                                .bold),
                                                       ),
                                                     ),
                                                   ),
@@ -4203,91 +5624,161 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 Expanded(
                                                   child: Opacity(
                                                     // Change the opacity based on the condition for the second button
-                                                    opacity: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                    opacity: projectData
+                                                        .pageContent
+                                                        .enter_complete_project_verification_code_button ==
+                                                        "mftoo7" ? 1.0 : 0.5,
                                                     child: ElevatedButton(
-                                                      onPressed: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? () {
+                                                      onPressed: projectData
+                                                          .pageContent
+                                                          .enter_complete_project_verification_code_button ==
+                                                          "mftoo7" ? () {
                                                         showModalBottomSheet(
                                                           context: context,
                                                           isScrollControlled: true,
-                                                          builder: (BuildContext context) {
-                                                            int otpaccessprojectcomplete = int.tryParse(otpControlleraccessproject.text) ?? 0;
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            int otpaccessprojectcomplete = int
+                                                                .tryParse(
+                                                                otpControlleraccessproject
+                                                                    .text) ?? 0;
                                                             return StatefulBuilder(
-                                                              builder: (BuildContext context, StateSetter setState) {
+                                                              builder: (
+                                                                  BuildContext context,
+                                                                  StateSetter setState) {
                                                                 return SingleChildScrollView(
-                                                                  padding: EdgeInsets.only(
-                                                                    bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                    bottom: MediaQuery
+                                                                        .of(
+                                                                        context)
+                                                                        .viewInsets
+                                                                        .bottom, // Adjust padding based on the keyboard height
                                                                   ),
                                                                   child: Container(
-                                                                    padding: EdgeInsets.all(16.0),
+                                                                    padding: EdgeInsets
+                                                                        .all(
+                                                                        16.0),
                                                                     child: Column(
-                                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                                      mainAxisSize: MainAxisSize.min,
+                                                                      crossAxisAlignment: CrossAxisAlignment
+                                                                          .center,
+                                                                      mainAxisSize: MainAxisSize
+                                                                          .min,
                                                                       children: [
 
-                                                                        Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-                                                                        Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              'Write a ',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              ' Verification Code',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
 
-                                                                        SizedBox(height: 12,),
+                                                                        SizedBox(
+                                                                          height: 12,),
 
                                                                         Center(
                                                                           child: Text(
                                                                             'Take verification code from client\nTo Start Work',
                                                                             style: TextStyle(
                                                                               fontSize: 16,
-                                                                              color: HexColor('706F6F'),
-                                                                              fontWeight: FontWeight.normal,
+                                                                              color: HexColor(
+                                                                                  '706F6F'),
+                                                                              fontWeight: FontWeight
+                                                                                  .normal,
                                                                             ),
-                                                                            textAlign: TextAlign.center,
+                                                                            textAlign: TextAlign
+                                                                                .center,
                                                                           ),
                                                                         ),
-                                                                        SizedBox(height: 25),
+                                                                        SizedBox(
+                                                                            height: 25),
                                                                         Pinput(
-                                                                          length: 4, // The total length of the OTP
-                                                                          controller: otpControlleraccessproject, // The single controller for the OTP
-                                                                          focusNode: focusNode1, // Current focus node
-                                                                          pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                                                                          onCompleted: (pin) {
+                                                                          length: 4,
+                                                                          // The total length of the OTP
+                                                                          controller: otpControlleraccessproject,
+                                                                          // The single controller for the OTP
+                                                                          focusNode: focusNode1,
+                                                                          // Current focus node
+                                                                          pinputAutovalidateMode: PinputAutovalidateMode
+                                                                              .onSubmit,
+                                                                          onCompleted: (
+                                                                              pin) {
                                                                             // You can use the entered OTP for verification when the user has completed entering it.
-                                                                            print('Completed: $pin');
+                                                                            print(
+                                                                                'Completed: $pin');
                                                                           },
                                                                           // This function will be called when the input operation is submitted (usually on the keyboard).
-                                                                          onSubmitted: (pin) {
+                                                                          onSubmitted: (
+                                                                              pin) {
                                                                             // Don't forget to validate OTP and then send to API or whatever is required next.
                                                                           },
-                                                                          pinAnimationType: PinAnimationType.rotation,
+                                                                          pinAnimationType: PinAnimationType
+                                                                              .rotation,
                                                                           defaultPinTheme: PinTheme(
-                                                                            width: 60, // Example width of the field, adjust accordingly
-                                                                            height: 70, // Example height of the field, adjust accordingly
+                                                                            width: 60,
+                                                                            // Example width of the field, adjust accordingly
+                                                                            height: 70,
+                                                                            // Example height of the field, adjust accordingly
                                                                             textStyle: TextStyle(
                                                                                 fontSize: 24,
-                                                                                color: Colors.black,
-                                                                                fontWeight: FontWeight.bold // Text is bold
+                                                                                color: Colors
+                                                                                    .black,
+                                                                                fontWeight: FontWeight
+                                                                                    .bold // Text is bold
                                                                             ),
                                                                             decoration: BoxDecoration(
-                                                                              border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
-                                                                              borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
+                                                                              border: Border
+                                                                                  .all(
+                                                                                  color: HexColor(
+                                                                                      '4D8D6E'),
+                                                                                  width: 2),
+                                                                              // Border color as HexColor
+                                                                              borderRadius: BorderRadius
+                                                                                  .circular(
+                                                                                  12), // Circular shape with half width/height as radius
                                                                             ),
                                                                           ),),
 
-                                                                        SizedBox(height: 30),
+                                                                        SizedBox(
+                                                                            height: 30),
                                                                         Center(
                                                                           child: ElevatedButton(
                                                                             onPressed:
                                                                                 () {
-
-                                                                              verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
+                                                                              verify_Project_complete(
+                                                                                  widget
+                                                                                      .projectId,
+                                                                                  otpaccessprojectcomplete);
                                                                             },
-                                                                            style: ElevatedButton.styleFrom(
-                                                                             backgroundColor: HexColor('4D8D6E'),
-                                                                             foregroundColor: Colors.white,
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              backgroundColor: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              foregroundColor: Colors
+                                                                                  .white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.circular(20),
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    20),
                                                                               ),
                                                                             ),
                                                                             child: Text(
                                                                               'Confirm',
-                                                                              style: TextStyle(fontSize: 18),
+                                                                              style: TextStyle(
+                                                                                  fontSize: 18),
                                                                             ),
                                                                           ),
                                                                         ),
@@ -4299,20 +5790,30 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             );
                                                           },
                                                         );
-                                                      } : null, // The button will be disabled if the condition is false
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('317773'),
-                                                       foregroundColor: Colors.white,
+                                                      } : null,
+                                                      // The button will be disabled if the condition is false
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            '317773'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
                                                         ),
-                                                        fixedSize: Size(double.infinity, 50),
+                                                        fixedSize: Size(
+                                                            double.infinity,
+                                                            50),
                                                       ),
                                                       child: Center(
                                                         child: Text(
                                                           'Generate the Verification Code to access project complete',
-                                                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
+                                                          style: TextStyle(
+                                                              fontSize: 10.5,
+                                                              fontWeight: FontWeight
+                                                                  .bold),
                                                         ),
                                                       ),
                                                     ),
@@ -4322,11 +5823,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
 
 
-
                                             SizedBox(height: 20,),
 
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Row(
                                                 mainAxisAlignment:
                                                 MainAxisAlignment.start,
@@ -4335,9 +5836,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     'Workers Bids',
                                                     style: GoogleFonts.openSans(
                                                       textStyle: TextStyle(
-                                                        color: HexColor('454545'),
+                                                        color: HexColor(
+                                                            '454545'),
                                                         fontSize: 22,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight: FontWeight
+                                                            .bold,
                                                       ),
                                                     ),
                                                   ),
@@ -4346,13 +5849,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
                                             SizedBox(height: 12,),
                                             Animate(
-                                              effects: [SlideEffect(duration: Duration(milliseconds: 500),),],
+                                              effects: [
+                                                SlideEffect(duration: Duration(
+                                                    milliseconds: 500),),
+                                              ],
                                               child: ListView.builder(
                                                 physics: NeverScrollableScrollPhysics(),
                                                 shrinkWrap: true,
-                                                itemCount: projectData.bids.length,
+                                                itemCount: projectData.bids
+                                                    .length,
                                                 itemBuilder: (context, index) {
-                                                  Bid bid = projectData.bids[index];
+                                                  Bid bid = projectData
+                                                      .bids[index];
                                                   return buildListItem(bid);
                                                 },
                                               ),
@@ -4360,19 +5868,23 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
                                           ],
                                         );
-
                                       }
-                                      else if (  projectData.status == 'processing' && projectData.pageContent.enter_complete_project_verification_code_button == 'mftoo7')
-                                      {
-                                        activeStep =3;
+                                      else
+                                      if (projectData.status == 'processing' &&
+                                          projectData.pageContent
+                                              .enter_complete_project_verification_code_button ==
+                                              'mftoo7') {
+                                        activeStep = 3;
 
-                                        return  Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .start,
 
 
                                           children: [
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
                                                 'Progress',
                                                 style: GoogleFonts.openSans(
@@ -4387,15 +5899,21 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             SizedBox(height: 17,),
 
                                             Container(
-                                              height:150,
+                                              height: 150,
                                               child: Center(
                                                 child: Container(
-                                                  padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 10),
                                                   child: EasyStepper(
-                                                    activeStepBackgroundColor:HexColor('4D8D6E') ,
-                                                    activeStepIconColor: Colors.white,
-                                                    activeStepBorderColor:HexColor('4D8D6E')  ,
-                                                    activeStepTextColor: HexColor('4D8D6E'),
+                                                    activeStepBackgroundColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepIconColor: Colors
+                                                        .white,
+                                                    activeStepBorderColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepTextColor: HexColor(
+                                                        '4D8D6E'),
 
                                                     showScrollbar: true,
                                                     enableStepTapping: false,
@@ -4406,25 +5924,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     borderThickness: 1,
                                                     internalPadding: 15,
                                                     stepRadius: 32,
-                                                    finishedStepBorderColor: HexColor('8d4d6c'),
-                                                    finishedStepTextColor: HexColor('8d4d6c'),
-                                                    finishedStepBackgroundColor: HexColor('8d4d6c'),
-                                                    finishedStepIconColor: Colors.white,
-                                                    finishedStepBorderType: BorderType.normal,
+                                                    finishedStepBorderColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepTextColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepBackgroundColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepIconColor: Colors
+                                                        .white,
+                                                    finishedStepBorderType: BorderType
+                                                        .normal,
                                                     showLoadingAnimation: false,
                                                     showStepBorder: true,
                                                     lineStyle: LineStyle(
                                                       lineLength: 45,
                                                       lineType: LineType.dashed,
 
-                                                      activeLineColor: HexColor('#8d4d6c'),
-                                                      defaultLineColor: HexColor('#8d4d6c'),
-                                                      unreachedLineColor: HexColor('#172a21'),
+                                                      activeLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      defaultLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      unreachedLineColor: HexColor(
+                                                          '#172a21'),
                                                       lineThickness: 3,
                                                       lineSpace: 2,
                                                       lineWidth: 10,
 
-                                                      unreachedLineType: LineType.dashed,
+                                                      unreachedLineType: LineType
+                                                          .dashed,
 
                                                     ),
 
@@ -4433,7 +5960,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.money_16_regular,
+                                                          FluentIcons
+                                                              .money_16_regular,
                                                         ),
                                                         title: 'Under Bidding',
 
@@ -4449,14 +5977,16 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       ),
                                                       EasyStep(
                                                         icon: Icon(
-                                                          FluentIcons.calendar_12_filled ,
+                                                          FluentIcons
+                                                              .calendar_12_filled,
                                                         ),
                                                         title: 'Schedule',
                                                       ),
                                                       EasyStep(
 
                                                         icon: Icon(
-                                                          FluentIcons.spinner_ios_16_filled ,
+                                                          FluentIcons
+                                                              .spinner_ios_16_filled,
                                                         ),
                                                         title: 'Processing',
 
@@ -4465,7 +5995,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.checkmark_circle_square_16_filled ,
+                                                          FluentIcons
+                                                              .checkmark_circle_square_16_filled,
                                                         ),
                                                         title: 'Finilizing',
 
@@ -4474,14 +6005,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.flag_16_filled  ,
+                                                          FluentIcons
+                                                              .flag_16_filled,
                                                         ),
                                                         title: 'Completed',
 
                                                       ),
 
                                                     ],
-                                                    onStepReached: (index) => setState(() => activeStep = index),
+                                                    onStepReached: (index) =>
+                                                        setState(() =>
+                                                        activeStep = index),
                                                   ),
                                                 ),
 
@@ -4489,7 +6023,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
 
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
                                                 'Details',
                                                 style: GoogleFonts.openSans(
@@ -4505,61 +6040,91 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
                                             Center(
                                               child: Container(
-                                                width: double.infinity, // Set your desired width
-                                                height: 86, // Set your desired height
+                                                width: double.infinity,
+                                                // Set your desired width
+                                                height: 86,
+                                                // Set your desired height
                                                 decoration: BoxDecoration(
-                                                  border: Border.all(color: Colors.black),
-                                                  borderRadius: BorderRadius.circular(20), // Half of the width or height to make it circular
+                                                  border: Border.all(
+                                                      color: Colors.black),
+                                                  borderRadius: BorderRadius
+                                                      .circular(
+                                                      20), // Half of the width or height to make it circular
 
                                                 ),
                                                 child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  crossAxisAlignment: CrossAxisAlignment
+                                                      .start,
+                                                  mainAxisAlignment: MainAxisAlignment
+                                                      .center,
                                                   children: [
                                                     SizedBox(height: 8,),
                                                     Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      crossAxisAlignment: CrossAxisAlignment
+                                                          .center,
+                                                      mainAxisAlignment: MainAxisAlignment
+                                                          .center,
                                                       children: [
 
                                                         Text('Date : ',
-                                                          style: GoogleFonts.roboto(
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.black,
+                                                              color: Colors
+                                                                  .black,
                                                               fontSize: 18,
-                                                              fontWeight: FontWeight.bold,
+                                                              fontWeight: FontWeight
+                                                                  .bold,
                                                             ),
                                                           ),),
-                                                        SizedBox(width: 8), // Adjust spacing between text widgets
-                                                        Text('${projectData.pageContent.selectedDate}'
-                                                          ,style: GoogleFonts.roboto(
+                                                        SizedBox(width: 8),
+                                                        // Adjust spacing between text widgets
+                                                        Text('${projectData
+                                                            .pageContent
+                                                            .selectedDate}'
+                                                          , style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.grey[800],
+                                                              color: Colors
+                                                                  .grey[800],
                                                               fontSize: 16,
-                                                              fontWeight: FontWeight.w500,
+                                                              fontWeight: FontWeight
+                                                                  .w500,
                                                             ),
                                                           ),),
                                                       ],
                                                     ),
                                                     Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      crossAxisAlignment: CrossAxisAlignment
+                                                          .center,
+                                                      mainAxisAlignment: MainAxisAlignment
+                                                          .center,
                                                       children: [
-                                                        Text('Time (Interval): ',
-                                                          style: GoogleFonts.roboto(
+                                                        Text(
+                                                          'Time (Interval): ',
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.black,
+                                                              color: Colors
+                                                                  .black,
                                                               fontSize: 18,
-                                                              fontWeight: FontWeight.bold,
+                                                              fontWeight: FontWeight
+                                                                  .bold,
                                                             ),
                                                           ),),
-                                                        SizedBox(width: 8), // Adjust spacing between text widgets
-                                                        Text('${projectData.pageContent.selectedInterval}',
-                                                          style: GoogleFonts.roboto(
+                                                        SizedBox(width: 8),
+                                                        // Adjust spacing between text widgets
+                                                        Text('${projectData
+                                                            .pageContent
+                                                            .selectedInterval}',
+                                                          style: GoogleFonts
+                                                              .roboto(
                                                             textStyle: TextStyle(
-                                                              color: Colors.grey[800],
+                                                              color: Colors
+                                                                  .grey[800],
                                                               fontSize: 16,
-                                                              fontWeight: FontWeight.w500,
+                                                              fontWeight: FontWeight
+                                                                  .w500,
                                                             ),
                                                           ),),
                                                       ],
@@ -4579,42 +6144,56 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   child: ElevatedButton(
                                                     onPressed: () {
                                                       Get.to(chat(
-                                                        worker_id:projectData
-                                                            .selectworkerbid.worker_id ,
-                                                        myside_image:projectData
-                                                            .selectworkerbid.worker_profile_pic ,
+                                                        worker_id: projectData
+                                                            .selectworkerbid
+                                                            .worker_id,
+                                                        myside_image: projectData
+                                                            .selectworkerbid
+                                                            .worker_profile_pic,
                                                         myside_firstname: projectData
-                                                            .selectworkerbid.worker_firstname,
+                                                            .selectworkerbid
+                                                            .worker_firstname,
                                                         client_id: projectData
-                                                            .clientData!.clientId ,
+                                                            .clientData!
+                                                            .clientId,
 
-                                                        seconduserimage: projectData.clientData.profileImage,
+                                                        seconduserimage: projectData
+                                                            .clientData
+                                                            .profileImage,
 
                                                         chatId: projectData
-                                                            .pageaccessdata!.chat_ID,
+                                                            .pageaccessdata!
+                                                            .chat_ID,
                                                         currentUser:
                                                         'worker',
                                                         secondUserName:
                                                         projectData
-                                                            .clientData.firstname,
+                                                            .clientData
+                                                            .firstname,
                                                         userId: projectData
                                                             .clientData!
                                                             .clientId
                                                             .toString(),
                                                       ));
                                                     },
-                                                    style: ElevatedButton.styleFrom(
-                                                     backgroundColor: HexColor('ED6F53'),
-                                                     foregroundColor: Colors.white,
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor: HexColor(
+                                                          'ED6F53'),
+                                                      foregroundColor: Colors
+                                                          .white,
                                                       elevation: 5,
                                                       shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(12),
+                                                        borderRadius: BorderRadius
+                                                            .circular(12),
                                                       ),
-                                                      fixedSize: Size(70, 50), // Set the desired width and height
+                                                      fixedSize: Size(70,
+                                                          50), // Set the desired width and height
                                                     ),
                                                     child: Text(
                                                       'Chat',
-                                                      style: TextStyle(fontSize: 10),
+                                                      style: TextStyle(
+                                                          fontSize: 10),
                                                     ),
                                                   ),
                                                 ),
@@ -4624,26 +6203,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   tag: 'workdone_$unique',
                                                   child: Container(
                                                     height: 50,
-                                                    width: 80, // Set the desired width
+                                                    width: 80,
+                                                    // Set the desired width
                                                     child: ElevatedButton(
                                                       onPressed: () {
-                                                        _navigateToNextPage(context);
+                                                        _navigateToNextPage(
+                                                            context);
                                                       },
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('777031'),
-                                                       foregroundColor: Colors.white,
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            '777031'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(21),
+                                                          borderRadius: BorderRadius
+                                                              .circular(21),
                                                         ),
                                                       ),
                                                       child: Text(
                                                         'Support',
-                                                        style: GoogleFonts.roboto(
+                                                        style: GoogleFonts
+                                                            .roboto(
                                                           textStyle: TextStyle(
                                                             color: Colors.white,
                                                             fontSize: 8.5,
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight: FontWeight
+                                                                .bold,
                                                           ),
                                                         ), // Add ellipsis (...) for overflow
                                                       ),
@@ -4658,99 +6245,168 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
 
 
-
                                             Row(
                                               children: [
                                                 Expanded(
                                                   child: Opacity(
                                                     // Change the opacity based on the condition
-                                                    opacity: projectData.pageContent.enter_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                    opacity: projectData
+                                                        .pageContent
+                                                        .enter_verification_code_button ==
+                                                        "mftoo7" ? 1.0 : 0.5,
                                                     child: ElevatedButton(
                                                       // Disable or enable the button based on the condition
-                                                      onPressed: projectData.pageContent.enter_verification_code_button == "mftoo7" ? () {
+                                                      onPressed: projectData
+                                                          .pageContent
+                                                          .enter_verification_code_button ==
+                                                          "mftoo7" ? () {
                                                         showModalBottomSheet(
                                                           context: context,
                                                           isScrollControlled: true,
-                                                          builder: (BuildContext context) {
-                                                            int otp = int.tryParse(otpController.text) ?? 0;
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            int otp = int
+                                                                .tryParse(
+                                                                otpController
+                                                                    .text) ?? 0;
 
                                                             return StatefulBuilder(
-                                                              builder: (BuildContext context, StateSetter setState) {
+                                                              builder: (
+                                                                  BuildContext context,
+                                                                  StateSetter setState) {
                                                                 return SingleChildScrollView(
-                                                                  padding: EdgeInsets.only(
-                                                                    bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                    bottom: MediaQuery
+                                                                        .of(
+                                                                        context)
+                                                                        .viewInsets
+                                                                        .bottom, // Adjust padding based on the keyboard height
                                                                   ),
                                                                   child: Container(
-                                                                    padding: EdgeInsets.all(16.0),
+                                                                    padding: EdgeInsets
+                                                                        .all(
+                                                                        16.0),
                                                                     child: Column(
-                                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                                      mainAxisSize: MainAxisSize.min,
+                                                                      crossAxisAlignment: CrossAxisAlignment
+                                                                          .center,
+                                                                      mainAxisSize: MainAxisSize
+                                                                          .min,
                                                                       children: [
 
-                                                                        Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-                                                                        Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              'Write a ',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              ' Verification Code',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
 
-                                                                        SizedBox(height: 12,),
+                                                                        SizedBox(
+                                                                          height: 12,),
 
                                                                         Center(
                                                                           child: Text(
                                                                             'Take verification code from client\nTo Start Work',
                                                                             style: TextStyle(
                                                                               fontSize: 16,
-                                                                              color: HexColor('706F6F'),
-                                                                              fontWeight: FontWeight.normal,
+                                                                              color: HexColor(
+                                                                                  '706F6F'),
+                                                                              fontWeight: FontWeight
+                                                                                  .normal,
                                                                             ),
-                                                                            textAlign: TextAlign.center,
+                                                                            textAlign: TextAlign
+                                                                                .center,
                                                                           ),
                                                                         ),
-                                                                        SizedBox(height: 25),
+                                                                        SizedBox(
+                                                                            height: 25),
                                                                         Pinput(
-                                                                          length: 4, // The total length of the OTP
-                                                                          controller: otpController, // The single controller for the OTP
-                                                                          focusNode: focusNode1, // Current focus node
-                                                                          pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                                                                          onCompleted: (pin) {
+                                                                          length: 4,
+                                                                          // The total length of the OTP
+                                                                          controller: otpController,
+                                                                          // The single controller for the OTP
+                                                                          focusNode: focusNode1,
+                                                                          // Current focus node
+                                                                          pinputAutovalidateMode: PinputAutovalidateMode
+                                                                              .onSubmit,
+                                                                          onCompleted: (
+                                                                              pin) {
                                                                             // You can use the entered OTP for verification when the user has completed entering it.
-                                                                            print('Completed: $pin');
+                                                                            print(
+                                                                                'Completed: $pin');
                                                                           },
                                                                           // This function will be called when the input operation is submitted (usually on the keyboard).
-                                                                          onSubmitted: (pin) {
+                                                                          onSubmitted: (
+                                                                              pin) {
                                                                             // Don't forget to validate OTP and then send to API or whatever is required next.
                                                                           },
-                                                                          pinAnimationType: PinAnimationType.rotation,
+                                                                          pinAnimationType: PinAnimationType
+                                                                              .rotation,
                                                                           defaultPinTheme: PinTheme(
-                                                                            width: 60, // Example width of the field, adjust accordingly
-                                                                            height: 70, // Example height of the field, adjust accordingly
+                                                                            width: 60,
+                                                                            // Example width of the field, adjust accordingly
+                                                                            height: 70,
+                                                                            // Example height of the field, adjust accordingly
                                                                             textStyle: TextStyle(
                                                                                 fontSize: 24,
-                                                                                color: Colors.black,
-                                                                                fontWeight: FontWeight.bold // Text is bold
+                                                                                color: Colors
+                                                                                    .black,
+                                                                                fontWeight: FontWeight
+                                                                                    .bold // Text is bold
                                                                             ),
                                                                             decoration: BoxDecoration(
-                                                                              border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
-                                                                              borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
+                                                                              border: Border
+                                                                                  .all(
+                                                                                  color: HexColor(
+                                                                                      '4D8D6E'),
+                                                                                  width: 2),
+                                                                              // Border color as HexColor
+                                                                              borderRadius: BorderRadius
+                                                                                  .circular(
+                                                                                  12), // Circular shape with half width/height as radius
                                                                             ),
                                                                           ),),
 
-                                                                        SizedBox(height: 30),
+                                                                        SizedBox(
+                                                                            height: 30),
                                                                         Center(
                                                                           child: ElevatedButton(
                                                                             onPressed:
                                                                                 () {
-
-                                                                              verify_project_schedule (widget.projectId,otp);
+                                                                              verify_project_schedule(
+                                                                                  widget
+                                                                                      .projectId,
+                                                                                  otp);
                                                                             },
-                                                                            style: ElevatedButton.styleFrom(
-                                                                             backgroundColor: HexColor('4D8D6E'),
-                                                                             foregroundColor: Colors.white,
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              backgroundColor: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              foregroundColor: Colors
+                                                                                  .white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.circular(20),
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    20),
                                                                               ),
                                                                             ),
                                                                             child: Text(
                                                                               'Confirm',
-                                                                              style: TextStyle(fontSize: 18),
+                                                                              style: TextStyle(
+                                                                                  fontSize: 18),
                                                                             ),
                                                                           ),
                                                                         ),
@@ -4763,18 +6419,27 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                           },
                                                         );
                                                       } : null,
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('B6B021'),
-                                                       foregroundColor: Colors.white,
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            'B6B021'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
                                                         ),
-                                                        fixedSize: Size(double.infinity, 50),
+                                                        fixedSize: Size(
+                                                            double.infinity,
+                                                            50),
                                                       ),
                                                       child: Text(
                                                         'With the client! Let\'s Enter the Verification Code',
-                                                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                                        style: TextStyle(
+                                                            fontSize: 12.5,
+                                                            fontWeight: FontWeight
+                                                                .bold),
                                                       ),
                                                     ),
                                                   ),
@@ -4790,91 +6455,161 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 Expanded(
                                                   child: Opacity(
                                                     // Change the opacity based on the condition for the second button
-                                                    opacity: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? 1.0 : 0.5,
+                                                    opacity: projectData
+                                                        .pageContent
+                                                        .enter_complete_project_verification_code_button ==
+                                                        "mftoo7" ? 1.0 : 0.5,
                                                     child: ElevatedButton(
-                                                      onPressed: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? () {
+                                                      onPressed: projectData
+                                                          .pageContent
+                                                          .enter_complete_project_verification_code_button ==
+                                                          "mftoo7" ? () {
                                                         showModalBottomSheet(
                                                           context: context,
                                                           isScrollControlled: true,
-                                                          builder: (BuildContext context) {
-                                                            int otpaccessprojectcomplete = int.tryParse(otpControlleraccessproject.text) ?? 0;
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            int otpaccessprojectcomplete = int
+                                                                .tryParse(
+                                                                otpControlleraccessproject
+                                                                    .text) ?? 0;
                                                             return StatefulBuilder(
-                                                              builder: (BuildContext context, StateSetter setState) {
+                                                              builder: (
+                                                                  BuildContext context,
+                                                                  StateSetter setState) {
                                                                 return SingleChildScrollView(
-                                                                  padding: EdgeInsets.only(
-                                                                    bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                    bottom: MediaQuery
+                                                                        .of(
+                                                                        context)
+                                                                        .viewInsets
+                                                                        .bottom, // Adjust padding based on the keyboard height
                                                                   ),
                                                                   child: Container(
-                                                                    padding: EdgeInsets.all(16.0),
+                                                                    padding: EdgeInsets
+                                                                        .all(
+                                                                        16.0),
                                                                     child: Column(
-                                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                                      mainAxisSize: MainAxisSize.min,
+                                                                      crossAxisAlignment: CrossAxisAlignment
+                                                                          .center,
+                                                                      mainAxisSize: MainAxisSize
+                                                                          .min,
                                                                       children: [
 
-                                                                        Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-                                                                        Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              'Write a ',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              ' Verification Code',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
 
-                                                                        SizedBox(height: 12,),
+                                                                        SizedBox(
+                                                                          height: 12,),
 
                                                                         Center(
                                                                           child: Text(
                                                                             'Take verification code from client\nTo make the client access the project complete',
                                                                             style: TextStyle(
                                                                               fontSize: 16,
-                                                                              color: HexColor('706F6F'),
-                                                                              fontWeight: FontWeight.normal,
+                                                                              color: HexColor(
+                                                                                  '706F6F'),
+                                                                              fontWeight: FontWeight
+                                                                                  .normal,
                                                                             ),
-                                                                            textAlign: TextAlign.center,
+                                                                            textAlign: TextAlign
+                                                                                .center,
                                                                           ),
                                                                         ),
-                                                                        SizedBox(height: 25),
+                                                                        SizedBox(
+                                                                            height: 25),
                                                                         Pinput(
-                                                                          length: 4, // The total length of the OTP
-                                                                          controller: otpControlleraccessproject, // The single controller for the OTP
-                                                                          focusNode: focusNode1, // Current focus node
-                                                                          pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                                                                          onCompleted: (pin) {
+                                                                          length: 4,
+                                                                          // The total length of the OTP
+                                                                          controller: otpControlleraccessproject,
+                                                                          // The single controller for the OTP
+                                                                          focusNode: focusNode1,
+                                                                          // Current focus node
+                                                                          pinputAutovalidateMode: PinputAutovalidateMode
+                                                                              .onSubmit,
+                                                                          onCompleted: (
+                                                                              pin) {
                                                                             // You can use the entered OTP for verification when the user has completed entering it.
-                                                                            print('Completed: $pin');
+                                                                            print(
+                                                                                'Completed: $pin');
                                                                           },
                                                                           // This function will be called when the input operation is submitted (usually on the keyboard).
-                                                                          onSubmitted: (pin) {
+                                                                          onSubmitted: (
+                                                                              pin) {
                                                                             // Don't forget to validate OTP and then send to API or whatever is required next.
                                                                           },
-                                                                          pinAnimationType: PinAnimationType.rotation,
+                                                                          pinAnimationType: PinAnimationType
+                                                                              .rotation,
                                                                           defaultPinTheme: PinTheme(
-                                                                            width: 60, // Example width of the field, adjust accordingly
-                                                                            height: 70, // Example height of the field, adjust accordingly
+                                                                            width: 60,
+                                                                            // Example width of the field, adjust accordingly
+                                                                            height: 70,
+                                                                            // Example height of the field, adjust accordingly
                                                                             textStyle: TextStyle(
                                                                                 fontSize: 24,
-                                                                                color: Colors.black,
-                                                                                fontWeight: FontWeight.bold // Text is bold
+                                                                                color: Colors
+                                                                                    .black,
+                                                                                fontWeight: FontWeight
+                                                                                    .bold // Text is bold
                                                                             ),
                                                                             decoration: BoxDecoration(
-                                                                              border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
-                                                                              borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
+                                                                              border: Border
+                                                                                  .all(
+                                                                                  color: HexColor(
+                                                                                      '4D8D6E'),
+                                                                                  width: 2),
+                                                                              // Border color as HexColor
+                                                                              borderRadius: BorderRadius
+                                                                                  .circular(
+                                                                                  12), // Circular shape with half width/height as radius
                                                                             ),
                                                                           ),),
 
-                                                                        SizedBox(height: 30),
+                                                                        SizedBox(
+                                                                            height: 30),
                                                                         Center(
                                                                           child: ElevatedButton(
                                                                             onPressed:
                                                                                 () {
-
-                                                                                  verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
+                                                                              verify_Project_complete(
+                                                                                  widget
+                                                                                      .projectId,
+                                                                                  otpaccessprojectcomplete);
                                                                             },
-                                                                            style: ElevatedButton.styleFrom(
-                                                                             backgroundColor: HexColor('4D8D6E'),
-                                                                             foregroundColor: Colors.white,
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              backgroundColor: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              foregroundColor: Colors
+                                                                                  .white,
                                                                               elevation: 5,
                                                                               shape: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.circular(20),
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    20),
                                                                               ),
                                                                             ),
                                                                             child: Text(
                                                                               'Confirm',
-                                                                              style: TextStyle(fontSize: 18),
+                                                                              style: TextStyle(
+                                                                                  fontSize: 18),
                                                                             ),
                                                                           ),
                                                                         ),
@@ -4886,20 +6621,30 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             );
                                                           },
                                                         );
-                                                      } : null, // The button will be disabled if the condition is false
-                                                      style: ElevatedButton.styleFrom(
-                                                       backgroundColor: HexColor('317773'),
-                                                       foregroundColor: Colors.white,
+                                                      } : null,
+                                                      // The button will be disabled if the condition is false
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            '317773'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
                                                         shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
                                                         ),
-                                                        fixedSize: Size(double.infinity, 50),
+                                                        fixedSize: Size(
+                                                            double.infinity,
+                                                            50),
                                                       ),
                                                       child: Center(
                                                         child: Text(
                                                           'Generate the Verification Code to access project complete',
-                                                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
+                                                          style: TextStyle(
+                                                              fontSize: 10.5,
+                                                              fontWeight: FontWeight
+                                                                  .bold),
                                                         ),
                                                       ),
                                                     ),
@@ -4913,7 +6658,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
                                             SizedBox(height: 20,),
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Row(
                                                 mainAxisAlignment:
                                                 MainAxisAlignment.start,
@@ -4922,9 +6668,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     'Workers Bids',
                                                     style: GoogleFonts.openSans(
                                                       textStyle: TextStyle(
-                                                        color: HexColor('454545'),
+                                                        color: HexColor(
+                                                            '454545'),
                                                         fontSize: 22,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight: FontWeight
+                                                            .bold,
                                                       ),
                                                     ),
                                                   ),
@@ -4933,13 +6681,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
                                             SizedBox(height: 12,),
                                             Animate(
-                                              effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                                              effects: [
+                                                SlideEffect(duration: Duration(
+                                                    milliseconds: 800),),
+                                              ],
                                               child: ListView.builder(
                                                 physics: NeverScrollableScrollPhysics(),
                                                 shrinkWrap: true,
-                                                itemCount: projectData.bids.length,
+                                                itemCount: projectData.bids
+                                                    .length,
                                                 itemBuilder: (context, index) {
-                                                  Bid bid = projectData.bids[index];
+                                                  Bid bid = projectData
+                                                      .bids[index];
                                                   return buildListItem(bid);
                                                 },
                                               ),
@@ -4947,641 +6700,21 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
                                           ],
                                         );
-
-
                                       }
-                                      else if (  projectData.status == 'finalizing' &&  projectData.pageContent.project_complete_button == 'maftoo7')
-              {
-                activeStep=4;
-                return  Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-
-                  children: [
-                    Padding(
-                      padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
-                      child: Text(
-              'Progress',
-              style: GoogleFonts.openSans(
-                textStyle: TextStyle(
-                  color: HexColor('454545'),
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-                      ),
-                    ),
-                    SizedBox(height: 17,),
-
-                    Container(
-                      height:150,
-                      child: Center(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
-                child: EasyStepper(
-                  activeStepBackgroundColor:HexColor('4D8D6E') ,
-                  activeStepIconColor: Colors.white,
-                  activeStepBorderColor:HexColor('4D8D6E')  ,
-                  activeStepTextColor: HexColor('4D8D6E'),
-
-                  showScrollbar: true,
-                  enableStepTapping: false,
-                  maxReachedStep: 6,
-                  activeStep: activeStep,
-                  stepShape: StepShape.circle,
-                  stepBorderRadius: 15,
-                  borderThickness: 1,
-                  internalPadding: 15,
-                  stepRadius: 32,
-                  finishedStepBorderColor: HexColor('8d4d6c'),
-                  finishedStepTextColor: HexColor('8d4d6c'),
-                  finishedStepBackgroundColor: HexColor('8d4d6c'),
-                  finishedStepIconColor: Colors.white,
-                  finishedStepBorderType: BorderType.normal,
-                  showLoadingAnimation: false,
-                  showStepBorder: true,
-                  lineStyle: LineStyle(
-                    lineLength: 45,
-                    lineType: LineType.dashed,
-
-                    activeLineColor: HexColor('#8d4d6c'),
-                    defaultLineColor: HexColor('#8d4d6c'),
-                    unreachedLineColor: HexColor('#172a21'),
-                    lineThickness: 3,
-                    lineSpace: 2,
-                    lineWidth: 10,
-
-                    unreachedLineType: LineType.dashed,
-
-                  ),
-
-                  steps: [
-                    EasyStep(
-
-
-                      icon: Icon(
-                        FluentIcons.money_16_regular,
-                      ),
-                      title: 'Under Bidding',
-
-                    ),
-                    EasyStep(
-
-
-                      icon: Icon(
-                        Icons.check_circle,
-                      ),
-                      title: 'Accepted',
-
-                    ),
-                    EasyStep(
-                      icon: Icon(
-                        FluentIcons.calendar_12_filled ,
-                      ),
-                      title: 'Schedule',
-                    ),
-                    EasyStep(
-
-                      icon: Icon(
-                        FluentIcons.spinner_ios_16_filled ,
-                      ),
-                      title: 'Processing',
-
-                    ),
-                    EasyStep(
-
-
-                      icon: Icon(
-                        FluentIcons.checkmark_circle_square_16_filled ,
-                      ),
-                      title: 'Finilizing',
-
-                    ),
-                    EasyStep(
-
-
-                      icon: Icon(
-                        FluentIcons.flag_16_filled  ,
-                      ),
-                      title: 'Completed',
-
-                    ),
-
-                  ],
-                  onStepReached: (index) => setState(() => activeStep = index),
-                ),
-              ),
-
-                      ),
-                    ),
-
-
-                    Padding(
-                      padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
-                      child: Text(
-              'Details',
-              style: GoogleFonts.openSans(
-                textStyle: TextStyle(
-                  color: HexColor('454545'),
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-                      ),
-                    ),
-                    SizedBox(height: 8,),
-
-                    Center(
-                      child: Container(
-              width: double.infinity, // Set your desired width
-              height: 86, // Set your desired height
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black),
-                borderRadius: BorderRadius.circular(20), // Half of the width or height to make it circular
-
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Date : ',
-                        style: GoogleFonts.roboto(
-                          textStyle: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),),
-                      SizedBox(width: 8), // Adjust spacing between text widgets
-                      Text('${projectData.pageContent.selectedDate}',
-                        style: GoogleFonts.roboto(
-                          textStyle: TextStyle(
-                            color: Colors.grey[800],
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),),
-                    ],
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Time (Interval): ',
-                        style: GoogleFonts.roboto(
-                          textStyle: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),),
-                      SizedBox(width: 8), // Adjust spacing between text widgets
-                      Text('${projectData.pageContent.selectedInterval}',
-                        style: GoogleFonts.roboto(
-                          textStyle: TextStyle(
-                            color: Colors.grey[800],
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),),
-                    ],
-                  ),
-                ],
-              ),
-                      ),
-                    ),
-
-                    SizedBox(
-                    height: 9,
-                    ),
-
-
-                    SizedBox(
-                      height: 9,
-                    ),
-
-                    Row(
-                      children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Get.to(chat(
-                      worker_id:projectData
-                          .selectworkerbid.worker_id ,
-                      myside_image:projectData
-                          .selectworkerbid.worker_profile_pic ,
-                      myside_firstname: projectData
-                          .selectworkerbid.worker_firstname,
-                      client_id: projectData
-                          .clientData!.clientId ,
-
-                      seconduserimage: projectData.clientData.profileImage,
-
-                      chatId: projectData
-                          .pageaccessdata!.chat_ID,
-                      currentUser:
-                      'worker',
-                      secondUserName:
-                      projectData
-                          .clientData.firstname,
-                      userId: projectData
-                          .clientData!
-                          .clientId
-                          .toString(),
-                    ));
-                  },
-                  style: ElevatedButton.styleFrom(
-                   backgroundColor: HexColor('ED6F53'),
-                   foregroundColor: Colors.white,
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    fixedSize: Size(70, 50), // Set the desired width and height
-                  ),
-                  child: Text(
-                    'Chat',
-                    style: TextStyle(fontSize: 10),
-                  ),
-                ),
-              ),
-              SizedBox(width: 5),
-              SizedBox(width: 5),
-              Hero(
-                tag: 'workdone_$unique',
-                child: Container(
-                  height: 50,
-                  width: 80, // Set the desired width
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _navigateToNextPage(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                     backgroundColor: HexColor('777031'),
-                     foregroundColor: Colors.white,
-                      elevation: 8,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(21),
-                      ),
-                    ),
-                    child: Text(
-                      'Support',
-                      style: GoogleFonts.roboto(
-                        textStyle: TextStyle(
-                          color: Colors.white,
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ), // Add ellipsis (...) for overflow
-                    ),
-                  ),
-                ),
-              ),
-                      ],
-                    ),
-
-                    SizedBox(
-                      height: 9,
-                    ),
-
-
-
-                    Row(
-                      children: [
-              Expanded(
-                child: Opacity(
-                  // Change the opacity based on the condition
-                  opacity: projectData.pageContent.enter_verification_code_button == "mftoo7" ? 1.0 : 0.5,
-                  child: ElevatedButton(
-                    // Disable or enable the button based on the condition
-                    onPressed: projectData.pageContent.enter_verification_code_button == "mftoo7" ? () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (BuildContext context) {
-                          int otp = int.tryParse(otpController.text) ?? 0;
-
-                          return StatefulBuilder(
-                            builder: (BuildContext context, StateSetter setState) {
-                              return SingleChildScrollView(
-                                padding: EdgeInsets.only(
-                                  bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
-                                ),
-                                child: Container(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-
-                                      Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-                                      Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-
-                                      SizedBox(height: 12,),
-
-                                      Center(
-                                        child: Text(
-                                          'Take verification code from client\nTo Start Work',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: HexColor('706F6F'),
-                                            fontWeight: FontWeight.normal,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                      SizedBox(height: 25),
-                                      Pinput(
-                                        length: 4, // The total length of the OTP
-                                        controller: otpController, // The single controller for the OTP
-                                        focusNode: focusNode1, // Current focus node
-                                        pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                                        onCompleted: (pin) {
-                                          // You can use the entered OTP for verification when the user has completed entering it.
-                                          print('Completed: $pin');
-                                        },
-                                        // This function will be called when the input operation is submitted (usually on the keyboard).
-                                        onSubmitted: (pin) {
-                                          // Don't forget to validate OTP and then send to API or whatever is required next.
-                                        },
-                                        pinAnimationType: PinAnimationType.rotation,
-                                        defaultPinTheme: PinTheme(
-                                          width: 60, // Example width of the field, adjust accordingly
-                                          height: 70, // Example height of the field, adjust accordingly
-                                          textStyle: TextStyle(
-                                              fontSize: 24,
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.bold // Text is bold
-                                          ),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
-                                            borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
-                                          ),
-                                        ),),
-
-                                      SizedBox(height: 30),
-                                      Center(
-                                        child: ElevatedButton(
-                                          onPressed:
-                                              () {
-
-                                            verify_project_schedule (widget.projectId,otp);
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                           backgroundColor: HexColor('4D8D6E'),
-                                           foregroundColor: Colors.white,
-                                            elevation: 5,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(20),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            'Confirm',
-                                            style: TextStyle(fontSize: 18),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      );
-                    } : null,
-                    style: ElevatedButton.styleFrom(
-                     backgroundColor: HexColor('B6B021'),
-                     foregroundColor: Colors.white,
-                      elevation: 8,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      fixedSize: Size(double.infinity, 50),
-                    ),
-                    child: Text(
-                      'With the client! Let\'s Enter the Verification Code',
-                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-              ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 9,
-                    ),
-
-                    Row(
-                      children: [
-              Expanded(
-                child: Opacity(
-                  // Change the opacity based on the condition for the second button
-                  opacity: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? 1.0 : 0.5,
-                  child: ElevatedButton(
-                    onPressed: projectData.pageContent.enter_complete_project_verification_code_button == "mftoo7" ? () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (BuildContext context) {
-                          int otpaccessprojectcomplete = int.tryParse(otpControlleraccessproject.text) ?? 0;
-                          return StatefulBuilder(
-                            builder: (BuildContext context, StateSetter setState) {
-                              return SingleChildScrollView(
-                                padding: EdgeInsets.only(
-                                  bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding based on the keyboard height
-                                ),
-                                child: Container(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-
-                                      Center(child: Text('Write a ' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-                                      Center(child: Text(' Verification Code' , style: TextStyle(fontSize: 30, color: HexColor('000000') , fontWeight: FontWeight.bold),)),
-
-                                      SizedBox(height: 12,),
-
-                                      Center(
-                                        child: Text(
-                                          'Take verification code from client\nTo Start Work',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: HexColor('706F6F'),
-                                            fontWeight: FontWeight.normal,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                      SizedBox(height: 25),
-                                      Pinput(
-                                        length: 4, // The total length of the OTP
-                                        controller: otpControlleraccessproject, // The single controller for the OTP
-                                        focusNode: focusNode1, // Current focus node
-                                        pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                                        onCompleted: (pin) {
-                                          // You can use the entered OTP for verification when the user has completed entering it.
-                                          print('Completed: $pin');
-                                        },
-                                        // This function will be called when the input operation is submitted (usually on the keyboard).
-                                        onSubmitted: (pin) {
-                                          // Don't forget to validate OTP and then send to API or whatever is required next.
-                                        },
-                                        pinAnimationType: PinAnimationType.rotation,
-                                        defaultPinTheme: PinTheme(
-                                          width: 60, // Example width of the field, adjust accordingly
-                                          height: 70, // Example height of the field, adjust accordingly
-                                          textStyle: TextStyle(
-                                              fontSize: 24,
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.bold // Text is bold
-                                          ),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color: HexColor('4D8D6E'), width: 2), // Border color as HexColor
-                                            borderRadius: BorderRadius.circular(12), // Circular shape with half width/height as radius
-                                          ),
-                                        ),),
-
-                                      SizedBox(height: 30),
-                                      Center(
-                                        child: ElevatedButton(
-                                          onPressed:
-                                              () {
-
-                                            verify_Project_complete (widget.projectId,otpaccessprojectcomplete);
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                           backgroundColor: HexColor('4D8D6E'),
-                                           foregroundColor: Colors.white,
-                                            elevation: 5,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(20),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            'Confirm',
-                                            style: TextStyle(fontSize: 18),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      );
-                    } : null, // The button will be disabled if the condition is false
-                    style: ElevatedButton.styleFrom(
-                     backgroundColor: HexColor('317773'),
-                     foregroundColor: Colors.white,
-                      elevation: 8,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      fixedSize: Size(double.infinity, 50),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'Generate the Verification Code to access project complete',
-                        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 9,
-                    ),
-                    Center(
-                      child: Visibility(
-              visible: projectData.pageContent. project_complete_button == "maftoo7",
-              child: Card(
-                elevation: 8,
-                margin: EdgeInsets.all(16),
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.hourglass_empty,
-                        size: 64,
-                        color: Colors.orange,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Please wait for the client \n to end the project.',
-                        style: TextStyle(fontSize: 18),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-                      ),
-                    ),
-
-                    SizedBox(height: 20,),
-
-                    Padding(
-                      padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
-                      child: Row(
-              mainAxisAlignment:
-              MainAxisAlignment.start,
-              children: [
-                Text(
-                  'Workers Bids',
-                  style: GoogleFonts.openSans(
-                    textStyle: TextStyle(
-                      color: HexColor('454545'),
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-                      ),
-                    ),
-                    SizedBox(height: 12,),
-                    Animate(
-                      effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
-                      child: ListView.builder(
-                        physics: NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: projectData.bids.length,
-                        itemBuilder: (context, index) {
-                          Bid bid = projectData.bids[index];
-                          return buildListItem(bid);
-                        },
-                      ),
-                    ),
-
-
-                  ],
-                );
-
-
-              }
-
-                                      else if ( projectData.status ==
-                                          'completed' &&projectData.pageaccessdata.force_review == 'true' ) {
-                                        activeStep=5;
-                                        return
-
-                                          Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                      else
+                                      if (projectData.status == 'finalizing' &&
+                                          projectData.pageContent
+                                              .project_complete_button ==
+                                              'maftoo7') {
+                                        activeStep = 4;
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .start,
 
                                           children: [
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
                                                 'Progress',
                                                 style: GoogleFonts.openSans(
@@ -5593,18 +6726,24 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 ),
                                               ),
                                             ),
-                                            SizedBox(height: 8,),
+                                            SizedBox(height: 17,),
 
                                             Container(
-                                              height:150,
+                                              height: 150,
                                               child: Center(
                                                 child: Container(
-                                                  padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 10),
                                                   child: EasyStepper(
-                                                    activeStepBackgroundColor:HexColor('4D8D6E') ,
-                                                    activeStepIconColor: Colors.white,
-                                                    activeStepBorderColor:HexColor('4D8D6E')  ,
-                                                    activeStepTextColor: HexColor('4D8D6E'),
+                                                    activeStepBackgroundColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepIconColor: Colors
+                                                        .white,
+                                                    activeStepBorderColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepTextColor: HexColor(
+                                                        '4D8D6E'),
 
                                                     showScrollbar: true,
                                                     enableStepTapping: false,
@@ -5615,25 +6754,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     borderThickness: 1,
                                                     internalPadding: 15,
                                                     stepRadius: 32,
-                                                    finishedStepBorderColor: HexColor('8d4d6c'),
-                                                    finishedStepTextColor: HexColor('8d4d6c'),
-                                                    finishedStepBackgroundColor: HexColor('8d4d6c'),
-                                                    finishedStepIconColor: Colors.white,
-                                                    finishedStepBorderType: BorderType.normal,
+                                                    finishedStepBorderColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepTextColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepBackgroundColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepIconColor: Colors
+                                                        .white,
+                                                    finishedStepBorderType: BorderType
+                                                        .normal,
                                                     showLoadingAnimation: false,
                                                     showStepBorder: true,
                                                     lineStyle: LineStyle(
                                                       lineLength: 45,
                                                       lineType: LineType.dashed,
 
-                                                      activeLineColor: HexColor('#8d4d6c'),
-                                                      defaultLineColor: HexColor('#8d4d6c'),
-                                                      unreachedLineColor: HexColor('#172a21'),
+                                                      activeLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      defaultLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      unreachedLineColor: HexColor(
+                                                          '#172a21'),
                                                       lineThickness: 3,
                                                       lineSpace: 2,
                                                       lineWidth: 10,
 
-                                                      unreachedLineType: LineType.dashed,
+                                                      unreachedLineType: LineType
+                                                          .dashed,
 
                                                     ),
 
@@ -5642,7 +6790,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.money_16_regular,
+                                                          FluentIcons
+                                                              .money_16_regular,
                                                         ),
                                                         title: 'Under Bidding',
 
@@ -5657,19 +6806,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
                                                       ),
                                                       EasyStep(
-
-
                                                         icon: Icon(
-                                                          FluentIcons.calendar_12_filled ,
+                                                          FluentIcons
+                                                              .calendar_12_filled,
                                                         ),
                                                         title: 'Schedule',
-
                                                       ),
                                                       EasyStep(
 
-
                                                         icon: Icon(
-                                                          FluentIcons.spinner_ios_16_filled ,
+                                                          FluentIcons
+                                                              .spinner_ios_16_filled,
                                                         ),
                                                         title: 'Processing',
 
@@ -5678,7 +6825,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.checkmark_circle_square_16_filled ,
+                                                          FluentIcons
+                                                              .checkmark_circle_square_16_filled,
                                                         ),
                                                         title: 'Finilizing',
 
@@ -5687,24 +6835,29 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.flag_16_filled  ,
+                                                          FluentIcons
+                                                              .flag_16_filled,
                                                         ),
                                                         title: 'Completed',
 
                                                       ),
 
                                                     ],
-                                                    onStepReached: (index) => setState(() => activeStep = index),
+                                                    onStepReached: (index) =>
+                                                        setState(() =>
+                                                        activeStep = index),
                                                   ),
                                                 ),
 
                                               ),
                                             ),
 
+
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
-                                                'Reviews',
+                                                'Details',
                                                 style: GoogleFonts.openSans(
                                                   textStyle: TextStyle(
                                                     color: HexColor('454545'),
@@ -5714,513 +6867,733 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                 ),
                                               ),
                                             ),
-                                            SizedBox(height: 17,),
-                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+                                            SizedBox(height: 8,),
 
-                                                ?  Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
-                                              child: Text(
-                                                'Client Review :',
-                                                style: GoogleFonts.openSans(
-                                                  textStyle: TextStyle(
-                                                    color: HexColor('34446F'),
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            ):Container(),
-                                            SizedBox(height: 10,),
-                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
-                                                ? Row(
-                                              children: [
-                                                CircleAvatar(
-                                                  radius: 23,
-                                                  backgroundColor: Colors.transparent,
-                                                  backgroundImage: projectData.clientData?.profileImage== 'https://workdonecorp.com/images/' ||projectData.clientData?.profileImage== ''
-                                                      ? AssetImage('assets/images/default.png') as ImageProvider
-                                                      : NetworkImage(projectData.clientData?.profileImage?? 'assets/images/default.png'),
-                                                ),
-                                                SizedBox(width: 11),
-                                                GestureDetector(
-                                                  onTap:  () {
-                                                    Get.to(ProfilePageClient(
-                                                        userId: projectData.clientData!.clientId.toString()));
-                                                  },
+                                            Center(
+                                              child: Container(
+                                                width: double.infinity,
+                                                // Set your desired width
+                                                height: 86,
+                                                // Set your desired height
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                      color: Colors.black),
+                                                  borderRadius: BorderRadius
+                                                      .circular(
+                                                      20), // Half of the width or height to make it circular
 
-                                                  child:                                                 Text(
-                                                    projectData.clientData!.firstname,
-                                                    style: TextStyle(
-                                                      color: HexColor('4D8D6E'),
-                                                      fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
                                                 ),
-                                                Spacer(),
-                                                RatingDisplay(rating: projectData.pageContent.ratingOnWorker),
-                                              ],
-                                            )
-                                                : Container(),
-                                            SizedBox(height: 8),
-                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
-                                                ? Padding(
-                                              padding: const EdgeInsets.all(16.0), // Consistent padding
-                                              child: Text(
-                                                '${projectData.pageContent.reviewOnWorker}',
-                                                style: GoogleFonts.roboto( // Same font for consistency
-                                                  textStyle: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 16, // Readable size
-                                                    fontWeight: FontWeight.w400, // Slightly emphasized weight
-                                                    height: 1.5, // Increased line height for better spacing
-                                                  ),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment
+                                                      .start,
+                                                  mainAxisAlignment: MainAxisAlignment
+                                                      .center,
+                                                  children: [
+                                                    Row(
+                                                      crossAxisAlignment: CrossAxisAlignment
+                                                          .center,
+                                                      mainAxisAlignment: MainAxisAlignment
+                                                          .center,
+                                                      children: [
+                                                        Text('Date : ',
+                                                          style: GoogleFonts
+                                                              .roboto(
+                                                            textStyle: TextStyle(
+                                                              color: Colors
+                                                                  .black,
+                                                              fontSize: 18,
+                                                              fontWeight: FontWeight
+                                                                  .bold,
+                                                            ),
+                                                          ),),
+                                                        SizedBox(width: 8),
+                                                        // Adjust spacing between text widgets
+                                                        Text('${projectData
+                                                            .pageContent
+                                                            .selectedDate}',
+                                                          style: GoogleFonts
+                                                              .roboto(
+                                                            textStyle: TextStyle(
+                                                              color: Colors
+                                                                  .grey[800],
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight
+                                                                  .w500,
+                                                            ),
+                                                          ),),
+                                                      ],
+                                                    ),
+                                                    Row(
+                                                      crossAxisAlignment: CrossAxisAlignment
+                                                          .center,
+                                                      mainAxisAlignment: MainAxisAlignment
+                                                          .center,
+                                                      children: [
+                                                        Text(
+                                                          'Time (Interval): ',
+                                                          style: GoogleFonts
+                                                              .roboto(
+                                                            textStyle: TextStyle(
+                                                              color: Colors
+                                                                  .black,
+                                                              fontSize: 18,
+                                                              fontWeight: FontWeight
+                                                                  .bold,
+                                                            ),
+                                                          ),),
+                                                        SizedBox(width: 8),
+                                                        // Adjust spacing between text widgets
+                                                        Text('${projectData
+                                                            .pageContent
+                                                            .selectedInterval}',
+                                                          style: GoogleFonts
+                                                              .roboto(
+                                                            textStyle: TextStyle(
+                                                              color: Colors
+                                                                  .grey[800],
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight
+                                                                  .w500,
+                                                            ),
+                                                          ),),
+                                                      ],
+                                                    ),
+                                                  ],
                                                 ),
-                                                textAlign: TextAlign.left,
-                                              ),
-                                            )
-                                                : SizedBox(height: 0),
-                                            SizedBox(height: 8),
-                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
-        ?
-                                            Container(
-                                              height: 140,
-                                              child: ListView.builder(
-                                                scrollDirection: Axis.horizontal,
-                                                itemCount: projectData.pageContent.imagesAfter.length,
-                                                itemBuilder: (context, index) {
-                                                  return GestureDetector(
-                                                    onTap: () {
-                                                      Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder: (context) => PhotoView(
-                                                            imageProvider: NetworkImage(
-                                                              projectData.pageContent.imagesAfter[index],
-                                                            ),
-                                                            heroAttributes: PhotoViewHeroAttributes(
-                                                              tag: projectData.pageContent.imagesAfter[index],
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
-                                                    child: Hero(
-                                                      tag: projectData.pageContent.imagesAfter[index],
-                                                      child: Padding(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                                        child: AspectRatio(
-                                                          aspectRatio: 1,
-                                                          child: Image.network(
-                                                            projectData.pageContent.imagesAfter[index],
-                                                            fit: BoxFit.cover,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ) :  Container(
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(10),
-                                                color: Colors.white,
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black.withOpacity(0.1),
-                                                    blurRadius: 5,
-                                                    offset: Offset(0, 3),
-                                                  ),
-                                                ],
-                                              ),
-                                              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.warning_amber_outlined,
-                                                    color: Colors.orange,
-                                                    size: 20,
-                                                  ),
-                                                  SizedBox(width: 8),
-                                                  Expanded(
-                                                    child: Text(
-                                                      'You should rate the client to see the client reviews.',
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.w500,
-                                                        color: Colors.grey[800],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
                                               ),
                                             ),
-                                            SizedBox(height: 17,),
-                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
 
-                                                ? Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
-                                              child: Text(
-                                                'Worker Review :',
-                                                style: GoogleFonts.openSans(
-                                                  textStyle: TextStyle(
-                                                    color: HexColor('34446F'),
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            ): Container(),
-                                            SizedBox(height: 10,),
-                                            projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
-                                                ? Row(
+                                            SizedBox(
+                                              height: 9,
+                                            ),
+
+
+                                            SizedBox(
+                                              height: 9,
+                                            ),
+
+                                            Row(
                                               children: [
-                                                CircleAvatar(
-                                                  radius: 23,
-                                                  backgroundColor: Colors.transparent,
-                                                  backgroundImage: projectData.selectworkerbid.worker_profile_pic  == '' || projectData.selectworkerbid.worker_profile_pic .isEmpty
-                                                      || projectData.selectworkerbid.worker_profile_pic  == "https://workdonecorp.com/storage/" ||
-                                                      !(projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.jpg') || projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.png'))
+                                                Expanded(
+                                                  child: ElevatedButton(
+                                                    onPressed: () {
+                                                      Get.to(chat(
+                                                        worker_id: projectData
+                                                            .selectworkerbid
+                                                            .worker_id,
+                                                        myside_image: projectData
+                                                            .selectworkerbid
+                                                            .worker_profile_pic,
+                                                        myside_firstname: projectData
+                                                            .selectworkerbid
+                                                            .worker_firstname,
+                                                        client_id: projectData
+                                                            .clientData!
+                                                            .clientId,
 
-                                                      ? AssetImage('assets/images/default.png') as ImageProvider
-                                                      : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
-                                                ),
-                                                SizedBox(width: 11),
-                                                GestureDetector(
-                                                  onTap: () {
-                                                    Get.to(Workerprofileother
-                                                      (
+                                                        seconduserimage: projectData
+                                                            .clientData
+                                                            .profileImage,
+
+                                                        chatId: projectData
+                                                            .pageaccessdata!
+                                                            .chat_ID,
+                                                        currentUser:
+                                                        'worker',
+                                                        secondUserName:
+                                                        projectData
+                                                            .clientData
+                                                            .firstname,
                                                         userId: projectData
-                                                            .selectworkerbid.worker_id
-                                                            .toString()),
-                                                      transition: Transition.fadeIn, // You can choose a different transition
-                                                      duration: Duration(milliseconds: 700), );
-                                                  },
-
-                                                  child: Text(
-                                                    projectData.selectworkerbid.worker_firstname,
-                                                    //client first name
-                                                    style: TextStyle(
-                                                      color: HexColor('4D8D6E'),
-                                                      fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
-                                                      fontWeight: FontWeight.bold,
+                                                            .clientData!
+                                                            .clientId
+                                                            .toString(),
+                                                      ));
+                                                    },
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor: HexColor(
+                                                          'ED6F53'),
+                                                      foregroundColor: Colors
+                                                          .white,
+                                                      elevation: 5,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius
+                                                            .circular(12),
+                                                      ),
+                                                      fixedSize: Size(70,
+                                                          50), // Set the desired width and height
+                                                    ),
+                                                    child: Text(
+                                                      'Chat',
+                                                      style: TextStyle(
+                                                          fontSize: 10),
                                                     ),
                                                   ),
                                                 ),
-
-
-                                                Spacer(),
-                                                RatingDisplay(rating: projectData.pageContent.ratingOnClient),
-                                              ],
-                                            )
-                                                : Container(),
-                                            SizedBox(height: 5),
-                                            projectData.pageContent.reviewOnClient != ''
-                                                ? Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 12.0), // Add padding around the text
-                                              child: Text(
-                                                '${projectData.pageContent.reviewOnClient}',
-                                                style: GoogleFonts.roboto( // Use Roboto for a more readable font
-                                                  textStyle: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 16, // Increased font size for better readability
-                                                    fontWeight: FontWeight.w400, // Slightly heavier weight for emphasis
-                                                  ),
-
-                                                ),
-                                              ),
-                                            )
-                                                : Container(),
-
-
-                                            projectData.pageaccessdata.force_review == 'true' ?
-                                            Row(
-                                              children: [
-
-                                                Expanded(
+                                                SizedBox(width: 5),
+                                                SizedBox(width: 5),
+                                                Hero(
+                                                  tag: 'workdone_$unique',
                                                   child: Container(
-                                                    width: 220.0,
                                                     height: 50,
+                                                    width: 80,
                                                     // Set the desired width
                                                     child: ElevatedButton(
                                                       onPressed: () {
-                                                        showModalBottomSheet(
-                                                          context: context,
-                                                          isScrollControlled: true,
-                                                          builder: (context) {
-                                                            return SafeArea(
-                                                              child: SingleChildScrollView(
-                                                                padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                                                                child: Column(
-                                                                  mainAxisSize: MainAxisSize.min,
-                                                                  children: [
-                                                                    ListTile(
-                                                                      title: Text(
-                                                                        'The Project is Completed, make feedback about Client!',
-                                                                        style: GoogleFonts.roboto(
-                                                                          textStyle: TextStyle(
-                                                                            color: HexColor('4D8D6E'),
-                                                                            fontSize: 20,
-                                                                            fontWeight: FontWeight.bold,
-                                                                          ),
-                                                                        ),
-                                                                        textAlign: TextAlign.center,
-                                                                      ),
-                                                                    ),
-                                                                    ListTile(
-                                                                      title: Text(
-                                                                        'Rating',
-                                                                        style: GoogleFonts.roboto(
-                                                                          textStyle: TextStyle(
-                                                                            color: HexColor('424347'),
-                                                                            fontSize: 18,
-                                                                            fontWeight: FontWeight.bold,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    ListTile(
-                                                                      title: Column(
-                                                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                                                        children: [
-                                                                          Row(
-                                                                            mainAxisAlignment: MainAxisAlignment.center,
-                                                                            children: [
-                                                                              CircleAvatar(
-                                                                                radius: 23,
-                                                                                backgroundColor: Colors.transparent,
-                                                                                backgroundImage: projectData.clientData.profileImage== 'https://workdonecorp.com/images/' ||projectData.clientData.profileImage == ''
-                                                                                    ? AssetImage('assets/images/default.png') as ImageProvider
-                                                                                    : NetworkImage(projectData.clientData.profileImage ?? 'assets/images/default.png'),
-                                                                              ),
-                                                                              SizedBox(width: 10),
-                                                                              Column(
-                                                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                                                children: [
-                                                                                  Text(
-                                                                                    '${projectData.clientData.firstname}',
-                                                                                    style: GoogleFonts.roboto(
-                                                                                      textStyle: TextStyle(
-                                                                                        color: HexColor('706F6F'),
-                                                                                        fontSize: 17,
-                                                                                        fontWeight: FontWeight.bold,
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                  SizedBox(width: 8),
-                                                                                  RatingBar.builder(
-                                                                                    initialRating: 0,
-                                                                                    minRating: 1,
-                                                                                    direction: Axis.horizontal,
-                                                                                    allowHalfRating: false,
-                                                                                    itemCount: 5,
-                                                                                    itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                                                                                    itemBuilder: (context, _) => Icon(
-                                                                                      Icons.star,
-                                                                                      color: HexColor('4D8D6E'),
-                                                                                      size: 14,
-                                                                                    ),
-                                                                                    onRatingUpdate: (rating2) {
-                                                                                      rating = rating2.toString();
-                                                                                      print(rating);
-                                                                                    },
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                            ],
-                                                                          )
-                                                                        ],
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(height: screenheight * 0.02),
-                                                                    Padding(
-                                                                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                                                      child: Container(
-                                                                        decoration: BoxDecoration(
-                                                                          borderRadius: BorderRadius.circular(15),
-                                                                          color: Colors.grey[100],
-                                                                        ),
-                                                                        child: Padding(
-                                                                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                                                                          child: TextFormField(
-                                                                            controller: reviewcontroller,
-                                                                            decoration: InputDecoration(
-                                                                              hintText: 'Write a Review ...',
-                                                                              hintStyle: TextStyle(color: Colors.grey[500]),
-                                                                              border: InputBorder.none,
-                                                                            ),
-                                                                            maxLines: 4,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    Padding(
-                                                                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
-                                                                      child: Center(
-                                                                        child: ActionSlider.standard(
-                                                                          sliderBehavior: SliderBehavior.stretch,
-                                                                          rolling: false,
-                                                                          width: double.infinity,
-                                                                          backgroundColor: Colors.white,
-                                                                          toggleColor: HexColor('4D8D6E'),
-                                                                          iconAlignment: Alignment.centerRight,
-                                                                          loadingIcon: SizedBox(
-                                                                            width: 55,
-                                                                            child: Center(
-                                                                              child: RotationTransition(
-                                                                                turns: ciruclaranimation,
-                                                                                child: SvgPicture.asset(
-                                                                                  'assets/images/Logo.svg',
-                                                                                  semanticsLabel: 'Your SVG Image',
-                                                                                  width: 100,
-                                                                                  height: 130,
-                                                                                ),
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                          successIcon: const SizedBox(
-                                                                            width: 55,
-                                                                            child: Center(
-                                                                              child: Icon(
-                                                                                Icons.check_rounded,
-                                                                                color: Colors.white,
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                          icon: const SizedBox(
-                                                                            width: 55,
-                                                                            child: Center(
-                                                                              child: Icon(
-                                                                                Icons.keyboard_double_arrow_right,
-                                                                                color: Colors.white,
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                          action: (controller) async {
-                                                                            if (!isLoading) {
-                                                                              controller.loading();
-                                                                              await    Reviewproject();
-                                                                              Get.off(
-                                                                                bidDetailsWorker(projectId: widget.projectId),
-                                                                                transition: Transition.fadeIn, // You can choose a different transition
-                                                                                duration: Duration(milliseconds: 700), // Set the duration of the transition
-                                                                              );
-
-                                                                              controller.success();
-                                                                              await Future.delayed(const Duration(seconds: 1));
-                                                                              controller.reset();
-                                                                            }
-                                                                          },
-                                                                          child: const Text('Swipe To Confirm'),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(height: 20),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                            );
-                                                          },
-                                                        );
-
+                                                        _navigateToNextPage(
+                                                            context);
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                       backgroundColor:
-                                                        HexColor('ED6F53'),
-                                                        // Background color
-                                                       foregroundColor: Colors.white,
-                                                        // Text color
+                                                        backgroundColor: HexColor(
+                                                            '777031'),
+                                                        foregroundColor: Colors
+                                                            .white,
                                                         elevation: 8,
-                                                        // Elevation
-                                                        shape:
-                                                        RoundedRectangleBorder(
-                                                          borderRadius:
-                                                          BorderRadius.circular(
-                                                              12), // Rounded corners
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius
+                                                              .circular(21),
                                                         ),
                                                       ),
-                                                      child: Padding(
-                                                        padding:
-                                                        const EdgeInsets
-                                                            .all(12.0),
-                                                        child: Text(
-                                                          'Rate your Client',
-                                                          style: GoogleFonts
-                                                              .roboto(
-                                                            textStyle:
-                                                            TextStyle(
-                                                              color:
-                                                              Colors.white,
-                                                              fontSize: 14,
-                                                              fontWeight:
-                                                              FontWeight
-                                                                  .bold,
-                                                            ),
+                                                      child: Text(
+                                                        'Support',
+                                                        style: GoogleFonts
+                                                            .roboto(
+                                                          textStyle: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 8.5,
+                                                            fontWeight: FontWeight
+                                                                .bold,
                                                           ),
+                                                        ), // Add ellipsis (...) for overflow
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+
+                                            SizedBox(
+                                              height: 9,
+                                            ),
+
+
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Opacity(
+                                                    // Change the opacity based on the condition
+                                                    opacity: projectData
+                                                        .pageContent
+                                                        .enter_verification_code_button ==
+                                                        "mftoo7" ? 1.0 : 0.5,
+                                                    child: ElevatedButton(
+                                                      // Disable or enable the button based on the condition
+                                                      onPressed: projectData
+                                                          .pageContent
+                                                          .enter_verification_code_button ==
+                                                          "mftoo7" ? () {
+                                                        showModalBottomSheet(
+                                                          context: context,
+                                                          isScrollControlled: true,
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            int otp = int
+                                                                .tryParse(
+                                                                otpController
+                                                                    .text) ?? 0;
+
+                                                            return StatefulBuilder(
+                                                              builder: (
+                                                                  BuildContext context,
+                                                                  StateSetter setState) {
+                                                                return SingleChildScrollView(
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                    bottom: MediaQuery
+                                                                        .of(
+                                                                        context)
+                                                                        .viewInsets
+                                                                        .bottom, // Adjust padding based on the keyboard height
+                                                                  ),
+                                                                  child: Container(
+                                                                    padding: EdgeInsets
+                                                                        .all(
+                                                                        16.0),
+                                                                    child: Column(
+                                                                      crossAxisAlignment: CrossAxisAlignment
+                                                                          .center,
+                                                                      mainAxisSize: MainAxisSize
+                                                                          .min,
+                                                                      children: [
+
+                                                                        Center(
+                                                                            child: Text(
+                                                                              'Write a ',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              ' Verification Code',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+
+                                                                        SizedBox(
+                                                                          height: 12,),
+
+                                                                        Center(
+                                                                          child: Text(
+                                                                            'Take verification code from client\nTo Start Work',
+                                                                            style: TextStyle(
+                                                                              fontSize: 16,
+                                                                              color: HexColor(
+                                                                                  '706F6F'),
+                                                                              fontWeight: FontWeight
+                                                                                  .normal,
+                                                                            ),
+                                                                            textAlign: TextAlign
+                                                                                .center,
+                                                                          ),
+                                                                        ),
+                                                                        SizedBox(
+                                                                            height: 25),
+                                                                        Pinput(
+                                                                          length: 4,
+                                                                          // The total length of the OTP
+                                                                          controller: otpController,
+                                                                          // The single controller for the OTP
+                                                                          focusNode: focusNode1,
+                                                                          // Current focus node
+                                                                          pinputAutovalidateMode: PinputAutovalidateMode
+                                                                              .onSubmit,
+                                                                          onCompleted: (
+                                                                              pin) {
+                                                                            // You can use the entered OTP for verification when the user has completed entering it.
+                                                                            print(
+                                                                                'Completed: $pin');
+                                                                          },
+                                                                          // This function will be called when the input operation is submitted (usually on the keyboard).
+                                                                          onSubmitted: (
+                                                                              pin) {
+                                                                            // Don't forget to validate OTP and then send to API or whatever is required next.
+                                                                          },
+                                                                          pinAnimationType: PinAnimationType
+                                                                              .rotation,
+                                                                          defaultPinTheme: PinTheme(
+                                                                            width: 60,
+                                                                            // Example width of the field, adjust accordingly
+                                                                            height: 70,
+                                                                            // Example height of the field, adjust accordingly
+                                                                            textStyle: TextStyle(
+                                                                                fontSize: 24,
+                                                                                color: Colors
+                                                                                    .black,
+                                                                                fontWeight: FontWeight
+                                                                                    .bold // Text is bold
+                                                                            ),
+                                                                            decoration: BoxDecoration(
+                                                                              border: Border
+                                                                                  .all(
+                                                                                  color: HexColor(
+                                                                                      '4D8D6E'),
+                                                                                  width: 2),
+                                                                              // Border color as HexColor
+                                                                              borderRadius: BorderRadius
+                                                                                  .circular(
+                                                                                  12), // Circular shape with half width/height as radius
+                                                                            ),
+                                                                          ),),
+
+                                                                        SizedBox(
+                                                                            height: 30),
+                                                                        Center(
+                                                                          child: ElevatedButton(
+                                                                            onPressed:
+                                                                                () {
+                                                                              verify_project_schedule(
+                                                                                  widget
+                                                                                      .projectId,
+                                                                                  otp);
+                                                                            },
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              backgroundColor: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              foregroundColor: Colors
+                                                                                  .white,
+                                                                              elevation: 5,
+                                                                              shape: RoundedRectangleBorder(
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    20),
+                                                                              ),
+                                                                            ),
+                                                                            child: Text(
+                                                                              'Confirm',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 18),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                            );
+                                                          },
+                                                        );
+                                                      } : null,
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            'B6B021'),
+                                                        foregroundColor: Colors
+                                                            .white,
+                                                        elevation: 8,
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
+                                                        ),
+                                                        fixedSize: Size(
+                                                            double.infinity,
+                                                            50),
+                                                      ),
+                                                      child: Text(
+                                                        'With the client! Let\'s Enter the Verification Code',
+                                                        style: TextStyle(
+                                                            fontSize: 12.5,
+                                                            fontWeight: FontWeight
+                                                                .bold),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(
+                                              height: 9,
+                                            ),
+
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Opacity(
+                                                    // Change the opacity based on the condition for the second button
+                                                    opacity: projectData
+                                                        .pageContent
+                                                        .enter_complete_project_verification_code_button ==
+                                                        "mftoo7" ? 1.0 : 0.5,
+                                                    child: ElevatedButton(
+                                                      onPressed: projectData
+                                                          .pageContent
+                                                          .enter_complete_project_verification_code_button ==
+                                                          "mftoo7" ? () {
+                                                        showModalBottomSheet(
+                                                          context: context,
+                                                          isScrollControlled: true,
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            int otpaccessprojectcomplete = int
+                                                                .tryParse(
+                                                                otpControlleraccessproject
+                                                                    .text) ?? 0;
+                                                            return StatefulBuilder(
+                                                              builder: (
+                                                                  BuildContext context,
+                                                                  StateSetter setState) {
+                                                                return SingleChildScrollView(
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                    bottom: MediaQuery
+                                                                        .of(
+                                                                        context)
+                                                                        .viewInsets
+                                                                        .bottom, // Adjust padding based on the keyboard height
+                                                                  ),
+                                                                  child: Container(
+                                                                    padding: EdgeInsets
+                                                                        .all(
+                                                                        16.0),
+                                                                    child: Column(
+                                                                      crossAxisAlignment: CrossAxisAlignment
+                                                                          .center,
+                                                                      mainAxisSize: MainAxisSize
+                                                                          .min,
+                                                                      children: [
+
+                                                                        Center(
+                                                                            child: Text(
+                                                                              'Write a ',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+                                                                        Center(
+                                                                            child: Text(
+                                                                              ' Verification Code',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 30,
+                                                                                  color: HexColor(
+                                                                                      '000000'),
+                                                                                  fontWeight: FontWeight
+                                                                                      .bold),)),
+
+                                                                        SizedBox(
+                                                                          height: 12,),
+
+                                                                        Center(
+                                                                          child: Text(
+                                                                            'Take verification code from client\nTo Start Work',
+                                                                            style: TextStyle(
+                                                                              fontSize: 16,
+                                                                              color: HexColor(
+                                                                                  '706F6F'),
+                                                                              fontWeight: FontWeight
+                                                                                  .normal,
+                                                                            ),
+                                                                            textAlign: TextAlign
+                                                                                .center,
+                                                                          ),
+                                                                        ),
+                                                                        SizedBox(
+                                                                            height: 25),
+                                                                        Pinput(
+                                                                          length: 4,
+                                                                          // The total length of the OTP
+                                                                          controller: otpControlleraccessproject,
+                                                                          // The single controller for the OTP
+                                                                          focusNode: focusNode1,
+                                                                          // Current focus node
+                                                                          pinputAutovalidateMode: PinputAutovalidateMode
+                                                                              .onSubmit,
+                                                                          onCompleted: (
+                                                                              pin) {
+                                                                            // You can use the entered OTP for verification when the user has completed entering it.
+                                                                            print(
+                                                                                'Completed: $pin');
+                                                                          },
+                                                                          // This function will be called when the input operation is submitted (usually on the keyboard).
+                                                                          onSubmitted: (
+                                                                              pin) {
+                                                                            // Don't forget to validate OTP and then send to API or whatever is required next.
+                                                                          },
+                                                                          pinAnimationType: PinAnimationType
+                                                                              .rotation,
+                                                                          defaultPinTheme: PinTheme(
+                                                                            width: 60,
+                                                                            // Example width of the field, adjust accordingly
+                                                                            height: 70,
+                                                                            // Example height of the field, adjust accordingly
+                                                                            textStyle: TextStyle(
+                                                                                fontSize: 24,
+                                                                                color: Colors
+                                                                                    .black,
+                                                                                fontWeight: FontWeight
+                                                                                    .bold // Text is bold
+                                                                            ),
+                                                                            decoration: BoxDecoration(
+                                                                              border: Border
+                                                                                  .all(
+                                                                                  color: HexColor(
+                                                                                      '4D8D6E'),
+                                                                                  width: 2),
+                                                                              // Border color as HexColor
+                                                                              borderRadius: BorderRadius
+                                                                                  .circular(
+                                                                                  12), // Circular shape with half width/height as radius
+                                                                            ),
+                                                                          ),),
+
+                                                                        SizedBox(
+                                                                            height: 30),
+                                                                        Center(
+                                                                          child: ElevatedButton(
+                                                                            onPressed:
+                                                                                () {
+                                                                              verify_Project_complete(
+                                                                                  widget
+                                                                                      .projectId,
+                                                                                  otpaccessprojectcomplete);
+                                                                            },
+                                                                            style: ElevatedButton
+                                                                                .styleFrom(
+                                                                              backgroundColor: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              foregroundColor: Colors
+                                                                                  .white,
+                                                                              elevation: 5,
+                                                                              shape: RoundedRectangleBorder(
+                                                                                borderRadius: BorderRadius
+                                                                                    .circular(
+                                                                                    20),
+                                                                              ),
+                                                                            ),
+                                                                            child: Text(
+                                                                              'Confirm',
+                                                                              style: TextStyle(
+                                                                                  fontSize: 18),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                            );
+                                                          },
+                                                        );
+                                                      } : null,
+                                                      // The button will be disabled if the condition is false
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: HexColor(
+                                                            '317773'),
+                                                        foregroundColor: Colors
+                                                            .white,
+                                                        elevation: 8,
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
+                                                        ),
+                                                        fixedSize: Size(
+                                                            double.infinity,
+                                                            50),
+                                                      ),
+                                                      child: Center(
+                                                        child: Text(
+                                                          'Generate the Verification Code to access project complete',
+                                                          style: TextStyle(
+                                                              fontSize: 10.5,
+                                                              fontWeight: FontWeight
+                                                                  .bold),
                                                         ),
                                                       ),
                                                     ),
                                                   ),
                                                 ),
                                               ],
-                                            ) :
-
-                                            Container(),
-
-
-
-
-
-
-                                            SizedBox(height: 15,),
-                                            Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
-                                              child: Text(
-                                                'Workers Bids',
-                                                style: GoogleFonts.openSans(
-                                                  textStyle: TextStyle(
-                                                    color: HexColor('454545'),
-                                                    fontSize: 22,
-                                                    fontWeight: FontWeight.bold,
+                                            ),
+                                            SizedBox(
+                                              height: 9,
+                                            ),
+                                            Center(
+                                              child: Visibility(
+                                                visible: projectData.pageContent
+                                                    .project_complete_button ==
+                                                    "maftoo7",
+                                                child: Card(
+                                                  elevation: 8,
+                                                  margin: EdgeInsets.all(16),
+                                                  child: Padding(
+                                                    padding: EdgeInsets.all(16),
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize
+                                                          .min,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.hourglass_empty,
+                                                          size: 64,
+                                                          color: Colors.orange,
+                                                        ),
+                                                        SizedBox(height: 16),
+                                                        Text(
+                                                          'Please wait for the client \n to end the project.',
+                                                          style: TextStyle(
+                                                              fontSize: 18),
+                                                          textAlign: TextAlign
+                                                              .center,
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
                                               ),
                                             ),
+
+                                            SizedBox(height: 20,),
+
+                                            Padding(
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Workers Bids',
+                                                    style: GoogleFonts.openSans(
+                                                      textStyle: TextStyle(
+                                                        color: HexColor(
+                                                            '454545'),
+                                                        fontSize: 22,
+                                                        fontWeight: FontWeight
+                                                            .bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            SizedBox(height: 12,),
                                             Animate(
-                                              effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                                              effects: [
+                                                SlideEffect(duration: Duration(
+                                                    milliseconds: 800),),
+                                              ],
                                               child: ListView.builder(
                                                 physics: NeverScrollableScrollPhysics(),
                                                 shrinkWrap: true,
-                                                itemCount: projectData.bids.length,
+                                                itemCount: projectData.bids
+                                                    .length,
                                                 itemBuilder: (context, index) {
-                                                  Bid bid = projectData.bids[index];
+                                                  Bid bid = projectData
+                                                      .bids[index];
                                                   return buildListItem(bid);
                                                 },
                                               ),
                                             ),
 
+
                                           ],
                                         );
                                       }
-                                      else if ( projectData.status ==
-                                          'completed' ) {
-                                        activeStep=5;
+
+                                      else if (projectData.status ==
+                                          'completed' &&
+                                          projectData.pageaccessdata
+                                              .force_review == 'true') {
+                                        activeStep = 5;
                                         return
 
                                           Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment
+                                                .start,
 
                                             children: [
                                               Padding(
-                                                padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                padding: const EdgeInsets
+                                                    .symmetric(horizontal: 6.0),
                                                 child: Text(
                                                   'Progress',
                                                   style: GoogleFonts.openSans(
                                                     textStyle: TextStyle(
                                                       color: HexColor('454545'),
                                                       fontSize: 22,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight: FontWeight
+                                                          .bold,
                                                     ),
                                                   ),
                                                 ),
@@ -6228,44 +7601,62 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               SizedBox(height: 8,),
 
                                               Container(
-                                                height:150,
+                                                height: 150,
                                                 child: Center(
                                                   child: Container(
-                                                    padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                                    padding: EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 10),
                                                     child: EasyStepper(
-                                                      activeStepBackgroundColor:HexColor('4D8D6E') ,
-                                                      activeStepIconColor: Colors.white,
-                                                      activeStepBorderColor:HexColor('4D8D6E')  ,
-                                                      activeStepTextColor: HexColor('4D8D6E'),
+                                                      activeStepBackgroundColor: HexColor(
+                                                          '4D8D6E'),
+                                                      activeStepIconColor: Colors
+                                                          .white,
+                                                      activeStepBorderColor: HexColor(
+                                                          '4D8D6E'),
+                                                      activeStepTextColor: HexColor(
+                                                          '4D8D6E'),
 
                                                       showScrollbar: true,
                                                       enableStepTapping: false,
                                                       maxReachedStep: 6,
                                                       activeStep: activeStep,
-                                                      stepShape: StepShape.circle,
+                                                      stepShape: StepShape
+                                                          .circle,
                                                       stepBorderRadius: 15,
                                                       borderThickness: 1,
                                                       internalPadding: 15,
                                                       stepRadius: 32,
-                                                      finishedStepBorderColor: HexColor('8d4d6c'),
-                                                      finishedStepTextColor: HexColor('8d4d6c'),
-                                                      finishedStepBackgroundColor: HexColor('8d4d6c'),
-                                                      finishedStepIconColor: Colors.white,
-                                                      finishedStepBorderType: BorderType.normal,
+                                                      finishedStepBorderColor: HexColor(
+                                                          '8d4d6c'),
+                                                      finishedStepTextColor: HexColor(
+                                                          '8d4d6c'),
+                                                      finishedStepBackgroundColor: HexColor(
+                                                          '8d4d6c'),
+                                                      finishedStepIconColor: Colors
+                                                          .white,
+                                                      finishedStepBorderType: BorderType
+                                                          .normal,
                                                       showLoadingAnimation: false,
                                                       showStepBorder: true,
                                                       lineStyle: LineStyle(
                                                         lineLength: 45,
-                                                        lineType: LineType.dashed,
+                                                        lineType: LineType
+                                                            .dashed,
 
-                                                        activeLineColor: HexColor('#8d4d6c'),
-                                                        defaultLineColor: HexColor('#8d4d6c'),
-                                                        unreachedLineColor: HexColor('#172a21'),
+                                                        activeLineColor: HexColor(
+                                                            '#8d4d6c'),
+                                                        defaultLineColor: HexColor(
+                                                            '#8d4d6c'),
+                                                        unreachedLineColor: HexColor(
+                                                            '#172a21'),
                                                         lineThickness: 3,
                                                         lineSpace: 2,
                                                         lineWidth: 10,
 
-                                                        unreachedLineType: LineType.dashed,
+                                                        unreachedLineType: LineType
+                                                            .dashed,
 
                                                       ),
 
@@ -6274,7 +7665,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                           icon: Icon(
-                                                            FluentIcons.money_16_regular,
+                                                            FluentIcons
+                                                                .money_16_regular,
                                                           ),
                                                           title: 'Under Bidding',
 
@@ -6292,7 +7684,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                           icon: Icon(
-                                                            FluentIcons.calendar_12_filled ,
+                                                            FluentIcons
+                                                                .calendar_12_filled,
                                                           ),
                                                           title: 'Schedule',
 
@@ -6301,7 +7694,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                           icon: Icon(
-                                                            FluentIcons.spinner_ios_16_filled ,
+                                                            FluentIcons
+                                                                .spinner_ios_16_filled,
                                                           ),
                                                           title: 'Processing',
 
@@ -6310,7 +7704,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                           icon: Icon(
-                                                            FluentIcons.checkmark_circle_square_16_filled ,
+                                                            FluentIcons
+                                                                .checkmark_circle_square_16_filled,
                                                           ),
                                                           title: 'Finilizing',
 
@@ -6319,14 +7714,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                           icon: Icon(
-                                                            FluentIcons.flag_16_filled  ,
+                                                            FluentIcons
+                                                                .flag_16_filled,
                                                           ),
                                                           title: 'Completed',
 
                                                         ),
 
                                                       ],
-                                                      onStepReached: (index) => setState(() => activeStep = index),
+                                                      onStepReached: (index) =>
+                                                          setState(() =>
+                                                          activeStep = index),
                                                     ),
                                                   ),
 
@@ -6334,77 +7732,120 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               ),
 
                                               Padding(
-                                                padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                padding: const EdgeInsets
+                                                    .symmetric(horizontal: 6.0),
                                                 child: Text(
                                                   'Reviews',
                                                   style: GoogleFonts.openSans(
                                                     textStyle: TextStyle(
                                                       color: HexColor('454545'),
                                                       fontSize: 22,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight: FontWeight
+                                                          .bold,
                                                     ),
                                                   ),
                                                 ),
                                               ),
                                               SizedBox(height: 17,),
-                                              projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+                                              projectData.pageContent
+                                                  .ratingOnClient != 0 ||
+                                                  projectData.pageContent
+                                                      .reviewOnClient != ''
 
-                                                  ?  Padding(
-                                                padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                  ? Padding(
+                                                padding: const EdgeInsets
+                                                    .symmetric(horizontal: 6.0),
                                                 child: Text(
                                                   'Client Review :',
                                                   style: GoogleFonts.openSans(
                                                     textStyle: TextStyle(
                                                       color: HexColor('34446F'),
                                                       fontSize: 16,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight: FontWeight
+                                                          .bold,
                                                     ),
                                                   ),
                                                 ),
-                                              ):Container(),
+                                              ) : Container(),
                                               SizedBox(height: 10,),
-                                              projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+                                              projectData.pageContent
+                                                  .ratingOnClient != 0 ||
+                                                  projectData.pageContent
+                                                      .reviewOnClient != ''
                                                   ? Row(
                                                 children: [
                                                   CircleAvatar(
                                                     radius: 23,
-                                                    backgroundColor: Colors.transparent,
-                                                    backgroundImage: projectData.clientData?.profileImage== 'https://workdonecorp.com/images/' ||projectData.clientData?.profileImage== ''
-                                                        ? AssetImage('assets/images/default.png') as ImageProvider
-                                                        : NetworkImage(projectData.clientData?.profileImage?? 'assets/images/default.png'),
+                                                    backgroundColor: Colors
+                                                        .transparent,
+                                                    backgroundImage: projectData
+                                                        .clientData
+                                                        ?.profileImage ==
+                                                        'https://workdonecorp.com/images/' ||
+                                                        projectData.clientData
+                                                            ?.profileImage == ''
+                                                        ? AssetImage(
+                                                        'assets/images/default.png') as ImageProvider
+                                                        : NetworkImage(
+                                                        projectData.clientData
+                                                            ?.profileImage ??
+                                                            'assets/images/default.png'),
                                                   ),
                                                   SizedBox(width: 11),
                                                   GestureDetector(
-                                                    onTap:  () {
+                                                    onTap: () {
                                                       Get.to(ProfilePageClient(
-                                                          userId: projectData.clientData!.clientId.toString()));
+                                                          userId: projectData
+                                                              .clientData!
+                                                              .clientId
+                                                              .toString()));
                                                     },
 
-                                                    child:                                                 Text(
-                                                      projectData.clientData!.firstname,
+                                                    child: Text(
+                                                      projectData.clientData!
+                                                          .firstname,
                                                       style: TextStyle(
-                                                        color: HexColor('4D8D6E'),
-                                                        fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
-                                                        fontWeight: FontWeight.bold,
+                                                        color: HexColor(
+                                                            '4D8D6E'),
+                                                        fontSize: MediaQuery
+                                                            .of(context)
+                                                            .size
+                                                            .width > 400
+                                                            ? 20
+                                                            : 16,
+                                                        fontWeight: FontWeight
+                                                            .bold,
                                                       ),
                                                     ),
                                                   ),
                                                   Spacer(),
-                                                  RatingDisplay(rating: projectData.pageContent.ratingOnWorker),
+                                                  RatingDisplay(
+                                                      rating: projectData
+                                                          .pageContent
+                                                          .ratingOnWorker),
                                                 ],
                                               )
                                                   : Container(),
                                               SizedBox(height: 8),
-                                              projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+                                              projectData.pageContent
+                                                  .ratingOnClient != 0 ||
+                                                  projectData.pageContent
+                                                      .reviewOnClient != ''
                                                   ? Padding(
-                                                padding: const EdgeInsets.all(16.0), // Consistent padding
+                                                padding: const EdgeInsets.all(
+                                                    16.0), // Consistent padding
                                                 child: Text(
-                                                  '${projectData.pageContent.reviewOnWorker}',
-                                                  style: GoogleFonts.roboto( // Same font for consistency
+                                                  '${projectData.pageContent
+                                                      .reviewOnWorker}',
+                                                  style: GoogleFonts
+                                                      .roboto( // Same font for consistency
                                                     textStyle: TextStyle(
                                                       color: Colors.black,
-                                                      fontSize: 16, // Readable size
-                                                      fontWeight: FontWeight.w400, // Slightly emphasized weight
+                                                      fontSize: 16,
+                                                      // Readable size
+                                                      fontWeight: FontWeight
+                                                          .w400,
+                                                      // Slightly emphasized weight
                                                       height: 1.5, // Increased line height for better spacing
                                                     ),
                                                   ),
@@ -6413,38 +7854,58 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               )
                                                   : SizedBox(height: 0),
                                               SizedBox(height: 8),
-                                              projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+                                              projectData.pageContent
+                                                  .ratingOnClient != 0 ||
+                                                  projectData.pageContent
+                                                      .reviewOnClient != ''
                                                   ?
                                               Container(
                                                 height: 140,
                                                 child: ListView.builder(
-                                                  scrollDirection: Axis.horizontal,
-                                                  itemCount: projectData.pageContent.imagesAfter.length,
-                                                  itemBuilder: (context, index) {
+                                                  scrollDirection: Axis
+                                                      .horizontal,
+                                                  itemCount: projectData
+                                                      .pageContent.imagesAfter
+                                                      .length,
+                                                  itemBuilder: (context,
+                                                      index) {
                                                     return GestureDetector(
                                                       onTap: () {
                                                         Navigator.push(
                                                           context,
                                                           MaterialPageRoute(
-                                                            builder: (context) => PhotoView(
-                                                              imageProvider: NetworkImage(
-                                                                projectData.pageContent.imagesAfter[index],
-                                                              ),
-                                                              heroAttributes: PhotoViewHeroAttributes(
-                                                                tag: projectData.pageContent.imagesAfter[index],
-                                                              ),
-                                                            ),
+                                                            builder: (
+                                                                context) =>
+                                                                PhotoView(
+                                                                  imageProvider: NetworkImage(
+                                                                    projectData
+                                                                        .pageContent
+                                                                        .imagesAfter[index],
+                                                                  ),
+                                                                  heroAttributes: PhotoViewHeroAttributes(
+                                                                    tag: projectData
+                                                                        .pageContent
+                                                                        .imagesAfter[index],
+                                                                  ),
+                                                                ),
                                                           ),
                                                         );
                                                       },
                                                       child: Hero(
-                                                        tag: projectData.pageContent.imagesAfter[index],
+                                                        tag: projectData
+                                                            .pageContent
+                                                            .imagesAfter[index],
                                                         child: Padding(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                          padding: const EdgeInsets
+                                                              .symmetric(
+                                                              horizontal: 8.0),
                                                           child: AspectRatio(
                                                             aspectRatio: 1,
-                                                            child: Image.network(
-                                                              projectData.pageContent.imagesAfter[index],
+                                                            child: Image
+                                                                .network(
+                                                              projectData
+                                                                  .pageContent
+                                                                  .imagesAfter[index],
                                                               fit: BoxFit.cover,
                                                             ),
                                                           ),
@@ -6453,138 +7914,109 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     );
                                                   },
                                                 ),
-                                              )
-                                                  :  Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-
-                                                  children: [
-                                                    Padding(
-                                                      padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
-                                                      child: Text(
-                                                        'Client Review :',
-                                                        style: GoogleFonts.openSans(
-                                                          textStyle: TextStyle(
-                                                            color: HexColor('34446F'),
-                                                            fontSize: 16,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                      ),
+                                              ) : Container(
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius
+                                                      .circular(10),
+                                                  color: Colors.white,
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black
+                                                          .withOpacity(0.1),
+                                                      blurRadius: 5,
+                                                      offset: Offset(0, 3),
                                                     ),
-                                                    Row(
-                                                      children: [
-                                                        CircleAvatar(
-                                                          radius: 23,
-                                                          backgroundColor: Colors.transparent,
-                                                          backgroundImage: projectData.clientData?.profileImage== 'https://workdonecorp.com/images/' ||projectData.clientData?.profileImage== ''
-                                                              ? AssetImage('assets/images/default.png') as ImageProvider
-                                                              : NetworkImage(projectData.clientData?.profileImage?? 'assets/images/default.png'),
-                                                        ),
-                                                        SizedBox(width: 11),
-                                                        GestureDetector(
-                                                          onTap:  () {
-                                                            Get.to(ProfilePageClient(
-                                                                userId: projectData.clientData!.clientId.toString()));
-                                                          },
-
-                                                          child:                                                 Text(
-                                                            projectData.clientData!.firstname,
-                                                            style: TextStyle(
-                                                              color: HexColor('4D8D6E'),
-                                                              fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        Spacer(),
-                                                        RatingDisplay(rating: projectData.pageContent.ratingOnWorker),
-                                                      ],
-                                                    ),
-                                                    Padding(
-                                                      padding: const EdgeInsets.all(16.0), // Consistent padding
-                                                      child: Text(
-                                                        '${projectData.pageContent.reviewOnWorker}',
-                                                        style: GoogleFonts.roboto( // Same font for consistency
-                                                          textStyle: TextStyle(
-                                                            color: Colors.black,
-                                                            fontSize: 16, // Readable size
-                                                            fontWeight: FontWeight.w400, // Slightly emphasized weight
-                                                            height: 1.5, // Increased line height for better spacing
-                                                          ),
-                                                        ),
-                                                        textAlign: TextAlign.left,
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      height: 140,
-                                                      child: ListView.builder(
-                                                        scrollDirection: Axis.horizontal,
-                                                        itemCount: projectData.pageContent.imagesAfter.length,
-                                                        itemBuilder: (context, index) {
-                                                          return GestureDetector(
-                                                            onTap: () {
-                                                              Navigator.push(
-                                                                context,
-                                                                MaterialPageRoute(
-                                                                  builder: (context) => PhotoView(
-                                                                    imageProvider: NetworkImage(
-                                                                      projectData.pageContent.imagesAfter[index],
-                                                                    ),
-                                                                    heroAttributes: PhotoViewHeroAttributes(
-                                                                      tag: projectData.pageContent.imagesAfter[index],
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              );
-                                                            },
-                                                            child: Hero(
-                                                              tag: projectData.pageContent.imagesAfter[index],
-                                                              child: Padding(
-                                                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                                                child: AspectRatio(
-                                                                  aspectRatio: 1,
-                                                                  child: Image.network(
-                                                                    projectData.pageContent.imagesAfter[index],
-                                                                    fit: BoxFit.cover,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          );
-                                                        },
-                                                      ),
-                                                    )
                                                   ],
+                                                ),
+                                                padding: EdgeInsets.symmetric(
+                                                    vertical: 12,
+                                                    horizontal: 16),
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons
+                                                          .warning_amber_outlined,
+                                                      color: Colors.orange,
+                                                      size: 20,
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Expanded(
+                                                      child: Text(
+                                                        'You should rate the client to see the client reviews.',
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight
+                                                              .w500,
+                                                          color: Colors
+                                                              .grey[800],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                               SizedBox(height: 17,),
-                                              projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+                                              projectData.pageContent
+                                                  .ratingOnClient != 0 ||
+                                                  projectData.pageContent
+                                                      .reviewOnClient != ''
 
                                                   ? Padding(
-                                                padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                padding: const EdgeInsets
+                                                    .symmetric(horizontal: 6.0),
                                                 child: Text(
                                                   'Worker Review :',
                                                   style: GoogleFonts.openSans(
                                                     textStyle: TextStyle(
                                                       color: HexColor('34446F'),
                                                       fontSize: 16,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight: FontWeight
+                                                          .bold,
                                                     ),
                                                   ),
                                                 ),
-                                              ): Container(),
+                                              ) : Container(),
                                               SizedBox(height: 10,),
-                                              projectData.pageContent.ratingOnClient != 0 || projectData.pageContent.reviewOnClient != ''
+                                              projectData.pageContent
+                                                  .ratingOnClient != 0 ||
+                                                  projectData.pageContent
+                                                      .reviewOnClient != ''
                                                   ? Row(
                                                 children: [
                                                   CircleAvatar(
                                                     radius: 23,
-                                                    backgroundColor: Colors.transparent,
-                                                    backgroundImage: projectData.selectworkerbid.worker_profile_pic  == '' || projectData.selectworkerbid.worker_profile_pic .isEmpty
-                                                        || projectData.selectworkerbid.worker_profile_pic  == "https://workdonecorp.com/storage/" ||
-                                                        !(projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.jpg') || projectData.selectworkerbid.worker_profile_pic .toLowerCase().endsWith('.png'))
+                                                    backgroundColor: Colors
+                                                        .transparent,
+                                                    backgroundImage: projectData
+                                                        .selectworkerbid
+                                                        .worker_profile_pic ==
+                                                        '' || projectData
+                                                        .selectworkerbid
+                                                        .worker_profile_pic
+                                                        .isEmpty
+                                                        || projectData
+                                                            .selectworkerbid
+                                                            .worker_profile_pic ==
+                                                            "https://workdonecorp.com/storage/" ||
+                                                        !(projectData
+                                                            .selectworkerbid
+                                                            .worker_profile_pic
+                                                            .toLowerCase()
+                                                            .endsWith('.jpg') ||
+                                                            projectData
+                                                                .selectworkerbid
+                                                                .worker_profile_pic
+                                                                .toLowerCase()
+                                                                .endsWith(
+                                                                '.png'))
 
-                                                        ? AssetImage('assets/images/default.png') as ImageProvider
-                                                        : NetworkImage(projectData.selectworkerbid.worker_profile_pic ?? 'assets/images/default.png'),
+                                                        ? AssetImage(
+                                                        'assets/images/default.png') as ImageProvider
+                                                        : NetworkImage(
+                                                        projectData
+                                                            .selectworkerbid
+                                                            .worker_profile_pic ??
+                                                            'assets/images/default.png'),
                                                   ),
                                                   SizedBox(width: 11),
                                                   GestureDetector(
@@ -6592,73 +8024,64 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                       Get.to(Workerprofileother
                                                         (
                                                           userId: projectData
-                                                              .selectworkerbid.worker_id
+                                                              .selectworkerbid
+                                                              .worker_id
                                                               .toString()),
-                                                        transition: Transition.fadeIn, // You can choose a different transition
-                                                        duration: Duration(milliseconds: 700), );
+                                                        transition: Transition
+                                                            .fadeIn,
+                                                        // You can choose a different transition
+                                                        duration: Duration(
+                                                            milliseconds: 700),);
                                                     },
 
                                                     child: Text(
-                                                      projectData.selectworkerbid.worker_firstname,
+                                                      projectData
+                                                          .selectworkerbid
+                                                          .worker_firstname,
                                                       //client first name
                                                       style: TextStyle(
-                                                        color: HexColor('4D8D6E'),
-                                                        fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
-                                                        fontWeight: FontWeight.bold,
+                                                        color: HexColor(
+                                                            '4D8D6E'),
+                                                        fontSize: MediaQuery
+                                                            .of(context)
+                                                            .size
+                                                            .width > 400
+                                                            ? 20
+                                                            : 16,
+                                                        fontWeight: FontWeight
+                                                            .bold,
                                                       ),
                                                     ),
                                                   ),
 
 
                                                   Spacer(),
-                                                  RatingDisplay(rating: projectData.pageContent.ratingOnClient),
+                                                  RatingDisplay(
+                                                      rating: projectData
+                                                          .pageContent
+                                                          .ratingOnClient),
                                                 ],
                                               )
-                                                  : Container(
-                                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: Colors.white,
-                                    boxShadow: [
-                                    BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 5,
-                                    offset: Offset(0, 3),
-                                    ),
-                                    ],
-                                    ),
-                                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                    child: Row(
-                                    children: [
-                                    Icon(
-                                    Icons.warning_amber_outlined,
-                                    color: Colors.orange,
-                                    size: 20,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Expanded(
-                                    child: Text(
-                                    'The Worker Didnt rate yet.',
-                                    style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey[800],
-                                    ),
-                                    ),
-                                    ),
-                                    ],
-                                    ),
-                                    ),
+                                                  : Container(),
                                               SizedBox(height: 5),
-                                              projectData.pageContent.reviewOnClient != ''
+                                              projectData.pageContent
+                                                  .reviewOnClient != ''
                                                   ? Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 12.0), // Add padding around the text
+                                                padding: const EdgeInsets
+                                                    .symmetric(
+                                                    horizontal: 12.0),
+                                                // Add padding around the text
                                                 child: Text(
-                                                  '${projectData.pageContent.reviewOnClient}',
-                                                  style: GoogleFonts.roboto( // Use Roboto for a more readable font
+                                                  '${projectData.pageContent
+                                                      .reviewOnClient}',
+                                                  style: GoogleFonts
+                                                      .roboto( // Use Roboto for a more readable font
                                                     textStyle: TextStyle(
                                                       color: Colors.black,
-                                                      fontSize: 16, // Increased font size for better readability
-                                                      fontWeight: FontWeight.w400, // Slightly heavier weight for emphasis
+                                                      fontSize: 16,
+                                                      // Increased font size for better readability
+                                                      fontWeight: FontWeight
+                                                          .w400, // Slightly heavier weight for emphasis
                                                     ),
 
                                                   ),
@@ -6667,7 +8090,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                   : Container(),
 
 
-                                              projectData.pageaccessdata.force_review == 'true' ?
+                                              projectData.pageaccessdata
+                                                  .force_review == 'true' ?
                                               Row(
                                                 children: [
 
@@ -6684,79 +8108,129 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                             builder: (context) {
                                                               return SafeArea(
                                                                 child: SingleChildScrollView(
-                                                                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                      bottom: MediaQuery
+                                                                          .of(
+                                                                          context)
+                                                                          .viewInsets
+                                                                          .bottom),
                                                                   child: Column(
-                                                                    mainAxisSize: MainAxisSize.min,
+                                                                    mainAxisSize: MainAxisSize
+                                                                        .min,
                                                                     children: [
                                                                       ListTile(
                                                                         title: Text(
                                                                           'The Project is Completed, make feedback about Client!',
-                                                                          style: GoogleFonts.roboto(
+                                                                          style: GoogleFonts
+                                                                              .roboto(
                                                                             textStyle: TextStyle(
-                                                                              color: HexColor('4D8D6E'),
+                                                                              color: HexColor(
+                                                                                  '4D8D6E'),
                                                                               fontSize: 20,
-                                                                              fontWeight: FontWeight.bold,
+                                                                              fontWeight: FontWeight
+                                                                                  .bold,
                                                                             ),
                                                                           ),
-                                                                          textAlign: TextAlign.center,
+                                                                          textAlign: TextAlign
+                                                                              .center,
                                                                         ),
                                                                       ),
                                                                       ListTile(
                                                                         title: Text(
                                                                           'Rating',
-                                                                          style: GoogleFonts.roboto(
+                                                                          style: GoogleFonts
+                                                                              .roboto(
                                                                             textStyle: TextStyle(
-                                                                              color: HexColor('424347'),
+                                                                              color: HexColor(
+                                                                                  '424347'),
                                                                               fontSize: 18,
-                                                                              fontWeight: FontWeight.bold,
+                                                                              fontWeight: FontWeight
+                                                                                  .bold,
                                                                             ),
                                                                           ),
                                                                         ),
                                                                       ),
                                                                       ListTile(
                                                                         title: Column(
-                                                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                                                          crossAxisAlignment: CrossAxisAlignment
+                                                                              .center,
                                                                           children: [
                                                                             Row(
-                                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                                              mainAxisAlignment: MainAxisAlignment
+                                                                                  .center,
                                                                               children: [
                                                                                 CircleAvatar(
                                                                                   radius: 23,
-                                                                                  backgroundColor: Colors.transparent,
-                                                                                  backgroundImage: projectData.clientData.profileImage== 'https://workdonecorp.com/images/' ||projectData.clientData.profileImage == ''
-                                                                                      ? AssetImage('assets/images/default.png') as ImageProvider
-                                                                                      : NetworkImage(projectData.clientData.profileImage ),
+                                                                                  backgroundColor: Colors
+                                                                                      .transparent,
+                                                                                  backgroundImage: projectData
+                                                                                      .clientData
+                                                                                      .profileImage ==
+                                                                                      'https://workdonecorp.com/images/' ||
+                                                                                      projectData
+                                                                                          .clientData
+                                                                                          .profileImage ==
+                                                                                          ''
+                                                                                      ? AssetImage(
+                                                                                      'assets/images/default.png') as ImageProvider
+                                                                                      : NetworkImage(
+                                                                                      projectData
+                                                                                          .clientData
+                                                                                          .profileImage ??
+                                                                                          'assets/images/default.png'),
                                                                                 ),
-                                                                                SizedBox(width: 10),
+                                                                                SizedBox(
+                                                                                    width: 10),
                                                                                 Column(
-                                                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                                                  crossAxisAlignment: CrossAxisAlignment
+                                                                                      .center,
                                                                                   children: [
                                                                                     Text(
-                                                                                      '${projectData.clientData.firstname}',
-                                                                                      style: GoogleFonts.roboto(
+                                                                                      '${projectData
+                                                                                          .clientData
+                                                                                          .firstname}',
+                                                                                      style: GoogleFonts
+                                                                                          .roboto(
                                                                                         textStyle: TextStyle(
-                                                                                          color: HexColor('706F6F'),
+                                                                                          color: HexColor(
+                                                                                              '706F6F'),
                                                                                           fontSize: 17,
-                                                                                          fontWeight: FontWeight.bold,
+                                                                                          fontWeight: FontWeight
+                                                                                              .bold,
                                                                                         ),
                                                                                       ),
                                                                                     ),
-                                                                                    SizedBox(width: 8),
-                                                                                    RatingBar.builder(
+                                                                                    SizedBox(
+                                                                                        width: 8),
+                                                                                    RatingBar
+                                                                                        .builder(
                                                                                       initialRating: 0,
                                                                                       minRating: 1,
-                                                                                      direction: Axis.horizontal,
+                                                                                      direction: Axis
+                                                                                          .horizontal,
                                                                                       allowHalfRating: false,
                                                                                       itemCount: 5,
-                                                                                      itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                                                                                      itemBuilder: (context, _) => Icon(
-                                                                                        Icons.star,
-                                                                                        color: HexColor('4D8D6E'),
-                                                                                        size: 14,
-                                                                                      ),
-                                                                                      onRatingUpdate: (rating2) {
-                                                                                        rating = rating2.toString();
-                                                                                        print(rating);
+                                                                                      itemPadding: EdgeInsets
+                                                                                          .symmetric(
+                                                                                          horizontal: 2.0),
+                                                                                      itemBuilder: (
+                                                                                          context,
+                                                                                          _) =>
+                                                                                          Icon(
+                                                                                            Icons
+                                                                                                .star,
+                                                                                            color: HexColor(
+                                                                                                '4D8D6E'),
+                                                                                            size: 14,
+                                                                                          ),
+                                                                                      onRatingUpdate: (
+                                                                                          rating2) {
+                                                                                        rating =
+                                                                                            rating2
+                                                                                                .toString();
+                                                                                        print(
+                                                                                            rating);
                                                                                       },
                                                                                     ),
                                                                                   ],
@@ -6766,22 +8240,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                           ],
                                                                         ),
                                                                       ),
-                                                                      SizedBox(height: screenheight * 0.02),
+                                                                      SizedBox(
+                                                                          height: screenheight *
+                                                                              0.02),
                                                                       Padding(
-                                                                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                                                        padding: const EdgeInsets
+                                                                            .symmetric(
+                                                                            horizontal: 12.0),
                                                                         child: Container(
                                                                           decoration: BoxDecoration(
-                                                                            borderRadius: BorderRadius.circular(15),
-                                                                            color: Colors.grey[100],
+                                                                            borderRadius: BorderRadius
+                                                                                .circular(
+                                                                                15),
+                                                                            color: Colors
+                                                                                .grey[100],
                                                                           ),
                                                                           child: Padding(
-                                                                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                                                                            padding: const EdgeInsets
+                                                                                .symmetric(
+                                                                                horizontal: 16),
                                                                             child: TextFormField(
                                                                               controller: reviewcontroller,
                                                                               decoration: InputDecoration(
                                                                                 hintText: 'Write a Review ...',
-                                                                                hintStyle: TextStyle(color: Colors.grey[500]),
-                                                                                border: InputBorder.none,
+                                                                                hintStyle: TextStyle(
+                                                                                    color: Colors
+                                                                                        .grey[500]),
+                                                                                border: InputBorder
+                                                                                    .none,
                                                                               ),
                                                                               maxLines: 4,
                                                                             ),
@@ -6789,25 +8275,35 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                         ),
                                                                       ),
                                                                       Padding(
-                                                                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20),
+                                                                        padding: const EdgeInsets
+                                                                            .symmetric(
+                                                                            horizontal: 12.0,
+                                                                            vertical: 20),
                                                                         child: Center(
-                                                                          child: ActionSlider.standard(
-                                                                            sliderBehavior: SliderBehavior.stretch,
+                                                                          child: ActionSlider
+                                                                              .standard(
+                                                                            sliderBehavior: SliderBehavior
+                                                                                .stretch,
                                                                             rolling: false,
-                                                                            width: double.infinity,
-                                                                            backgroundColor: Colors.white,
-                                                                            toggleColor: HexColor('4D8D6E'),
-                                                                            iconAlignment: Alignment.centerRight,
+                                                                            width: double
+                                                                                .infinity,
+                                                                            backgroundColor: Colors
+                                                                                .white,
+                                                                            toggleColor: HexColor(
+                                                                                '4D8D6E'),
+                                                                            iconAlignment: Alignment
+                                                                                .centerRight,
                                                                             loadingIcon: SizedBox(
                                                                               width: 55,
                                                                               child: Center(
                                                                                 child: RotationTransition(
                                                                                   turns: ciruclaranimation,
-                                                                                  child: SvgPicture.asset(
+                                                                                  child: SvgPicture
+                                                                                      .asset(
                                                                                     'assets/images/Logo.svg',
                                                                                     semanticsLabel: 'Your SVG Image',
-                                                                                    width: 100,
-                                                                                    height: 130,
+                                                                                    width: 70,
+                                                                                    height: 80,
                                                                                   ),
                                                                                 ),
                                                                               ),
@@ -6816,8 +8312,10 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                               width: 55,
                                                                               child: Center(
                                                                                 child: Icon(
-                                                                                  Icons.check_rounded,
-                                                                                  color: Colors.white,
+                                                                                  Icons
+                                                                                      .check_rounded,
+                                                                                  color: Colors
+                                                                                      .white,
                                                                                 ),
                                                                               ),
                                                                             ),
@@ -6825,51 +8323,70 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                                               width: 55,
                                                                               child: Center(
                                                                                 child: Icon(
-                                                                                  Icons.keyboard_double_arrow_right,
-                                                                                  color: Colors.white,
+                                                                                  Icons
+                                                                                      .keyboard_double_arrow_right,
+                                                                                  color: Colors
+                                                                                      .white,
                                                                                 ),
                                                                               ),
                                                                             ),
-                                                                            action: (controller) async {
+                                                                            action: (
+                                                                                controller) async {
                                                                               if (!isLoading) {
-                                                                                controller.loading();
-                                                                                await    Reviewproject();
-                                                                                Get.off(
-                                                                                  bidDetailsWorker(projectId: widget.projectId),
-                                                                                  transition: Transition.fadeIn, // You can choose a different transition
-                                                                                  duration: Duration(milliseconds: 700), // Set the duration of the transition
+                                                                                controller
+                                                                                    .loading();
+                                                                                await Reviewproject();
+                                                                                Get
+                                                                                    .off(
+                                                                                  bidDetailsWorker(
+                                                                                      projectId: widget
+                                                                                          .projectId),
+                                                                                  transition: Transition
+                                                                                      .fadeIn,
+                                                                                  // You can choose a different transition
+                                                                                  duration: Duration(
+                                                                                      milliseconds: 700), // Set the duration of the transition
                                                                                 );
 
-                                                                                controller.success();
-                                                                                await Future.delayed(const Duration(seconds: 1));
-                                                                                controller.reset();
+                                                                                controller
+                                                                                    .success();
+                                                                                await Future
+                                                                                    .delayed(
+                                                                                    const Duration(
+                                                                                        seconds: 1));
+                                                                                controller
+                                                                                    .reset();
                                                                               }
                                                                             },
-                                                                            child: const Text('Swipe To Confirm'),
+                                                                            child: const Text(
+                                                                                'Swipe To Confirm'),
                                                                           ),
                                                                         ),
                                                                       ),
-                                                                      SizedBox(height: 20),
+                                                                      SizedBox(
+                                                                          height: 20),
                                                                     ],
                                                                   ),
                                                                 ),
                                                               );
                                                             },
                                                           );
-
                                                         },
                                                         style: ElevatedButton
                                                             .styleFrom(
-                                                          backgroundColor: HexColor('ED6F53'),
+                                                          backgroundColor:
+                                                          HexColor('ED6F53'),
                                                           // Background color
-                                                         foregroundColor: Colors.white,
+                                                          foregroundColor: Colors
+                                                              .white,
                                                           // Text color
                                                           elevation: 8,
                                                           // Elevation
                                                           shape:
                                                           RoundedRectangleBorder(
                                                             borderRadius:
-                                                            BorderRadius.circular(
+                                                            BorderRadius
+                                                                .circular(
                                                                 12), // Rounded corners
                                                           ),
                                                         ),
@@ -6897,35 +8414,1086 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     ),
                                                   ),
                                                 ],
-                                              ) :Container(),
+                                              ) :
 
-
-
-
+                                              Container(),
 
 
                                               SizedBox(height: 15,),
                                               Padding(
-                                                padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                                padding: const EdgeInsets
+                                                    .symmetric(horizontal: 6.0),
                                                 child: Text(
                                                   'Workers Bids',
                                                   style: GoogleFonts.openSans(
                                                     textStyle: TextStyle(
                                                       color: HexColor('454545'),
                                                       fontSize: 22,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight: FontWeight
+                                                          .bold,
                                                     ),
                                                   ),
                                                 ),
                                               ),
                                               Animate(
-                                                effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                                                effects: [
+                                                  SlideEffect(
+                                                    duration: Duration(
+                                                        milliseconds: 800),),
+                                                ],
                                                 child: ListView.builder(
                                                   physics: NeverScrollableScrollPhysics(),
                                                   shrinkWrap: true,
-                                                  itemCount: projectData.bids.length,
-                                                  itemBuilder: (context, index) {
-                                                    Bid bid = projectData.bids[index];
+                                                  itemCount: projectData.bids
+                                                      .length,
+                                                  itemBuilder: (context,
+                                                      index) {
+                                                    Bid bid = projectData
+                                                        .bids[index];
+                                                    return buildListItem(bid);
+                                                  },
+                                                ),
+                                              ),
+
+                                            ],
+                                          );
+                                      }
+                                      else if (projectData.status ==
+                                          'completed') {
+                                        activeStep = 5;
+                                        return
+
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment
+                                                .start,
+
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets
+                                                    .symmetric(horizontal: 6.0),
+                                                child: Text(
+                                                  'Progress',
+                                                  style: GoogleFonts.openSans(
+                                                    textStyle: TextStyle(
+                                                      color: HexColor('454545'),
+                                                      fontSize: 22,
+                                                      fontWeight: FontWeight
+                                                          .bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 8,),
+
+                                              Container(
+                                                height: 150,
+                                                child: Center(
+                                                  child: Container(
+                                                    padding: EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 10),
+                                                    child: EasyStepper(
+                                                      activeStepBackgroundColor: HexColor(
+                                                          '4D8D6E'),
+                                                      activeStepIconColor: Colors
+                                                          .white,
+                                                      activeStepBorderColor: HexColor(
+                                                          '4D8D6E'),
+                                                      activeStepTextColor: HexColor(
+                                                          '4D8D6E'),
+
+                                                      showScrollbar: true,
+                                                      enableStepTapping: false,
+                                                      maxReachedStep: 6,
+                                                      activeStep: activeStep,
+                                                      stepShape: StepShape
+                                                          .circle,
+                                                      stepBorderRadius: 15,
+                                                      borderThickness: 1,
+                                                      internalPadding: 15,
+                                                      stepRadius: 32,
+                                                      finishedStepBorderColor: HexColor(
+                                                          '8d4d6c'),
+                                                      finishedStepTextColor: HexColor(
+                                                          '8d4d6c'),
+                                                      finishedStepBackgroundColor: HexColor(
+                                                          '8d4d6c'),
+                                                      finishedStepIconColor: Colors
+                                                          .white,
+                                                      finishedStepBorderType: BorderType
+                                                          .normal,
+                                                      showLoadingAnimation: false,
+                                                      showStepBorder: true,
+                                                      lineStyle: LineStyle(
+                                                        lineLength: 45,
+                                                        lineType: LineType
+                                                            .dashed,
+
+                                                        activeLineColor: HexColor(
+                                                            '#8d4d6c'),
+                                                        defaultLineColor: HexColor(
+                                                            '#8d4d6c'),
+                                                        unreachedLineColor: HexColor(
+                                                            '#172a21'),
+                                                        lineThickness: 3,
+                                                        lineSpace: 2,
+                                                        lineWidth: 10,
+
+                                                        unreachedLineType: LineType
+                                                            .dashed,
+
+                                                      ),
+
+                                                      steps: [
+                                                        EasyStep(
+
+
+                                                          icon: Icon(
+                                                            FluentIcons
+                                                                .money_16_regular,
+                                                          ),
+                                                          title: 'Under Bidding',
+
+                                                        ),
+                                                        EasyStep(
+
+
+                                                          icon: Icon(
+                                                            Icons.check_circle,
+                                                          ),
+                                                          title: 'Accepted',
+
+                                                        ),
+                                                        EasyStep(
+
+
+                                                          icon: Icon(
+                                                            FluentIcons
+                                                                .calendar_12_filled,
+                                                          ),
+                                                          title: 'Schedule',
+
+                                                        ),
+                                                        EasyStep(
+
+
+                                                          icon: Icon(
+                                                            FluentIcons
+                                                                .spinner_ios_16_filled,
+                                                          ),
+                                                          title: 'Processing',
+
+                                                        ),
+                                                        EasyStep(
+
+
+                                                          icon: Icon(
+                                                            FluentIcons
+                                                                .checkmark_circle_square_16_filled,
+                                                          ),
+                                                          title: 'Finilizing',
+
+                                                        ),
+                                                        EasyStep(
+
+
+                                                          icon: Icon(
+                                                            FluentIcons
+                                                                .flag_16_filled,
+                                                          ),
+                                                          title: 'Completed',
+
+                                                        ),
+
+                                                      ],
+                                                      onStepReached: (index) =>
+                                                          setState(() =>
+                                                          activeStep = index),
+                                                    ),
+                                                  ),
+
+                                                ),
+                                              ),
+
+                                              Padding(
+                                                padding: const EdgeInsets
+                                                    .symmetric(horizontal: 6.0),
+                                                child: Text(
+                                                  'Reviews',
+                                                  style: GoogleFonts.openSans(
+                                                    textStyle: TextStyle(
+                                                      color: HexColor('454545'),
+                                                      fontSize: 22,
+                                                      fontWeight: FontWeight
+                                                          .bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 17,),
+                                              projectData.pageContent
+                                                  .ratingOnClient != 0 ||
+                                                  projectData.pageContent
+                                                      .reviewOnClient != ''
+
+                                                  ? Padding(
+                                                padding: const EdgeInsets
+                                                    .symmetric(horizontal: 6.0),
+                                                child: Text(
+                                                  'Client Review :',
+                                                  style: GoogleFonts.openSans(
+                                                    textStyle: TextStyle(
+                                                      color: HexColor('34446F'),
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight
+                                                          .bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ) : Container(),
+                                              SizedBox(height: 10,),
+                                              projectData.pageContent
+                                                  .ratingOnClient != 0 ||
+                                                  projectData.pageContent
+                                                      .reviewOnClient != ''
+                                                  ? Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    radius: 23,
+                                                    backgroundColor: Colors
+                                                        .transparent,
+                                                    backgroundImage: projectData
+                                                        .clientData
+                                                        ?.profileImage ==
+                                                        'https://workdonecorp.com/images/' ||
+                                                        projectData.clientData
+                                                            ?.profileImage == ''
+                                                        ? AssetImage(
+                                                        'assets/images/default.png') as ImageProvider
+                                                        : NetworkImage(
+                                                        projectData.clientData
+                                                            ?.profileImage ??
+                                                            'assets/images/default.png'),
+                                                  ),
+                                                  SizedBox(width: 11),
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      Get.to(ProfilePageClient(
+                                                          userId: projectData
+                                                              .clientData!
+                                                              .clientId
+                                                              .toString()));
+                                                    },
+
+                                                    child: Text(
+                                                      projectData.clientData!
+                                                          .firstname,
+                                                      style: TextStyle(
+                                                        color: HexColor(
+                                                            '4D8D6E'),
+                                                        fontSize: MediaQuery
+                                                            .of(context)
+                                                            .size
+                                                            .width > 400
+                                                            ? 20
+                                                            : 16,
+                                                        fontWeight: FontWeight
+                                                            .bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Spacer(),
+                                                  RatingDisplay(
+                                                      rating: projectData
+                                                          .pageContent
+                                                          .ratingOnWorker),
+                                                ],
+                                              )
+                                                  : Container(),
+                                              SizedBox(height: 8),
+                                              projectData.pageContent
+                                                  .ratingOnClient != 0 ||
+                                                  projectData.pageContent
+                                                      .reviewOnClient != ''
+                                                  ? Padding(
+                                                padding: const EdgeInsets.all(
+                                                    16.0), // Consistent padding
+                                                child: Text(
+                                                  '${projectData.pageContent
+                                                      .reviewOnWorker}',
+                                                  style: GoogleFonts
+                                                      .roboto( // Same font for consistency
+                                                    textStyle: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 16,
+                                                      // Readable size
+                                                      fontWeight: FontWeight
+                                                          .w400,
+                                                      // Slightly emphasized weight
+                                                      height: 1.5, // Increased line height for better spacing
+                                                    ),
+                                                  ),
+                                                  textAlign: TextAlign.left,
+                                                ),
+                                              )
+                                                  : SizedBox(height: 0),
+                                              SizedBox(height: 8),
+                                              projectData.pageContent
+                                                  .ratingOnClient != 0 ||
+                                                  projectData.pageContent
+                                                      .reviewOnClient != ''
+                                                  ?
+                                              Container(
+                                                height: 140,
+                                                child: ListView.builder(
+                                                  scrollDirection: Axis
+                                                      .horizontal,
+                                                  itemCount: projectData
+                                                      .pageContent.imagesAfter
+                                                      .length,
+                                                  itemBuilder: (context,
+                                                      index) {
+                                                    return GestureDetector(
+                                                      onTap: () {
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (
+                                                                context) =>
+                                                                PhotoView(
+                                                                  imageProvider: NetworkImage(
+                                                                    projectData
+                                                                        .pageContent
+                                                                        .imagesAfter[index],
+                                                                  ),
+                                                                  heroAttributes: PhotoViewHeroAttributes(
+                                                                    tag: projectData
+                                                                        .pageContent
+                                                                        .imagesAfter[index],
+                                                                  ),
+                                                                ),
+                                                          ),
+                                                        );
+                                                      },
+                                                      child: Hero(
+                                                        tag: projectData
+                                                            .pageContent
+                                                            .imagesAfter[index],
+                                                        child: Padding(
+                                                          padding: const EdgeInsets
+                                                              .symmetric(
+                                                              horizontal: 8.0),
+                                                          child: AspectRatio(
+                                                            aspectRatio: 1,
+                                                            child: Image
+                                                                .network(
+                                                              projectData
+                                                                  .pageContent
+                                                                  .imagesAfter[index],
+                                                              fit: BoxFit.cover,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              )
+                                                  : Column(
+                                                crossAxisAlignment: CrossAxisAlignment
+                                                    .start,
+
+                                                children: [
+                                                  Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 6.0),
+                                                    child: Text(
+                                                      'Client Review :',
+                                                      style: GoogleFonts
+                                                          .openSans(
+                                                        textStyle: TextStyle(
+                                                          color: HexColor(
+                                                              '34446F'),
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight
+                                                              .bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      CircleAvatar(
+                                                        radius: 23,
+                                                        backgroundColor: Colors
+                                                            .transparent,
+                                                        backgroundImage: projectData
+                                                            .clientData
+                                                            ?.profileImage ==
+                                                            'https://workdonecorp.com/images/' ||
+                                                            projectData
+                                                                .clientData
+                                                                ?.profileImage ==
+                                                                ''
+                                                            ? AssetImage(
+                                                            'assets/images/default.png') as ImageProvider
+                                                            : NetworkImage(
+                                                            projectData
+                                                                .clientData
+                                                                ?.profileImage ??
+                                                                'assets/images/default.png'),
+                                                      ),
+                                                      SizedBox(width: 11),
+                                                      GestureDetector(
+                                                        onTap: () {
+                                                          Get.to(
+                                                              ProfilePageClient(
+                                                                  userId: projectData
+                                                                      .clientData!
+                                                                      .clientId
+                                                                      .toString()));
+                                                        },
+
+                                                        child: Text(
+                                                          projectData
+                                                              .clientData!
+                                                              .firstname,
+                                                          style: TextStyle(
+                                                            color: HexColor(
+                                                                '4D8D6E'),
+                                                            fontSize: MediaQuery
+                                                                .of(context)
+                                                                .size
+                                                                .width > 400
+                                                                ? 20
+                                                                : 16,
+                                                            fontWeight: FontWeight
+                                                                .bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Spacer(),
+                                                      RatingDisplay(
+                                                          rating: projectData
+                                                              .pageContent
+                                                              .ratingOnWorker),
+                                                    ],
+                                                  ),
+                                                  Padding(
+                                                    padding: const EdgeInsets
+                                                        .all(16.0),
+                                                    // Consistent padding
+                                                    child: Text(
+                                                      '${projectData.pageContent
+                                                          .reviewOnWorker}',
+                                                      style: GoogleFonts
+                                                          .roboto( // Same font for consistency
+                                                        textStyle: TextStyle(
+                                                          color: Colors.black,
+                                                          fontSize: 16,
+                                                          // Readable size
+                                                          fontWeight: FontWeight
+                                                              .w400,
+                                                          // Slightly emphasized weight
+                                                          height: 1.5, // Increased line height for better spacing
+                                                        ),
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    height: 140,
+                                                    child: ListView.builder(
+                                                      scrollDirection: Axis
+                                                          .horizontal,
+                                                      itemCount: projectData
+                                                          .pageContent
+                                                          .imagesAfter.length,
+                                                      itemBuilder: (context,
+                                                          index) {
+                                                        return GestureDetector(
+                                                          onTap: () {
+                                                            Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                builder: (
+                                                                    context) =>
+                                                                    PhotoView(
+                                                                      imageProvider: NetworkImage(
+                                                                        projectData
+                                                                            .pageContent
+                                                                            .imagesAfter[index],
+                                                                      ),
+                                                                      heroAttributes: PhotoViewHeroAttributes(
+                                                                        tag: projectData
+                                                                            .pageContent
+                                                                            .imagesAfter[index],
+                                                                      ),
+                                                                    ),
+                                                              ),
+                                                            );
+                                                          },
+                                                          child: Hero(
+                                                            tag: projectData
+                                                                .pageContent
+                                                                .imagesAfter[index],
+                                                            child: Padding(
+                                                              padding: const EdgeInsets
+                                                                  .symmetric(
+                                                                  horizontal: 8.0),
+                                                              child: AspectRatio(
+                                                                aspectRatio: 1,
+                                                                child: Image
+                                                                    .network(
+                                                                  projectData
+                                                                      .pageContent
+                                                                      .imagesAfter[index],
+                                                                  fit: BoxFit
+                                                                      .cover,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      },
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                              SizedBox(height: 17,),
+                                              projectData.pageContent
+                                                  .ratingOnClient != 0 ||
+                                                  projectData.pageContent
+                                                      .reviewOnClient != ''
+
+                                                  ? Padding(
+                                                padding: const EdgeInsets
+                                                    .symmetric(horizontal: 6.0),
+                                                child: Text(
+                                                  'Worker Review :',
+                                                  style: GoogleFonts.openSans(
+                                                    textStyle: TextStyle(
+                                                      color: HexColor('34446F'),
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight
+                                                          .bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ) : Container(),
+                                              SizedBox(height: 10,),
+                                              projectData.pageContent
+                                                  .ratingOnClient != 0 ||
+                                                  projectData.pageContent
+                                                      .reviewOnClient != ''
+                                                  ? Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    radius: 23,
+                                                    backgroundColor: Colors
+                                                        .transparent,
+                                                    backgroundImage: projectData
+                                                        .selectworkerbid
+                                                        .worker_profile_pic ==
+                                                        '' || projectData
+                                                        .selectworkerbid
+                                                        .worker_profile_pic
+                                                        .isEmpty
+                                                        || projectData
+                                                            .selectworkerbid
+                                                            .worker_profile_pic ==
+                                                            "https://workdonecorp.com/storage/" ||
+                                                        !(projectData
+                                                            .selectworkerbid
+                                                            .worker_profile_pic
+                                                            .toLowerCase()
+                                                            .endsWith('.jpg') ||
+                                                            projectData
+                                                                .selectworkerbid
+                                                                .worker_profile_pic
+                                                                .toLowerCase()
+                                                                .endsWith(
+                                                                '.png'))
+
+                                                        ? AssetImage(
+                                                        'assets/images/default.png') as ImageProvider
+                                                        : NetworkImage(
+                                                        projectData
+                                                            .selectworkerbid
+                                                            .worker_profile_pic ??
+                                                            'assets/images/default.png'),
+                                                  ),
+                                                  SizedBox(width: 11),
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      Get.to(Workerprofileother
+                                                        (
+                                                          userId: projectData
+                                                              .selectworkerbid
+                                                              .worker_id
+                                                              .toString()),
+                                                        transition: Transition
+                                                            .fadeIn,
+                                                        // You can choose a different transition
+                                                        duration: Duration(
+                                                            milliseconds: 700),);
+                                                    },
+
+                                                    child: Text(
+                                                      projectData
+                                                          .selectworkerbid
+                                                          .worker_firstname,
+                                                      //client first name
+                                                      style: TextStyle(
+                                                        color: HexColor(
+                                                            '4D8D6E'),
+                                                        fontSize: MediaQuery
+                                                            .of(context)
+                                                            .size
+                                                            .width > 400
+                                                            ? 20
+                                                            : 16,
+                                                        fontWeight: FontWeight
+                                                            .bold,
+                                                      ),
+                                                    ),
+                                                  ),
+
+
+                                                  Spacer(),
+                                                  RatingDisplay(
+                                                      rating: projectData
+                                                          .pageContent
+                                                          .ratingOnClient),
+                                                ],
+                                              )
+                                                  : Container(
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius
+                                                      .circular(10),
+                                                  color: Colors.white,
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black
+                                                          .withOpacity(0.1),
+                                                      blurRadius: 5,
+                                                      offset: Offset(0, 3),
+                                                    ),
+                                                  ],
+                                                ),
+                                                padding: EdgeInsets.symmetric(
+                                                    vertical: 12,
+                                                    horizontal: 16),
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons
+                                                          .warning_amber_outlined,
+                                                      color: Colors.orange,
+                                                      size: 20,
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Expanded(
+                                                      child: Text(
+                                                        'The Worker Didnt rate yet.',
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight
+                                                              .w500,
+                                                          color: Colors
+                                                              .grey[800],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              projectData.pageContent
+                                                  .reviewOnClient != ''
+                                                  ? Padding(
+                                                padding: const EdgeInsets
+                                                    .symmetric(
+                                                    horizontal: 12.0),
+                                                // Add padding around the text
+                                                child: Text(
+                                                  '${projectData.pageContent
+                                                      .reviewOnClient}',
+                                                  style: GoogleFonts
+                                                      .roboto( // Use Roboto for a more readable font
+                                                    textStyle: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 16,
+                                                      // Increased font size for better readability
+                                                      fontWeight: FontWeight
+                                                          .w400, // Slightly heavier weight for emphasis
+                                                    ),
+
+                                                  ),
+                                                ),
+                                              )
+                                                  : Container(),
+
+
+                                              projectData.pageaccessdata
+                                                  .force_review == 'true' ?
+                                              Row(
+                                                children: [
+
+                                                  Expanded(
+                                                    child: Container(
+                                                      width: 220.0,
+                                                      height: 50,
+                                                      // Set the desired width
+                                                      child: ElevatedButton(
+                                                        onPressed: () {
+                                                          showModalBottomSheet(
+                                                            context: context,
+                                                            isScrollControlled: true,
+                                                            builder: (context) {
+                                                              return SafeArea(
+                                                                child: SingleChildScrollView(
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                      bottom: MediaQuery
+                                                                          .of(
+                                                                          context)
+                                                                          .viewInsets
+                                                                          .bottom),
+                                                                  child: Column(
+                                                                    mainAxisSize: MainAxisSize
+                                                                        .min,
+                                                                    children: [
+                                                                      ListTile(
+                                                                        title: Text(
+                                                                          'The Project is Completed, make feedback about Client!',
+                                                                          style: GoogleFonts
+                                                                              .roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: HexColor(
+                                                                                  '4D8D6E'),
+                                                                              fontSize: 20,
+                                                                              fontWeight: FontWeight
+                                                                                  .bold,
+                                                                            ),
+                                                                          ),
+                                                                          textAlign: TextAlign
+                                                                              .center,
+                                                                        ),
+                                                                      ),
+                                                                      ListTile(
+                                                                        title: Text(
+                                                                          'Rating',
+                                                                          style: GoogleFonts
+                                                                              .roboto(
+                                                                            textStyle: TextStyle(
+                                                                              color: HexColor(
+                                                                                  '424347'),
+                                                                              fontSize: 18,
+                                                                              fontWeight: FontWeight
+                                                                                  .bold,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      ListTile(
+                                                                        title: Column(
+                                                                          crossAxisAlignment: CrossAxisAlignment
+                                                                              .center,
+                                                                          children: [
+                                                                            Row(
+                                                                              mainAxisAlignment: MainAxisAlignment
+                                                                                  .center,
+                                                                              children: [
+                                                                                CircleAvatar(
+                                                                                  radius: 23,
+                                                                                  backgroundColor: Colors
+                                                                                      .transparent,
+                                                                                  backgroundImage: projectData
+                                                                                      .clientData
+                                                                                      .profileImage ==
+                                                                                      'https://workdonecorp.com/images/' ||
+                                                                                      projectData
+                                                                                          .clientData
+                                                                                          .profileImage ==
+                                                                                          ''
+                                                                                      ? AssetImage(
+                                                                                      'assets/images/default.png') as ImageProvider
+                                                                                      : NetworkImage(
+                                                                                      projectData
+                                                                                          .clientData
+                                                                                          .profileImage),
+                                                                                ),
+                                                                                SizedBox(
+                                                                                    width: 10),
+                                                                                Column(
+                                                                                  crossAxisAlignment: CrossAxisAlignment
+                                                                                      .center,
+                                                                                  children: [
+                                                                                    Text(
+                                                                                      '${projectData
+                                                                                          .clientData
+                                                                                          .firstname}',
+                                                                                      style: GoogleFonts
+                                                                                          .roboto(
+                                                                                        textStyle: TextStyle(
+                                                                                          color: HexColor(
+                                                                                              '706F6F'),
+                                                                                          fontSize: 17,
+                                                                                          fontWeight: FontWeight
+                                                                                              .bold,
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                    SizedBox(
+                                                                                        width: 8),
+                                                                                    RatingBar
+                                                                                        .builder(
+                                                                                      initialRating: 0,
+                                                                                      minRating: 1,
+                                                                                      direction: Axis
+                                                                                          .horizontal,
+                                                                                      allowHalfRating: false,
+                                                                                      itemCount: 5,
+                                                                                      itemPadding: EdgeInsets
+                                                                                          .symmetric(
+                                                                                          horizontal: 2.0),
+                                                                                      itemBuilder: (
+                                                                                          context,
+                                                                                          _) =>
+                                                                                          Icon(
+                                                                                            Icons
+                                                                                                .star,
+                                                                                            color: HexColor(
+                                                                                                '4D8D6E'),
+                                                                                            size: 14,
+                                                                                          ),
+                                                                                      onRatingUpdate: (
+                                                                                          rating2) {
+                                                                                        rating =
+                                                                                            rating2
+                                                                                                .toString();
+                                                                                        print(
+                                                                                            rating);
+                                                                                      },
+                                                                                    ),
+                                                                                  ],
+                                                                                ),
+                                                                              ],
+                                                                            )
+                                                                          ],
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(
+                                                                          height: screenheight *
+                                                                              0.02),
+                                                                      Padding(
+                                                                        padding: const EdgeInsets
+                                                                            .symmetric(
+                                                                            horizontal: 12.0),
+                                                                        child: Container(
+                                                                          decoration: BoxDecoration(
+                                                                            borderRadius: BorderRadius
+                                                                                .circular(
+                                                                                15),
+                                                                            color: Colors
+                                                                                .grey[100],
+                                                                          ),
+                                                                          child: Padding(
+                                                                            padding: const EdgeInsets
+                                                                                .symmetric(
+                                                                                horizontal: 16),
+                                                                            child: TextFormField(
+                                                                              controller: reviewcontroller,
+                                                                              decoration: InputDecoration(
+                                                                                hintText: 'Write a Review ...',
+                                                                                hintStyle: TextStyle(
+                                                                                    color: Colors
+                                                                                        .grey[500]),
+                                                                                border: InputBorder
+                                                                                    .none,
+                                                                              ),
+                                                                              maxLines: 4,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Padding(
+                                                                        padding: const EdgeInsets
+                                                                            .symmetric(
+                                                                            horizontal: 12.0,
+                                                                            vertical: 20),
+                                                                        child: Center(
+                                                                          child: ActionSlider
+                                                                              .standard(
+                                                                            sliderBehavior: SliderBehavior
+                                                                                .stretch,
+                                                                            rolling: false,
+                                                                            width: double
+                                                                                .infinity,
+                                                                            backgroundColor: Colors
+                                                                                .white,
+                                                                            toggleColor: HexColor(
+                                                                                '4D8D6E'),
+                                                                            iconAlignment: Alignment
+                                                                                .centerRight,
+                                                                            loadingIcon: SizedBox(
+                                                                              width: 55,
+                                                                              child: Center(
+                                                                                child: RotationTransition(
+                                                                                  turns: ciruclaranimation,
+                                                                                  child: SvgPicture
+                                                                                      .asset(
+                                                                                    'assets/images/Logo.svg',
+                                                                                    semanticsLabel: 'Your SVG Image',
+                                                                                    width: 70,
+                                                                                    height: 80,
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            successIcon: const SizedBox(
+                                                                              width: 55,
+                                                                              child: Center(
+                                                                                child: Icon(
+                                                                                  Icons
+                                                                                      .check_rounded,
+                                                                                  color: Colors
+                                                                                      .white,
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            icon: const SizedBox(
+                                                                              width: 55,
+                                                                              child: Center(
+                                                                                child: Icon(
+                                                                                  Icons
+                                                                                      .keyboard_double_arrow_right,
+                                                                                  color: Colors
+                                                                                      .white,
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            action: (
+                                                                                controller) async {
+                                                                              if (!isLoading) {
+                                                                                controller
+                                                                                    .loading();
+                                                                                await Reviewproject();
+                                                                                Get
+                                                                                    .off(
+                                                                                  bidDetailsWorker(
+                                                                                      projectId: widget
+                                                                                          .projectId),
+                                                                                  transition: Transition
+                                                                                      .fadeIn,
+                                                                                  // You can choose a different transition
+                                                                                  duration: Duration(
+                                                                                      milliseconds: 700), // Set the duration of the transition
+                                                                                );
+
+                                                                                controller
+                                                                                    .success();
+                                                                                await Future
+                                                                                    .delayed(
+                                                                                    const Duration(
+                                                                                        seconds: 1));
+                                                                                controller
+                                                                                    .reset();
+                                                                              }
+                                                                            },
+                                                                            child: const Text(
+                                                                                'Swipe To Confirm'),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(
+                                                                          height: 20),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            },
+                                                          );
+                                                        },
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          backgroundColor: HexColor(
+                                                              'ED6F53'),
+                                                          // Background color
+                                                          foregroundColor: Colors
+                                                              .white,
+                                                          // Text color
+                                                          elevation: 8,
+                                                          // Elevation
+                                                          shape:
+                                                          RoundedRectangleBorder(
+                                                            borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                                12), // Rounded corners
+                                                          ),
+                                                        ),
+                                                        child: Padding(
+                                                          padding:
+                                                          const EdgeInsets
+                                                              .all(12.0),
+                                                          child: Text(
+                                                            'Rate your Client',
+                                                            style: GoogleFonts
+                                                                .roboto(
+                                                              textStyle:
+                                                              TextStyle(
+                                                                color:
+                                                                Colors.white,
+                                                                fontSize: 14,
+                                                                fontWeight:
+                                                                FontWeight
+                                                                    .bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ) : Container(),
+
+
+                                              SizedBox(height: 15,),
+                                              Padding(
+                                                padding: const EdgeInsets
+                                                    .symmetric(horizontal: 6.0),
+                                                child: Text(
+                                                  'Workers Bids',
+                                                  style: GoogleFonts.openSans(
+                                                    textStyle: TextStyle(
+                                                      color: HexColor('454545'),
+                                                      fontSize: 22,
+                                                      fontWeight: FontWeight
+                                                          .bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Animate(
+                                                effects: [
+                                                  SlideEffect(
+                                                    duration: Duration(
+                                                        milliseconds: 800),),
+                                                ],
+                                                child: ListView.builder(
+                                                  physics: NeverScrollableScrollPhysics(),
+                                                  shrinkWrap: true,
+                                                  itemCount: projectData.bids
+                                                      .length,
+                                                  itemBuilder: (context,
+                                                      index) {
+                                                    Bid bid = projectData
+                                                        .bids[index];
                                                     return buildListItem(bid);
                                                   },
                                                 ),
@@ -6936,27 +9504,29 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                       }
                                       else if (projectData.bids.isNotEmpty) {
                                         projectData.status ==
-                                            'bid_accepted'?
-                                        activeStep=1:
+                                            'bid_accepted' ?
+                                        activeStep = 1 :
                                         projectData.status ==
-                                            'scheduled'?
-                                        activeStep=2:
+                                            'scheduled' ?
+                                        activeStep = 2 :
                                         projectData.status ==
-                                            'processing'?
-                                        activeStep=3:
+                                            'processing' ?
+                                        activeStep = 3 :
                                         projectData.status ==
-                                            'finalizing'?
-                                        activeStep=4:
+                                            'finalizing' ?
+                                        activeStep = 4 :
                                         projectData.status ==
-                                            'completed'?
-                                        activeStep=5:
-                                        activeStep=0;
+                                            'completed' ?
+                                        activeStep = 5 :
+                                        activeStep = 0;
                                         return Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .start,
 
                                           children: [
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
                                                 'Progress',
                                                 style: GoogleFonts.openSans(
@@ -6971,15 +9541,21 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             SizedBox(height: 17,),
 
                                             Container(
-                                              height:150,
+                                              height: 150,
                                               child: Center(
                                                 child: Container(
-                                                  padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 10),
                                                   child: EasyStepper(
-                                                    activeStepBackgroundColor:HexColor('4D8D6E') ,
-                                                    activeStepIconColor: Colors.white,
-                                                    activeStepBorderColor:HexColor('4D8D6E')  ,
-                                                    activeStepTextColor: HexColor('4D8D6E'),
+                                                    activeStepBackgroundColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepIconColor: Colors
+                                                        .white,
+                                                    activeStepBorderColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepTextColor: HexColor(
+                                                        '4D8D6E'),
 
                                                     showScrollbar: true,
                                                     enableStepTapping: false,
@@ -6990,25 +9566,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     borderThickness: 1,
                                                     internalPadding: 15,
                                                     stepRadius: 32,
-                                                    finishedStepBorderColor: HexColor('8d4d6c'),
-                                                    finishedStepTextColor: HexColor('8d4d6c'),
-                                                    finishedStepBackgroundColor: HexColor('8d4d6c'),
-                                                    finishedStepIconColor: Colors.white,
-                                                    finishedStepBorderType: BorderType.normal,
+                                                    finishedStepBorderColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepTextColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepBackgroundColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepIconColor: Colors
+                                                        .white,
+                                                    finishedStepBorderType: BorderType
+                                                        .normal,
                                                     showLoadingAnimation: false,
                                                     showStepBorder: true,
                                                     lineStyle: LineStyle(
                                                       lineLength: 45,
                                                       lineType: LineType.dashed,
 
-                                                      activeLineColor: HexColor('#8d4d6c'),
-                                                      defaultLineColor: HexColor('#8d4d6c'),
-                                                      unreachedLineColor: HexColor('#172a21'),
+                                                      activeLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      defaultLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      unreachedLineColor: HexColor(
+                                                          '#172a21'),
                                                       lineThickness: 3,
                                                       lineSpace: 2,
                                                       lineWidth: 10,
 
-                                                      unreachedLineType: LineType.dashed,
+                                                      unreachedLineType: LineType
+                                                          .dashed,
 
                                                     ),
 
@@ -7017,7 +9602,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.money_16_regular,
+                                                          FluentIcons
+                                                              .money_16_regular,
                                                         ),
                                                         title: 'Under Bidding',
 
@@ -7035,7 +9621,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.calendar_12_filled ,
+                                                          FluentIcons
+                                                              .calendar_12_filled,
                                                         ),
                                                         title: 'Schedule',
 
@@ -7044,7 +9631,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.spinner_ios_16_filled ,
+                                                          FluentIcons
+                                                              .spinner_ios_16_filled,
                                                         ),
                                                         title: 'Processing',
 
@@ -7053,7 +9641,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.checkmark_circle_square_16_filled ,
+                                                          FluentIcons
+                                                              .checkmark_circle_square_16_filled,
                                                         ),
                                                         title: 'Finilizing',
 
@@ -7062,14 +9651,17 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.flag_16_filled  ,
+                                                          FluentIcons
+                                                              .flag_16_filled,
                                                         ),
                                                         title: 'Completed',
 
                                                       ),
 
                                                     ],
-                                                    onStepReached: (index) => setState(() => activeStep = index),
+                                                    onStepReached: (index) =>
+                                                        setState(() =>
+                                                        activeStep = index),
                                                   ),
                                                 ),
 
@@ -7078,7 +9670,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
                                                 'Workers Bids',
                                                 style: GoogleFonts.openSans(
@@ -7093,13 +9686,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             SizedBox(height: 8,),
 
                                             Animate(
-                                              effects: [SlideEffect(duration: Duration(milliseconds: 800),),],
+                                              effects: [
+                                                SlideEffect(duration: Duration(
+                                                    milliseconds: 800),),
+                                              ],
                                               child: ListView.builder(
                                                 physics: NeverScrollableScrollPhysics(),
                                                 shrinkWrap: true,
-                                                itemCount: projectData.bids.length,
+                                                itemCount: projectData.bids
+                                                    .length,
                                                 itemBuilder: (context, index) {
-                                                  Bid bid = projectData.bids[index];
+                                                  Bid bid = projectData
+                                                      .bids[index];
                                                   return buildListItem(bid);
                                                 },
                                               ),
@@ -7108,12 +9706,14 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                         );
                                       } else {
                                         // Render a message when there are no bids
-                                        activeStep =0;
+                                        activeStep = 0;
                                         return Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .start,
                                           children: [
                                             Padding(
-                                              padding:                                   const EdgeInsets.symmetric(horizontal: 6.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 6.0),
                                               child: Text(
                                                 'Progress',
                                                 style: GoogleFonts.openSans(
@@ -7127,15 +9727,21 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                             ),
 
                                             Container(
-                                              height:150,
+                                              height: 150,
                                               child: Center(
                                                 child: Container(
-                                                  padding: EdgeInsets.symmetric(horizontal: 8,vertical: 10),
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 10),
                                                   child: EasyStepper(
-                                                    activeStepBackgroundColor:HexColor('4D8D6E') ,
-                                                    activeStepIconColor: Colors.white,
-                                                    activeStepBorderColor:HexColor('4D8D6E')  ,
-                                                    activeStepTextColor: HexColor('4D8D6E'),
+                                                    activeStepBackgroundColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepIconColor: Colors
+                                                        .white,
+                                                    activeStepBorderColor: HexColor(
+                                                        '4D8D6E'),
+                                                    activeStepTextColor: HexColor(
+                                                        '4D8D6E'),
 
                                                     showScrollbar: true,
                                                     enableStepTapping: false,
@@ -7146,25 +9752,34 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                                     borderThickness: 1,
                                                     internalPadding: 15,
                                                     stepRadius: 32,
-                                                    finishedStepBorderColor: HexColor('8d4d6c'),
-                                                    finishedStepTextColor: HexColor('8d4d6c'),
-                                                    finishedStepBackgroundColor: HexColor('8d4d6c'),
-                                                    finishedStepIconColor: Colors.white,
-                                                    finishedStepBorderType: BorderType.normal,
+                                                    finishedStepBorderColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepTextColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepBackgroundColor: HexColor(
+                                                        '8d4d6c'),
+                                                    finishedStepIconColor: Colors
+                                                        .white,
+                                                    finishedStepBorderType: BorderType
+                                                        .normal,
                                                     showLoadingAnimation: false,
                                                     showStepBorder: true,
                                                     lineStyle: LineStyle(
                                                       lineLength: 45,
                                                       lineType: LineType.dashed,
 
-                                                      activeLineColor: HexColor('#8d4d6c'),
-                                                      defaultLineColor: HexColor('#8d4d6c'),
-                                                      unreachedLineColor: HexColor('#172a21'),
+                                                      activeLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      defaultLineColor: HexColor(
+                                                          '#8d4d6c'),
+                                                      unreachedLineColor: HexColor(
+                                                          '#172a21'),
                                                       lineThickness: 3,
                                                       lineSpace: 2,
                                                       lineWidth: 10,
 
-                                                      unreachedLineType: LineType.dashed,
+                                                      unreachedLineType: LineType
+                                                          .dashed,
 
                                                     ),
 
@@ -7173,7 +9788,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.money_16_regular,
+                                                          FluentIcons
+                                                              .money_16_regular,
                                                         ),
                                                         title: 'Under Bidding',
 
@@ -7191,7 +9807,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.calendar_12_filled ,
+                                                          FluentIcons
+                                                              .calendar_12_filled,
                                                         ),
                                                         title: 'Schedule',
 
@@ -7200,7 +9817,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.spinner_ios_16_filled ,
+                                                          FluentIcons
+                                                              .spinner_ios_16_filled,
                                                         ),
                                                         title: 'Processing',
 
@@ -7209,7 +9827,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.checkmark_circle_square_16_filled ,
+                                                          FluentIcons
+                                                              .checkmark_circle_square_16_filled,
                                                         ),
                                                         title: 'Finilizing',
 
@@ -7218,21 +9837,25 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
 
 
                                                         icon: Icon(
-                                                          FluentIcons.flag_16_filled  ,
+                                                          FluentIcons
+                                                              .flag_16_filled,
                                                         ),
                                                         title: 'Completed',
 
                                                       ),
 
                                                     ],
-                                                    onStepReached: (index) => setState(() => activeStep = index),
+                                                    onStepReached: (index) =>
+                                                        setState(() =>
+                                                        activeStep = index),
                                                   ),
                                                 ),
 
                                               ),
                                             ),
                                             Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                              padding: const EdgeInsets
+                                                  .symmetric(horizontal: 8.0),
                                               child: Text(
 
                                                 'Workers Bids'
@@ -7247,12 +9870,15 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                               ),
                                             ),
                                             Padding(
-                                              padding: const EdgeInsets.symmetric(
+                                              padding: const EdgeInsets
+                                                  .symmetric(
                                                   vertical: 14.0),
-                                              child: Center(child: Text('No bids yet')),
+                                              child: Center(
+                                                  child: Text('No bids yet')),
                                             ),
                                           ],
-                                        );                                    }
+                                        );
+                                      }
                                     }
                                   },
                                 ),
@@ -7307,9 +9933,12 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                         projectId: widget.projectId,
                         clientid: client_id,
                       )
+
                         ,
-                        transition: Transition.downToUp, // You can choose a different transition
-                        duration: Duration(milliseconds: 700), // Set the duration of the transition
+                        transition: Transition.downToUp,
+                        // You can choose a different transition
+                        duration: Duration(
+                            milliseconds: 700), // Set the duration of the transition
 
                       );
                     },
@@ -7344,7 +9973,6 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
   }
 
   Widget buildListItem(Bid item) {
-
     bool isMoneyLessOrEqual =
         double.parse(item.amount.toString()) <= double.parse(currentbid);
 
@@ -7357,9 +9985,12 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
           CircleAvatar(
             radius: 28,
             backgroundColor: Colors.transparent,
-            backgroundImage: item.workerProfilePic == '' || item.workerProfilePic.isEmpty
-                || item.workerProfilePic == "https://workdonecorp.com/storage/" ||
-                !(item.workerProfilePic.toLowerCase().endsWith('.jpg') || item.workerProfilePic.toLowerCase().endsWith('.png'))
+            backgroundImage: item.workerProfilePic == '' ||
+                item.workerProfilePic.isEmpty
+                ||
+                item.workerProfilePic == "https://workdonecorp.com/storage/" ||
+                !(item.workerProfilePic.toLowerCase().endsWith('.jpg') ||
+                    item.workerProfilePic.toLowerCase().endsWith('.png'))
 
                 ? AssetImage('assets/images/default.png') as ImageProvider
                 : NetworkImage(item.workerProfilePic),
@@ -7379,15 +10010,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                       // Navigate to worker profile page
                       // You can replace this with your navigation logic
                       Get.to(
-                          Workerprofileother
-                            (userId: item.workerId.toString()),
-                        transition: Transition.fadeIn, // You can choose a different transition
-                        duration: Duration(milliseconds: 700), // Set the duration of the transition
+                        Workerprofileother
+                          (userId: item.workerId.toString()),
+                        transition: Transition.fadeIn,
+                        // You can choose a different transition
+                        duration: Duration(
+                            milliseconds: 700), // Set the duration of the transition
                       );
                     },
                     child: Text(
                       item.workerFirstname.length > 7
-                          ? '${item.workerFirstname.substring(0, 7)}...' // Display first 14 letters with ellipsis
+                          ? '${item.workerFirstname.substring(
+                          0, 7)}...' // Display first 14 letters with ellipsis
                           : item.workerFirstname,
                       style: GoogleFonts.openSans(
                         textStyle: TextStyle(
@@ -7447,7 +10081,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                           builder: (BuildContext context) {
                             return AlertDialog(
                               backgroundColor: Colors.white,
-                              title:    Center(
+                              title: Center(
                                 child: Column(
                                   children: [
                                     Text(
@@ -7458,7 +10092,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                       ),
                                     ),
                                     Divider(
-                                      color: Colors.black, // Adjust the color of the underline
+                                      color: Colors.black,
+                                      // Adjust the color of the underline
                                       thickness: 1.0, // Adjust the thickness of the underline
                                     ),
                                   ],
@@ -7483,15 +10118,22 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                     SizedBox(height: 23,),
                                     ElevatedButton(
                                       onPressed: () {
-                                        Navigator.pop(context); // Close the dialog
+                                        Navigator.pop(
+                                            context); // Close the dialog
                                       },
-                                      child: Text('Close',style: TextStyle(fontSize: 15, color: Colors.white), // Adjust the font size
+                                      child: Text('Close', style: TextStyle(
+                                          fontSize: 15,
+                                          color: Colors
+                                              .white), // Adjust the font size
                                       ),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: HexColor('4D8D6E'),
                                         elevation: 0,
-                                        textStyle: TextStyle(color: Colors.white),
-                                        padding: EdgeInsets.symmetric(vertical:12, horizontal: 12), // Adjust padding
+                                        textStyle: TextStyle(
+                                            color: Colors.white),
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: 12,
+                                            horizontal: 12), // Adjust padding
                                       ),
                                     ),
 
@@ -7499,15 +10141,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                                 ),
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30.0), // Adjust the border radius
+                                borderRadius: BorderRadius.circular(
+                                    30.0), // Adjust the border radius
                               ),
                             );
                           },
                         );
                       },
                       style: ButtonStyle(
-                        minimumSize: MaterialStateProperty.resolveWith((states) => Size(30, 20)), // Set the minimum size
-                        padding: MaterialStateProperty.resolveWith((states) => EdgeInsets.all(8)), // Set the padding
+                        minimumSize: MaterialStateProperty.resolveWith((
+                            states) => Size(30, 20)), // Set the minimum size
+                        padding: MaterialStateProperty.resolveWith((states) =>
+                            EdgeInsets.all(8)), // Set the padding
                       ),
                       child: Text(
                         'Comment',
@@ -7519,7 +10164,8 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>  with SingleTickerP
                           ),
                         ),
                       ),
-                    )                  ],
+                    )
+                  ],
                 ),
               ),
             ],
@@ -7552,7 +10198,7 @@ class ProjectData {
   final String desc;
   final String liked; // Assuming the 'liked' field should be a boolean
 
-   int numberOfLikes;
+  int numberOfLikes;
   final String video;
   final dynamic lowestBid; // Assuming lowest bid could be null
   final String timeframeStart;
@@ -7587,7 +10233,8 @@ class ProjectData {
     var baseData = jsonData['base_data'] as Map<String, dynamic>? ?? {};
     var clientInfo = baseData['client_info'] as Map<String, dynamic>? ?? {};
     var pageContent = jsonData['page_content'] as Map<String, dynamic>? ?? {};
-    page_access_data accessData = page_access_data.fromJson(jsonData['page_access_data']);
+    page_access_data accessData = page_access_data.fromJson(
+        jsonData['page_access_data']);
 
     var selectWorkerBid =
         jsonData['select_worker_bid'] as Map<String, dynamic>? ?? {};
@@ -7638,7 +10285,7 @@ class ClientData {
       avg_rating: json['avg_rating'] ?? '0',
       lastname: json['lastname'] ?? '',
       profileImage: json['profle_image'] ??
-'',    );
+          '',);
   }
 }
 
@@ -7662,25 +10309,24 @@ class PageContent {
   final int ratingOnClient;
   final List<String> imagesAfter;
 
-  PageContent(
-      {required this.currentUserRole,
-      required this.buttons,
-      required this.selectedDate,
-      required this.selectedInterval,
-      required this.enter_complete_project_verification_code_button,
-      required this.scheduleStatus,
-      required this.schedule_vc,
-      required this.change,
-      required this.chat,
-      required this.reviewOnWorker,
-        required this.ratingOnWorker,
-        this.reviewOnClient,
-        required this.ratingOnClient,
-        required this.imagesAfter,
-      required this.enter_verification_code_button,
-      required this.project_complete_button,
-      required this.client_rating,
-      required this.support});
+  PageContent({required this.currentUserRole,
+    required this.buttons,
+    required this.selectedDate,
+    required this.selectedInterval,
+    required this.enter_complete_project_verification_code_button,
+    required this.scheduleStatus,
+    required this.schedule_vc,
+    required this.change,
+    required this.chat,
+    required this.reviewOnWorker,
+    required this.ratingOnWorker,
+    this.reviewOnClient,
+    required this.ratingOnClient,
+    required this.imagesAfter,
+    required this.enter_verification_code_button,
+    required this.project_complete_button,
+    required this.client_rating,
+    required this.support});
 
   factory PageContent.fromJson(Map<String, dynamic> json) {
     List<String> imagesList = [];
@@ -7696,14 +10342,16 @@ class PageContent {
       schedule_vc: json['schedule_vc'] ?? '',
       change: json['change'] ?? '',
       chat: json['chat'] ?? '',
-      enter_verification_code_button: json['enter_verification_code_button'] ?? '',
+      enter_verification_code_button: json['enter_verification_code_button'] ??
+          '',
       enter_complete_project_verification_code_button:
-          json['enter_complete_project_verification_code_button'] ?? '',
+      json['enter_complete_project_verification_code_button'] ?? '',
       project_complete_button: json['project_complete_button'] ?? '',
       support: json['support'] ?? '',
-      reviewOnWorker: json['review_on_worker'] ?? '', // Providing default value if null
+      reviewOnWorker: json['review_on_worker'] ?? '',
+      // Providing default value if null
       ratingOnWorker: json['rating_on_worker'] ?? 0,
-      reviewOnClient: json['review_on_client']?? '',
+      reviewOnClient: json['review_on_client'] ?? '',
       ratingOnClient: json['rating_on_client'] ?? 0,
       imagesAfter: imagesList,
       client_rating: json['client_rating'] ?? '',
@@ -7717,11 +10365,10 @@ class page_access_data {
   final dynamic complete_vc;
   final dynamic force_review;
 
-  page_access_data(
-      {required this.chat_ID,
-      required this.schedule_vc,
-      required this.force_review,
-      required this.complete_vc});
+  page_access_data({required this.chat_ID,
+    required this.schedule_vc,
+    required this.force_review,
+    required this.complete_vc});
 
   page_access_data.empty()
       : chat_ID = '',
@@ -7730,7 +10377,6 @@ class page_access_data {
         complete_vc = '';
 
   factory page_access_data.fromJson(dynamic json) {
-
     if (json is Map<String, dynamic>) {
       // Data is a Map, process it
       return page_access_data(
@@ -7761,13 +10407,12 @@ class select_worker_bid {
   final dynamic amount;
   final String comment;
 
-  select_worker_bid(
-      {required this.worker_id,
-      required this.worker_firstname,
-      required this.avg_rating,
-      required this.worker_profile_pic,
-      required this.amount,
-      required this.comment});
+  select_worker_bid({required this.worker_id,
+    required this.worker_firstname,
+    required this.avg_rating,
+    required this.worker_profile_pic,
+    required this.amount,
+    required this.comment});
 
   factory select_worker_bid.fromJson(Map<String, dynamic> json) {
     if (json == null) {
@@ -7904,7 +10549,8 @@ class ModernPopup extends StatelessWidget {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,backgroundColor: HexColor('1AA251'),
+                  foregroundColor: Colors.white,
+                  backgroundColor: HexColor('1AA251'),
                   elevation: 5,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -7931,10 +10577,11 @@ class ModernPopup extends StatelessWidget {
     );
   }
 }
+
 class RatingDisplay extends StatelessWidget {
   final int rating;
 
-  const RatingDisplay({  required this.rating}) ;
+  const RatingDisplay({ required this.rating});
 
   @override
   Widget build(BuildContext context) {
@@ -7949,7 +10596,7 @@ class RatingDisplay extends StatelessWidget {
           );
         } else if (index == ratingInt && ratingFrac > 0) {
           return Icon(
-            Icons.star_half , color: Colors.yellow,
+            Icons.star_half, color: Colors.yellow,
 
           );
         } else {
