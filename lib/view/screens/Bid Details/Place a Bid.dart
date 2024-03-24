@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -95,27 +96,66 @@ double total =0;
   }
   String paypalvalidation ='';
   void checkPayPalValidation() {
-    // Replace the condition with your actual check
-    if (paypalvalidation == 'no paypal Email' ||paypalvalidation == '' ) {
-      // Show the PayPal pop-up
+    if (paypalvalidation == 'no paypal Email' || paypalvalidation == '') {
       showDialog(
         context: context,
-        barrierDismissible: false, // Prevent closing the pop-up by tapping outside
+        barrierDismissible: true, // Prevent closing the pop-up by tapping outside
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('No Paypal Email'),
+            scrollable: true,
+            elevation: 10,
+            icon: SvgPicture.asset(
+              'assets/icons/paypal.svg',
+              fit: BoxFit.contain,
+              width: 50,
+              height: 50,
+            ),
+            title: Center(child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon (Icons.cancel,size: 22,color: Colors.red,),SizedBox(width: 3,),
+                Text('No Paypal Email', style: GoogleFonts.poppins(
+                  textStyle: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 19,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),),
+              ],
+            )),
             content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('You need to set up your PayPal email.'),
-                SizedBox(height: 8,),
-                ElevatedButton(
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text('You need to set up your  PayPal email.', style: GoogleFonts.poppins(
+                    textStyle: TextStyle(
+
+                      color: Colors.black45,
+                      fontSize: 13,
+                      fontWeight: FontWeight.normal,
+
+                    ),
+
+                  ),
+                  textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+            contentPadding: EdgeInsets.all(0), // Remove default padding
+            actions: <Widget>[
+              Center(
+                child: ElevatedButton(
                   onPressed: () {
                     // Add your logic to handle setting up PayPal here
-Get.to(paymentmethod());
+                    Get.to(paymentmethod());
                   },
                   style: ElevatedButton.styleFrom(
-                   backgroundColor: Color(0xFF4D8D6E), // Use the specified color (replace 0xFF4D8D6E with your color)
+                    backgroundColor: Color(0xFF4D8D6E),
+                    elevation: 10.0, // Elevation (shadow height)
+// Use the specified color (replace 0xFF4D8D6E with your color)
                   ),
                   child: Text(
                     'Set up PayPal',
@@ -124,10 +164,26 @@ Get.to(paymentmethod());
                       fontSize: 16.0,
                     ),
                   ),
-                )
-              ],
-            ),
+                ),
+              ),
+              SizedBox(height: 10,),
+              TextButton(
+                onPressed: () {
+                  // Add your logic to handle setting up PayPal here
+                  Navigator.pop(context);
+                },
 
+                child: Text(
+                  'Close',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 15.0,
+                  ),
+                ),
+              ),
+
+            ],
+            // Add a Stack widget to overlay the close button
           );
         },
       );

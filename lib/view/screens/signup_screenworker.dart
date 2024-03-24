@@ -1134,13 +1134,15 @@ class _SignUpScreenState extends State<SignUpScreen>
 
                                       child: Row(
                                         children: [
-                                          Icon(Icons.check_box_outline_blank),
+                                          Icon(Icons.check_box_outline_blank ,color: _image == null ?
+                                          Colors.black45 : Colors.grey,),
                                           SizedBox(width: 8,),
 
                                           Text(
                                             'No photo available',
                                             style: TextStyle(
-                                              color: Colors.black45,
+                                              color:  _image == null ?
+                                              Colors.black45 : Colors.grey,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 15,
                                             ),
@@ -1185,12 +1187,14 @@ class _SignUpScreenState extends State<SignUpScreen>
                                     Padding(
                                       padding: const EdgeInsets.only(top:10.0),
                                       child: Row(children: [
-                                      Icon(Icons.check_box_outline_blank),
+                                      Icon(Icons.check_box_outline_blank ,color: _image == null ?
+                                      Colors.black45 : Colors.grey,),
 SizedBox(width: 8,),
                                         Text(
                                           'No License Available',
                                           style: TextStyle(
-                                            color: Colors.black45,
+                                            color: _image == null ?
+                                            Colors.black45 : Colors.grey,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 15,
                                           ),

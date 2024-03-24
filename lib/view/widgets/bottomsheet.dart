@@ -73,7 +73,7 @@ class ChooseRoleBottomSheet extends StatelessWidget {
                           color: HexColor('#4D8D6E'),
                           image: DecorationImage(
                             image: AssetImage('assets/images/client.png'),
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                           ),
                         ), // Set the height of the right column
                         // Set the height of the right column
@@ -147,7 +147,7 @@ class ChooseRoleBottomSheet extends StatelessWidget {
                           color: HexColor('#4D8D6E'),
                           image: DecorationImage(
                             image: AssetImage('assets/images/workerlogo.png'),
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                           ),
                         ), // Set the height of the right column
                         // Set the height of the right column

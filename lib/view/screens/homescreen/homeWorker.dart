@@ -717,36 +717,47 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                 SizedBox(
                   height: 30,
                 ),
-                Row(
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/user.svg',
-                      width: 35.0,
-                      height: 35.0,
-                    ),
-                    SizedBox(
-                      width: 8,
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Get.to(editProfileworker()
-                          ,
-                          transition: Transition.fadeIn, // You can choose a different transition
-                          duration: Duration(milliseconds: 700),
+                GestureDetector(
+                  onTap: (){
+                    Get.to(editProfileworker()
+                      ,
+                      transition: Transition.fadeIn, // You can choose a different transition
+                      duration: Duration(milliseconds: 700),
 
-                        );
-                      },
-                      child: Text(
-                        'Edit Profile',
-                        style: GoogleFonts.poppins(
-                          textStyle: TextStyle(
-                              color: HexColor('1A1D1E'),
-                              fontSize: 15,
-                              fontWeight: FontWeight.normal),
-                        ),
+                    );
+
+                  },
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/user.svg',
+                        width: 35.0,
+                        height: 35.0,
                       ),
-                    )
-                  ],
+                      SizedBox(
+                        width: 8,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Get.to(editProfileworker()
+                            ,
+                            transition: Transition.fadeIn, // You can choose a different transition
+                            duration: Duration(milliseconds: 700),
+
+                          );
+                        },
+                        child: Text(
+                          'Edit Profile',
+                          style: GoogleFonts.poppins(
+                            textStyle: TextStyle(
+                                color: HexColor('1A1D1E'),
+                                fontSize: 15,
+                                fontWeight: FontWeight.normal),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
                 SizedBox(
                   height: 12,
@@ -778,63 +789,79 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                 //   ],
                 // ),
 
-                Row(
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/notification.svg',
-                      width: 35.0,
-                      height: 35.0,
-                    ),
-                    SizedBox(
-                      width: 8,
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Get.to(NotificationsPageworker
-                          ());
-                      },
-                      child: Text(
-                        'Notifications',
-                        style: GoogleFonts.poppins(
-                          textStyle: TextStyle(
-                              color: HexColor('1A1D1E'),
-                              fontSize: 15,
-                              fontWeight: FontWeight.normal),
-                        ),
+                GestureDetector(
+                  onTap: (){
+
+                    Get.to(NotificationsPageworker
+                      ());
+
+                  },
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/notification.svg',
+                        width: 35.0,
+                        height: 35.0,
                       ),
-                    )
-                  ],
+                      SizedBox(
+                        width: 8,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Get.to(NotificationsPageworker
+                            ());
+                        },
+                        child: Text(
+                          'Notifications',
+                          style: GoogleFonts.poppins(
+                            textStyle: TextStyle(
+                                color: HexColor('1A1D1E'),
+                                fontSize: 15,
+                                fontWeight: FontWeight.normal),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
                 SizedBox(
                   height: 12,
                 ),
-            Row(
-              children: [
-                SvgPicture.asset(
-                  'assets/icons/portfolioicon.svg',
-                  width: 35.0,
-                  height: 35.0,
-                ),
-                SizedBox(
-                  width: 8,
-                ),
-                TextButton(
+            GestureDetector(
+              onTap: (){
+                Get.to(reviewprofile(userId: '${userId}'),
+                  transition: Transition.fadeIn, // You can choose a different transition
+                  duration: Duration(milliseconds: 700), );
 
-
-                  onPressed: () {Get.to(reviewprofile(userId: '${userId}'),
-                    transition: Transition.fadeIn, // You can choose a different transition
-                    duration: Duration(milliseconds: 700), );},
-                  child: Text(
-                    'Review',
-                    style: GoogleFonts.poppins(
-                      textStyle: TextStyle(
-                          color: HexColor('1A1D1E'),
-                          fontSize: 15,
-                          fontWeight: FontWeight.normal),
-                    ),
+              },
+              child: Row(
+                children: [
+                  SvgPicture.asset(
+                    'assets/icons/portfolioicon.svg',
+                    width: 35.0,
+                    height: 35.0,
                   ),
-                )
-              ],
+                  SizedBox(
+                    width: 8,
+                  ),
+                  TextButton(
+
+
+                    onPressed: () {Get.to(reviewprofile(userId: '${userId}'),
+                      transition: Transition.fadeIn, // You can choose a different transition
+                      duration: Duration(milliseconds: 700), );},
+                    child: Text(
+                      'Review',
+                      style: GoogleFonts.poppins(
+                        textStyle: TextStyle(
+                            color: HexColor('1A1D1E'),
+                            fontSize: 15,
+                            fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                  )
+                ],
+              ),
             ),
                 Spacer(),
                 Row(
@@ -867,25 +894,38 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 11.0,horizontal: 8),
-                  child: Row(
-                    children: [
-                      SvgPicture.asset(
-                        'assets/images/Logo.svg',
-                        fit: BoxFit.cover,
-                        width: 55.0,
-                        height: 55.0,
-                      ),
-                      SizedBox(width: 7,),
-                      Text('Workdone Corp.',
-                        style: GoogleFonts.poppins(
-                          textStyle: TextStyle(
-                              color: HexColor('595B5B'),
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                    ],
+                  padding: const EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
+                  child: LayoutBuilder(
+                    builder: (BuildContext context, BoxConstraints constraints) {
+                      // Calculate the size of the SVG image based on the available width
+                      double svgSize = constraints.maxWidth * 0.27; // Adjust the multiplier as needed
+                      return Row(
+                        children: [
+                          FittedBox(
+                            child: SvgPicture.asset(
+                              'assets/images/Logo.svg',
+                              fit: BoxFit.cover,
+                              width: svgSize,
+                              height: svgSize,
+                            ),
+                          ),
+                          SizedBox(width: 8,),
+                          Flexible(
+                            child: Text(
+                              'Workdone Corp.',
+                              style: GoogleFonts.poppins(
+                                textStyle: TextStyle(
+                                  color: HexColor('595B5B'),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 12,)
+                        ],
+                      );
+                    },
                   ),
                 ),
                 SizedBox(height: 12,),
