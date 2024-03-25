@@ -833,11 +833,13 @@ int? SelectedWorkerid ;
           _controllerInitialized = true;
           _chewieController = ChewieController(
             videoPlayerController: _controller,
-            aspectRatio: 16 / 9, // Adjust as needed
-            autoPlay: false, // Set to true if you want the video to play automatically
-            looping: false, // Set to true if you want the video to loop
+            aspectRatio: _controller.value.aspectRatio, // Use the video's actual aspect ratio
+            autoPlay: false,
+            looping: false,
             // ... Other ChewieController configurations
           );
+
+
         });
       }).catchError((error) {
         print(video);

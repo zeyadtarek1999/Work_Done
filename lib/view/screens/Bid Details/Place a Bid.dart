@@ -490,6 +490,8 @@ print('second ${client_id}');
       Screenshot(
         controller:screenshotController10 ,
         child:Form(
+          autovalidateMode: AutovalidateMode.onUserInteraction, // Enable auto-validation
+
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
@@ -639,6 +641,7 @@ print('second ${client_id}');
                               validator: (value) {
                                 // Validate the entered value
                                 if (value == null || value.isEmpty) {
+
                                   return 'Please enter a value';
                                 }
                                 // Add additional validation as needed
@@ -764,7 +767,7 @@ print('second ${client_id}');
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Text('(What you will recieve) ',style: GoogleFonts.openSans(
+                            Text('(What you will Recieve) ',style: GoogleFonts.openSans(
                               textStyle: TextStyle(
                                 color: Colors.white,
                                 fontSize: 14,
@@ -820,32 +823,41 @@ SizedBox(width: 6,),
                 SizedBox(height: 8,),
 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal:25.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   child: Container(
                     height: 150,
                     width: double.infinity, // Set the desired width
                     decoration: BoxDecoration(
-                      color: Colors.grey [100],
+                      color: Colors.grey[100],
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0,),
-                      child: TextFormField(controller: commentController,
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: TextFormField(
+                        controller: commentController,
                         maxLines: null, // Allows the text to take up multiple lines
                         decoration: InputDecoration(
-                          hintText:
-'Please write your comment to the client. This should include materials you plan to use, etc..',                          border: InputBorder.none,
+                          hintText: 'Please write your comment to the client. This should include materials you plan to use, etc..',
+                          border: InputBorder.none,
                           hintMaxLines: 5, // Allows the hint text to take up multiple lines
                           hintStyle: TextStyle(
                             color: Colors.grey,
                             fontSize: 14.0,
                           ),
-
                         ),
                         validator: (value) {
                           // Validate the entered value
                           if (value == null || value.isEmpty) {
+                            // Fluttertoast.showToast(
+                            //   msg: "Please write a comment",
+                            // );
                             return 'Please write a comment';
+                          }
+                          if (value.length < 50) {
+                            // Fluttertoast.showToast(
+                            //   msg: "Comment must be at least 50 characters long",
+                            // );
+                            return 'Comment must be at least 50 characters long';
                           }
                           // Add additional validation as needed
 
@@ -869,7 +881,27 @@ SizedBox(width: 6,),
                     ),
                     child: InkWell(
                       onTap: () async {
-                        if (_formKey.currentState!.validate()) {
+if(receive.text.isEmpty
+){
+
+  Fluttertoast.showToast(
+    msg: "Please Write a bid value its required",
+  );
+}
+                        else if (commentController.text.isEmpty){
+
+                          Fluttertoast.showToast(
+                            msg: "please Write a comment its required",
+                          );
+                        }else if(commentController.text.length<50){
+
+                          Fluttertoast.showToast(
+                            msg: "Comment must be at least 50 characters long",
+                          );
+
+
+                        }
+                       else if (_formKey.currentState!.validate()) {
                           setState(() {
                             _isLoading = true;
                           });
@@ -877,9 +909,10 @@ SizedBox(width: 6,),
                           setState(() {
                             _isLoading = false;
                           });
-                        } else {
+                        }else{
+
                           Fluttertoast.showToast(
-                            msg: "Please Enter a bid value.",
+                            msg: "fill all required fields\n (Bid value - Comment)",
                           );
                         }
                       },

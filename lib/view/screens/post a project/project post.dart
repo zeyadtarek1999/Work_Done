@@ -497,6 +497,8 @@ class _projectPostState extends State<projectPost>
             child: Padding(
               padding: const EdgeInsets.only(top: 12.0, left: 10, right: 10),
               child: Form(
+                autovalidateMode: AutovalidateMode.onUserInteraction, // Enable auto-validation
+
                 key: _formKey,
                 child:  Animate(
                   effects: [MoveEffect(duration: Duration(milliseconds: 500),),],
@@ -1024,7 +1026,7 @@ class _projectPostState extends State<projectPost>
                           height: 8,
                         ),
                         Container(
-                          height: 55,
+                          height: 80,
                           width: double.infinity,
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -1046,8 +1048,10 @@ class _projectPostState extends State<projectPost>
                                       vertical: 15.0), // Adjust padding
                                 ),
                                 validator: (value) {
-                                  if (value == null || value.isEmpty) {}
-                                  return null;
+                                  if (value == null || value.isEmpty) {
+                                    return "Please Write a Project Title";
+
+                                  }
                                 },
                               ),
                             ],
@@ -1145,16 +1149,10 @@ class _projectPostState extends State<projectPost>
                               ),
                               onPressed: () {
                                 // Show a Snackbar with the required text
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    backgroundColor: Colors.red,
-                                    content: Text(
-                                      'Time frame is Required',
-                                      style: TextStyle(
-                                          color: Colors.white), // Red text color
-                                    ),
-                                  ),
-                                );
+                                Fluttertoast.showToast(
+                                    msg:
+                                    "Preferred Time Frame is required ");
+
                               },
                             ),
                           ],
@@ -1277,8 +1275,14 @@ class _projectPostState extends State<projectPost>
                                     if (value == null || value.isEmpty) {
                                       return 'Description is required';
                                     }
-                                    return null;
+                                    if (value.length < 50) {
+                                      // Fluttertoast.showToast(
+                                      //   msg: "Job Description must be at least 50 characters long",
+                                      // );
+                                      return 'Job Description must be at least 50 characters long';
+                                    }
                                   },
+
                                 ),
                               ],
                             ),
@@ -1307,7 +1311,52 @@ class _projectPostState extends State<projectPost>
                                     RoundedButton(
                                       text: 'Post',
                                       press: () {
-                                        if (_formKey.currentState!.validate()&& _videoFile!= null &&_imageFiles.isNotEmpty&&titleController!= '') {
+if(_imageFiles.isEmpty){
+    Fluttertoast.showToast(
+    msg:
+    "Please Pick one image or more its required at least one image.");
+
+
+}else if (_videoFile == null){
+
+  Fluttertoast.showToast(
+      msg:
+      "Please Pick Video its required");
+
+
+}
+else if (titleController.text.isEmpty){
+    Fluttertoast.showToast(
+    msg:
+    "Please Write a title of project its required");
+
+
+    }else if (
+
+selectedProjectType!['name']=='Select Project Type'
+){
+  Fluttertoast.showToast(
+      msg:
+      "Please Select project type its required");
+
+
+}
+else if (descController.text.isEmpty){
+  Fluttertoast.showToast(
+      msg:
+      "Please Write a job description of project its required");
+
+
+}else if (descController.text.length<50){
+  Fluttertoast.showToast(
+      msg:
+      "job description must be at least 50 characters long");
+
+
+}
+
+
+                                        if (_formKey.currentState!.validate() && _videoFile!= null &&_imageFiles.isNotEmpty&&titleController!= '') {
                                           submitProject();
                                         } else {
                                           Fluttertoast.showToast(
