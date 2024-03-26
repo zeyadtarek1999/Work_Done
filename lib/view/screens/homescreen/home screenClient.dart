@@ -67,58 +67,6 @@ Future<void> clearSharedPreferences() async {
 String uniques = 'HomeClient';
 
 
-Future<List<Item>> fetchProjects() async {
-  try {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String userToken = prefs.getString('user_token') ?? '';
-
-    final response = await http.post(
-      Uri.parse('https://www.workdonecorp.com/api/get_all_projects'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $userToken',
-      },
-      body: json.encode({
-        'filter': 'all',
-        'page': currentPage.toString(), // Ensure `currentPage` is defined somewhere
-        // Include other parameters as needed
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final dynamic responseData = json.decode(response.body);
-
-      if (responseData['status'] == 'success') {
-        final List<dynamic> projectsJson = responseData['projects'];
-
-        List<Item> projects = projectsJson.map((json) {
-          return Item(
-            projectId: json['project_id'],
-            client_id:  json['client_id'],
-            title: json['title'],
-            description: json['desc'],
-              video:json['video'],
-            imageUrl: json['images'] != null ? List<String>.from(json['images']) : [], // This creates a list from the JSON array
-            postedFrom: json['posted_from'],
-            client_firstname: json['client_firstname'],
-            liked: json['liked'],
-            numbers_of_likes:  json['numbers_of_likes'],
-            isLiked: json['liked'],
-            lowest_bids: json['lowest_bid'] ?? 'No Bids', // Assign "No Bids" if null
-          );
-        }).toList();
-
-        return projects;
-      } else {
-        throw Exception('Failed to load data from API: ${responseData['msg']}');
-      }
-    } else {
-      throw Exception('Failed to load data from API: Status code ${response.statusCode}');
-    }
-  } catch (e) {
-    throw Exception('Error retrieving project data: $e');
-  }
-}
 
 final StreamController<String> _likedStatusController = StreamController<String>();
 
@@ -363,6 +311,57 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
   }
 
 
+
+  int notificationnumber =0 ;
+
+  // Future<void> Notificationnumber() async {
+  //   try {
+  //     final SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     final userToken = prefs.getString('user_token') ?? '';
+  //     print(userToken);
+  //
+  //     if (userToken.isNotEmpty) {
+  //       // Replace the API endpoint with your actual endpoint
+  //       final String apiUrl = 'https://workdonecorp.com/api/unread_notification_number';
+  //       print(userToken);
+  //
+  //       final response = await http.post(
+  //         Uri.parse(apiUrl),
+  //         headers: {'Authorization': 'Bearer $userToken'},
+  //       );
+  //
+  //       if (response.statusCode == 200) {
+  //         Map<String, dynamic> responseData = json.decode(response.body);
+  //
+  //         if (responseData.containsKey('counter')) {
+  //           int profileData = responseData['counter'];
+  //
+  //           setState(() {
+  //             notificationnumber= profileData;
+  //           });
+  //
+  //           print('Response of notification number : $profileData');
+  //           print('notification number: $notificationnumber');
+  //         } else {
+  //           print(
+  //               'Error: Response data does not contain the expected structure.');
+  //           throw Exception('Failed to load notification number');
+  //         }
+  //       } else {
+  //         // Handle error response
+  //         print('Error: ${response.statusCode}, ${response.reasonPhrase}');
+  //         throw Exception('Failed to load notification number');
+  //       }
+  //     }
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   } catch (error) {
+  //     // Handle errors
+  //     print('Error getting notification number: $error');
+  //   }
+  // }
+
   String profile_pic ='' ;
   String firstname ='' ;
   String secondname ='' ;
@@ -418,57 +417,59 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
       print('Error getting profile information: $error');
     }
   }
-  int notificationnumber =0 ;
+  Future<List<Item>> fetchProjects() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String userToken = prefs.getString('user_token') ?? '';
 
-  // Future<void> Notificationnumber() async {
-  //   try {
-  //     final SharedPreferences prefs = await SharedPreferences.getInstance();
-  //     final userToken = prefs.getString('user_token') ?? '';
-  //     print(userToken);
-  //
-  //     if (userToken.isNotEmpty) {
-  //       // Replace the API endpoint with your actual endpoint
-  //       final String apiUrl = 'https://workdonecorp.com/api/unread_notification_number';
-  //       print(userToken);
-  //
-  //       final response = await http.post(
-  //         Uri.parse(apiUrl),
-  //         headers: {'Authorization': 'Bearer $userToken'},
-  //       );
-  //
-  //       if (response.statusCode == 200) {
-  //         Map<String, dynamic> responseData = json.decode(response.body);
-  //
-  //         if (responseData.containsKey('counter')) {
-  //           int profileData = responseData['counter'];
-  //
-  //           setState(() {
-  //             notificationnumber= profileData;
-  //           });
-  //
-  //           print('Response of notification number : $profileData');
-  //           print('notification number: $notificationnumber');
-  //         } else {
-  //           print(
-  //               'Error: Response data does not contain the expected structure.');
-  //           throw Exception('Failed to load notification number');
-  //         }
-  //       } else {
-  //         // Handle error response
-  //         print('Error: ${response.statusCode}, ${response.reasonPhrase}');
-  //         throw Exception('Failed to load notification number');
-  //       }
-  //     }
-  //     setState(() {
-  //       isLoading = false;
-  //     });
-  //   } catch (error) {
-  //     // Handle errors
-  //     print('Error getting notification number: $error');
-  //   }
-  // }
+      final response = await http.post(
+        Uri.parse('https://www.workdonecorp.com/api/get_all_projects'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $userToken',
+        },
+        body: json.encode({
+          'filter': 'all',
+          'page': currentPage.toString(), // Ensure `currentPage` is defined somewhere
+          // Include other parameters as needed
+        }),
+      );
+      await _getUserProfile();
 
+      if (response.statusCode == 200) {
+        final dynamic responseData = json.decode(response.body);
 
+        if (responseData['status'] == 'success') {
+          final List<dynamic> projectsJson = responseData['projects'];
+
+          List<Item> projects = projectsJson.map((json) {
+            return Item(
+              projectId: json['project_id'],
+              client_id:  json['client_id'],
+              title: json['title'],
+              description: json['desc'],
+              video:json['video'],
+              imageUrl: json['images'] != null ? List<String>.from(json['images']) : [], // This creates a list from the JSON array
+              postedFrom: json['posted_from'],
+              client_firstname: json['client_firstname'],
+              liked: json['liked'],
+              numbers_of_likes:  json['numbers_of_likes'],
+              isLiked: json['liked'],
+              lowest_bids: json['lowest_bid'] ?? 'No Bids', // Assign "No Bids" if null
+            );
+          }).toList();
+
+          return projects;
+        } else {
+          throw Exception('Failed to load data from API: ${responseData['msg']}');
+        }
+      } else {
+        throw Exception('Failed to load data from API: Status code ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error retrieving project data: $e');
+    }
+  }
   void refreshProjects() async{
     futureProjects = fetchProjects();
   }
@@ -1713,374 +1714,414 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
             transition: Transition.fadeIn, // You can choose a different transition
             duration: Duration(milliseconds: 700), // Set the duration of the transition
         );    },
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
-        padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20.0),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 1,
-              blurRadius: 1,
-              offset: Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Stack(
-
-              children: [
-        CarouselSlider(
-        options: CarouselOptions(
-          height: 180,
-          aspectRatio: 16 / 9,
-          viewportFraction: 1.0,
-          initialPage: 0,
-          enableInfiniteScroll: true,
-          reverse: false,
-          autoPlay: false,
-          autoPlayInterval: Duration(seconds: 3),
-          autoPlayAnimationDuration: Duration(milliseconds: 800),
-          autoPlayCurve: Curves.fastOutSlowIn,
-          scrollDirection: Axis.horizontal,
-          onPageChanged: (index, reason) {
-            // Update the current page index
-            setState(() {
-              _currentPageIndex = index;
-            });
-          },
-        ),
-          carouselController: _carouselController,
-          items: item.imageUrl.map((imageUrl) {
-            return Builder(
-              builder: (BuildContext context) {
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(30),
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    width: MediaQuery.of(context).size.width,
-                    height: double.infinity,
-                    loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return LinearProgressIndicator(
-                        color: Colors.white,
-                        value: null,
-                        backgroundColor: Colors.grey[300],
-                        minHeight: 3,
-                      );
-                    },
-                  ),
-                );
-              },
-            );
-          }).toList(),
-        ),
-                // Dots indicator
-                Positioned(
-                  bottom: 10,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: item.imageUrl.asMap().entries.map((entry) {
-                      return GestureDetector(
-                        onTap: () {
-                          _carouselController.animateToPage(entry.key);
-                        },
-                        child: Container(
-                          width: 10,
-                          height: 10,
-                          margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _currentPageIndex == entry.key ? Colors.white : Colors.grey[300],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                // Likes section
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  left: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Spacer(),
-                        Container(
-                          height: 50,
-                          padding: EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8.0, left: 5),
-                                child: Text(
-                                  "${item.numbers_of_likes}",
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              IconButton(
-                                iconSize: 22,
-                                icon: Icon(
-                                  likedProjectsMap[item.projectId] ?? item.liked == "true"
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color: likedProjectsMap[item.projectId] ?? item.liked == "true"
-                                      ? Colors.red
-                                      : Colors.grey,
-                                ),
-                                onPressed: () async {
-                                  try {
-                                    if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
-                                      // If liked, remove like
-                                      final response = await removeProjectFromLikes(item.projectId.toString());
-
-                                      if (response['status'] == 'success') {
-                                        // If successfully removed from likes
-                                        setState(() {
-                                          likedProjectsMap[item.projectId] = false;
-                                          item.numbers_of_likes = (item.numbers_of_likes ?? 0) - 1;
-                                        });
-                                        print('Project removed from likes');
-                                      } else {
-                                        // Handle the case where the project is not removed from likes
-                                        print('Error: ${response['msg']}');
-                                      }
-                                    } else {
-                                      // If not liked, add like
-                                      final response = await addProjectToLikes(item.projectId.toString(),firstname ,item.title,item.client_id.toString());
-
-                                      if (response['status'] == 'success') {
-                                        // If successfully added to likes
-                                        setState(() {
-                                          likedProjectsMap[item.projectId] = true;
-                                          item.numbers_of_likes = (item.numbers_of_likes ?? 0) + 1;
-                                        });
-                                        print('Project added to likes');
-                                      } else if (response['msg'] == 'This Project is Already in Likes !') {
-                                        // If the project is already liked, switch to Icons.favorite_border
-                                        setState(() {
-                                          likedProjectsMap[item.projectId] = false;
-                                        });
-                                        print('Project is already liked');
-                                      } else {
-                                        // Handle the case where the project is not added to likes
-                                        print('Error: ${response['msg']}');
-                                      }
-                                    }
-                                  } catch (e) {
-                                    print('Error: $e');
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+      child: Stack(
+        children: [
+          Container(
+            margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 16),
+            padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20.0),
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 1,
+                  blurRadius: 1,
+                  offset: Offset(0, 1),
                 ),
               ],
             ),
-            SizedBox(height: 10.0),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+            child: Column(
+              children: [
+                Stack(
+
+                  children: [
+            CarouselSlider(
+            options: CarouselOptions(
+              height: 180,
+              aspectRatio: 16 / 9,
+              viewportFraction: 1.0,
+              initialPage: 0,
+              enableInfiniteScroll: true,
+              reverse: false,
+              autoPlay: false,
+              autoPlayInterval: Duration(seconds: 3),
+              autoPlayAnimationDuration: Duration(milliseconds: 800),
+              autoPlayCurve: Curves.fastOutSlowIn,
+              scrollDirection: Axis.horizontal,
+              onPageChanged: (index, reason) {
+                // Update the current page index
+                setState(() {
+                  _currentPageIndex = index;
+                });
+              },
+            ),
+              carouselController: _carouselController,
+              items: item.imageUrl.map((imageUrl) {
+                return Builder(
+                  builder: (BuildContext context) {
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        width: MediaQuery.of(context).size.width,
+                        height: double.infinity,
+                        loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return LinearProgressIndicator(
+                            color: Colors.white,
+                            value: null,
+                            backgroundColor: Colors.grey[300],
+                            minHeight: 3,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
+            ),
+                    // Dots indicator
+                    Positioned(
+                      bottom: 10,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: item.imageUrl.asMap().entries.map((entry) {
+                          return GestureDetector(
+                            onTap: () {
+                              _carouselController.animateToPage(entry.key);
+                            },
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _currentPageIndex == entry.key ? Colors.white : Colors.grey[300],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    // Likes section
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      left: 0,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Spacer(),
+                            Container(
+                              height: 50,
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0, left: 5),
+                                    child: Text(
+                                      "${item.numbers_of_likes}",
+                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  IconButton(
+                                    iconSize: 22,
+                                    icon: Icon(
+                                      likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color: likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                          ? Colors.red
+                                          : Colors.grey,
+                                    ),
+                                    onPressed: () async {
+                                      try {
+                                        if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
+                                          // If liked, remove like
+                                          final response = await removeProjectFromLikes(item.projectId.toString());
+
+                                          if (response['status'] == 'success') {
+                                            // If successfully removed from likes
+                                            setState(() {
+                                              likedProjectsMap[item.projectId] = false;
+                                              item.numbers_of_likes = (item.numbers_of_likes ?? 0) - 1;
+                                            });
+                                            print('Project removed from likes');
+                                          } else {
+                                            // Handle the case where the project is not removed from likes
+                                            print('Error: ${response['msg']}');
+                                          }
+                                        } else {
+                                          // If not liked, add like
+                                          final response = await addProjectToLikes(item.projectId.toString(),firstname ,item.title,item.client_id.toString());
+
+                                          if (response['status'] == 'success') {
+                                            // If successfully added to likes
+                                            setState(() {
+                                              likedProjectsMap[item.projectId] = true;
+                                              item.numbers_of_likes = (item.numbers_of_likes ?? 0) + 1;
+                                            });
+                                            print('Project added to likes');
+                                          } else if (response['msg'] == 'This Project is Already in Likes !') {
+                                            // If the project is already liked, switch to Icons.favorite_border
+                                            setState(() {
+                                              likedProjectsMap[item.projectId] = false;
+                                            });
+                                            print('Project is already liked');
+                                          } else {
+                                            // Handle the case where the project is not added to likes
+                                            print('Error: ${response['msg']}');
+                                          }
+                                        }
+                                      } catch (e) {
+                                        print('Error: $e');
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        item.title.length > 16
-                            ? item.title.substring(0, 16) + '...' // Display first 14 letters and add ellipsis
-                            : item.title,
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                            color: HexColor('131330'),
-                            fontSize: 19,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-
-                      Spacer(),
-                      Text(
-                        'By',
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                            color: HexColor('393B3E'),
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 4,),
-                      Container(
-                        height: 33,
-                        width: 60,
-                        padding: EdgeInsets.zero,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: TextButton(
-                          onPressed: () {
-                            Get.to(ProfilePageClient(userId:item.client_id.toString(),
-                            ),
-                              transition: Transition.fadeIn, // You can choose a different transition
-                              duration: Duration(milliseconds: 700), // Set the duration of the transition
-
-                            );
-                          },
-                          style: TextButton.styleFrom(
-                            fixedSize: Size(50, 30), // Adjust the size as needed
-                            padding: EdgeInsets.zero,
-                          ),
-                          child:
-                            Text(
-                             "${ item.client_firstname}",
-
-                            maxLines: 1,
-                            overflow: TextOverflow.visible, // Use the client name from the fetched data
-                            style: TextStyle(
-                              color: HexColor('4D8D6E'),
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            )
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Expanded(
-                        child:
-                          Text(
-                            "${item.description}",
-
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.openSans(
-                            textStyle: TextStyle(
-                              color: HexColor('393B3E'),
-                              fontSize: 15,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 7,),
-                      Column(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Text(
-                            'Lowest Bid',
+                            item.title.length > 16
+                                ? item.title.substring(0, 16) + '...' // Display first 14 letters and add ellipsis
+                                : item.title,
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
-                                color: HexColor('393B3E'), // Adjust color as needed
-                                fontSize: 16,
+                                color: HexColor('131330'),
+                                fontSize: 19,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          SizedBox(height: 6,),
-                          item.lowest_bids != 'No Bids'
-                              ? Text('\$ '+
-                            item.lowest_bids.toString() , // Use 'N/A' or any preferred default text
+
+                          Spacer(),
+                          Text(
+                            'By',
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
                                 color: HexColor('393B3E'),
-                                fontSize: 15,
+                                fontSize: 14,
                                 fontWeight: FontWeight.normal,
                               ),
                             ),
-                          )
-                              : Text(
-                            'No Bids Yet',
+                          ),
+                          SizedBox(width: 4,),
+                          Container(
+                            height: 33,
+                            width: 60,
+                            padding: EdgeInsets.zero,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: TextButton(
+                              onPressed: () {
+                                Get.to(ProfilePageClient(userId:item.client_id.toString(),
+                                ),
+                                  transition: Transition.fadeIn, // You can choose a different transition
+                                  duration: Duration(milliseconds: 700), // Set the duration of the transition
+
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                fixedSize: Size(50, 30), // Adjust the size as needed
+                                padding: EdgeInsets.zero,
+                              ),
+                              child:
+                                Text(
+                                 "${ item.client_firstname}",
+
+                                maxLines: 1,
+                                overflow: TextOverflow.visible, // Use the client name from the fetched data
+                                style: TextStyle(
+                                  color: HexColor('4D8D6E'),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                )
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child:
+                              Text(
+                                "${item.description}",
+
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.openSans(
+                                textStyle: TextStyle(
+                                  color: HexColor('393B3E'),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 7,),
+                          Column(
+                            children: [
+                              Text(
+                                'Lowest Bid',
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                    color: HexColor('393B3E'), // Adjust color as needed
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 6,),
+                              item.lowest_bids != 'No Bids'
+                                  ? Text('\$ '+
+                                item.lowest_bids.toString() , // Use 'N/A' or any preferred default text
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                    color: HexColor('393B3E'),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                              )
+                                  : Text(
+                                'No Bids Yet',
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      )
+              ,
+                      SizedBox(height: 9),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time_rounded,
+                            color: HexColor('777778'),
+                            size: 18,
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            item.postedFrom, // Use the posted time from the fetched data
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
-                                color: Colors.grey,
+                                color: HexColor('777778'),
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 2),
+                          Spacer(),
+                          Container(
+                            width: 93,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: HexColor('4D8D6E'),
+                              borderRadius: BorderRadius.circular(11),
+                            ),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Get.to(
+                                      () => bidDetailsClient(projectId: item.projectId),
+
+                                    transition: Transition.fadeIn, // You can choose a different transition
+                                    duration: Duration(milliseconds: 700), // Set the duration of the transition
+
+                                );
+                                // Handle button press
+                              },
+                              child: Text('Details',style: TextStyle(color: Colors.white),),
+                              style: ElevatedButton.styleFrom(
+                               backgroundColor: Colors.transparent,
+                                elevation: 0,
+                                textStyle: TextStyle(color: Colors.white),
                               ),
                             ),
                           ),
                         ],
                       ),
                     ],
-                  )
-    ,
-                  SizedBox(height: 9),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time_rounded,
-                        color: HexColor('777778'),
-                        size: 18,
-                      ),
-                      SizedBox(width: 5),
-                      Text(
-                        item.postedFrom, // Use the posted time from the fetched data
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                            color: HexColor('777778'),
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 2),
-                      Spacer(),
-                      Container(
-                        width: 93,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: HexColor('4D8D6E'),
-                          borderRadius: BorderRadius.circular(11),
-                        ),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Get.to(
-                                  () => bidDetailsClient(projectId: item.projectId),
-
-                                transition: Transition.fadeIn, // You can choose a different transition
-                                duration: Duration(milliseconds: 700), // Set the duration of the transition
-
-                            );
-                            // Handle button press
-                          },
-                          child: Text('Details',style: TextStyle(color: Colors.white),),
-                          style: ElevatedButton.styleFrom(
-                           backgroundColor: Colors.transparent,
-                            elevation: 0,
-                            textStyle: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
-                ],
+                ),
+
+              ],
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left:0,
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 13),
+              padding: EdgeInsets.symmetric(vertical: 7.0, horizontal: 6),
+
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.grey.shade400,
+                    Colors.grey.shade900,
+                  ],
+                ),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20.0),
+                  bottomRight: Radius.circular(20.0),
+                ),              ),
+              child: Center(
+                child: Text(
+                  'asdasdasd',
+
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+
+                  ),
+
+                ),
               ),
             ),
+          ),
 
-          ],
-        ),
+        ],
       ),
     );
 

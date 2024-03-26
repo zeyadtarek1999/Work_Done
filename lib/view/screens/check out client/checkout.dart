@@ -335,8 +335,9 @@ class _checkOutClientState extends State<checkOutClient> {
                               ),
                             ],
                           ),
+
                           Text(
-                            '${addressline2.toString()} ,${city.toString()} ',
+                            '${addressline2.toString()} , ',
                             style: GoogleFonts.roboto(
                               textStyle: TextStyle(
                                 color: HexColor('3E3E3E'),
@@ -345,6 +346,28 @@ class _checkOutClientState extends State<checkOutClient> {
                               ),
                             ),
                           ),
+                          Text(
+                            '${city.toString()} , ',
+                            style: GoogleFonts.roboto(
+                              textStyle: TextStyle(
+                                color: HexColor('3E3E3E'),
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+
+                          Text(
+                            '${state.toString()} ',
+                            style: GoogleFonts.roboto(
+                              textStyle: TextStyle(
+                                color: HexColor('3E3E3E'),
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+
                         ],
                       ),
                       SizedBox(

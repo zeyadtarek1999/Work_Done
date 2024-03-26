@@ -1300,13 +1300,12 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
       ..initialize().then((_) {
         setState(() {
           _controllerInitialized = true;
+          _controllerInitialized = true;
           _chewieController = ChewieController(
             videoPlayerController: _controller,
-            aspectRatio: 16 / 9,
-            // Adjust as needed
+            aspectRatio: _controller.value.aspectRatio, // Use the video's actual aspect ratio
             autoPlay: false,
-            // Set to true if you want the video to play automatically
-            looping: false, // Set to true if you want the video to loop
+            looping: false,
             // ... Other ChewieController configurations
           );
         });
@@ -2989,12 +2988,24 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             double.infinity,
                                                             50),
                                                       ),
-                                                      child: Text(
-                                                        'With the client! Let\'s Enter the Verification Code',
-                                                        style: TextStyle(
-                                                            fontSize: 12.5,
-                                                            fontWeight: FontWeight
-                                                                .bold),
+                                                      child: Row(
+                                                        children: [
+                                                          Expanded(
+                                                            flex: 1,
+                                                            child: Text(
+                                                              'With the client! Let\'s Enter the Verification Code',
+                                                              style: TextStyle(
+                                                                fontSize: 13.5,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Icon(
+                                                            Icons.looks_one_outlined,
+                                                            color: Colors.white54,
+                                                            size: 20,
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
                                                   ),
@@ -3195,12 +3206,20 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             50),
                                                       ),
                                                       child: Center(
-                                                        child: Text(
-                                                          'Generate the Verification Code to access project complete',
-                                                          style: TextStyle(
-                                                              fontSize: 10.5,
-                                                              fontWeight: FontWeight
-                                                                  .bold),
+                                                        child: Row(
+                                                          children: [
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: Text(
+                                                                'Generate the Verification Code to access project complete',
+                                                                style: TextStyle(
+                                                                    fontSize: 13.5,
+                                                                    fontWeight: FontWeight
+                                                                        .bold),
+                                                              ),
+                                                            ),
+                                                            Icon(Icons.looks_two_outlined,color: Colors.white54,size: 20,)
+                                                          ],
                                                         ),
                                                       ),
                                                     ),
@@ -3939,12 +3958,24 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             double.infinity,
                                                             50),
                                                       ),
-                                                      child: Text(
-                                                        'With the client! Let\'s Enter the Verification Code',
-                                                        style: TextStyle(
-                                                            fontSize: 12.5,
-                                                            fontWeight: FontWeight
-                                                                .bold),
+                                                      child:Row(
+                                                        children: [
+                                                          Expanded(
+                                                            flex: 1,
+                                                            child: Text(
+                                                              'With the client! Let\'s Enter the Verification Code',
+                                                              style: TextStyle(
+                                                                fontSize: 13.5,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Icon(
+                                                            Icons.looks_one_outlined,
+                                                            color: Colors.white54,
+                                                            size: 20,
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
                                                   ),
@@ -4145,12 +4176,20 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             50),
                                                       ),
                                                       child: Center(
-                                                        child: Text(
-                                                          'Generate the Verification Code to access project complete',
-                                                          style: TextStyle(
-                                                              fontSize: 10.5,
-                                                              fontWeight: FontWeight
-                                                                  .bold),
+                                                        child: Row(
+                                                          children: [
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: Text(
+                                                                'Generate the Verification Code to access project complete',
+                                                                style: TextStyle(
+                                                                    fontSize: 13.5,
+                                                                    fontWeight: FontWeight
+                                                                        .bold),
+                                                              ),
+                                                            ),
+                                                            Icon(Icons.looks_two_outlined,color: Colors.white54,size: 20,)
+                                                          ],
                                                         ),
                                                       ),
                                                     ),
@@ -4802,12 +4841,24 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             double.infinity,
                                                             50),
                                                       ),
-                                                      child: Text(
-                                                        'With the client! Let\'s Enter the Verification Code',
-                                                        style: TextStyle(
-                                                            fontSize: 12.5,
-                                                            fontWeight: FontWeight
-                                                                .bold),
+                                                      child: Row(
+                                                        children: [
+                                                          Expanded(
+                                                            flex: 1,
+                                                            child: Text(
+                                                              'With the client! Let\'s Enter the Verification Code',
+                                                              style: TextStyle(
+                                                                fontSize: 13.5,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Icon(
+                                                            Icons.looks_one_outlined,
+                                                            color: Colors.white54,
+                                                            size: 20,
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
                                                   ),
@@ -5008,12 +5059,20 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             50),
                                                       ),
                                                       child: Center(
-                                                        child: Text(
-                                                          'Generate the Verification Code to access project complete',
-                                                          style: TextStyle(
-                                                              fontSize: 10.5,
-                                                              fontWeight: FontWeight
-                                                                  .bold),
+                                                        child: Row(
+                                                          children: [
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: Text(
+                                                                'Generate the Verification Code to access project complete',
+                                                                style: TextStyle(
+                                                                    fontSize: 13.5,
+                                                                    fontWeight: FontWeight
+                                                                        .bold),
+                                                              ),
+                                                            ),
+                                                            Icon(Icons.looks_two_outlined,color: Colors.white54,size: 20,)
+                                                          ],
                                                         ),
                                                       ),
                                                     ),
@@ -5602,12 +5661,24 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             double.infinity,
                                                             50),
                                                       ),
-                                                      child: Text(
-                                                        'With the client! Let\'s Enter the Verification Code',
-                                                        style: TextStyle(
-                                                            fontSize: 12.5,
-                                                            fontWeight: FontWeight
-                                                                .bold),
+                                                      child: Row(
+                                                        children: [
+                                                          Expanded(
+                                                            flex: 1,
+                                                            child: Text(
+                                                              'With the client! Let\'s Enter the Verification Code',
+                                                              style: TextStyle(
+                                                                fontSize: 13.5,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Icon(
+                                                            Icons.looks_one_outlined,
+                                                            color: Colors.white54,
+                                                            size: 20,
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
                                                   ),
@@ -5808,12 +5879,20 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             50),
                                                       ),
                                                       child: Center(
-                                                        child: Text(
-                                                          'Generate the Verification Code to access project complete',
-                                                          style: TextStyle(
-                                                              fontSize: 10.5,
-                                                              fontWeight: FontWeight
-                                                                  .bold),
+                                                        child:Row(
+                                                          children: [
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: Text(
+                                                                'Generate the Verification Code to access project complete',
+                                                                style: TextStyle(
+                                                                    fontSize: 13.5,
+                                                                    fontWeight: FontWeight
+                                                                        .bold),
+                                                              ),
+                                                            ),
+                                                            Icon(Icons.looks_two_outlined,color: Colors.white54,size: 20,)
+                                                          ],
                                                         ),
                                                       ),
                                                     ),
@@ -6434,12 +6513,24 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             double.infinity,
                                                             50),
                                                       ),
-                                                      child: Text(
-                                                        'With the client! Let\'s Enter the Verification Code',
-                                                        style: TextStyle(
-                                                            fontSize: 12.5,
-                                                            fontWeight: FontWeight
-                                                                .bold),
+                                                      child: Row(
+                                                        children: [
+                                                          Expanded(
+                                                            flex: 1,
+                                                            child: Text(
+                                                              'With the client! Let\'s Enter the Verification Code',
+                                                              style: TextStyle(
+                                                                fontSize: 13.5,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Icon(
+                                                            Icons.looks_one_outlined,
+                                                            color: Colors.white54,
+                                                            size: 20,
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
                                                   ),
@@ -6639,12 +6730,20 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             50),
                                                       ),
                                                       child: Center(
-                                                        child: Text(
-                                                          'Generate the Verification Code to access project complete',
-                                                          style: TextStyle(
-                                                              fontSize: 10.5,
-                                                              fontWeight: FontWeight
-                                                                  .bold),
+                                                        child: Row(
+                                                          children: [
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: Text(
+                                                                'Generate the Verification Code to access project complete',
+                                                                style: TextStyle(
+                                                                    fontSize: 13.5,
+                                                                    fontWeight: FontWeight
+                                                                        .bold),
+                                                              ),
+                                                            ),
+                                                            Icon(Icons.looks_two_outlined,color: Colors.white54,size: 20,)
+                                                          ],
                                                         ),
                                                       ),
                                                     ),
@@ -7268,12 +7367,24 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             double.infinity,
                                                             50),
                                                       ),
-                                                      child: Text(
-                                                        'With the client! Let\'s Enter the Verification Code',
-                                                        style: TextStyle(
-                                                            fontSize: 12.5,
-                                                            fontWeight: FontWeight
-                                                                .bold),
+                                                      child: Row(
+                                                        children: [
+                                                          Expanded(
+                                                            flex: 1,
+                                                            child: Text(
+                                                              'With the client! Let\'s Enter the Verification Code',
+                                                              style: TextStyle(
+                                                                fontSize: 14.5,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Icon(
+                                                            Icons.looks_one_outlined,
+                                                            color: Colors.white54,
+                                                            size: 20,
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
                                                   ),
@@ -7473,12 +7584,20 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             50),
                                                       ),
                                                       child: Center(
-                                                        child: Text(
-                                                          'Generate the Verification Code to access project complete',
-                                                          style: TextStyle(
-                                                              fontSize: 10.5,
-                                                              fontWeight: FontWeight
-                                                                  .bold),
+                                                        child:Row(
+                                                          children: [
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: Text(
+                                                                'Generate the Verification Code to access project complete',
+                                                                style: TextStyle(
+                                                                    fontSize: 13.5,
+                                                                    fontWeight: FontWeight
+                                                                        .bold),
+                                                              ),
+                                                            ),
+                                                            Icon(Icons.looks_two_outlined,color: Colors.white54,size: 20,)
+                                                          ],
                                                         ),
                                                       ),
                                                     ),
