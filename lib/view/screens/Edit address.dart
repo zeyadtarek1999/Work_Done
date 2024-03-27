@@ -12,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/model/firebaseNotification.dart';
 import 'package:workdone/model/save_notification_to_firebase.dart';
 import 'package:workdone/view/stateslectorpopup.dart';
-import '../../model/changePassword.dart';
 import '../../model/post address model.dart';
 import '../widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
@@ -217,7 +216,7 @@ class _editAddressClientState extends State<editAddressClient> {
             List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
             // Check if the new notification is not null and not already in the list
-            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
               // Add the new notification to the beginning of the list
               notifications.insert(0, newNotification);
 

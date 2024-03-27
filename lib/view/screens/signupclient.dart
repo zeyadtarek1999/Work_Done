@@ -8,9 +8,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/routes/transitions_type.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../model/Register_clientModel.dart';
@@ -20,11 +17,7 @@ import '../components/page_title_bar.dart';
 import '../components/under_part.dart';
 import '../components/upside.dart';
 import '../stateslectorpopup.dart';
-import 'Screens_layout/layoutWorker.dart';
 import '../widgets/rounded_button.dart';
-import '../widgets/rounded_input_field.dart';
-import '../widgets/rounded_password_field.dart';
-import 'Screens_layout/layoutclient.dart';
 import 'login_screen_client.dart';
 import 'login_screen_worker.dart';
 import 'onBoard/OnboardClient.dart';
@@ -387,8 +380,7 @@ bool charater8 =false;
       print('Registration Response: $registrationResponse');
 
       // Check if the registration response contains the token
-      if (registrationResponse != null &&
-          registrationResponse.containsKey('status') &&
+      if (registrationResponse.containsKey('status') &&
           registrationResponse.containsKey('msg') &&
           registrationResponse.containsKey('token')) {
         final String user_token = registrationResponse['token'];

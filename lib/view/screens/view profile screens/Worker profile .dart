@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,7 +16,6 @@ import 'package:http/http.dart' as http;
 import '../../../model/mediaquery.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Bid Details/Bid details Worker.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
 

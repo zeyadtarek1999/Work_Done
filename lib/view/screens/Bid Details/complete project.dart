@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:action_slider/action_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
@@ -20,7 +18,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/model/firebaseNotification.dart';
 import 'package:workdone/model/save_notification_to_firebase.dart';
 
-import '../InboxwithChat/chatbody.dart';
 import '../Support Screen/Support.dart';
 import 'package:http/http.dart' as http;
 
@@ -51,7 +48,7 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
       final XFile? image = await picker.pickImage(source: ImageSource.camera);
       if (image != null) {
         setState(() {
-          if (_imageFiles != null && _imageFiles.isNotEmpty) {
+          if (_imageFiles.isNotEmpty) {
             _imageFiles.add(File(image.path));
           } else {
             _imageFiles = [File(image.path)];
@@ -62,7 +59,7 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
       final List<XFile>? images = await picker.pickMultiImage();
       if (images != null && images.isNotEmpty) {
         setState(() {
-          _imageFiles!.addAll(images.map((xfile) => File(xfile!.path)));
+          _imageFiles.addAll(images.map((xfile) => File(xfile.path)));
         });
       }
     }
@@ -152,7 +149,7 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
 
     print('Checking for files...');
     // Check if any files are null or empty before proceeding
-    if ((_imageFiles?.isEmpty ?? true) ) {
+    if ((_imageFiles.isEmpty ?? true) ) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please pick at least one image and a video.")));
       return;
     }else{     setState(() {
@@ -164,9 +161,9 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
 
 
     // Add images if any
-    if (_imageFiles != null && _imageFiles!.isNotEmpty) {
+    if (_imageFiles.isNotEmpty) {
       print('Adding images to the request...');
-      for (var imageFile in _imageFiles!) {
+      for (var imageFile in _imageFiles) {
         request.files.add(http.MultipartFile(
           'images[]',
           imageFile.readAsBytes().asStream(),
@@ -228,7 +225,7 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
           List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
           // Check if the new notification is not null and not already in the list
-          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+          if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
             // Add the new notification to the beginning of the list
             notifications.insert(0, newNotification);
 
@@ -555,7 +552,7 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
                                               controller: ScrollController(),
                                               child: ListView.builder(
                                                 scrollDirection: Axis.horizontal,
-                                                itemCount: _imageFiles!.length,
+                                                itemCount: _imageFiles.length,
                                                 itemBuilder: (BuildContext context, int index) {
                                                   return GestureDetector(
                                                     onTap: () {
@@ -569,7 +566,7 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
                                                               boundaryMargin: EdgeInsets.all(20),
                                                               minScale: 0.5,
                                                               maxScale: 2,
-                                                              child: Image.file(_imageFiles[index]!),
+                                                              child: Image.file(_imageFiles[index]),
                                                             ),
                                                           );
                                                         },
@@ -580,10 +577,10 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
                                                         Padding(
                                                           padding: EdgeInsets.only(
                                                             left: 8.0,
-                                                            right: index == _imageFiles!.length - 1 ? 8.0 : 0,
+                                                            right: index == _imageFiles.length - 1 ? 8.0 : 0,
                                                           ),
                                                           child: Image.file(
-                                                            _imageFiles[index]!,
+                                                            _imageFiles[index],
                                                             height: 150,
                                                             width: 150,
                                                             fit: BoxFit.cover,
@@ -610,7 +607,7 @@ class _completeprojectscreenState extends State<completeprojectscreen> with Sing
                                                                       TextButton(
                                                                         onPressed: () {
                                                                           setState(() {
-                                                                            _imageFiles!.removeAt(index);
+                                                                            _imageFiles.removeAt(index);
                                                                           });
                                                                           Navigator.pop(context);
                                                                         },
@@ -828,7 +825,7 @@ class ProjectData {
   final String video;
   final bool liked; // Assuming the 'liked' field should be a boolean
   final int numberOfLikes;
-  final dynamic? lowestBid; // Assuming lowest bid could be null
+  final dynamic lowestBid; // Assuming lowest bid could be null
   final String timeframeStart;
   final String timeframeEnd;
   final List<Bid> bids;
@@ -1026,16 +1023,6 @@ class select_worker_bid {
   });
 
   factory select_worker_bid.fromJson(Map<String, dynamic> json) {
-    if (json == null) {
-      return select_worker_bid(
-        worker_id: 0,
-        worker_firstname: '',
-        worker_profile_pic: '',
-        amount: 0,
-        comment: '',
-      );
-    }
-
     return select_worker_bid(worker_id: json['worker_id'] ?? 0,
         worker_firstname: json['worker_firstname']?? ''
         ,worker_profile_pic: json['worker_profile_pic']?? '',

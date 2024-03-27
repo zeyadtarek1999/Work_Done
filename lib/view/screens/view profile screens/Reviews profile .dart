@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,7 +17,6 @@ import 'package:workdone/view/screens/view%20profile%20screens/Client%20profile%
 import '../../../model/mediaquery.dart';
 import '../Bid Details/Bid details Client.dart';
 import '../Bid Details/Bid details Worker.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
 
@@ -1564,7 +1562,7 @@ class Project {
   final String? video;
   final String postedFrom;
   final String liked;
-   dynamic? numbersOfLikes;
+   dynamic numbersOfLikes;
   final dynamic lowestBid;
   final Reviews reviews;
 

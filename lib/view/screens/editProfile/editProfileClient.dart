@@ -3,8 +3,6 @@ import 'dart:io';
 
 import 'package:blurry_modal_progress_hud/blurry_modal_progress_hud.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -19,16 +17,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/model/firebaseNotification.dart';
 import 'package:workdone/model/save_notification_to_firebase.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutclient.dart';
-import 'package:workdone/view/stateslectorpopup.dart';
 import 'package:workdone/view/widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
 
 
-import '../../../model/post editprofilemodel.dart';
 import '../Edit address.dart';
 import '../Support Screen/Support.dart';
 import '../changePassword.dart';
-import '../homescreen/home screenClient.dart';
 
 class editProfile extends StatefulWidget {
   const editProfile({super.key});
@@ -322,7 +317,7 @@ class _editProfileState extends State<editProfile> {
             List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
             // Check if the new notification is not null and not already in the list
-            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
               // Add the new notification to the beginning of the list
               notifications.insert(0, newNotification);
 
@@ -585,7 +580,7 @@ class _editProfileState extends State<editProfile> {
                                 !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
                                 ? DecorationImage(
                               fit: BoxFit.cover,
-                              image:AssetImage('assets/images/default.png') as ImageProvider ,
+                              image:AssetImage('assets/images/default.png') ,
 
                             )
                                 : DecorationImage(
@@ -779,73 +774,75 @@ class _editProfileState extends State<editProfile> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10),
-                            child: Text('First Name'),
-                          ),
-                          Container(
-                              width: 156,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200], // Background color
-                                borderRadius: BorderRadius.circular(
-                                    20), // Circular border radius
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
-                                child: TextField(
-                                  controller: firstNameController,
-                                  decoration: InputDecoration(
-                                    hintText: firstname,
-                                    border:
-                                        InputBorder.none,
-                                    counterText: "", // Hide the counter
-
-                                    // Remove default border
-                                  ),
-                                  maxLength: 12, // Limit the input to 12 characters
-
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10.0, vertical: 10),
+                              child: Text('First Name'),
+                            ),
+                            Container(
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200], // Background color
+                                  borderRadius: BorderRadius.circular(
+                                      20), // Circular border radius
                                 ),
-                              ))
-                        ],
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: TextField(
+                                    controller: firstNameController,
+                                    decoration: InputDecoration(
+                                      hintText: firstname,
+                                      border:
+                                          InputBorder.none,
+                                      counterText: "", // Hide the counter
+                        
+                                      // Remove default border
+                                    ),
+                                    maxLength: 12, // Limit the input to 12 characters
+                        
+                                  ),
+                                ))
+                          ],
+                        ),
                       ),
-                      Spacer(),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10),
-                            child: Text('Last Name'),
-                          ),
-                          Container(
-                              width: 156,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200], // Background color
-                                borderRadius: BorderRadius.circular(
-                                    20), // Circular border radius
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
-                                child: TextField(
-                                  controller: lastNameController,
-                                  decoration: InputDecoration(
-                                    hintText: secondname,
-                                    border:
-                                        InputBorder.none,
-                                    counterText: "", // Hide the counter
-// Remove default border
-                                  ),
-                                  maxLength: 12, // Limit the input to 12 characters
-
+                      SizedBox(width: 10,),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10.0, vertical: 10),
+                              child: Text('Last Name'),
+                            ),
+                            Container(
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200], // Background color
+                                  borderRadius: BorderRadius.circular(
+                                      20), // Circular border radius
                                 ),
-                              ))
-                        ],
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: TextField(
+                                    controller: lastNameController,
+                                    decoration: InputDecoration(
+                                      hintText: secondname,
+                                      border:
+                                          InputBorder.none,
+                                      counterText: "", // Hide the counter
+                        // Remove default border
+                                    ),
+                                    maxLength: 12, // Limit the input to 12 characters
+
+                                  ),
+                                ))
+                          ],
+                        ),
                       ),
                     ],
                   ),

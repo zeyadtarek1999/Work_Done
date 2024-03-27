@@ -1,12 +1,9 @@
 import 'dart:convert';
 
-import 'package:carousel_slider/carousel_controller.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_paypal_checkout/flutter_paypal_checkout.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,19 +14,12 @@ import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/model/firebaseNotification.dart';
 import 'package:workdone/model/save_notification_to_firebase.dart';
-import 'package:workdone/view/screens/check%20out%20client/payment.dart';
-import 'package:workdone/view/screens/Screens_layout/layoutclient.dart';
-import 'package:workdone/view/screens/check%20out%20client/paypal%20checkout.dart';
-import 'package:workdone/view/screens/editProfile/editprofileworker.dart';
 import 'package:workdone/view/widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
 
 import '../Bid Details/Bid details Client.dart';
 import '../Edit address.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
-import '../homescreen/home screenClient.dart';
-import '../view profile screens/Client profile view.dart';
 import '../view profile screens/Worker profile .dart';
 
 class checkOutClient extends StatefulWidget {
@@ -854,7 +844,7 @@ class _checkOutClientState extends State<checkOutClient> {
                                               List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
                                               // Check if the new notification is not null and not already in the list
-                                              if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+                                              if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
                                                 // Add the new notification to the beginning of the list
                                                 notifications.insert(0, newNotification);
 

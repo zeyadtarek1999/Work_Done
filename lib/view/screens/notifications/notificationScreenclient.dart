@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,7 +10,6 @@ import 'package:http/http.dart' as http;
 import 'package:workdone/view/screens/Bid%20Details/Bid%20details%20Client.dart';
 import 'package:workdone/view/screens/Bid%20Details/Bid%20details%20Worker.dart';
 import 'package:workdone/view/screens/Profile%20(client-worker)/profilescreenClient.dart';
-import 'package:workdone/view/screens/Profile%20(client-worker)/profilescreenworker.dart';
 
 class NotificationsPageclient extends StatefulWidget {
   @override

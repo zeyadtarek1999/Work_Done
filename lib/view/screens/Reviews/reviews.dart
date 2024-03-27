@@ -3,17 +3,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
-import '../Bid Details/Bid details Worker.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
-import '../homescreen/home screenClient.dart';
 
 
 
@@ -485,7 +481,7 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon        sh
                   Row(
                     children: [
                       Text(
-                        project.title != null ? project.title!.substring(0, project.title!.length < 12 ? project.title!.length : 12) : 'No Name',
+                        project.title != null ? project.title.substring(0, project.title.length < 12 ? project.title.length : 12) : 'No Name',
                         style: GoogleFonts.openSans(
                           textStyle: TextStyle(overflow: TextOverflow.ellipsis,
                             color: HexColor('131330'),

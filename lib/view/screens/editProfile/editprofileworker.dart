@@ -16,18 +16,13 @@ import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/model/firebaseNotification.dart';
 import 'package:workdone/model/save_notification_to_firebase.dart';
-import 'package:workdone/view/screens/Profile%20(client-worker)/profilescreenworker.dart';
 import 'package:workdone/view/screens/Screens_layout/layoutWorker.dart';
-import 'package:workdone/view/screens/Screens_layout/layoutclient.dart';
-import 'package:workdone/view/stateslectorpopup.dart';
 import 'package:workdone/view/widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
-import '../../../model/post editprofilemodel.dart';
 import '../Edit address.dart';
 import '../Payment Method/Payment_method.dart';
 import '../Support Screen/Support.dart';
 import '../changePassword.dart';
-import '../homescreen/home screenClient.dart';
 
 class editProfileworker extends StatefulWidget {
   const editProfileworker({super.key});
@@ -388,7 +383,7 @@ bool isLoading =false;
             List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
             // Check if the new notification is not null and not already in the list
-            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
               // Add the new notification to the beginning of the list
               notifications.insert(0, newNotification);
 
@@ -697,7 +692,7 @@ bool isLoading =false;
                                 !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
                                 ? DecorationImage(
                               fit: BoxFit.cover,
-                              image:AssetImage('assets/images/default.png') as ImageProvider ,
+                              image:AssetImage('assets/images/default.png') ,
 
                             )
                                 : DecorationImage(
@@ -890,18 +885,16 @@ bool isLoading =false;
                   ),
 
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10),
-                            child: Text('First Name'),
-                          ),
-                          Container(
-                              width: 156,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+                              child: Text('First Name'),
+                            ),
+                            Container(
                               height: 60,
                               decoration: BoxDecoration(
                                 color: Colors.grey[200], // Background color
@@ -914,29 +907,26 @@ bool isLoading =false;
                                   controller: firstNameController,
                                   decoration: InputDecoration(
                                     hintText: firstname,
-                                    border:
-                                    InputBorder.none, // Remove default border
+                                    border: InputBorder.none, // Remove default border
                                     counterText: "", // Hide the counter
-
-                                    // Remove default border
                                   ),
                                   maxLength: 12, // Limit the input to 12 characters
-
                                 ),
-                              ))
-                        ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      Spacer(),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10),
-                            child: Text('Last Name'),
-                          ),
-                          Container(
-                              width: 156,
+                      SizedBox(width:12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+                              child: Text('Last Name'),
+                            ),
+                            Container(
                               height: 60,
                               decoration: BoxDecoration(
                                 color: Colors.grey[200], // Background color
@@ -949,21 +939,18 @@ bool isLoading =false;
                                   controller: lastNameController,
                                   decoration: InputDecoration(
                                     hintText: secondname,
-                                    border:
-                                    InputBorder.none, // Remove default border
+                                    border: InputBorder.none, // Remove default border
                                     counterText: "", // Hide the counter
-
-                                    // Remove default border
                                   ),
                                   maxLength: 12, // Limit the input to 12 characters
-
                                 ),
-                              ))
-                        ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
-                  ),
-                  Padding(
+                  ),                  Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Row(
                       children: [
@@ -1430,8 +1417,7 @@ bool isLoading =false;
       fit: BoxFit.cover,
       image: FileImage(_imagelicense!),
       )
-          : license_pic != null &&
-      license_pic.isNotEmpty &&
+          : license_pic.isNotEmpty &&
       license_pic != "https://workdonecorp.com/images/"
       ? DecorationImage(
       fit: BoxFit.cover,
@@ -1931,7 +1917,9 @@ bool isLoading =false;
                         },
                       )
 
-                  )
+                  ),
+                  SizedBox(height:12),
+
                 ],
               ),
             ),

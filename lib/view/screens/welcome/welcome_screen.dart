@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../widgets/bottomsheet.dart';
 import 'body.dart';
 
 class WelcomeScreen extends StatelessWidget {

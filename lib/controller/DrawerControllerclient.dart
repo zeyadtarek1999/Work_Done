@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../model/mediaquery.dart';
 import '../view/portofolio.dart';
 import '../view/screens/Profile (client-worker)/profilescreenClient.dart';
 

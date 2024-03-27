@@ -17,13 +17,10 @@ import 'package:workdone/model/firebaseNotification.dart';
 import 'package:workdone/model/save_notification_to_firebase.dart';
 import 'package:workdone/view/screens/Bid%20Details/Bid%20details%20Worker.dart';
 import 'package:workdone/view/screens/notifications/notificationscreenworker.dart';
-import '../Bid Details/Bid details Client.dart';
 import 'package:badges/badges.dart' as badges;
 
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
-import '../notifications/notificationScreenclient.dart';
 import '../view profile screens/Client profile view.dart';
 import 'package:http/http.dart' as http;
 
@@ -147,7 +144,7 @@ class _exploreWorkerState extends State<exploreWorker> with SingleTickerProvider
             List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
             // Check if the new notification is not null and not already in the list
-            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
               // Add the new notification to the beginning of the list
               notifications.insert(0, newNotification);
 
@@ -1169,7 +1166,7 @@ class Item {
    int numbers_of_likes;
   final String postedFrom;
   String isLiked;
-  dynamic? lowest_bids;
+  dynamic lowest_bids;
 
   Item({
     required this.projectId,

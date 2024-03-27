@@ -10,7 +10,6 @@ import 'package:workdone/view/screens/onBoard/OnboardClient.dart';
 import 'package:workdone/view/screens/onBoard/onboardWorker.dart';
 import 'package:workdone/view/screens/post%20a%20project/project%20post.dart';
 import 'package:workdone/view/screens/welcome/welcome_screen.dart';
-import 'package:workmanager/workmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';

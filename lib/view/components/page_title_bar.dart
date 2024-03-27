@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hexcolor/hexcolor.dart';
 
 class PageTitleBar extends StatelessWidget {
   const PageTitleBar({ Key? key,required this.title }) : super(key: key);

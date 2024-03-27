@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:screenshot/screenshot.dart';
 
-import '../Bid Details/Bid details Worker.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
-import '../homescreen/home screenClient.dart';
 
 
 

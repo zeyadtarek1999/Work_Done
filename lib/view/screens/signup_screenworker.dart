@@ -1,25 +1,18 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:blurry_modal_progress_hud/blurry_modal_progress_hud.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:http_parser/http_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/routes/transitions_type.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:ionicons/ionicons.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
-import '../../model/PhoneNumberFormatter.dart';
 import '../../model/Register_workerModel.dart';
 import '../../model/mediaquery.dart';
 import '../../model/textinputformatter.dart';
@@ -27,10 +20,7 @@ import '../components/page_title_bar.dart';
 import '../components/under_part.dart';
 import '../components/upside.dart';
 import '../stateslectorpopup.dart';
-import 'Screens_layout/layoutWorker.dart';
 import '../widgets/rounded_button.dart';
-import '../widgets/rounded_input_field.dart';
-import '../widgets/rounded_password_field.dart';
 import 'login_screen_worker.dart';
 import 'onBoard/onboardWorker.dart';
 
@@ -1167,7 +1157,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                         onChanged: (value) {
                                           setState(() {
                                             noLicenseAvailable = value!;
-                                            if (value!) {
+                                            if (value) {
                                               // Clear license number and image if "No license available" is checked
                                               licenseController.clear();
                                               _image = null;

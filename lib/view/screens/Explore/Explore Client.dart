@@ -16,7 +16,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/model/firebaseNotification.dart';
 import 'package:workdone/model/save_notification_to_firebase.dart';
 import '../Bid Details/Bid details Client.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
 import '../notifications/notificationScreenclient.dart';
@@ -102,7 +101,7 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
             List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
             // Check if the new notification is not null and not already in the list
-            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
               // Add the new notification to the beginning of the list
               notifications.insert(0, newNotification);
 
@@ -1164,7 +1163,7 @@ class Item {
    int numbers_of_likes;
   final String postedFrom;
   String isLiked;
-  dynamic? lowest_bids;
+  dynamic lowest_bids;
 
   Item({
     required this.projectId,

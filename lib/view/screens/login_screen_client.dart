@@ -1,8 +1,6 @@
-import 'dart:convert';
 
 import 'package:blurry_modal_progress_hud/blurry_modal_progress_hud.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -16,9 +14,6 @@ import '../widgets/bottomsheet.dart';
 import '../components/page_title_bar.dart';
 import '../components/under_part.dart';
 import '../components/upside.dart';
-import 'Screens_layout/layoutWorker.dart';
-import '../widgets/rounded_button.dart';
-import 'package:http/http.dart' as http;
 
 import 'Screens_layout/layoutclient.dart';
 class LoginScreenclient extends StatefulWidget {

@@ -7,9 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:intl/intl.dart';
@@ -23,23 +21,18 @@ import 'package:workdone/model/save_notification_to_firebase.dart';
 import 'package:workdone/view/screens/Explore/Explore%20Worker.dart';
 import 'package:workdone/view/screens/notifications/notificationscreenworker.dart';
 import '../Bid Details/Bid details Worker.dart';
-import '../Explore/Explore Client.dart';
-import '../Profile (client-worker)/profilescreenClient.dart';
 import '../Profile (client-worker)/profilescreenworker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 import 'package:badges/badges.dart' as badges;
 
 import '../Reviews/reviews.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
-import '../editProfile/editProfileClient.dart';
 import '../editProfile/editprofileworker.dart';
 import '../notifications/notificationScreenclient.dart';
 import '../view profile screens/Client profile view.dart';
 import '../view profile screens/Reviews profile .dart';
 import '../welcome/welcome_screen.dart';
-import 'home screenClient.dart';
 
 class Homescreenworker extends StatefulWidget {
   final bool showCase;
@@ -467,7 +460,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
             List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
             // Check if the new notification is not null and not already in the list
-            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
               // Add the new notification to the beginning of the list
               notifications.insert(0, newNotification);
 
@@ -2301,7 +2294,7 @@ class Item {
   int numbers_of_likes;
   final String postedFrom;
   String isLiked;
-  dynamic? lowest_bids;
+  dynamic lowest_bids;
 
 
   Item({

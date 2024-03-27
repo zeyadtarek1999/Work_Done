@@ -4,10 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:workdone/view/screens/check%20out%20client/checkout.dart';
 
-import '../Support Screen/Helper.dart';
-import '../homescreen/home screenClient.dart';
 import '../view profile screens/Worker profile view.dart';
 
 class bidDetailsClientPost extends StatefulWidget {

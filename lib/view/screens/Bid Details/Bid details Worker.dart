@@ -13,7 +13,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -289,7 +288,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
             List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
             // Check if the new notification is not null and not already in the list
-            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
               // Add the new notification to the beginning of the list
               notifications.insert(0, newNotification);
 
@@ -479,8 +478,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
               .cast<Map<String, dynamic>>();
 
           // Check if the new notification is not null and not already in the list
-          if (newNotification != null &&
-              !notifications.any((notification) =>
+          if (!notifications.any((notification) =>
               notification['id'] ==
                   newNotification['id'])) {
             // Add the new notification to the beginning of the list
@@ -545,8 +543,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
               .cast<Map<String, dynamic>>();
 
           // Check if the new notification is not null and not already in the list
-          if (newNotification != null &&
-              !notifications.any((notification) => notification['id'] ==
+          if (!notifications.any((notification) => notification['id'] ==
                   newNotification['id'])) {
             // Add the new notification to the beginning of the list
             notifications.insert(0, newNotification);
@@ -728,8 +725,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
               .cast<Map<String, dynamic>>();
 
           // Check if the new notification is not null and not already in the list
-          if (newNotification != null &&
-              !notifications.any((notification) => notification['id'] ==
+          if (!notifications.any((notification) => notification['id'] ==
                   newNotification['id'])) {
             // Add the new notification to the beginning of the list
             notifications.insert(0, newNotification);
@@ -867,8 +863,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
               .cast<Map<String, dynamic>>();
 
           // Check if the new notification is not null and not already in the list
-          if (newNotification != null &&
-              !notifications.any((notification) => notification['id'] ==
+          if (!notifications.any((notification) => notification['id'] ==
                   newNotification['id'])) {
             // Add the new notification to the beginning of the list
             notifications.insert(0, newNotification);
@@ -978,8 +973,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
               .cast<Map<String, dynamic>>();
 
           // Check if the new notification is not null and not already in the list
-          if (newNotification != null &&
-              !notifications.any((notification) => notification['id'] ==
+          if (!notifications.any((notification) => notification['id'] ==
                   newNotification['id'])) {
             // Add the new notification to the beginning of the list
             notifications.insert(0, newNotification);
@@ -1642,7 +1636,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                           ProjectData projectData = snapshot.data!;
                           currentbid = projectData.lowestBid.toString();
                           client_id =
-                              projectData.clientData!.clientId.toString();
+                              projectData.clientData.clientId.toString();
                           projectimage = projectData.images;
                           ;
                           selectedworkername =
@@ -1654,7 +1648,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                           projectdesc = projectData.desc.toString();
                           video = projectData.video;
 
-                          owner = projectData.clientData!.firstname.toString();
+                          owner = projectData.clientData.firstname.toString();
                           return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -1695,11 +1689,11 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                           if (_controller.value
                                                               .isPlaying) {
                                                             _controller.pause();
-                                                            _chewieController!
+                                                            _chewieController
                                                                 .pause();
                                                           } else {
                                                             _controller.play();
-                                                            _chewieController!
+                                                            _chewieController
                                                                 .play();
                                                           }
                                                         }
@@ -1725,7 +1719,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                     height: 210,
                                                     child: _controllerInitialized
                                                         ? Chewie(
-                                                        controller: _chewieController!)
+                                                        controller: _chewieController)
                                                         : Center(
                                                         child: CircularProgressIndicator(
                                                           color: Colors.green,
@@ -2114,7 +2108,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                               builder: (context) =>
                                                   ProfilePageClient(
                                                       userId: projectData
-                                                          .clientData!.clientId
+                                                          .clientData.clientId
                                                           .toString())),
                                         ).then((_) {
                                           // Fetch data here after popping the second screen
@@ -2124,7 +2118,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                       },
 
                                       child: Text(
-                                        projectData.clientData!.firstname,
+                                        projectData.clientData.firstname,
                                         //client first name
                                         style: TextStyle(
                                           color: HexColor('4D8D6E'),
@@ -2345,7 +2339,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             Get.to(
                                                               Workerprofileother(
                                                                 userId: projectData
-                                                                    .selectworkerbid!
+                                                                    .selectworkerbid
                                                                     .worker_id
                                                                     .toString(),
                                                               ),
@@ -2738,7 +2732,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                           .selectworkerbid
                                                           .worker_firstname,
                                                       client_id: projectData
-                                                          .clientData!.clientId,
+                                                          .clientData.clientId,
 
                                                       seconduserimage: projectData
                                                           .clientData
@@ -3678,7 +3672,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .selectworkerbid
                                                             .worker_firstname,
                                                         client_id: projectData
-                                                            .clientData!
+                                                            .clientData
                                                             .clientId,
 
                                                         seconduserimage: projectData
@@ -3686,7 +3680,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .profileImage,
 
                                                         chatId: projectData
-                                                            .pageaccessdata!
+                                                            .pageaccessdata
                                                             .chat_ID,
                                                         currentUser:
                                                         'worker',
@@ -3695,7 +3689,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .clientData
                                                             .firstname,
                                                         userId: projectData
-                                                            .clientData!
+                                                            .clientData
                                                             .clientId
                                                             .toString(),
                                                       ));
@@ -4561,7 +4555,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .selectworkerbid
                                                             .worker_firstname,
                                                         client_id: projectData
-                                                            .clientData!
+                                                            .clientData
                                                             .clientId,
 
                                                         seconduserimage: projectData
@@ -4569,7 +4563,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .profileImage,
 
                                                         chatId: projectData
-                                                            .pageaccessdata!
+                                                            .pageaccessdata
                                                             .chat_ID,
                                                         currentUser:
                                                         'worker',
@@ -4578,7 +4572,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .clientData
                                                             .firstname,
                                                         userId: projectData
-                                                            .clientData!
+                                                            .clientData
                                                             .clientId
                                                             .toString(),
                                                       ));
@@ -5381,7 +5375,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .selectworkerbid
                                                             .worker_firstname,
                                                         client_id: projectData
-                                                            .clientData!
+                                                            .clientData
                                                             .clientId,
 
                                                         seconduserimage: projectData
@@ -5389,7 +5383,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .profileImage,
 
                                                         chatId: projectData
-                                                            .pageaccessdata!
+                                                            .pageaccessdata
                                                             .chat_ID,
                                                         currentUser:
                                                         'worker',
@@ -5398,7 +5392,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .clientData
                                                             .firstname,
                                                         userId: projectData
-                                                            .clientData!
+                                                            .clientData
                                                             .clientId
                                                             .toString(),
                                                       ));
@@ -6233,7 +6227,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .selectworkerbid
                                                             .worker_firstname,
                                                         client_id: projectData
-                                                            .clientData!
+                                                            .clientData
                                                             .clientId,
 
                                                         seconduserimage: projectData
@@ -6241,7 +6235,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .profileImage,
 
                                                         chatId: projectData
-                                                            .pageaccessdata!
+                                                            .pageaccessdata
                                                             .chat_ID,
                                                         currentUser:
                                                         'worker',
@@ -6250,7 +6244,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .clientData
                                                             .firstname,
                                                         userId: projectData
-                                                            .clientData!
+                                                            .clientData
                                                             .clientId
                                                             .toString(),
                                                       ));
@@ -7087,7 +7081,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .selectworkerbid
                                                             .worker_firstname,
                                                         client_id: projectData
-                                                            .clientData!
+                                                            .clientData
                                                             .clientId,
 
                                                         seconduserimage: projectData
@@ -7095,7 +7089,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .profileImage,
 
                                                         chatId: projectData
-                                                            .pageaccessdata!
+                                                            .pageaccessdata
                                                             .chat_ID,
                                                         currentUser:
                                                         'worker',
@@ -7104,7 +7098,7 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .clientData
                                                             .firstname,
                                                         userId: projectData
-                                                            .clientData!
+                                                            .clientData
                                                             .clientId
                                                             .toString(),
                                                       ));
@@ -7899,15 +7893,15 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                         .transparent,
                                                     backgroundImage: projectData
                                                         .clientData
-                                                        ?.profileImage ==
+                                                        .profileImage ==
                                                         'https://workdonecorp.com/images/' ||
                                                         projectData.clientData
-                                                            ?.profileImage == ''
+                                                            .profileImage == ''
                                                         ? AssetImage(
                                                         'assets/images/default.png') as ImageProvider
                                                         : NetworkImage(
                                                         projectData.clientData
-                                                            ?.profileImage ??
+                                                            .profileImage ??
                                                             'assets/images/default.png'),
                                                   ),
                                                   SizedBox(width: 11),
@@ -7915,13 +7909,13 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                     onTap: () {
                                                       Get.to(ProfilePageClient(
                                                           userId: projectData
-                                                              .clientData!
+                                                              .clientData
                                                               .clientId
                                                               .toString()));
                                                     },
 
                                                     child: Text(
-                                                      projectData.clientData!
+                                                      projectData.clientData
                                                           .firstname,
                                                       style: TextStyle(
                                                         color: HexColor(
@@ -8784,15 +8778,15 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                         .transparent,
                                                     backgroundImage: projectData
                                                         .clientData
-                                                        ?.profileImage ==
+                                                        .profileImage ==
                                                         'https://workdonecorp.com/images/' ||
                                                         projectData.clientData
-                                                            ?.profileImage == ''
+                                                            .profileImage == ''
                                                         ? AssetImage(
                                                         'assets/images/default.png') as ImageProvider
                                                         : NetworkImage(
                                                         projectData.clientData
-                                                            ?.profileImage ??
+                                                            .profileImage ??
                                                             'assets/images/default.png'),
                                                   ),
                                                   SizedBox(width: 11),
@@ -8800,13 +8794,13 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                     onTap: () {
                                                       Get.to(ProfilePageClient(
                                                           userId: projectData
-                                                              .clientData!
+                                                              .clientData
                                                               .clientId
                                                               .toString()));
                                                     },
 
                                                     child: Text(
-                                                      projectData.clientData!
+                                                      projectData.clientData
                                                           .firstname,
                                                       style: TextStyle(
                                                         color: HexColor(
@@ -8950,18 +8944,18 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                             .transparent,
                                                         backgroundImage: projectData
                                                             .clientData
-                                                            ?.profileImage ==
+                                                            .profileImage ==
                                                             'https://workdonecorp.com/images/' ||
                                                             projectData
                                                                 .clientData
-                                                                ?.profileImage ==
+                                                                .profileImage ==
                                                                 ''
                                                             ? AssetImage(
                                                             'assets/images/default.png') as ImageProvider
                                                             : NetworkImage(
                                                             projectData
                                                                 .clientData
-                                                                ?.profileImage ??
+                                                                .profileImage ??
                                                                 'assets/images/default.png'),
                                                       ),
                                                       SizedBox(width: 11),
@@ -8970,14 +8964,14 @@ class _bidDetailsWorkerState extends State<bidDetailsWorker>
                                                           Get.to(
                                                               ProfilePageClient(
                                                                   userId: projectData
-                                                                      .clientData!
+                                                                      .clientData
                                                                       .clientId
                                                                       .toString()));
                                                         },
 
                                                         child: Text(
                                                           projectData
-                                                              .clientData!
+                                                              .clientData
                                                               .firstname,
                                                           style: TextStyle(
                                                             color: HexColor(
@@ -10534,17 +10528,6 @@ class select_worker_bid {
     required this.comment});
 
   factory select_worker_bid.fromJson(Map<String, dynamic> json) {
-    if (json == null) {
-      return select_worker_bid(
-        worker_id: 0,
-        worker_firstname: '',
-        worker_profile_pic: '',
-        amount: 0,
-        comment: '',
-        avg_rating: '',
-      );
-    }
-
     return select_worker_bid(
         worker_id: json['worker_id'] ?? 0,
         worker_firstname: json['worker_firstname'] ?? '',

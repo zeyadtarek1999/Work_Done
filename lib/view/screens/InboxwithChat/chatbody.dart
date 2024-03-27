@@ -3,9 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:screenshot/screenshot.dart';
 
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
-import '../homescreen/home screenClient.dart';
 
 class Chatbody extends StatefulWidget {
   final String chatId; // Unique identifier for the chat

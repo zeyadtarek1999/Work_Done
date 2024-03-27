@@ -2,24 +2,18 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:workdone/view/screens/notifications/notificationscreenworker.dart';
 import '../Edit address.dart';
 import '../Payment Method/Payment_method.dart';
-import '../Profile (client-worker)/profilescreenClient.dart';
 import '../Profile (client-worker)/profilescreenworker.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../homescreen/home screenClient.dart';
-import '../notifications/notificationScreenclient.dart';
 import '../welcome/welcome_screen.dart';
 import 'package:http/http.dart' as http;
 

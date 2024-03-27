@@ -6,10 +6,6 @@ import 'package:workdone/model/mediaquery.dart';
 import 'package:workdone/view/widgets/bottomsheetlogin.dart';
 
 import '../../widgets/bottomsheet.dart';
-import '../../loginscreen.dart';
-import '../../widgets/rounded_button.dart';
-import '../login_screen_worker.dart';
-import '../signup_screenworker.dart';
 import 'background.dart';
 
 class Body extends StatefulWidget {
@@ -220,25 +216,24 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                   width: ScreenUtil.buttonscreenwidth,
                   height: 45,
                   margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
-                  child: ElevatedButton(
-                    onPressed: () {
+                  child: GestureDetector(
+                    onTap: () {
                       _showBottomSheetlogin(context);
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: HexColor('#FFFFFF'),
-                      shape: RoundedRectangleBorder(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: HexColor('#FFFFFF'),
                         borderRadius: BorderRadius.circular(30.0),
-                        side: BorderSide(
+                        border: Border.all(
                           color: HexColor('#4D8D6E'),
                         ),
-
                       ),
-                      elevation: 5, // Add elevation to create a shadow
-
-                    ),
-                    child: Text(
-                      'Login',
-                      style: TextStyle(fontSize: 16.0, color: HexColor('#4D8D6E'), fontWeight: FontWeight.bold),
+                      child: Center(
+                        child: Text(
+                          'Login',
+                          style: TextStyle(fontSize: 16.0, color: HexColor('#4D8D6E'), fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -246,23 +241,21 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                   width: ScreenUtil.buttonscreenwidth,
                   height: 45,
                   margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 24.0),
-                  child: ElevatedButton(
-                    onPressed: () {
+                  child: GestureDetector(
+                    onTap: () {
                       _showBottomSheet(context);
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: HexColor('#4D8D6E'),
-                      shape: RoundedRectangleBorder(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: HexColor('#4D8D6E'),
                         borderRadius: BorderRadius.circular(30.0),
-                        side: BorderSide(
-                          width: buttonscreenwidth,
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Sign Up',
+                          style: TextStyle(fontSize: 16.0, color: Colors.white),
                         ),
                       ),
-                      elevation: 10, // Add elevation to create a shadow
-                    ),
-                    child: Text(
-                      'Sign Up',
-                      style: TextStyle(fontSize: 16.0, color: Colors.white),
                     ),
                   ),
                 ),

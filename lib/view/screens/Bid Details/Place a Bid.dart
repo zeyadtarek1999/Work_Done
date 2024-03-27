@@ -13,9 +13,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:workdone/model/firebaseNotification.dart';
 import 'package:workdone/model/save_notification_to_firebase.dart';
 import 'package:workdone/view/screens/Payment%20Method/Payment_method.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
-import '../homescreen/home screenClient.dart';
 import '../view profile screens/Client profile view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -341,7 +339,7 @@ print('second ${client_id}');
             List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
             // Check if the new notification is not null and not already in the list
-            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
               // Add the new notification to the beginning of the list
               notifications.insert(0, newNotification);
 
@@ -521,7 +519,7 @@ print('second ${client_id}');
               return Center(child: Text('No data available'));
               } else {
               ProjectData projectData = snapshot.data!;
-              client_id = projectData.clientData!.clientId.toString();
+              client_id = projectData.clientData.clientId.toString();
               projectimage = projectData.images.toString();
               projecttitle = projectData.title.toString();
               projectdesc = projectData.desc.toString();
@@ -581,7 +579,7 @@ print('second ${client_id}');
                                     ),
                                     child: TextButton(
                                       onPressed: () {
-                                        Get.to(ProfilePageClient(userId: projectData.clientData!.clientId.toString()),
+                                        Get.to(ProfilePageClient(userId: projectData.clientData.clientId.toString()),
                                           transition: Transition.fadeIn, // You can choose a different transition
                                           duration: Duration(milliseconds: 700), // Set the duration of the transition
                                         );
@@ -591,7 +589,7 @@ print('second ${client_id}');
                                         padding: EdgeInsets.zero,
                                       ),
                                       child: Text(
-                                        projectData.clientData!.firstname,
+                                        projectData.clientData.firstname,
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 20,
@@ -951,7 +949,7 @@ class ProjectData {
   final String desc;
   final bool liked; // Assuming the 'liked' field should be a boolean
   final int numberOfLikes;
-  final dynamic? lowestBid; // Assuming lowest bid could be null
+  final dynamic lowestBid; // Assuming lowest bid could be null
   final String timeframeStart;
   final String timeframeEnd;
   final List<Bid> bids;
@@ -1112,16 +1110,6 @@ class select_worker_bid {
   });
 
   factory select_worker_bid.fromJson(Map<String, dynamic> json) {
-    if (json == null) {
-      return select_worker_bid(
-        worker_id: 0,
-        worker_firstname: '',
-        worker_profile_pic: '',
-        amount: 0,
-        comment: '',
-      );
-    }
-
     return select_worker_bid(worker_id: json['worker_id'] ?? 0,
         worker_firstname: json['worker_firstname']?? ''
         ,worker_profile_pic: json['worker_profile_pic']?? '',

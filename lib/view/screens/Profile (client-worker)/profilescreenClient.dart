@@ -8,25 +8,18 @@ import 'package:intl/intl.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:workdone/model/firebaseNotification.dart';
 import 'package:workdone/model/save_notification_to_firebase.dart';
-import 'package:workdone/view/screens/Screens_layout/layoutclient.dart';
-import 'package:workdone/view/screens/homescreen/home%20screenClient.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workdone/view/screens/homescreen/homeWorker.dart';
 
 
-import '../../../controller/DrawerControllerworker.dart';
 import '../../../model/mediaquery.dart';
-import '../Support Screen/Helper.dart';
 import '../Support Screen/Support.dart';
 import '../editProfile/editProfileClient.dart';
 
@@ -183,7 +176,7 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
             List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
             // Check if the new notification is not null and not already in the list
-            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
               // Add the new notification to the beginning of the list
               notifications.insert(0, newNotification);
 
@@ -558,7 +551,7 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                         profile_pic.toLowerCase().endsWith('.png'))
                     ? DecorationImage(
                   fit: BoxFit.cover,
-                  image: AssetImage('assets/images/default.png') as ImageProvider,
+                  image: AssetImage('assets/images/default.png'),
 
                 )
                     : DecorationImage(
@@ -622,7 +615,7 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                     ? DecorationImage(
                   fit: BoxFit.cover,
                   image: AssetImage(
-                      'assets/images/default.png') as ImageProvider,
+                      'assets/images/default.png'),
 
                 )
                     : DecorationImage(
@@ -1174,32 +1167,33 @@ class _ProfileScreenClient2State extends State<ProfileScreenClient2> {
                 SizedBox(
                   height: 17,
                 ),
-                Center(
-                  child: Container(
-                    width: ScreenUtil.buttonscreenwidth,
-                    height: 60,
-                    margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
-                    child: ElevatedButton(
-                      onPressed: () {Get.to(editProfile());},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: HexColor('#4D8D6E'),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30.0),
-                          // Adjust the value to change the corner radius
-                          side: BorderSide(
-                              width:
-                                  buttonscreenwidth // Adjust the value to change the width of the narrow edge
-                              ),
-                        ),
+
+              Center(
+                child: Container(
+                  width: ScreenUtil.buttonscreenwidth,
+                  height: 60,
+                  margin: EdgeInsets.symmetric(horizontal: 30.0, vertical: 1.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      Get.to(editProfile());
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: HexColor('#4D8D6E'),
+                        borderRadius: BorderRadius.circular(30.0),
                       ),
-                      child: Text(
-                        'Edit',
-                        style: TextStyle(fontSize: 16.0, color: Colors.white),
+                      child: Center(
+                        child: Text(
+                          'Edit',
+                          style: TextStyle(fontSize: 16.0, color: Colors.white),
+                        ),
                       ),
                     ),
                   ),
                 ),
-                SizedBox(
+              ),
+
+              SizedBox(
                   height: ScreenUtil.sizeboxheight,
                 ),
             ],

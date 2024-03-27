@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -194,7 +193,7 @@ class _SupportScreenState extends State<SupportScreen> with SingleTickerProvider
           List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
           // Check if the new notification is not null and not already in the list
-          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+          if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
             // Add the new notification to the beginning of the list
             notifications.insert(0, newNotification);
 

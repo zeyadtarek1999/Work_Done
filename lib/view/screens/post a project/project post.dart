@@ -10,13 +10,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:ionicons/ionicons.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
@@ -27,11 +24,8 @@ import '../../../controller/NotificationController.dart';
 import '../../../main.dart';
 import '../../../model/getprojecttypesmodel.dart';
 import '../../../model/notificationmodel.dart';
-import '../../../model/postProjectmodel.dart';
 import '../../widgets/rounded_button.dart';
-import '../Screens_layout/layoutclient.dart';
 import '../Support Screen/Support.dart';
-import 'apimodel.dart';
 import 'package:http/http.dart' as http;
 
 class projectPost extends StatefulWidget {
@@ -62,7 +56,7 @@ class _projectPostState extends State<projectPost>
       final XFile? image = await picker.pickImage(source: ImageSource.camera);
       if (image != null) {
         setState(() {
-          if (_imageFiles != null && _imageFiles.isNotEmpty) {
+          if (_imageFiles.isNotEmpty) {
             _imageFiles.add(File(image.path));
           } else {
             _imageFiles = [File(image.path)];
@@ -73,7 +67,7 @@ class _projectPostState extends State<projectPost>
       final List<XFile>? images = await picker.pickMultiImage();
       if (images != null && images.isNotEmpty) {
         setState(() {
-          _imageFiles!.addAll(images.map((xfile) => File(xfile.path)));
+          _imageFiles.addAll(images.map((xfile) => File(xfile.path)));
         });
       }
     }
@@ -233,7 +227,7 @@ class _projectPostState extends State<projectPost>
 
     print('Checking for files...');
     // Check if any files are null or empty before proceeding
-    if ((_imageFiles?.isEmpty ?? true) ||_videoFile == null) {
+    if ((_imageFiles.isEmpty ?? true) ||_videoFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Please pick at least one image and a video.")));
       return;
@@ -334,7 +328,7 @@ class _projectPostState extends State<projectPost>
             List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
             // Check if the new notification is not null and not already in the list
-            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
               // Add the new notification to the beginning of the list
               notifications.insert(0, newNotification);
 
@@ -632,7 +626,7 @@ class _projectPostState extends State<projectPost>
                                           effects: [FadeEffect(duration: Duration(milliseconds: 500),),],
                                           child: ListView.builder(
                                             scrollDirection: Axis.horizontal,
-                                            itemCount: _imageFiles!.length,
+                                            itemCount: _imageFiles.length,
                                             itemBuilder: (BuildContext context, int index) {
                                               return GestureDetector(
                                                 onTap: () {
@@ -646,7 +640,7 @@ class _projectPostState extends State<projectPost>
                                                           boundaryMargin: EdgeInsets.all(20),
                                                           minScale: 0.5,
                                                           maxScale: 2,
-                                                          child: Image.file(_imageFiles[index]!),
+                                                          child: Image.file(_imageFiles[index]),
                                                         ),
                                                       );
                                                     },
@@ -657,10 +651,10 @@ class _projectPostState extends State<projectPost>
                                                     Padding(
                                                       padding: EdgeInsets.only(
                                                         left: 8.0,
-                                                        right: index == _imageFiles!.length - 1 ? 8.0 : 0,
+                                                        right: index == _imageFiles.length - 1 ? 8.0 : 0,
                                                       ),
                                                       child: Image.file(
-                                                        _imageFiles[index]!,
+                                                        _imageFiles[index],
                                                         height: 150,
                                                         width: 150,
                                                         fit: BoxFit.cover,
@@ -687,7 +681,7 @@ class _projectPostState extends State<projectPost>
                                                                   TextButton(
                                                                     onPressed: () {
                                                                       setState(() {
-                                                                        _imageFiles!.removeAt(index);
+                                                                        _imageFiles.removeAt(index);
                                                                       });
                                                                       Navigator.pop(context);
                                                                     },
@@ -942,45 +936,47 @@ class _projectPostState extends State<projectPost>
                                           ),
                                         ),
                       )
-                      : Container(
-                    height: 150,
-                    width: 350,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: Colors.white,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.video_camera_back,
-                          color: HexColor('4D8D6E'),
-                          size: 30,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Upload Here',
-                          style: TextStyle(
+                      : Center(
+                        child: Container(
+                                            height: 150,
+                                            width: 350,
+                                            decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        color: Colors.white,
+                                            ),
+                                            child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.video_camera_back,
                             color: HexColor('4D8D6E'),
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            size: 30,
                           ),
-                        ),
-                        SizedBox(height: 8),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                          child: Text(
-                            'Please upload a clear video of the project (from all sides, if applicable) to help the worker place an accurate bid!',
-                            textAlign: TextAlign.center,
+                          SizedBox(height: 8),
+                          Text(
+                            'Upload Here',
                             style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
+                              color: HexColor('4D8D6E'),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                          SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                            child: Text(
+                              'Please upload a clear video of the project (from all sides, if applicable) to help the worker place an accurate bid!',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                                            ),
+                                          ),
+                      ),
                         ),
                       ],
                             ),                      ],
@@ -1052,6 +1048,7 @@ class _projectPostState extends State<projectPost>
                                     return "Please Write a Project Title";
 
                                   }
+                                  return null;
                                 },
                               ),
                             ],
@@ -1281,6 +1278,7 @@ class _projectPostState extends State<projectPost>
                                       // );
                                       return 'Job Description must be at least 50 characters long';
                                     }
+                                    return null;
                                   },
 
                                 ),

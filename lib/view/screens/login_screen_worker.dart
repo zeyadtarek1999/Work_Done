@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:blurry_modal_progress_hud/blurry_modal_progress_hud.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +15,7 @@ import '../components/page_title_bar.dart';
 import '../components/under_part.dart';
 import '../components/upside.dart';
 import 'Screens_layout/layoutWorker.dart';
-import '../widgets/rounded_button.dart';
-import 'package:http/http.dart' as http;
 
-import 'forshowcaseExplain/showcaseWorker.dart';
 class LoginScreenworker extends StatefulWidget {
   const LoginScreenworker({Key? key}) : super(key: key);
 

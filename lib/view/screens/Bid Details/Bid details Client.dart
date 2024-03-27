@@ -62,7 +62,7 @@ class _bidDetailsClientState extends State<bidDetailsClient>  with SingleTickerP
       final XFile? image = await picker.pickImage(source: ImageSource.camera);
       if (image != null) {
         setState(() {
-          if (_imageFiles != null && _imageFiles.isNotEmpty) {
+          if (_imageFiles.isNotEmpty) {
             _imageFiles.add(File(image.path));
           } else {
             _imageFiles = [File(image.path)];
@@ -73,7 +73,7 @@ class _bidDetailsClientState extends State<bidDetailsClient>  with SingleTickerP
       final List<XFile>? images = await picker.pickMultiImage();
       if (images != null && images.isNotEmpty) {
         setState(() {
-          _imageFiles!.addAll(images.map((xfile) => File(xfile.path)));
+          _imageFiles.addAll(images.map((xfile) => File(xfile.path)));
         });
       }
     }
@@ -199,7 +199,7 @@ class _bidDetailsClientState extends State<bidDetailsClient>  with SingleTickerP
             List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
             // Check if the new notification is not null and not already in the list
-            if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+            if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
               // Add the new notification to the beginning of the list
               notifications.insert(0, newNotification);
 
@@ -368,7 +368,7 @@ class _bidDetailsClientState extends State<bidDetailsClient>  with SingleTickerP
 
     print('Checking for files...');
     // Check if any files are null or empty before proceeding
-    if ((_imageFiles?.isEmpty ?? true) ) {
+    if ((_imageFiles.isEmpty ?? true) ) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please pick at least one image and a video.")));
       return;
     }else{     setState(() {
@@ -380,9 +380,9 @@ class _bidDetailsClientState extends State<bidDetailsClient>  with SingleTickerP
 
 
     // Add images if any
-    if (_imageFiles != null && _imageFiles!.isNotEmpty) {
+    if (_imageFiles.isNotEmpty) {
       print('Adding images to the request...');
-      for (var imageFile in _imageFiles!) {
+      for (var imageFile in _imageFiles) {
         request.files.add(http.MultipartFile(
           'images[]',
           imageFile.readAsBytes().asStream(),
@@ -441,7 +441,7 @@ class _bidDetailsClientState extends State<bidDetailsClient>  with SingleTickerP
           List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
           // Check if the new notification is not null and not already in the list
-          if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+          if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
             // Add the new notification to the beginning of the list
             notifications.insert(0, newNotification);
 
@@ -651,7 +651,7 @@ setState(() {
         List<Map<String, dynamic>> notifications = doc.get('notifications').cast<Map<String, dynamic>>();
 
         // Check if the new notification is not null and not already in the list
-        if (newNotification != null && !notifications.any((notification) => notification['id'] == newNotification['id'])) {
+        if (!notifications.any((notification) => notification['id'] == newNotification['id'])) {
           // Add the new notification to the beginning of the list
           notifications.insert(0, newNotification);
 
@@ -1148,7 +1148,7 @@ int? SelectedWorkerid ;
                         } else {
                           ProjectData projectData = snapshot.data!;
                           currentbid = projectData.lowestBid.toString();
-                          client_id = projectData.clientData!.clientId.toString();
+                          client_id = projectData.clientData.clientId.toString();
                           projectimage = projectData.images;
                           selectedworkername=projectData.selectworkerbid.worker_firstname;
                           selectedworkerimage=projectData.selectworkerbid.worker_profile_pic;
@@ -1160,7 +1160,7 @@ int? SelectedWorkerid ;
                           projectdesc = projectData.desc.toString();;
                           video = projectData.video;
                           ;
-                          owner = projectData.clientData!.firstname.toString();
+                          owner = projectData.clientData.firstname.toString();
                           print(projectData.video);
                           return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1200,10 +1200,10 @@ int? SelectedWorkerid ;
                                                         if (_controllerInitialized) {
                                                           if (_controller.value.isPlaying) {
                                                             _controller.pause();
-                                                            _chewieController!.pause();
+                                                            _chewieController.pause();
                                                           } else {
                                                             _controller.play();
-                                                            _chewieController!.play();
+                                                            _chewieController.play();
                                                           }
                                                         }
                                                       },
@@ -1222,7 +1222,7 @@ int? SelectedWorkerid ;
                                                     width: MediaQuery.of(context).size.width,
                                                     height: 210,
                                                     child: _controllerInitialized
-                                                        ? Chewie(controller: _chewieController!)
+                                                        ? Chewie(controller: _chewieController)
                                                         : Center(child: CircularProgressIndicator(
                                                       color: Colors.green,
                                                       strokeWidth: 2,
@@ -1519,7 +1519,7 @@ int? SelectedWorkerid ;
                                           context,
                                           MaterialPageRoute(builder: (context) =>  ProfilePageClient(
                                               userId: projectData
-                                                  .clientData!.clientId
+                                                  .clientData.clientId
                                                   .toString())),
                                         ).then((_) {
                                           // Fetch data here after popping the second screen
@@ -1529,7 +1529,7 @@ int? SelectedWorkerid ;
                                       },
 
                                       child: Text(
-                                        projectData.clientData!.firstname,
+                                        projectData.clientData.firstname,
                                         //client first name
                                         style: TextStyle(
                                           color: HexColor('4D8D6E'),
@@ -1710,7 +1710,7 @@ int? SelectedWorkerid ;
                                                           onTap: () {
                                                             Get.to(
                                                               Workerprofileother(
-                                                                userId: projectData.selectworkerbid!.worker_id.toString(),
+                                                                userId: projectData.selectworkerbid.worker_id.toString(),
                                                               ),
                                                               transition: Transition.fadeIn,
                                                               duration: Duration(milliseconds: 700),
@@ -2505,19 +2505,19 @@ int? SelectedWorkerid ;
                                                             myside_firstname: projectData
                                                                 .clientData.firstname,
                                                             client_id: projectData
-                                                                .clientData!.clientId ,
+                                                                .clientData.clientId ,
 
                                                             seconduserimage: projectData.selectworkerbid.worker_profile_pic,
 
                                                             chatId: projectData
-                                                                .pageaccessdata!.chat_ID,
+                                                                .pageaccessdata.chat_ID,
                                                             currentUser:
                                                             'client',
                                                             secondUserName:
                                                             projectData
                                                                 .selectworkerbid.worker_firstname,
                                                             userId: projectData
-                                                                .clientData!
+                                                                .clientData
                                                                 .clientId
                                                                 .toString(),
                                                           ));
@@ -3707,19 +3707,19 @@ int? SelectedWorkerid ;
                                                           myside_firstname: projectData
                                                               .clientData.firstname,
                                                           client_id: projectData
-                                                              .clientData!.clientId ,
+                                                              .clientData.clientId ,
 
                                                           seconduserimage: projectData.selectworkerbid.worker_profile_pic,
 
                                                           chatId: projectData
-                                                              .pageaccessdata!.chat_ID,
+                                                              .pageaccessdata.chat_ID,
                                                           currentUser:
                                                           'client',
                                                           secondUserName:
                                                           projectData
                                                               .selectworkerbid.worker_firstname,
                                                           userId: projectData
-                                                              .clientData!
+                                                              .clientData
                                                               .clientId
                                                               .toString(),
                                                         ));
@@ -4304,7 +4304,7 @@ int? SelectedWorkerid ;
                                                                                   controller: ScrollController(),
                                                                                   child: ListView.builder(
                                                                                     scrollDirection: Axis.horizontal,
-                                                                                    itemCount: _imageFiles!.length,
+                                                                                    itemCount: _imageFiles.length,
                                                                                     itemBuilder: (BuildContext context, int index) {
                                                                                       return GestureDetector(
                                                                                         onTap: () {
@@ -4318,7 +4318,7 @@ int? SelectedWorkerid ;
                                                                                                   boundaryMargin: EdgeInsets.all(20),
                                                                                                   minScale: 0.5,
                                                                                                   maxScale: 2,
-                                                                                                  child: Image.file(_imageFiles[index]!),
+                                                                                                  child: Image.file(_imageFiles[index]),
                                                                                                 ),
                                                                                               );
                                                                                             },
@@ -4329,10 +4329,10 @@ int? SelectedWorkerid ;
                                                                                             Padding(
                                                                                               padding: EdgeInsets.only(
                                                                                                 left: 8.0,
-                                                                                                right: index == _imageFiles!.length - 1 ? 8.0 : 0,
+                                                                                                right: index == _imageFiles.length - 1 ? 8.0 : 0,
                                                                                               ),
                                                                                               child: Image.file(
-                                                                                                _imageFiles[index]!,
+                                                                                                _imageFiles[index],
                                                                                                 height: 150,
                                                                                                 width: 150,
                                                                                                 fit: BoxFit.cover,
@@ -4359,7 +4359,7 @@ int? SelectedWorkerid ;
                                                                                                           TextButton(
                                                                                                             onPressed: () {
                                                                                                               setState(() {
-                                                                                                                _imageFiles!.removeAt(index);
+                                                                                                                _imageFiles.removeAt(index);
                                                                                                               });
                                                                                                               Navigator.pop(context);
                                                                                                             },
@@ -5197,19 +5197,19 @@ int? SelectedWorkerid ;
                                                             myside_firstname: projectData
                                                                 .clientData.firstname,
                                                             client_id: projectData
-                                                                .clientData!.clientId ,
+                                                                .clientData.clientId ,
 
                                                             seconduserimage: projectData.selectworkerbid.worker_profile_pic,
 
                                                             chatId: projectData
-                                                                .pageaccessdata!.chat_ID,
+                                                                .pageaccessdata.chat_ID,
                                                             currentUser:
                                                             'client',
                                                             secondUserName:
                                                             projectData
                                                                 .selectworkerbid.worker_firstname,
                                                             userId: projectData
-                                                                .clientData!
+                                                                .clientData
                                                                 .clientId
                                                                 .toString(),
                                                           ));
@@ -5794,7 +5794,7 @@ int? SelectedWorkerid ;
                                                                                   controller: ScrollController(),
                                                                                   child: ListView.builder(
                                                                                     scrollDirection: Axis.horizontal,
-                                                                                    itemCount: _imageFiles!.length,
+                                                                                    itemCount: _imageFiles.length,
                                                                                     itemBuilder: (BuildContext context, int index) {
                                                                                       return GestureDetector(
                                                                                         onTap: () {
@@ -5808,7 +5808,7 @@ int? SelectedWorkerid ;
                                                                                                   boundaryMargin: EdgeInsets.all(20),
                                                                                                   minScale: 0.5,
                                                                                                   maxScale: 2,
-                                                                                                  child: Image.file(_imageFiles[index]!),
+                                                                                                  child: Image.file(_imageFiles[index]),
                                                                                                 ),
                                                                                               );
                                                                                             },
@@ -5819,10 +5819,10 @@ int? SelectedWorkerid ;
                                                                                             Padding(
                                                                                               padding: EdgeInsets.only(
                                                                                                 left: 8.0,
-                                                                                                right: index == _imageFiles!.length - 1 ? 8.0 : 0,
+                                                                                                right: index == _imageFiles.length - 1 ? 8.0 : 0,
                                                                                               ),
                                                                                               child: Image.file(
-                                                                                                _imageFiles[index]!,
+                                                                                                _imageFiles[index],
                                                                                                 height: 150,
                                                                                                 width: 150,
                                                                                                 fit: BoxFit.cover,
@@ -5849,7 +5849,7 @@ int? SelectedWorkerid ;
                                                                                                           TextButton(
                                                                                                             onPressed: () {
                                                                                                               setState(() {
-                                                                                                                _imageFiles!.removeAt(index);
+                                                                                                                _imageFiles.removeAt(index);
                                                                                                               });
                                                                                                               Navigator.pop(context);
                                                                                                             },
@@ -6687,19 +6687,19 @@ int? SelectedWorkerid ;
                                                           myside_firstname: projectData
                                                               .clientData.firstname,
                                                           client_id: projectData
-                                                              .clientData!.clientId ,
+                                                              .clientData.clientId ,
 
                                                           seconduserimage: projectData.selectworkerbid.worker_profile_pic,
 
                                                           chatId: projectData
-                                                              .pageaccessdata!.chat_ID,
+                                                              .pageaccessdata.chat_ID,
                                                           currentUser:
                                                           'client',
                                                           secondUserName:
                                                           projectData
                                                               .selectworkerbid.worker_firstname,
                                                           userId: projectData
-                                                              .clientData!
+                                                              .clientData
                                                               .clientId
                                                               .toString(),
                                                         ));
@@ -7284,7 +7284,7 @@ int? SelectedWorkerid ;
                                                                                   controller: ScrollController(),
                                                                                   child: ListView.builder(
                                                                                     scrollDirection: Axis.horizontal,
-                                                                                    itemCount: _imageFiles!.length,
+                                                                                    itemCount: _imageFiles.length,
                                                                                     itemBuilder: (BuildContext context, int index) {
                                                                                       return GestureDetector(
                                                                                         onTap: () {
@@ -7298,7 +7298,7 @@ int? SelectedWorkerid ;
                                                                                                   boundaryMargin: EdgeInsets.all(20),
                                                                                                   minScale: 0.5,
                                                                                                   maxScale: 2,
-                                                                                                  child: Image.file(_imageFiles[index]!),
+                                                                                                  child: Image.file(_imageFiles[index]),
                                                                                                 ),
                                                                                               );
                                                                                             },
@@ -7309,10 +7309,10 @@ int? SelectedWorkerid ;
                                                                                             Padding(
                                                                                               padding: EdgeInsets.only(
                                                                                                 left: 8.0,
-                                                                                                right: index == _imageFiles!.length - 1 ? 8.0 : 0,
+                                                                                                right: index == _imageFiles.length - 1 ? 8.0 : 0,
                                                                                               ),
                                                                                               child: Image.file(
-                                                                                                _imageFiles[index]!,
+                                                                                                _imageFiles[index],
                                                                                                 height: 150,
                                                                                                 width: 150,
                                                                                                 fit: BoxFit.cover,
@@ -7339,7 +7339,7 @@ int? SelectedWorkerid ;
                                                                                                           TextButton(
                                                                                                             onPressed: () {
                                                                                                               setState(() {
-                                                                                                                _imageFiles!.removeAt(index);
+                                                                                                                _imageFiles.removeAt(index);
                                                                                                               });
                                                                                                               Navigator.pop(context);
                                                                                                             },
@@ -8153,19 +8153,19 @@ int? SelectedWorkerid ;
                                                             myside_firstname: projectData
                                                                 .clientData.firstname,
                                                             client_id: projectData
-                                                                .clientData!.clientId ,
+                                                                .clientData.clientId ,
 
                                                             seconduserimage: projectData.selectworkerbid.worker_profile_pic,
 
                                                             chatId: projectData
-                                                                .pageaccessdata!.chat_ID,
+                                                                .pageaccessdata.chat_ID,
                                                             currentUser:
                                                             'client',
                                                             secondUserName:
                                                             projectData
                                                                 .selectworkerbid.worker_firstname,
                                                             userId: projectData
-                                                                .clientData!
+                                                                .clientData
                                                                 .clientId
                                                                 .toString(),
                                                           ));
@@ -9464,19 +9464,19 @@ int? SelectedWorkerid ;
                                                             myside_firstname: projectData
                                                                 .clientData.firstname,
                                                             client_id: projectData
-                                                                .clientData!.clientId ,
+                                                                .clientData.clientId ,
 
                                                             seconduserimage: projectData.selectworkerbid.worker_profile_pic,
 
                                                             chatId: projectData
-                                                                .pageaccessdata!.chat_ID,
+                                                                .pageaccessdata.chat_ID,
                                                             currentUser:
                                                             'client',
                                                             secondUserName:
                                                             projectData
                                                                 .selectworkerbid.worker_firstname,
                                                             userId: projectData
-                                                                .clientData!
+                                                                .clientData
                                                                 .clientId
                                                                 .toString(),
                                                           ));
@@ -10112,11 +10112,11 @@ int? SelectedWorkerid ;
                                     GestureDetector(
                                       onTap:  () {
                                         Get.to(ProfilePageClient(
-                                            userId: projectData.clientData!.clientId.toString()));
+                                            userId: projectData.clientData.clientId.toString()));
                                       },
 
                                                   child:                                                 Text(
-                                                      projectData.clientData!.firstname,
+                                                      projectData.clientData.firstname,
                                                       style: TextStyle(
                                                         color: HexColor('4D8D6E'),
                                                         fontSize: MediaQuery.of(context).size.width > 400 ? 20 : 16,
@@ -10269,7 +10269,7 @@ int? SelectedWorkerid ;
                                                         MaterialPageRoute(builder: (context) => Workerprofileother
                                                           (
                                                             userId: projectData
-                                                                .selectworkerbid!.worker_id
+                                                                .selectworkerbid.worker_id
                                                                 .toString())),
                                                       ).then((_) {
                                                         projectDetailsFuture = fetchProjectDetails(widget.projectId);
@@ -11000,7 +11000,7 @@ class ProjectData {
   final String video;
   final String liked; // Assuming the 'liked' field should be a boolean
    int numberOfLikes;
-  final dynamic? lowestBid; // Assuming lowest bid could be null
+  final dynamic lowestBid; // Assuming lowest bid could be null
   final String timeframeStart;
   final String timeframeEnd;
   final List<Bid> bids;
@@ -11203,17 +11203,6 @@ class select_worker_bid {
   });
 
   factory select_worker_bid.fromJson(Map<String, dynamic> json) {
-    if (json == null) {
-      return select_worker_bid(
-        worker_id: 0,
-        worker_firstname: '',
-        worker_profile_pic: '',
-        amount: 0,
-        comment: '',
-        avg_rating: '',
-      );
-    }
-
     return select_worker_bid(worker_id: json['worker_id'] ?? 0,
         worker_firstname: json['worker_firstname']?? ''
         ,worker_profile_pic: json['worker_profile_pic']?? '',

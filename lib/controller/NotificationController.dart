@@ -1,6 +1,5 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 
-import '../main.dart';
 
 class NotificationController {
 
