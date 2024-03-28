@@ -444,6 +444,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
             return Item(
               projectId: json['project_id'],
               client_id:  json['client_id'],
+              status:  json['status'],
               title: json['title'],
               description: json['desc'],
               video:json['video'],
@@ -1698,6 +1699,41 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
               ),
             ),
           ),
+          Positioned(
+            top: 0,
+            left:0,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 7.0, horizontal: 6),
+
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.yellow.shade400,
+                    Colors.orange.shade900,
+                  ],
+                ),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20.0),
+                  bottomRight: Radius.circular(20.0),
+                ),              ),
+              child: Center(
+                child: Text(
+                  '${item.status}',
+
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+
+                  ),
+
+                ),
+              ),
+            ),
+          ),
+
         ],
       ),
     );
@@ -2049,7 +2085,6 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                           SizedBox(width: 2),
                           Spacer(),
                           Container(
-                            width: 93,
                             height: 36,
                             decoration: BoxDecoration(
                               color: HexColor('4D8D6E'),
@@ -2095,8 +2130,8 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.grey.shade400,
-                    Colors.grey.shade900,
+                    Colors.green.shade400,
+                    Colors.lightGreen.shade900,
                   ],
                 ),
                 borderRadius: BorderRadius.only(
@@ -2105,7 +2140,7 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                 ),              ),
               child: Center(
                 child: Text(
-                  'asdasdasd',
+                  '${item.status}',
 
                   style: TextStyle(
                     fontSize: 15,
@@ -2160,6 +2195,7 @@ class Item {
   final int projectId;
   final int client_id;
   final String title;
+  final String status;
   final String client_firstname;
   late  String liked;
   final String description;
@@ -2178,6 +2214,7 @@ class Item {
     required this.lowest_bids,
     required this.video,
     required this.title,
+    required this.status,
     required this.client_firstname,
     required this.description,
     required this.liked,

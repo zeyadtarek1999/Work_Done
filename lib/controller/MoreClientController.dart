@@ -9,7 +9,9 @@ class MoreClientController extends GetxController {
   var secondname = ''.obs;
   var email = ''.obs;
   var isLoading = true.obs;
-
+  Future<void> refreshData() async {
+    _getUserProfile();
+  }
   Future<void> _getUserProfile() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();

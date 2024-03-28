@@ -1,6 +1,7 @@
 
 import 'package:blurry_modal_progress_hud/blurry_modal_progress_hud.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -56,11 +57,14 @@ class _LoginScreenclientState extends State<LoginScreenclient>  with SingleTicke
           String errorMessage = loginResponse['msg'];
 
           if (errorMessage == 'you provided wrong credentials') {
-            // Show SnackBar for wrong credentials
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text('Login failed: you provided wrong credentials'),
+            Fluttertoast.showToast(
+              msg: 'Login failed: you provided wrong credentials',
+              fontSize: 16.0,
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
               backgroundColor: Colors.red,
-            ));
+              textColor: Colors.white,
+            );
           } else {
             // Handle other error messages if needed
             // Display a user-friendly error message or throw an exception if needed
@@ -213,6 +217,13 @@ class _LoginScreenclientState extends State<LoginScreenclient>  with SingleTicke
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor:         HexColor('4d8d6e'),
+
+      // Change this color to the desired one
+      statusBarIconBrightness:
+      Brightness.dark, // Change the status bar icons' color (dark or light)
+    ));
     double screenWidth = MediaQuery.of(context).size.width;
     double fourthscreenwidth = screenWidth * 0.40;
     double sizeboxwidth = screenWidth * 0.1;

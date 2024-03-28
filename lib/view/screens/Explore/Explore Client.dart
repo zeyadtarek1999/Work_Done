@@ -313,6 +313,7 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
             return Item(
               client_id: json['client_id'],
               projectId: json['project_id'],
+              status: json['status'],
               title: json['title'],
               description: json['desc'],
               imageUrl: json['images'] != null ? List<String>.from(json['images']) : [], // This creates a list from the JSON array
@@ -833,266 +834,311 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
       onTap: () {
         Get.to(bidDetailsClient(projectId: item.projectId,));
       },
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 4),
-        padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20.0),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 1,
-              blurRadius: 1,
-              offset: Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                CarouselSlider(
-                  options: CarouselOptions(
-                    pageSnapping: true,
-
-                    height: 170,
-                    aspectRatio: 16/9,
-                    viewportFraction: 1.0,
-                    initialPage: 0,
-                    enableInfiniteScroll: true,
-                    reverse: false,
-                    autoPlay: false,
-                    autoPlayInterval: Duration(seconds: 3),
-                    autoPlayAnimationDuration: Duration(milliseconds: 800),
-                    autoPlayCurve: Curves.fastOutSlowIn,
-                    scrollDirection: Axis.horizontal,
-                  ),
-                  items: item.imageUrl.map((imageUrl) {
-                    return Builder(
-                      builder: (BuildContext context) {
-                        return ClipRRect(
-                          borderRadius: BorderRadius.circular(30),
-                          child: Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            width: MediaQuery.of(context).size.width,
-                            height: double.infinity,
-                          ),
-                        );
-                      },
-                    );
-                  }).toList(),
+      child: Stack(
+        children: [
+          Container(
+            margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 4),
+            padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20.0),
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 1,
+                  blurRadius: 1,
+                  offset: Offset(0, 1),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Spacer(), // Pushes the container to the right
-                      Container(
-                        height: 50,
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0, left: 5),
-                              child: Text(
-                                "${item.numbers_of_likes}",
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            IconButton(
-                              iconSize: 22,
-                              icon: Icon(
-                                likedProjectsMap[item.projectId] ?? item.liked == "true"
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color: likedProjectsMap[item.projectId] ?? item.liked == "true"
-                                    ? Colors.red
-                                    : Colors.grey,
-                              ),
-                              onPressed: () async {
-                                try {
-                                  if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
-                                    // If liked, remove like
-                                    final response = await removeProjectFromLikes(item.projectId.toString());
-
-                                    if (response['status'] == 'success') {
-                                      // If successfully removed from likes
-                                      setState(() {
-                                        likedProjectsMap[item.projectId] = false;
-                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) - 1;
-                                      });
-                                      print('Project removed from likes');
-                                    } else {
-                                      // Handle the case where the project is not removed from likes
-                                      print('Error: ${response['msg']}');
-                                    }
-                                  } else {
-                                    // If not liked, add like
-                                    final response = await addProjectToLikes(item.projectId.toString(),firstname,item.title,item.client_id.toString());
-
-                                    if (response['status'] == 'success') {
-                                      // If successfully added to likes
-                                      setState(() {
-                                        likedProjectsMap[item.projectId] = true;
-                                        item.numbers_of_likes = (item.numbers_of_likes ?? 0) + 1;
-                                      });
-                                      print('Project added to likes');
-                                    } else if (response['msg'] == 'This Project is Already in Likes !') {
-                                      // If the project is already liked, switch to Icons.favorite_border
-                                      setState(() {
-                                        likedProjectsMap[item.projectId] = false;
-                                      });
-                                      print('Project is already liked');
-                                    } else {
-                                      // Handle the case where the project is not added to likes
-                                      print('Error: ${response['msg']}');
-                                    }
-                                  }
-                                } catch (e) {
-                                  print('Error: $e');
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-
-                      ),
-                    ],
-                  ),
-                ),
-
               ],
             ),
-            SizedBox(height: 10.0),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 7.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-              Text.rich(
-              TextSpan(
-              children: _buildTextSpans(
-              item.title.length > 17
-              ? '${item.title.substring(0, 16)}...' // Truncate to 14 characters and add ellipsis
-              : item.title,
-              searchController.text,
-            ),
-      ),
-      style: GoogleFonts.openSans(
-        textStyle: TextStyle(
-          color: HexColor('131330'),
-          fontSize: 19,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    ),
-                      Spacer(),
-                      Text(
-                        'By',
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                            color: HexColor('393B3E'),
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
+            child: Column(
+              children: [
+                Stack(
+                  children: [
+                    CarouselSlider(
+                      options: CarouselOptions(
+                        pageSnapping: true,
+
+                        height: 170,
+                        aspectRatio: 16/9,
+                        viewportFraction: 1.0,
+                        initialPage: 0,
+                        enableInfiniteScroll: true,
+                        reverse: false,
+                        autoPlay: false,
+                        autoPlayInterval: Duration(seconds: 3),
+                        autoPlayAnimationDuration: Duration(milliseconds: 800),
+                        autoPlayCurve: Curves.fastOutSlowIn,
+                        scrollDirection: Axis.horizontal,
                       ),
-                      SizedBox(width: 4,),
-                      Container(
-                        height: 30,
-                        width: 60,
-                        padding: EdgeInsets.zero,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: TextButton(
-                          onPressed: () {
-                            Get.to(ProfilePageClient(userId: item.client_id.toString()));
-                          },
-                          style: TextButton.styleFrom(
-                            fixedSize: Size(50, 30), // Adjust the size as needed
-                            padding: EdgeInsets.zero,
-                          ),
-                          child: Text.rich(
-                            TextSpan(
-                              children: _buildTextSpans(item.client_firstname, searchController.text),
-                            ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis, // Use the client name from the fetched data
-                            style: TextStyle(
-                              color: HexColor('4D8D6E'),
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text.rich(
-                          TextSpan(
-                            children: _buildTextSpans(item.description, searchController.text),
-                          ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.openSans(
-                            textStyle: TextStyle(
-                              color: HexColor('393B3E'),
-                              fontSize: 15,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 7,),
-                      Column(
-                        children: [
-                          Text(
-                            'Lowest Bid',
-                            style: GoogleFonts.openSans(
-                              textStyle: TextStyle(
-                                color: HexColor('393B3E'), // Adjust color as needed
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                      items: item.imageUrl.map((imageUrl) {
+                        return Builder(
+                          builder: (BuildContext context) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(30),
+                              child: Image.network(
+                                imageUrl,
+                                fit: BoxFit.cover,
+                                width: MediaQuery.of(context).size.width,
+                                height: double.infinity,
                               ),
+                            );
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Spacer(), // Pushes the container to the right
+                          Container(
+                            height: 50,
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(20),
                             ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0, left: 5),
+                                  child: Text(
+                                    "${item.numbers_of_likes}",
+                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                IconButton(
+                                  iconSize: 22,
+                                  icon: Icon(
+                                    likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    color: likedProjectsMap[item.projectId] ?? item.liked == "true"
+                                        ? Colors.red
+                                        : Colors.grey,
+                                  ),
+                                  onPressed: () async {
+                                    try {
+                                      if (likedProjectsMap[item.projectId] ?? item.liked == "true") {
+                                        // If liked, remove like
+                                        final response = await removeProjectFromLikes(item.projectId.toString());
+
+                                        if (response['status'] == 'success') {
+                                          // If successfully removed from likes
+                                          setState(() {
+                                            likedProjectsMap[item.projectId] = false;
+                                            item.numbers_of_likes = (item.numbers_of_likes ?? 0) - 1;
+                                          });
+                                          print('Project removed from likes');
+                                        } else {
+                                          // Handle the case where the project is not removed from likes
+                                          print('Error: ${response['msg']}');
+                                        }
+                                      } else {
+                                        // If not liked, add like
+                                        final response = await addProjectToLikes(item.projectId.toString(),firstname,item.title,item.client_id.toString());
+
+                                        if (response['status'] == 'success') {
+                                          // If successfully added to likes
+                                          setState(() {
+                                            likedProjectsMap[item.projectId] = true;
+                                            item.numbers_of_likes = (item.numbers_of_likes ?? 0) + 1;
+                                          });
+                                          print('Project added to likes');
+                                        } else if (response['msg'] == 'This Project is Already in Likes !') {
+                                          // If the project is already liked, switch to Icons.favorite_border
+                                          setState(() {
+                                            likedProjectsMap[item.projectId] = false;
+                                          });
+                                          print('Project is already liked');
+                                        } else {
+                                          // Handle the case where the project is not added to likes
+                                          print('Error: ${response['msg']}');
+                                        }
+                                      }
+                                    } catch (e) {
+                                      print('Error: $e');
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+
                           ),
-                          SizedBox(height: 6,),
-                            item.lowest_bids != 'No Bids'
-                              ? Text(
-                              '\$ ' + item.lowest_bids.toString(), // Use 'N/A' or any preferred default text
+                        ],
+                      ),
+                    ),
+
+                  ],
+                ),
+                SizedBox(height: 10.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 7.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                  Text.rich(
+                  TextSpan(
+                  children: _buildTextSpans(
+                  item.title.length > 17
+                  ? '${item.title.substring(0, 16)}...' // Truncate to 14 characters and add ellipsis
+                  : item.title,
+                  searchController.text,
+                ),
+          ),
+          style: GoogleFonts.openSans(
+            textStyle: TextStyle(
+              color: HexColor('131330'),
+              fontSize: 19,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+              ),
+                          Spacer(),
+                          Text(
+                            'By',
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
                                 color: HexColor('393B3E'),
-                                fontSize: 15,
+                                fontSize: 14,
                                 fontWeight: FontWeight.normal,
                               ),
                             ),
-                          )
-                              : Text(
-                            'No Bids Yet',
+                          ),
+                          SizedBox(width: 4,),
+                          Container(
+                            height: 30,
+                            width: 60,
+                            padding: EdgeInsets.zero,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: TextButton(
+                              onPressed: () {
+                                Get.to(ProfilePageClient(userId: item.client_id.toString()));
+                              },
+                              style: TextButton.styleFrom(
+                                fixedSize: Size(50, 30), // Adjust the size as needed
+                                padding: EdgeInsets.zero,
+                              ),
+                              child: Text.rich(
+                                TextSpan(
+                                  children: _buildTextSpans(item.client_firstname, searchController.text),
+                                ),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis, // Use the client name from the fetched data
+                                style: TextStyle(
+                                  color: HexColor('4D8D6E'),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text.rich(
+                              TextSpan(
+                                children: _buildTextSpans(item.description, searchController.text),
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.openSans(
+                                textStyle: TextStyle(
+                                  color: HexColor('393B3E'),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 7,),
+                          Column(
+                            children: [
+                              Text(
+                                'Lowest Bid',
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                    color: HexColor('393B3E'), // Adjust color as needed
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 6,),
+                                item.lowest_bids != 'No Bids'
+                                  ? Text(
+                                  '\$ ' + item.lowest_bids.toString(), // Use 'N/A' or any preferred default text
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                    color: HexColor('393B3E'),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                              )
+                                  : Text(
+                                'No Bids Yet',
+                                style: GoogleFonts.openSans(
+                                  textStyle: TextStyle(
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 9),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time_rounded,
+                            color: HexColor('777778'),
+                            size: 18,
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            item.postedFrom, // Use the posted time from the fetched data
                             style: GoogleFonts.openSans(
                               textStyle: TextStyle(
-                                color: Colors.grey,
+                                color: HexColor('777778'),
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 2),
+                          Spacer(),
+                          Container(
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: HexColor('4D8D6E'),
+                              borderRadius: BorderRadius.circular(11),
+                            ),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Get.to(bidDetailsClient(projectId: item.projectId,));
+                              },
+                              child: Text('Details',style: TextStyle(color: Colors.white,fontSize: 12),),
+                              style: ElevatedButton.styleFrom(
+                               backgroundColor: Colors.transparent,
+                                elevation: 0,
+                                textStyle: TextStyle(color: Colors.white),
                               ),
                             ),
                           ),
@@ -1100,53 +1146,47 @@ class _exploreClientState extends State<exploreClient> with SingleTickerProvider
                       ),
                     ],
                   ),
-                  SizedBox(height: 9),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time_rounded,
-                        color: HexColor('777778'),
-                        size: 18,
-                      ),
-                      SizedBox(width: 5),
-                      Text(
-                        item.postedFrom, // Use the posted time from the fetched data
-                        style: GoogleFonts.openSans(
-                          textStyle: TextStyle(
-                            color: HexColor('777778'),
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 2),
-                      Spacer(),
-                      Container(
-                        width: 85,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: HexColor('4D8D6E'),
-                          borderRadius: BorderRadius.circular(11),
-                        ),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Get.to(bidDetailsClient(projectId: item.projectId,));
-                          },
-                          child: Text('Details',style: TextStyle(color: Colors.white,fontSize: 12),),
-                          style: ElevatedButton.styleFrom(
-                           backgroundColor: Colors.transparent,
-                            elevation: 0,
-                            textStyle: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ],
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left:0,
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 11.0, horizontal: 4),
+              padding: EdgeInsets.symmetric(vertical: 7.0, horizontal: 6),
+
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.green.shade400,
+                    Colors.lightGreen.shade900,
+                  ],
+                ),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20.0),
+                  bottomRight: Radius.circular(20.0),
+                ),              ),
+              child: Center(
+                child: Text(
+                  '${item.status}',
+
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+
                   ),
-                ],
+
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+
+        ],
       ),
     );
   }
@@ -1155,6 +1195,7 @@ class Item {
   final int projectId;
   final String title;
   final String client_firstname;
+  final String status;
   final int client_id;
 
   final String liked;
@@ -1167,6 +1208,7 @@ class Item {
 
   Item({
     required this.projectId,
+    required this.status,
     required this.lowest_bids,
     required this.title,
     required this.client_id,

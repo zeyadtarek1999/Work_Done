@@ -458,6 +458,13 @@ bool charater8 =false;
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor:         HexColor('4d8d6e'),
+
+      // Change this color to the desired one
+      statusBarIconBrightness:
+      Brightness.dark, // Change the status bar icons' color (dark or light)
+    ));
     double buttonscreenwidth = ScreenUtil.screenWidth! * 0.75;
     Size size = MediaQuery.of(context).size;
     String selectedPhoneCode = americanPhoneCodes[0]; // Initialize with the first code

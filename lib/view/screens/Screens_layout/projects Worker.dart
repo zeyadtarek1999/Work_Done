@@ -945,7 +945,6 @@ class _projectsWorkerState extends State<projectsWorker> with SingleTickerProvid
                       SizedBox(width: 2),
                       Spacer(),
                       Container(
-                        width: 93,
                         height: 36,
                         decoration: BoxDecoration(
                           color: HexColor('4D8D6E'),
