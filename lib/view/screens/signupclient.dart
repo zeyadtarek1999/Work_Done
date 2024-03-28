@@ -10,6 +10,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/view/screens/Termsandconditions/termsofservice.dart';
 import '../../model/Register_clientModel.dart';
 import '../../model/mediaquery.dart';
 import '../../model/textinputformatter.dart';
@@ -395,7 +396,7 @@ bool charater8 =false;
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           timeInSecForIosWeb: 1,
-          backgroundColor: Colors.green,
+          backgroundColor: HexColor('#4D8D6E'),
           textColor: Colors.white,
           fontSize: 16.0,
         );
@@ -455,6 +456,7 @@ bool charater8 =false;
     return prefs.getString('token');
   }
   bool isLoading = false; // Add a loading state
+  bool _isCheckedterm = false; // Add a loading state
 
   @override
   Widget build(BuildContext context) {
@@ -949,7 +951,7 @@ bool charater8 =false;
                                         ),
                                         SizedBox(width: 8,),
                                         if (_isFormFilled == true)
-                                          Icon(Icons.check, color: Colors.green),
+                                          Icon(Icons.check, color: HexColor('#4D8D6E')),
                                       ],
                                     ),
                                   ),
@@ -1460,13 +1462,13 @@ bool charater8 =false;
                                         children: [
                                           Icon(
                                             hasUppercase ? Icons.check_circle : Icons.cancel,
-                                            color: hasUppercase ? Colors.green : Colors.red,
+                                            color: hasUppercase ? HexColor('#4D8D6E') : Colors.red,
                                           ),
                                           SizedBox(width: 4),
                                           Text(
                                             'Uppercase letter',
                                             style: TextStyle(
-                                              color: hasUppercase ? Colors.green : Colors.red,
+                                              color: hasUppercase ? HexColor('#4D8D6E') : Colors.red,
                                             ),
                                           ),
                                         ],
@@ -1476,13 +1478,13 @@ bool charater8 =false;
                                         children: [
                                           Icon(
                                             hasLowercase ? Icons.check_circle : Icons.cancel,
-                                            color: hasLowercase ? Colors.green : Colors.red,
+                                            color: hasLowercase ? HexColor('#4D8D6E') : Colors.red,
                                           ),
                                           SizedBox(width: 4),
                                           Text(
                                             'Lowercase letter',
                                             style: TextStyle(
-                                              color: hasLowercase ? Colors.green : Colors.red,
+                                              color: hasLowercase ? HexColor('#4D8D6E') : Colors.red,
                                             ),
                                           ),
                                         ],
@@ -1492,13 +1494,13 @@ bool charater8 =false;
                                         children: [
                                           Icon(
                                             hasNumber ? Icons.check_circle : Icons.cancel,
-                                            color: hasNumber ? Colors.green : Colors.red,
+                                            color: hasNumber ? HexColor('#4D8D6E') : Colors.red,
                                           ),
                                           SizedBox(width: 4),
                                           Text(
                                             'Number',
                                             style: TextStyle(
-                                              color: hasNumber ? Colors.green : Colors.red,
+                                              color: hasNumber ? HexColor('#4D8D6E') : Colors.red,
                                             ),
                                           ),
                                         ],
@@ -1508,13 +1510,13 @@ bool charater8 =false;
                                         children: [
                                           Icon(
                                             charater8?  Icons.check_circle : Icons.cancel,
-                                            color: charater8?  Colors.green : Colors.red,
+                                            color: charater8?  HexColor('#4D8D6E') : Colors.red,
                                           ),
                                           SizedBox(width: 4),
                                           Text(
                                             'At least 8 characters',
                                             style: TextStyle(
-                                              color: charater8? Colors.green : Colors.red,
+                                              color: charater8? HexColor('#4D8D6E') : Colors.red,
                                             ),
                                           ),
                                         ],
@@ -1526,7 +1528,67 @@ bool charater8 =false;
                               SizedBox(
                                 height: ScreenUtil.sizeboxheight,
                               ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                child: Container(
 
+                                  decoration: BoxDecoration(
+
+                                    color: Colors.grey[200], // Set the container color
+                                    borderRadius: BorderRadius.circular(15), // Set the circular radius
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                                    child: CheckboxListTile(
+                                      value: _isCheckedterm,
+                                    activeColor: HexColor('#4D8D6E'),
+                                      title: Row(
+                                        children: [
+                                          Text('I agree to ' ,
+                                            style: GoogleFonts.roboto(
+                                              textStyle: TextStyle(
+                                                  color: HexColor('454545'),
+                                                  fontSize: 14.5,
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+
+                                              Get.to(termsOfService());
+                                            },
+                                            child: Text(
+                                              'Terms of Service',
+                                              style: GoogleFonts.roboto(
+                                                textStyle: TextStyle(
+                                                  color: HexColor('#4D8D6E'),
+                                                  fontSize: 15.5,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                            style: TextButton.styleFrom(
+                                              padding: EdgeInsets.zero, // Removes padding
+                                              minimumSize: Size.zero, // Sets the minimum size to zero
+                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Reduces the tap target size
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      onChanged: (bool? value) {
+                                        setState(() {
+                                          _isCheckedterm = value!;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+
+                              SizedBox(
+                                height: ScreenUtil.sizeboxheight,
+                              ),
                               Center(
                                 child: _isLoading
                                     ? Center(
@@ -1550,9 +1612,20 @@ bool charater8 =false;
                                         if (_formKey.currentState!.validate()) {
                                           if (selectedLanguages.isNotEmpty) {
                                             if (addressLineController.text.isNotEmpty) {
-                                              _registerClient();
+                                              _isCheckedterm ?
+                                              _registerClient() :
+                                              HapticFeedback.vibrate(); // Trigger haptic feedback
+
+                                              Fluttertoast.showToast(
+                                                msg: "Please agree to the Terms of Service",
+                                                toastLength: Toast.LENGTH_LONG,
+                                                gravity: ToastGravity.CENTER,
+                                                timeInSecForIosWeb: 1,
+                                                textColor: Colors.red,
+                                                fontSize: 16.0,
+                                              );
                                             } else {
-                                              Fluttertoast.showToast(msg: "Please fill  the address.");
+                                              Fluttertoast.showToast(msg: "Please fill in the address.");
                                             }
                                           } else {
                                             Fluttertoast.showToast(msg: "Please select a language.");
@@ -1560,7 +1633,6 @@ bool charater8 =false;
                                         } else {
                                           Fluttertoast.showToast(msg: "Please fill in all required fields.");
                                         }
-
                                       },
                                     ),
                                   ],

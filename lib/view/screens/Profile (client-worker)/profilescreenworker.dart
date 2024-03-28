@@ -38,6 +38,7 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
 
   File? _image;
   final GlobalKey<State> _dialogprofileworkerKey = GlobalKey<State>();
+  bool _isLoadinglicense = true;
 
   String firstname = '';
   String paypal = '';
@@ -341,7 +342,7 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
       statusBarColor: HexColor('4D8D6E'),
       // Change this color to the desired one
       statusBarIconBrightness:
-      Brightness.dark, // Change the status bar icons' color (dark or light)
+      Brightness.light, // Change the status bar icons' color (dark or light)
     ));
     return BlurryModalProgressHUD(
       inAsyncCall: _isLoading,
@@ -960,8 +961,31 @@ class _ProfileScreenworkerState extends State<ProfileScreenworker> {
                                               width: 200, // Set your preferred width
                                               height: 200, // Set your preferred height
                                               child: (license_pic.isNotEmpty && license_pic != "https://workdonecorp.com/images/")
-                                                  ? Image.network(license_pic, fit: BoxFit.contain)
-                                                  : Image.network('https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png', fit: BoxFit.contain),
+                                                  ? Image.network(
+                                                license_pic,
+                                                fit: BoxFit.contain,
+                                                loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                                  if (loadingProgress == null) return child;
+                                                  return Center(
+                                                    child: CircularProgressIndicator(
+                                                      color: HexColor('#4D8D6E') ,
+                                                      value: loadingProgress.expectedTotalBytes != null
+                                                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                          : null,
+                                                    ),
+                                                  );
+                                                },
+                                                errorBuilder: (context, exception, stackTrace) {
+                                                  return Image.network(
+                                                    'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
+                                                    fit: BoxFit.contain,
+                                                  );
+                                                },
+                                              )
+                                                  : Image.network(
+                                                'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png',
+                                                fit: BoxFit.contain,
+                                              ),
                                             ),
                                           ),
                                           SizedBox(height: 10),

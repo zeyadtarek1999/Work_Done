@@ -968,7 +968,10 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
 
-                        return Icon(Ionicons.notifications, size: 26); // Show a loading indicator while waiting for data
+                        return GestureDetector(child: Icon(Ionicons.notifications, size: 26),
+                          onTap: () {
+                            Get.to(NotificationsPageclient());
+                          },); // Show a loading indicator while waiting for data
                       } else if (snapshot.hasData && snapshot.data!.exists) {
                         // Check if 'notifications' field exists and is not null
                         if (snapshot.data!['notifications'] != null) {
@@ -1004,11 +1007,17 @@ class _HomeclientState extends State<Homeclient> with SingleTickerProviderStateM
 
                         } else {
                           // Handle the case where 'notifications' field does not exist
-                          return Icon(Ionicons.notifications, size: 26); // Show a loading indicator while waiting for data
+                          return GestureDetector(child: Icon(Ionicons.notifications, size: 26),
+                            onTap: () {
+                              Get.to(NotificationsPageclient());
+                            },);  // Show a loading indicator while waiting for data
                         }
                       } else {
                         // Handle the case where the document does not exist
-                        return Icon(Ionicons.notifications, size: 26); // Show a loading indicator while waiting for data
+                        return GestureDetector(child: Icon(Ionicons.notifications, size: 26),
+                          onTap: () {
+                            Get.to(NotificationsPageclient());
+                          },);  // Show a loading indicator while waiting for data
                       }
                     },
                   ),

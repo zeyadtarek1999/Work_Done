@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
+import 'package:workdone/view/screens/Termsandconditions/termsofservice.dart';
 
 import '../../model/Register_workerModel.dart';
 import '../../model/mediaquery.dart';
@@ -34,7 +35,6 @@ class _SignUpScreenState extends State<SignUpScreen>
   final _formKey = GlobalKey<FormState>();
   final formkeyaddress = GlobalKey<FormState>();
 
-
   List<Map<String, dynamic>> languages = [];
   List<Map<String, dynamic>> jobtypes = [];
   List<int> selectedLanguages = [];
@@ -42,9 +42,10 @@ class _SignUpScreenState extends State<SignUpScreen>
   List<int> selectedJobtype = [];
   List<String> selectedJobtypenames = [];
 
-
+  bool _isCheckedterm = false;
   bool isSearchBarVisible = false;
   bool isSearchBarVisible2 = false;
+
   Future<void> Languagedata() async {
     const String url = "https://workdonecorp.com/api/get_all_languages";
 
@@ -58,7 +59,9 @@ class _SignUpScreenState extends State<SignUpScreen>
         // Process the fetched language data as needed
         print(data);
         setState(() {
-          languages = data.map((lang) => {'id': lang['id'], 'name': lang['name']}).toList();
+          languages = data
+              .map((lang) => {'id': lang['id'], 'name': lang['name']})
+              .toList();
           filteredLanguages = languages;
         });
       } else {
@@ -68,6 +71,7 @@ class _SignUpScreenState extends State<SignUpScreen>
       print('Error: ${response.statusCode}');
     }
   }
+
   Future<void> Jobtypesdata() async {
     const String url = "https://workdonecorp.com/api/get_all_project_types";
 
@@ -81,7 +85,9 @@ class _SignUpScreenState extends State<SignUpScreen>
         // Process the fetched language data as needed
         print('Job types data   $data');
         setState(() {
-          jobtypes = data.map((job) => {'id': job['id'], 'name': job['name']}).toList();
+          jobtypes = data
+              .map((job) => {'id': job['id'], 'name': job['name']})
+              .toList();
           filteredJobtypes = jobtypes;
         });
       } else {
@@ -218,7 +224,6 @@ class _SignUpScreenState extends State<SignUpScreen>
 
   List<String> americanPhoneCodes = [
     '+1',
-
   ]; // Add more if needed
   String formatPhoneNumber(String input) {
     if (input.isEmpty) return '';
@@ -269,6 +274,7 @@ class _SignUpScreenState extends State<SignUpScreen>
   List<Map<String, dynamic>> filteredJobtypes = [];
 
   final TextEditingController phoneNumberController = TextEditingController();
+
   // final TextEditingController paypalcontroller = TextEditingController();
   final firstnameController = TextEditingController();
   final lastnameController = TextEditingController();
@@ -401,8 +407,9 @@ class _SignUpScreenState extends State<SignUpScreen>
   }
 
   late String _selectedRadio;
- late String languagesString;
- late String JobtypeString;
+  late String languagesString;
+  late String JobtypeString;
+
   @override
   void initState() {
     super.initState();
@@ -416,7 +423,6 @@ class _SignUpScreenState extends State<SignUpScreen>
     _selectedRadio = ''; // You can set a default value if needed
     languagesString = selectedLanguagesname.join(', ');
     JobtypeString = selectedJobtypenames.join(', ');
-
   }
 
   void _togglePasswordVisibility() {
@@ -439,17 +445,16 @@ class _SignUpScreenState extends State<SignUpScreen>
 
   RxBool _isChecked = false.obs;
 
-
   bool _validateForm() {
     if (firstnameController.text.isEmpty ||
-        lastnameController.text.isEmpty ||
-        emailController2.text.isEmpty ||
-        passwordController.text.isEmpty ||
-        phoneNumberController.text.isEmpty ||
-        // selectedLanguage.isEmpty ||
-        expyearcontroller.text.isEmpty
+            lastnameController.text.isEmpty ||
+            emailController2.text.isEmpty ||
+            passwordController.text.isEmpty ||
+            phoneNumberController.text.isEmpty ||
+            // selectedLanguage.isEmpty ||
+            expyearcontroller.text.isEmpty
         // paypalcontroller.text.isEmpty
-    ) {
+        ) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please fill in all fields'),
@@ -474,15 +479,19 @@ class _SignUpScreenState extends State<SignUpScreen>
     String password = passwordController.text;
     String phone = phoneNumberController.text;
 
-    String experience = expyearcontroller.text.isEmpty ? 'No Experience year' : expyearcontroller.text;
+    String experience = expyearcontroller.text.isEmpty
+        ? 'No Experience year'
+        : expyearcontroller.text;
     String licenseNumber = licenseController.text;
     String street1 = addressLineController.text;
-    String street2 = addressst2Controller.text.isEmpty || addressst2Controller.text == '' ? 'No addressline 2' : addressst2Controller.text;
+    String street2 =
+        addressst2Controller.text.isEmpty || addressst2Controller.text == ''
+            ? 'No addressline 2'
+            : addressst2Controller.text;
     String city = cityController.text;
     String state = selectedState;
     String address_zip = zipcodeController.text;
     // String paypal = paypalcontroller.text;
-
 
     print(firstName);
     print(lastName);
@@ -497,7 +506,8 @@ class _SignUpScreenState extends State<SignUpScreen>
     print(state);
     print(address_zip);
     // print(paypal);
-    print('selected languages ${selectedLanguages}'); // Print the selected language IDs
+    print(
+        'selected languages ${selectedLanguages}'); // Print the selected language IDs
 
     // Show the circular progress indicator
     setState(() {
@@ -523,7 +533,8 @@ class _SignUpScreenState extends State<SignUpScreen>
 
         addressZip: address_zip,
         licenseNumber: licenseNumber,
-        licensePic: _image?.path, // Use null-aware operator to avoid null errors
+        licensePic:
+            _image?.path, // Use null-aware operator to avoid null errors
       );
 
       print('Registration Response: $registrationResponse');
@@ -551,7 +562,8 @@ class _SignUpScreenState extends State<SignUpScreen>
 
         Get.offAll(
           OnBoardingWorker(),
-          transition: Transition.fadeIn, // You can choose a different transition
+          transition: Transition.fadeIn,
+          // You can choose a different transition
           duration: Duration(milliseconds: 700),
           fullscreenDialog: true,
         );
@@ -595,14 +607,15 @@ class _SignUpScreenState extends State<SignUpScreen>
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor:         HexColor('4d8d6e'),
+      statusBarColor: HexColor('4d8d6e'),
 
       // Change this color to the desired one
       statusBarIconBrightness:
-      Brightness.dark, // Change the status bar icons' color (dark or light)
+          Brightness.dark, // Change the status bar icons' color (dark or light)
     ));
     double buttonscreenwidth = ScreenUtil.screenWidth! * 0.75;
     Size size = MediaQuery.of(context).size;
@@ -634,7 +647,7 @@ class _SignUpScreenState extends State<SignUpScreen>
       addresstext += ' ';
     }
     if (selectedState != 'Select State') {
-      addresstext += selectedState ;
+      addresstext += selectedState;
       addresstext += '';
     }
 
@@ -651,7 +664,8 @@ class _SignUpScreenState extends State<SignUpScreen>
         child: BlurryModalProgressHUD(
           inAsyncCall: _isLoading,
           blurEffectIntensity: 7,
-          progressIndicator: Center(child: RotationTransition(
+          progressIndicator: Center(
+              child: RotationTransition(
             turns: ciruclaranimation,
             child: SvgPicture.asset(
               'assets/images/Logo.svg',
@@ -660,8 +674,6 @@ class _SignUpScreenState extends State<SignUpScreen>
               height: 80,
             ),
           )),
-
-
           dismissible: false,
           opacity: 0.4,
           child: Scaffold(
@@ -741,12 +753,13 @@ class _SignUpScreenState extends State<SignUpScreen>
                                                 color: Colors.red,
                                                 fontSize: 12,
                                               ),
-                                              counterText: "", // Hide the counter
+                                              counterText:
+                                                  "", // Hide the counter
 
                                               // Remove default border
                                             ),
-                                            maxLength: 12, // Limit the input to 12 characters
-
+                                            maxLength:
+                                                12, // Limit the input to 12 characters
                                           ),
                                         ),
                                       ],
@@ -799,12 +812,13 @@ class _SignUpScreenState extends State<SignUpScreen>
 
                                               // Replace with the desired hint text
                                               border: InputBorder.none,
-                                              counterText: "", // Hide the counter
+                                              counterText:
+                                                  "", // Hide the counter
 
                                               // Remove default border
                                             ),
-                                            maxLength: 12, // Limit the input to 12 characters
-
+                                            maxLength:
+                                                12, // Limit the input to 12 characters
                                           ),
                                         ),
                                       ),
@@ -869,14 +883,16 @@ class _SignUpScreenState extends State<SignUpScreen>
                                                       TextInputType.text,
                                                   enabled: !noLicenseAvailable,
                                                   decoration: InputDecoration(
-                                                      hintText: 'License Number',
+                                                      hintText:
+                                                          'License Number',
                                                       contentPadding:
                                                           EdgeInsets.all(0),
                                                       border: InputBorder.none,
                                                       icon: Icon(
                                                         FontAwesomeIcons
                                                             .solidIdCard,
-                                                        color: HexColor('4D8D6E'),
+                                                        color:
+                                                            HexColor('4D8D6E'),
                                                       )),
                                                 ),
                                               ),
@@ -898,111 +914,124 @@ class _SignUpScreenState extends State<SignUpScreen>
                                     SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
                                               // Replace TextFormField with your widget
                                               Text('Licence image ',
                                                   style: TextStyle(
                                                       color: Colors.black45,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       fontSize: 14)),
 
                                               SizedBox(width: 5),
                                               Visibility(
-                                                visible: _image == null,
-          child: SizedBox(width: 15,)),
+                                                  visible: _image == null,
+                                                  child: SizedBox(
+                                                    width: 15,
+                                                  )),
                                               ElevatedButton(
-                                                onPressed: noPhotoAvailable ||
-                                                        noLicenseAvailable
-                                                    ? null
-                                                    : () async {
-                                                        final action =
-                                                            await showDialog<
-                                                                String>(
-                                                          context: context,
-                                                          builder: (BuildContext
-                                                              context) {
-                                                            return AlertDialog(
-                                                              title: Text(
-                                                                  'Choose an option'),
-                                                              content: Column(
-                                                                mainAxisSize:
-                                                                    MainAxisSize
-                                                                        .min,
-                                                                children: [
-                                                                  ListTile(
-                                                                    leading: Icon(
-                                                                        Icons
-                                                                            .image),
-                                                                    title: Text(
-                                                                        'Gallery'),
-                                                                    onTap: () {
-                                                                      Navigator.pop(
-                                                                          context,
-                                                                          'gallery');
-                                                                    },
+                                                onPressed:
+                                                    noPhotoAvailable ||
+                                                            noLicenseAvailable
+                                                        ? null
+                                                        : () async {
+                                                            final action =
+                                                                await showDialog<
+                                                                    String>(
+                                                              context: context,
+                                                              builder:
+                                                                  (BuildContext
+                                                                      context) {
+                                                                return AlertDialog(
+                                                                  title: Text(
+                                                                      'Choose an option'),
+                                                                  content:
+                                                                      Column(
+                                                                    mainAxisSize:
+                                                                        MainAxisSize
+                                                                            .min,
+                                                                    children: [
+                                                                      ListTile(
+                                                                        leading:
+                                                                            Icon(Icons.image),
+                                                                        title: Text(
+                                                                            'Gallery'),
+                                                                        onTap:
+                                                                            () {
+                                                                          Navigator.pop(
+                                                                              context,
+                                                                              'gallery');
+                                                                        },
+                                                                      ),
+                                                                      ListTile(
+                                                                        leading:
+                                                                            Icon(Icons.camera),
+                                                                        title: Text(
+                                                                            'Camera'),
+                                                                        onTap:
+                                                                            () {
+                                                                          Navigator.pop(
+                                                                              context,
+                                                                              'camera');
+                                                                        },
+                                                                      ),
+                                                                    ],
                                                                   ),
-                                                                  ListTile(
-                                                                    leading: Icon(
-                                                                        Icons
-                                                                            .camera),
-                                                                    title: Text(
-                                                                        'Camera'),
-                                                                    onTap: () {
-                                                                      Navigator.pop(
-                                                                          context,
-                                                                          'camera');
-                                                                    },
-                                                                  ),
-                                                                ],
-                                                              ),
+                                                                );
+                                                              },
                                                             );
-                                                          },
-                                                        );
 
-                                                        if (action == 'gallery') {
-                                                          final pickedImage =
-                                                              await ImagePicker()
-                                                                  .pickImage(
-                                                            source: ImageSource
-                                                                .gallery,
-                                                          );
-                                                          if (pickedImage !=
-                                                              null) {
-                                                            setState(() {
-                                                              _image = File(
-                                                                  pickedImage
-                                                                      .path);
-                                                            });
-                                                          }
-                                                        } else if (action ==
-                                                            'camera') {
-                                                          final pickedImage =
-                                                              await ImagePicker()
-                                                                  .pickImage(
-                                                            source: ImageSource
-                                                                .camera,
-                                                          );
-                                                          if (pickedImage !=
-                                                              null) {
-                                                            setState(() {
-                                                              _image = File(
-                                                                  pickedImage
-                                                                      .path);
-                                                            });
-                                                          }
-                                                        }
-                                                      },
+                                                            if (action ==
+                                                                'gallery') {
+                                                              final pickedImage =
+                                                                  await ImagePicker()
+                                                                      .pickImage(
+                                                                source:
+                                                                    ImageSource
+                                                                        .gallery,
+                                                              );
+                                                              if (pickedImage !=
+                                                                  null) {
+                                                                setState(() {
+                                                                  _image = File(
+                                                                      pickedImage
+                                                                          .path);
+                                                                });
+                                                              }
+                                                            } else if (action ==
+                                                                'camera') {
+                                                              final pickedImage =
+                                                                  await ImagePicker()
+                                                                      .pickImage(
+                                                                source:
+                                                                    ImageSource
+                                                                        .camera,
+                                                              );
+                                                              if (pickedImage !=
+                                                                  null) {
+                                                                setState(() {
+                                                                  _image = File(
+                                                                      pickedImage
+                                                                          .path);
+                                                                });
+                                                              }
+                                                            }
+                                                          },
                                                 style: ElevatedButton.styleFrom(
-                                                 backgroundColor: HexColor('4D8D6E'),
-                                                 foregroundColor: Colors.white,
+                                                  backgroundColor:
+                                                      HexColor('4D8D6E'),
+                                                  foregroundColor: Colors.white,
                                                   minimumSize: Size(30, 40),
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius:
-                                                        BorderRadius.circular(12),
+                                                        BorderRadius.circular(
+                                                            12),
                                                   ),
                                                 ),
                                                 child: Text(
@@ -1014,7 +1043,9 @@ class _SignUpScreenState extends State<SignUpScreen>
                                               ),
                                               Visibility(
                                                   visible: _image == null,
-                                                  child: SizedBox(width: 15,)),
+                                                  child: SizedBox(
+                                                    width: 15,
+                                                  )),
                                               SizedBox(width: 10),
                                               GestureDetector(
                                                 onTap: noPhotoAvailable ||
@@ -1022,14 +1053,17 @@ class _SignUpScreenState extends State<SignUpScreen>
                                                     ? null
                                                     : () {
                                                         if (_image == null) {
-                                                          Fluttertoast.showToast(
+                                                          Fluttertoast
+                                                              .showToast(
                                                             msg:
                                                                 "Please select an License Photo",
                                                             toastLength: Toast
                                                                 .LENGTH_SHORT,
-                                                            gravity: ToastGravity
-                                                                .CENTER,
-                                                            timeInSecForIosWeb: 1,
+                                                            gravity:
+                                                                ToastGravity
+                                                                    .CENTER,
+                                                            timeInSecForIosWeb:
+                                                                1,
                                                             backgroundColor:
                                                                 Colors.red,
                                                             textColor:
@@ -1053,9 +1087,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                                                   height: 50,
                                                   decoration: BoxDecoration(
                                                     borderRadius:
-                                                        BorderRadius.circular(8),
+                                                        BorderRadius.circular(
+                                                            8),
                                                     border: Border.all(
-                                                        color: HexColor('4D8D6E'),
+                                                        color:
+                                                            HexColor('4D8D6E'),
                                                         width: 1),
                                                   ),
                                                   child: _image != null
@@ -1089,7 +1125,6 @@ class _SignUpScreenState extends State<SignUpScreen>
                                                   },
                                                 ),
                                               ),
-
                                             ],
                                           ),
                                         ],
@@ -1102,52 +1137,55 @@ class _SignUpScreenState extends State<SignUpScreen>
                                       height: 1,
                                       color: Colors.grey[300],
                                     ),
-                                    _image == null ?
-                                      Row(
-                                      children: [
-                                        Checkbox(
-
-                                          activeColor: HexColor('4D8D6E'),
-
-                                          value: noPhotoAvailable,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              noPhotoAvailable = value!;
-                                            });
-                                          },
-                                        ),
-                                        Text(
-                                          'No photo available',
-                                          style: TextStyle(
-                                            color: Colors.black54,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                      ],
-                                    ):
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.check_box_outline_blank ,color: _image == null ?
-                                          Colors.black45 : Colors.grey,),
-                                          SizedBox(width: 8,),
-
-                                          Text(
-                                            'No photo available',
-                                            style: TextStyle(
-                                              color:  _image == null ?
-                                              Colors.black45 : Colors.grey,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 15,
+                                    _image == null
+                                        ? Row(
+                                            children: [
+                                              Checkbox(
+                                                activeColor: HexColor('4D8D6E'),
+                                                value: noPhotoAvailable,
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    noPhotoAvailable = value!;
+                                                  });
+                                                },
+                                              ),
+                                              Text(
+                                                'No photo available',
+                                                style: TextStyle(
+                                                  color: Colors.black54,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        : Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 10.0),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.check_box_outline_blank,
+                                                  color: _image == null
+                                                      ? Colors.black45
+                                                      : Colors.grey,
+                                                ),
+                                                SizedBox(
+                                                  width: 8,
+                                                ),
+                                                Text(
+                                                  'No photo available',
+                                                  style: TextStyle(
+                                                    color: _image == null
+                                                        ? Colors.black45
+                                                        : Colors.grey,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                    )
-                                    ,
                                     SizedBox(
                                       height: 5,
                                     ),
@@ -1155,50 +1193,56 @@ class _SignUpScreenState extends State<SignUpScreen>
                                       height: 1,
                                       color: Colors.grey[300],
                                     ),
-                                    _image == null ?
-
-                                      Row(children: [
-                                      Checkbox(
-                                        activeColor: HexColor('4D8D6E'),
-                                        value: noLicenseAvailable,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            noLicenseAvailable = value!;
-                                            if (value) {
-                                              // Clear license number and image if "No license available" is checked
-                                              licenseController.clear();
-                                              _image = null;
-                                            }
-                                          });
-                                        },
-                                      ),
-                                      Text(
-                                        'No License Available',
-                                        style: TextStyle(
-                                          color: Colors.black54,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                    ]):
-                                    Padding(
-                                      padding: const EdgeInsets.only(top:10.0),
-                                      child: Row(children: [
-                                      Icon(Icons.check_box_outline_blank ,color: _image == null ?
-                                      Colors.black45 : Colors.grey,),
-SizedBox(width: 8,),
-                                        Text(
-                                          'No License Available',
-                                          style: TextStyle(
-                                            color: _image == null ?
-                                            Colors.black45 : Colors.grey,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
+                                    _image == null
+                                        ? Row(children: [
+                                            Checkbox(
+                                              activeColor: HexColor('4D8D6E'),
+                                              value: noLicenseAvailable,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  noLicenseAvailable = value!;
+                                                  if (value) {
+                                                    // Clear license number and image if "No license available" is checked
+                                                    licenseController.clear();
+                                                    _image = null;
+                                                  }
+                                                });
+                                              },
+                                            ),
+                                            Text(
+                                              'No License Available',
+                                              style: TextStyle(
+                                                color: Colors.black54,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15,
+                                              ),
+                                            ),
+                                          ])
+                                        : Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 10.0),
+                                            child: Row(children: [
+                                              Icon(
+                                                Icons.check_box_outline_blank,
+                                                color: _image == null
+                                                    ? Colors.black45
+                                                    : Colors.grey,
+                                              ),
+                                              SizedBox(
+                                                width: 8,
+                                              ),
+                                              Text(
+                                                'No License Available',
+                                                style: TextStyle(
+                                                  color: _image == null
+                                                      ? Colors.black45
+                                                      : Colors.grey,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                            ]),
                                           ),
-                                        ),
-                                      ]),
-                                    )
-                                    ,
                                     SizedBox(
                                       height: 5,
                                     ),
@@ -1283,7 +1327,8 @@ SizedBox(width: 8,),
                                                     mainAxisSize:
                                                         MainAxisSize.min,
                                                     crossAxisAlignment:
-                                                        CrossAxisAlignment.start,
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
                                                       Row(
                                                         mainAxisAlignment:
@@ -1557,9 +1602,11 @@ SizedBox(width: 8,),
                                                                   color: Colors
                                                                       .white),
                                                             ),
-                                                            style: ElevatedButton
-                                                                .styleFrom(
-                                                             backgroundColor: Colors.red,
+                                                            style:
+                                                                ElevatedButton
+                                                                    .styleFrom(
+                                                              backgroundColor:
+                                                                  Colors.red,
                                                             ),
                                                           ),
                                                           SizedBox(
@@ -1580,8 +1627,8 @@ SizedBox(width: 8,),
                                                                 Navigator.pop(
                                                                     context);
                                                               } else {
-                                                                ScaffoldMessenger
-                                                                        .of(context)
+                                                                ScaffoldMessenger.of(
+                                                                        context)
                                                                     .showSnackBar(
                                                                   SnackBar(
                                                                     content: Text(
@@ -1599,10 +1646,12 @@ SizedBox(width: 8,),
                                                                   color: Colors
                                                                       .white),
                                                             ),
-                                                            style: ElevatedButton
-                                                                .styleFrom(
-                                                             backgroundColor: HexColor(
-                                                                  '#4D8D6E'),
+                                                            style:
+                                                                ElevatedButton
+                                                                    .styleFrom(
+                                                              backgroundColor:
+                                                                  HexColor(
+                                                                      '#4D8D6E'),
                                                             ),
                                                           ),
                                                         ],
@@ -1650,7 +1699,8 @@ SizedBox(width: 8,),
                                           width: 8,
                                         ),
                                         if (_isFormFilled == true)
-                                          Icon(Icons.check, color: Colors.green),
+                                          Icon(Icons.check,
+                                              color: Colors.green),
                                       ],
                                     ),
                                   ),
@@ -1719,283 +1769,337 @@ SizedBox(width: 8,),
                               ),
                               SingleChildScrollView(
                                   child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
                                       children: [
-                                        GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              isLanguageListVisible = !isLanguageListVisible;
-                                              isSearchBarVisible = isLanguageListVisible;
-                                              // Remove the condition to update filteredLanguages regardless of the search bar visibility
-                                              filteredLanguages = languages;
-                                            });
-                                          },
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 20,
-                                              vertical: 5,
-                                            ),
-                                            height: size.height * 0.09,
-                                            width: size.width * 0.93,
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey[200],
-                                              borderRadius: BorderRadius.circular(29),
-                                            ),
-                                            child:Row(
-                                              children: [
-                                                Icon(Icons.language),
-                                                SizedBox(width: 10),
-                                                Expanded(
-                                                  child: Text(
-                                                    languagesString.isEmpty?
-                                                    'Select Language' : '${languagesString}',
-                                                    style: TextStyle(
-                                                        fontSize: 16, color: Colors.grey[700]),
-                                                    maxLines: 1, // Limit the number of lines to 1
-
-                                                    overflow: TextOverflow.ellipsis, // Add this to handle long text
-                                                                                              
-                                                  ),
-                                                ),
-                                                Icon(
-                                                  isLanguageListVisible
-                                                      ? Icons.arrow_drop_up
-                                                      : Icons.arrow_drop_down,
-                                                  size: 18,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          isLanguageListVisible =
+                                              !isLanguageListVisible;
+                                          isSearchBarVisible =
+                                              isLanguageListVisible;
+                                          // Remove the condition to update filteredLanguages regardless of the search bar visibility
+                                          filteredLanguages = languages;
+                                        });
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 20,
+                                          vertical: 5,
                                         ),
+                                        height: size.height * 0.09,
+                                        width: size.width * 0.93,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[200],
+                                          borderRadius:
+                                              BorderRadius.circular(29),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.language),
+                                            SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                languagesString.isEmpty
+                                                    ? 'Select Language'
+                                                    : '${languagesString}',
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.grey[700]),
+                                                maxLines: 1,
+                                                // Limit the number of lines to 1
 
-                                        // Validation error message
-                                        if (isLanguageListVisible && selectedLanguages.isEmpty)
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 19.0,vertical: 10),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Please select a language',
-                                                  style: TextStyle(color: Colors.red),
-                                                ),
-                                              ],
+                                                overflow: TextOverflow
+                                                    .ellipsis, // Add this to handle long text
+                                              ),
                                             ),
-                                          ),
+                                            Icon(
+                                              isLanguageListVisible
+                                                  ? Icons.arrow_drop_up
+                                                  : Icons.arrow_drop_down,
+                                              size: 18,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
 
-                                        // Search bar
-                                        Visibility(
-                                          visible: isSearchBarVisible,
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                            child: TextField(
-                                              onChanged: (query) {
-                                                setState(() {
-                                                  filteredLanguages = languages
-                                                      .where((language) =>
+                                    // Validation error message
+                                    if (isLanguageListVisible &&
+                                        selectedLanguages.isEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 19.0, vertical: 10),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Please select a language',
+                                              style:
+                                                  TextStyle(color: Colors.red),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                    // Search bar
+                                    Visibility(
+                                      visible: isSearchBarVisible,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 8),
+                                        child: TextField(
+                                          onChanged: (query) {
+                                            setState(() {
+                                              filteredLanguages = languages
+                                                  .where((language) =>
                                                       language['name']
                                                           .toLowerCase()
-                                                          .contains(query.toLowerCase()))
-                                                      .toList();
-                                                });
-                                              },
-
-
-                                              decoration: InputDecoration(
-                                                hintText: 'Search languages...',
-                                                prefixIcon: Icon(Icons.search),
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-
-                                        // List of filtered languages
-                                        Visibility(
-                                          visible: isLanguageListVisible,
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: filteredLanguages.map((language) {
-                                              final langName = language['name'];
-                                              final langId = language['id'];
-                                              languagesString = selectedLanguagesname.join(', ');
-
-                                              return Column(
-                                                children: [
-                                                  ListTile(
-                                                    title: Text(langName),
-                                                    leading: Checkbox(
-                                                      activeColor: HexColor('#4D8D6E'),
-                                                      value: selectedLanguages.contains(langId),
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          if (value!) {
-                                                            selectedLanguages.add(langId);
-                                                            selectedLanguagesname.add((langName));
-                                                            languagesString = selectedLanguagesname.join(', ');
-
-                                                            print('selected languages add ${selectedLanguages}'); // Print the selected language IDs
-                                                          } else {
-                                                            print('selected languages remove ${selectedLanguages}'); // Print the selected language IDs
-                                                            selectedLanguages.remove(langId);
-                                                            selectedLanguagesname.remove((langName));
-                                                            languagesString = selectedLanguagesname.join(', ');
-
-                                                          }
-                                                        });
-                                                      },
-                                                    ),
-                                                  ),
-                                                  Divider(),
-                                                ],
-                                              );
-                                            }).toList(),
-                                          ),
-                                        )
-                                      ])),
-                              SizedBox(
-                                height: ScreenUtil.sizeboxheight,
-                              ),
-
-                              SingleChildScrollView(
-                                  child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              isJobTypeListVisible = !isJobTypeListVisible;
-                                              isSearchBarVisible2 = isJobTypeListVisible;
-                                              // Remove the condition to update filteredLanguages regardless of the search bar visibility
-                                              filteredJobtypes = jobtypes;
+                                                          .contains(query
+                                                              .toLowerCase()))
+                                                  .toList();
                                             });
                                           },
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 20,
-                                              vertical: 5,
-                                            ),
-                                            height: size.height * 0.09,
-                                            width: size.width * 0.93,
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey[200],
-                                              borderRadius: BorderRadius.circular(29),
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.work),
-                                                SizedBox(width: 10),
-                                                Expanded(
-                                                  child: Text(
-                                                    JobtypeString.isEmpty ? 'Select Jobtype' : '${JobtypeString}',
-                                                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                                                    maxLines: 1, // Limit the number of lines to 1
-                                                    overflow: TextOverflow.ellipsis, // Add this to handle long text
-                                                  ),
-                                                ),
-                                                Icon(
-                                                  isJobTypeListVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                                                  size: 18,
-                                                ),
-                                              ],
+                                          decoration: InputDecoration(
+                                            hintText: 'Search languages...',
+                                            prefixIcon: Icon(Icons.search),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
                                             ),
                                           ),
                                         ),
+                                      ),
+                                    ),
 
-                                        // Validation error message
-                                        if (isJobTypeListVisible && selectedJobtype.isEmpty)
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 19.0,vertical: 10),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Please select a Job Type',
-                                                  style: TextStyle(color: Colors.red),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
+                                    // List of filtered languages
+                                    Visibility(
+                                      visible: isLanguageListVisible,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children:
+                                            filteredLanguages.map((language) {
+                                          final langName = language['name'];
+                                          final langId = language['id'];
+                                          languagesString =
+                                              selectedLanguagesname.join(', ');
 
-                                        // Search bar
-                                        Visibility(
-                                          visible: isSearchBarVisible2,
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                            child: TextField(
-                                              onChanged: (query) {
-                                                setState(() {
-                                                  filteredJobtypes = jobtypes
-                                                      .where((jobtype) =>
-                                                      jobtype['name']
-                                                          .toLowerCase()
-                                                          .contains(query.toLowerCase()))
-                                                      .toList();
-                                                });
-                                              },
+                                          return Column(
+                                            children: [
+                                              ListTile(
+                                                title: Text(langName),
+                                                leading: Checkbox(
+                                                  activeColor:
+                                                      HexColor('#4D8D6E'),
+                                                  value: selectedLanguages
+                                                      .contains(langId),
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      if (value!) {
+                                                        selectedLanguages
+                                                            .add(langId);
+                                                        selectedLanguagesname
+                                                            .add((langName));
+                                                        languagesString =
+                                                            selectedLanguagesname
+                                                                .join(', ');
 
-
-                                              decoration: InputDecoration(
-                                                hintText: 'Search JobTypes...',
-                                                prefixIcon: Icon(Icons.search),
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(10),
+                                                        print(
+                                                            'selected languages add ${selectedLanguages}'); // Print the selected language IDs
+                                                      } else {
+                                                        print(
+                                                            'selected languages remove ${selectedLanguages}'); // Print the selected language IDs
+                                                        selectedLanguages
+                                                            .remove(langId);
+                                                        selectedLanguagesname
+                                                            .remove((langName));
+                                                        languagesString =
+                                                            selectedLanguagesname
+                                                                .join(', ');
+                                                      }
+                                                    });
+                                                  },
                                                 ),
                                               ),
-                                            ),
-                                          ),
-                                        ),
-
-                                        // List of filtered languages
-                                        Visibility(
-                                          visible: isJobTypeListVisible,
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: filteredJobtypes.map((jobtype) {
-                                              final jobname = jobtype['name'];
-                                              final jobid = jobtype['id'];
-
-                                              return Column(
-                                                children: [
-                                                  ListTile(
-                                                    title: Text(jobname),
-                                                    leading: Checkbox(
-                                                      activeColor: HexColor('#4D8D6E'),
-                                                      value: selectedJobtype.contains(jobid),
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          if (value!) {
-                                                            selectedJobtype.add(jobid);
-                                                            selectedJobtypenames.add(jobname);
-
-                                                            JobtypeString = selectedJobtypenames.join(', ');
-
-                                                            print('selected jobtype add ${selectedJobtype}'); // Print the selected language IDs
-                                                          } else {
-                                                            print('selected jobtype remove ${selectedJobtype}'); // Print the selected language IDs
-                                                            selectedJobtype.remove(jobid);
-                                                            selectedJobtypenames.remove(jobname);
-
-                                                            JobtypeString = selectedJobtypenames.join(', ');
-
-                                                          }
-                                                        });
-                                                      },
-                                                    ),
-                                                  ),
-                                                  Divider(),
-                                                ],
-                                              );
-                                            }).toList(),
-                                          ),
-                                        )
-                                      ])),
+                                              Divider(),
+                                            ],
+                                          );
+                                        }).toList(),
+                                      ),
+                                    )
+                                  ])),
                               SizedBox(
                                 height: ScreenUtil.sizeboxheight,
                               ),
+                              SingleChildScrollView(
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          isJobTypeListVisible =
+                                              !isJobTypeListVisible;
+                                          isSearchBarVisible2 =
+                                              isJobTypeListVisible;
+                                          // Remove the condition to update filteredLanguages regardless of the search bar visibility
+                                          filteredJobtypes = jobtypes;
+                                        });
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 20,
+                                          vertical: 5,
+                                        ),
+                                        height: size.height * 0.09,
+                                        width: size.width * 0.93,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[200],
+                                          borderRadius:
+                                              BorderRadius.circular(29),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.work),
+                                            SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                JobtypeString.isEmpty
+                                                    ? 'Select Jobtype'
+                                                    : '${JobtypeString}',
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.grey[700]),
+                                                maxLines: 1,
+                                                // Limit the number of lines to 1
+                                                overflow: TextOverflow
+                                                    .ellipsis, // Add this to handle long text
+                                              ),
+                                            ),
+                                            Icon(
+                                              isJobTypeListVisible
+                                                  ? Icons.arrow_drop_up
+                                                  : Icons.arrow_drop_down,
+                                              size: 18,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
 
+                                    // Validation error message
+                                    if (isJobTypeListVisible &&
+                                        selectedJobtype.isEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 19.0, vertical: 10),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Please select a Job Type',
+                                              style:
+                                                  TextStyle(color: Colors.red),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                    // Search bar
+                                    Visibility(
+                                      visible: isSearchBarVisible2,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 8),
+                                        child: TextField(
+                                          onChanged: (query) {
+                                            setState(() {
+                                              filteredJobtypes = jobtypes
+                                                  .where((jobtype) =>
+                                                      jobtype['name']
+                                                          .toLowerCase()
+                                                          .contains(query
+                                                              .toLowerCase()))
+                                                  .toList();
+                                            });
+                                          },
+                                          decoration: InputDecoration(
+                                            hintText: 'Search JobTypes...',
+                                            prefixIcon: Icon(Icons.search),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    // List of filtered languages
+                                    Visibility(
+                                      visible: isJobTypeListVisible,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children:
+                                            filteredJobtypes.map((jobtype) {
+                                          final jobname = jobtype['name'];
+                                          final jobid = jobtype['id'];
+
+                                          return Column(
+                                            children: [
+                                              ListTile(
+                                                title: Text(jobname),
+                                                leading: Checkbox(
+                                                  activeColor:
+                                                      HexColor('#4D8D6E'),
+                                                  value: selectedJobtype
+                                                      .contains(jobid),
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      if (value!) {
+                                                        selectedJobtype
+                                                            .add(jobid);
+                                                        selectedJobtypenames
+                                                            .add(jobname);
+
+                                                        JobtypeString =
+                                                            selectedJobtypenames
+                                                                .join(', ');
+
+                                                        print(
+                                                            'selected jobtype add ${selectedJobtype}'); // Print the selected language IDs
+                                                      } else {
+                                                        print(
+                                                            'selected jobtype remove ${selectedJobtype}'); // Print the selected language IDs
+                                                        selectedJobtype
+                                                            .remove(jobid);
+                                                        selectedJobtypenames
+                                                            .remove(jobname);
+
+                                                        JobtypeString =
+                                                            selectedJobtypenames
+                                                                .join(', ');
+                                                      }
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                              Divider(),
+                                            ],
+                                          );
+                                        }).toList(),
+                                      ),
+                                    )
+                                  ])),
+                              SizedBox(
+                                height: ScreenUtil.sizeboxheight,
+                              ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 20, vertical: 5),
@@ -2018,15 +2122,15 @@ SizedBox(width: 8,),
                                       child: Row(
                                         children: [
                                           Container(
-
                                             decoration: BoxDecoration(
-
                                               color: Colors.grey[200],
-                                              borderRadius: BorderRadius.circular(5.0),
+                                              borderRadius:
+                                                  BorderRadius.circular(5.0),
                                             ),
                                             child: DecoratedBox(
                                               decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(5.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
                                               ),
                                               child: Row(
                                                 children: [
@@ -2038,7 +2142,11 @@ SizedBox(width: 8,),
                                                   SizedBox(width: 8),
                                                   Text(
                                                     '+1',
-                                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 15,
+                                                        color: Colors.black87),
                                                   ),
                                                 ],
                                               ),
@@ -2070,7 +2178,7 @@ SizedBox(width: 8,),
                                                                 formattedPhoneNumber
                                                                     .length),
                                                   );
-                                        // Add +1 prefix to the formatted phone number
+                                                  // Add +1 prefix to the formatted phone number
                                                   phoneNumberController.text =
                                                       '$formattedPhoneNumber';
 
@@ -2131,14 +2239,12 @@ SizedBox(width: 8,),
                                   ],
                                 ),
                               ),
-
                               SizedBox(
                                 height: ScreenUtil.sizeboxheight,
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,vertical: 5
-                                ),
+                                    horizontal: 20, vertical: 5),
                                 height: size.height * 0.09,
                                 width: size.width * 0.93,
                                 decoration: BoxDecoration(
@@ -2283,7 +2389,8 @@ SizedBox(width: 8,),
                                             // Apply the custom formatter
 
                                             keyboardType: TextInputType.text,
-                                            controller: confirmPasswordController,
+                                            controller:
+                                                confirmPasswordController,
                                             obscureText: _isObscured,
                                             onChanged: (value) {
                                               setState(() {
@@ -2310,7 +2417,8 @@ SizedBox(width: 8,),
                                                   : 'Passwords do not match',
 
                                               suffixIcon: GestureDetector(
-                                                onTap: _togglePasswordVisibility,
+                                                onTap:
+                                                    _togglePasswordVisibility,
                                                 // Call the _togglePasswordVisibility function here
                                                 child: Icon(
                                                   color: HexColor('#509372'),
@@ -2338,7 +2446,8 @@ SizedBox(width: 8,),
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         mainAxisAlignment:
@@ -2439,6 +2548,70 @@ SizedBox(width: 8,),
                               SizedBox(
                                 height: ScreenUtil.sizeboxheight,
                               ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    // Set the container color
+                                    borderRadius: BorderRadius.circular(
+                                        15), // Set the circular radius
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 15.0),
+                                    child: CheckboxListTile(
+                                      value: _isCheckedterm,
+                                      activeColor: HexColor('#4D8D6E'),
+                                      title: Row(
+                                        children: [
+                                          Text(
+                                            'I agree to ',
+                                            style: GoogleFonts.roboto(
+                                              textStyle: TextStyle(
+                                                  color: HexColor('454545'),
+                                                  fontSize: 14.5,
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Get.to(termsOfService());
+                                            },
+                                            child: Text(
+                                              'Terms of Service',
+                                              style: GoogleFonts.roboto(
+                                                textStyle: TextStyle(
+                                                  color: HexColor('#4D8D6E'),
+                                                  fontSize: 15.5,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                            style: TextButton.styleFrom(
+                                              padding: EdgeInsets.zero,
+                                              // Removes padding
+                                              minimumSize: Size.zero,
+                                              // Sets the minimum size to zero
+                                              tapTargetSize: MaterialTapTargetSize
+                                                  .shrinkWrap, // Reduces the tap target size
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      onChanged: (bool? value) {
+                                        setState(() {
+                                          _isCheckedterm = value!;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: ScreenUtil.sizeboxheight,
+                              ),
                               Center(
                                 child: _isLoading
                                     ? Center(
@@ -2462,12 +2635,28 @@ SizedBox(width: 8,),
                                               press: () {
                                                 if (_formKey.currentState!
                                                     .validate()) {
-                                                  if (selectedLanguages.isNotEmpty) {
+                                                  if (selectedLanguages
+                                                      .isNotEmpty) {
                                                     if (addressLineController
                                                         .text.isNotEmpty) {
                                                       if (selectedJobtype !=
                                                           'Select JobType') {
-                                                        _registerWorker();
+                                                        _isCheckedterm
+                                                            ? _registerWorker()
+                                                            : HapticFeedback
+                                                                .vibrate(); // Trigger haptic feedback
+
+                                                        Fluttertoast.showToast(
+                                                          msg:
+                                                              "Please agree to the Terms of Service",
+                                                          toastLength:
+                                                              Toast.LENGTH_LONG,
+                                                          gravity: ToastGravity
+                                                              .CENTER,
+                                                          timeInSecForIosWeb: 1,
+                                                          textColor: Colors.red,
+                                                          fontSize: 16.0,
+                                                        );
                                                       } else {
                                                         Fluttertoast.showToast(
                                                             msg:

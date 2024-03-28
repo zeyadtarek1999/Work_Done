@@ -1071,7 +1071,12 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
 
-                          return Icon(Ionicons.notifications, size: 26); // Show a loading indicator while waiting for data
+                          return GestureDetector(
+                            child: Icon(Ionicons.notifications, size: 26),
+                            onTap: () {
+                              Get.to(NotificationsPageworker());
+                            },
+                          ); // Show a loading indicator while waiting for data
                         } else if (snapshot.hasData && snapshot.data!.exists) {
                           // Check if 'notifications' field exists and is not null
                           if (snapshot.data!['notifications'] != null) {
@@ -1095,7 +1100,7 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                                   child: GestureDetector(
                                     child: Icon(Ionicons.notifications, size: 26),
                                     onTap: () {
-                                      Get.to(NotificationsPageclient());
+                                      Get.to(NotificationsPageworker());
                                     },
                                   ),
                                 ),
@@ -1107,11 +1112,21 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
 
                           } else {
                             // Handle the case where 'notifications' field does not exist
-                            return Icon(Ionicons.notifications, size: 26); // Show a loading indicator while waiting for data
+                            return GestureDetector(
+                              child: Icon(Ionicons.notifications, size: 26),
+                              onTap: () {
+                                Get.to(NotificationsPageworker());
+                              },
+                            ); // Show a loading indicator while waiting for data
                           }
                         } else {
                           // Handle the case where the document does not exist
-                          return Icon(Ionicons.notifications, size: 26); // Show a loading indicator while waiting for data
+                          return GestureDetector(
+                            child: Icon(Ionicons.notifications, size: 26),
+                            onTap: () {
+                              Get.to(NotificationsPageworker());
+                            },
+                          ); // Show a loading indicator while waiting for data
                         }
                       },
                     ),
@@ -1140,16 +1155,44 @@ class _HomescreenworkerState extends State<Homescreenworker> with SingleTickerPr
                             duration: Duration(milliseconds: 500),
                           );
                         },
-                        child: CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.transparent,
-                          backgroundImage: profile_pic == '' || profile_pic.isEmpty
-                              || profile_pic == "https://workdonecorp.com/storage/" ||
-                              !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.transparent,
+                              backgroundImage: profile_pic == '' || profile_pic.isEmpty
+                                  || profile_pic == "https://workdonecorp.com/storage/" ||
+                                  !(profile_pic.toLowerCase().endsWith('.jpg') || profile_pic.toLowerCase().endsWith('.png'))
+                                  ? AssetImage('assets/images/default.png') as ImageProvider
+                                  : null, // Set to null to avoid showing the image immediately
+                            ),
+                            if (profile_pic != null && profile_pic.isNotEmpty)
+                              Image.network(
+                                profile_pic,
+                                loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                  if (loadingProgress == null) {
+                                    return child; // Return the image if it's fully loaded
+                                  } else {
+                                    return CircularProgressIndicator(
+                                      value: loadingProgress.expectedTotalBytes != null
+                                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                          : null,
+                                    );
+                                  }
+                                },
+                                errorBuilder: (context, exception, stackTrace) {
+                                  return CircleAvatar(
+                                    radius: 30,
+                                    backgroundColor: Colors.transparent,
+                                    backgroundImage: AssetImage('assets/images/default.png') as ImageProvider
+                                  ); // Show default image on error
+                                },
+                              ),
+                          ],
+                        )
 
-                              ? AssetImage('assets/images/default.png') as ImageProvider
-                              : NetworkImage(profile_pic?? 'assets/images/default.png'),
-                        ),
+
                       ),
                     )
                         : InkWell(

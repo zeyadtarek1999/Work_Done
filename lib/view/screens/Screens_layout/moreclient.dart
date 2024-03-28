@@ -11,6 +11,7 @@ import 'package:workdone/controller/MoreClientController.dart';
 import 'package:workdone/view/screens/Edit%20address.dart';
 import 'package:workdone/view/screens/Profile%20(client-worker)/profilescreenClient.dart';
 import 'package:workdone/view/screens/Support%20Screen/Support.dart';
+import 'package:workdone/view/screens/Termsandconditions/termsofservice.dart';
 import 'package:workdone/view/screens/homescreen/home%20screenClient.dart';
 import 'package:workdone/view/screens/notifications/notificationScreenclient.dart';
 import 'package:workdone/view/screens/welcome/welcome_screen.dart';
@@ -286,8 +287,27 @@ class _MoreclientState extends State<Moreclient> {
                     SizedBox(
                       height: 8,
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        TextButton(
+                            onPressed: () {                                              Get.to(termsOfService());
+                            },
+                            child: Text(
+                              'Terms of service',
+                              style: GoogleFonts.encodeSans(
+                                textStyle: TextStyle(
+                                    color: HexColor('454545'),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            )),
+
+                      ],
+                    ),
+
                     SizedBox(
-                      height: 8,
+                      height: 12,
                     ),
                     Row(
                       children: [

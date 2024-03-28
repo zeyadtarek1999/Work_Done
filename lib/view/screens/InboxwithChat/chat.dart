@@ -383,7 +383,7 @@ print('reciver tokern $receiverToken');
 print('reciver id $Reciver');
       // Send a notification to the receiver
       if (receiverToken != null) {
-        await sendNotification("Message from ${widget.myside_firstname} ($usertype)", "${content}", receiverToken);
+        await sendNotification("Message from ${widget.myside_firstname} ", "${content}", receiverToken);
         print('sended succerss');
       }
     } catch (e) {

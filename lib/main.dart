@@ -201,12 +201,16 @@ print ('token :: ${apnsToken}' ) ; }
         channelKey: 'postProject',
         channelName: 'basic notification',
         channelDescription: 'hello test only test',
+        importance: NotificationImportance.High,
+        defaultPrivacy: NotificationPrivacy.Public,
       ),
       NotificationChannel(
         channelGroupKey: 'basick group channel',
         channelKey: 'support',
         channelName: 'basic notification',
         channelDescription: 'hello test only test',
+        importance: NotificationImportance.High,
+        defaultPrivacy: NotificationPrivacy.Public,
       ),
       NotificationChannel(
         channelKey: 'background_channel',
@@ -220,6 +224,7 @@ print ('token :: ${apnsToken}' ) ; }
       NotificationChannelGroup(
         channelGroupKey: 'basic',
         channelGroupName: 'basic group',
+
       ),
     ],
   );

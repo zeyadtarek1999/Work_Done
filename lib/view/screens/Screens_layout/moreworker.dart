@@ -8,6 +8,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workdone/view/screens/Termsandconditions/termsofservice.dart';
 import 'package:workdone/view/screens/notifications/notificationscreenworker.dart';
 import '../Edit address.dart';
 import '../Payment Method/Payment_method.dart';
@@ -367,8 +368,27 @@ child: Icon(Icons.help ,color: Colors.white,), // Use the support icon
                   //         )),
                   //   ],
                   // ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      TextButton(
+                          onPressed: () {                                              Get.to(termsOfService());
+                          },
+                          child: Text(
+                            'Terms of service',
+                            style: GoogleFonts.encodeSans(
+                              textStyle: TextStyle(
+                                  color: HexColor('454545'),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          )),
+
+                    ],
+                  ),
+
                   SizedBox(
-                    height: 8,
+                    height: 12,
                   ),
                   Row(
                     children: [
